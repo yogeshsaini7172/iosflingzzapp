@@ -1,30 +1,30 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, Mail, Camera, UserCheck, Heart } from "lucide-react";
+import { CheckCircle, MessageSquare, Settings, Rocket, Trophy } from "lucide-react";
 
 const HowItWorks = () => {
   const steps = [
     {
-      icon: Mail,
-      title: "Sign Up & Verify",
-      description: "Create your account and verify with your college .edu email address.",
+      icon: MessageSquare,
+      title: "Consultation",
+      description: "We start with a detailed consultation to understand your business needs and goals.",
       step: "01"
     },
     {
-      icon: Camera,
-      title: "Create Your Profile",
-      description: "Add photos, write your bio, and share your interests and academic goals.",
+      icon: Settings,
+      title: "Custom Planning",
+      description: "Our team creates a tailored strategy and roadmap specifically for your project.",
       step: "02"
     },
     {
-      icon: UserCheck,
-      title: "Start Swiping",
-      description: "Browse through verified students at your college and like the ones you're interested in.",
+      icon: Rocket,
+      title: "Development",
+      description: "We build your solution using cutting-edge technology and best practices.",
       step: "03"
     },
     {
-      icon: Heart,
-      title: "Match & Connect",
-      description: "When someone likes you back, it's a match! Start chatting and make connections.",
+      icon: Trophy,
+      title: "Launch & Support",
+      description: "We launch your project and provide ongoing support to ensure continued success.",
       step: "04"
     }
   ];
@@ -34,10 +34,10 @@ const HowItWorks = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl lg:text-5xl font-bold mb-6">
-            How It <span className="bg-gradient-primary bg-clip-text text-transparent">Works</span>
+            How We <span className="bg-gradient-primary bg-clip-text text-transparent">Work</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Getting started is simple. Follow these four easy steps to find your perfect campus match.
+            Our proven process ensures your project is delivered on time, on budget, and exceeds expectations.
           </p>
         </div>
         
@@ -76,7 +76,7 @@ const HowItWorks = () => {
         <div className="text-center mt-12">
           <div className="inline-flex items-center gap-2 bg-success/10 text-success px-4 py-2 rounded-full">
             <CheckCircle className="w-5 h-5" />
-            <span className="font-medium">100% Free to Start</span>
+            <span className="font-medium">Free Consultation Available</span>
           </div>
         </div>
       </div>

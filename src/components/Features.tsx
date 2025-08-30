@@ -1,37 +1,37 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, Users, GraduationCap, Heart, MessageCircle, Verified } from "lucide-react";
+import { Shield, Users, Zap, Heart, MessageCircle, Trophy } from "lucide-react";
 
 const Features = () => {
   const features = [
     {
       icon: Shield,
-      title: "Verified Students Only",
-      description: "Connect with verified college students through .edu email or ID verification."
+      title: "Secure & Reliable",
+      description: "Enterprise-grade security with 99.9% uptime guarantee for your peace of mind."
     },
     {
       icon: Users,
-      title: "Campus-Based Matching",
-      description: "Find matches within your college campus for meaningful local connections."
+      title: "Team Collaboration",
+      description: "Built-in tools for seamless team communication and project management."
     },
     {
-      icon: GraduationCap,
-      title: "Academic Focus",
-      description: "Meet people who share your academic interests and career goals."
+      icon: Zap,
+      title: "Lightning Fast",
+      description: "Optimized performance with cutting-edge technology for maximum speed."
     },
     {
       icon: Heart,
-      title: "Smart Matching",
-      description: "Our algorithm considers compatibility, interests, and academic alignment."
+      title: "User-Friendly",
+      description: "Intuitive design that your team will love to use every single day."
     },
     {
       icon: MessageCircle,
-      title: "Secure Messaging",
-      description: "Safe and private chat system designed for meaningful conversations."
+      title: "24/7 Support",
+      description: "Round-the-clock customer support to help you whenever you need it."
     },
     {
-      icon: Verified,
-      title: "Graduation Timeline",
-      description: "Automatic account management based on your graduation timeline."
+      icon: Trophy,
+      title: "Award Winning",
+      description: "Recognized by industry leaders for excellence in innovation and design."
     }
   ];
 
@@ -40,10 +40,10 @@ const Features = () => {
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl lg:text-5xl font-bold mb-6 bg-gradient-primary bg-clip-text text-transparent">
-            Why Choose GradSync?
+            Why Choose WebFlow?
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Built specifically for college students, with features that understand your academic lifestyle.
+            Powerful features designed to help your business grow and succeed in the digital world.
           </p>
         </div>
         

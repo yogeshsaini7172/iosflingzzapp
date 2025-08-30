@@ -17,20 +17,20 @@ const Hero = () => {
           {/* Left Content */}
           <div className="text-center lg:text-left text-white">
             <h1 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
-              Find Your
+              Build Your
               <br />
               <span className="bg-gradient-to-r from-white to-secondary bg-clip-text text-transparent">
-                Campus Match
+                Digital Future
               </span>
             </h1>
             
             <p className="text-xl lg:text-2xl mb-8 text-white/90 max-w-lg">
-              Connect with fellow students at your college. Verify with your .edu email and start meaningful connections today.
+              Transform your business with our cutting-edge web solutions. Modern design meets powerful functionality.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Button variant="hero" size="lg" className="text-lg px-8 py-4">
-                <a href="/auth">Start Matching</a>
+                Get Started
               </Button>
               <Button variant="ghost-white" size="lg" className="text-lg px-8 py-4">
                 Learn More
@@ -39,16 +39,16 @@ const Hero = () => {
             
             <div className="mt-12 flex items-center gap-8 justify-center lg:justify-start text-white/80">
               <div className="text-center">
-                <div className="text-2xl font-bold text-white">50K+</div>
-                <div className="text-sm">Students</div>
-              </div>
-              <div className="text-center">
                 <div className="text-2xl font-bold text-white">500+</div>
-                <div className="text-sm">Colleges</div>
+                <div className="text-sm">Projects</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-white">10K+</div>
-                <div className="text-sm">Matches</div>
+                <div className="text-2xl font-bold text-white">50+</div>
+                <div className="text-sm">Clients</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-white">99%</div>
+                <div className="text-sm">Success Rate</div>
               </div>
             </div>
           </div>
@@ -58,7 +58,7 @@ const Hero = () => {
             <div className="relative z-10 animate-float">
               <img 
                 src={heroImage} 
-                alt="College students using GradSync dating app" 
+                alt="Modern web development and digital solutions" 
                 className="w-full max-w-lg mx-auto rounded-3xl shadow-glow"
               />
             </div>

@@ -7,13 +7,13 @@ const Header = () => {
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-gradient-primary rounded-lg"></div>
           <span className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            GradSync
+            WebFlow
           </span>
         </div>
         
         <nav className="hidden md:flex items-center gap-6">
           <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-smooth">
-            How It Works
+            Services
           </a>
           <a href="#features" className="text-muted-foreground hover:text-foreground transition-smooth">
             Features
@@ -25,10 +25,10 @@ const Header = () => {
         
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="sm">
-            <a href="/auth">Sign In</a>
+            Contact
           </Button>
           <Button variant="hero" size="sm">
-            <a href="/auth">Get Started</a>
+            Get Started
           </Button>
         </div>
       </div>
