@@ -1,32 +1,89 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import ProfileCreation from "@/components/dating/ProfileCreation";
-import SwipeCards from "@/components/dating/SwipeCards";
+import SplashScreen from "@/components/onboarding/SplashScreen";
+import LoginOptions from "@/components/onboarding/LoginOptions";
+import EnhancedProfileCreation from "@/components/dating/EnhancedProfileCreation";
+import ModernSwipeCards from "@/components/dating/ModernSwipeCards";
 import BlindDateSetup from "@/components/dating/BlindDateSetup";
 import MatchesList from "@/components/dating/MatchesList";
+import ModernChatScreen from "@/components/chat/ModernChatScreen";
+import ExploreScreen from "@/components/explore/ExploreScreen";
 import DatingHeader from "@/components/dating/DatingHeader";
 
 const Index = () => {
-  const [currentView, setCurrentView] = useState<'home' | 'profile' | 'swipe' | 'blind-date' | 'matches'>('home');
+  const [currentView, setCurrentView] = useState<'splash' | 'login' | 'home' | 'profile' | 'swipe' | 'blind-date' | 'matches' | 'chat' | 'explore'>('splash');
 
   const renderCurrentView = () => {
     switch (currentView) {
+      case 'splash':
+        return <SplashScreen onContinue={() => setCurrentView('login')} />;
+      case 'login':
+        return <LoginOptions onBack={() => setCurrentView('splash')} onContinue={() => setCurrentView('home')} />;
       case 'profile':
-        return <ProfileCreation onComplete={() => setCurrentView('swipe')} />;
+        return <EnhancedProfileCreation onComplete={() => setCurrentView('home')} onBack={() => setCurrentView('home')} />;
       case 'swipe':
-        return <SwipeCards onNavigate={setCurrentView} />;
+        return <ModernSwipeCards onNavigate={setCurrentView} />;
       case 'blind-date':
         return <BlindDateSetup onNavigate={setCurrentView} />;
       case 'matches':
         return <MatchesList onNavigate={setCurrentView} />;
+      case 'chat':
+        return <ModernChatScreen onNavigate={setCurrentView} />;
+      case 'explore':
+        return <ExploreScreen onNavigate={setCurrentView} />;
       default:
         return (
-          <main className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10">
+          <main className="min-h-screen bg-gradient-soft">
             <DatingHeader />
-            <div className="container mx-auto px-4 pt-24 pb-12">
+            
+            {/* Bottom Navigation */}
+            <div className="fixed bottom-0 left-0 right-0 bg-card/90 backdrop-blur-lg border-t border-border shadow-soft z-50">
+              <div className="container mx-auto px-4 py-2">
+                <div className="flex justify-around items-center">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setCurrentView('swipe')}
+                    className="flex-col h-auto py-2 px-3"
+                  >
+                    <div className="text-2xl mb-1">💕</div>
+                    <span className="text-xs">Discover</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setCurrentView('chat')}
+                    className="flex-col h-auto py-2 px-3"
+                  >
+                    <div className="text-2xl mb-1">💬</div>
+                    <span className="text-xs">Chat</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setCurrentView('explore')}
+                    className="flex-col h-auto py-2 px-3"
+                  >
+                    <div className="text-2xl mb-1">🌟</div>
+                    <span className="text-xs">Explore</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setCurrentView('profile')}
+                    className="flex-col h-auto py-2 px-3"
+                  >
+                    <div className="text-2xl mb-1">👤</div>
+                    <span className="text-xs">Profile</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <div className="container mx-auto px-4 pt-24 pb-24">
               <div className="text-center space-y-8 max-w-4xl mx-auto">
                 <div className="space-y-4">
-                  <h1 className="text-5xl md:text-7xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                  <h1 className="text-5xl md:text-7xl font-bold bg-gradient-hero bg-clip-text text-transparent animate-float">
                     Find Your Perfect
                     <span className="block">Student Match</span>
                   </h1>
@@ -39,7 +96,7 @@ const Index = () => {
                   <Button 
                     size="lg"
                     onClick={() => setCurrentView('profile')}
-                    className="text-lg px-8 py-6"
+                    className="text-lg px-8 py-6 bg-gradient-primary hover:shadow-glow transition-all duration-300"
                   >
                     Create Profile
                   </Button>
@@ -47,7 +104,7 @@ const Index = () => {
                     variant="outline"
                     size="lg"
                     onClick={() => setCurrentView('swipe')}
-                    className="text-lg px-8 py-6"
+                    className="text-lg px-8 py-6 border-2 hover:bg-primary/10 transition-all duration-300"
                   >
                     Start Swiping
                   </Button>
@@ -55,7 +112,7 @@ const Index = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">
                   <div 
-                    className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6 cursor-pointer hover:shadow-lg transition-all"
+                    className="bg-card shadow-card border-0 rounded-2xl p-6 cursor-pointer hover:shadow-medium transition-all duration-300 hover:-translate-y-1"
                     onClick={() => setCurrentView('blind-date')}
                   >
                     <div className="text-4xl mb-4">🎭</div>
@@ -64,7 +121,7 @@ const Index = () => {
                   </div>
 
                   <div 
-                    className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6 cursor-pointer hover:shadow-lg transition-all"
+                    className="bg-card shadow-card border-0 rounded-2xl p-6 cursor-pointer hover:shadow-medium transition-all duration-300 hover:-translate-y-1"
                     onClick={() => setCurrentView('swipe')}
                   >
                     <div className="text-4xl mb-4">💕</div>
@@ -73,12 +130,12 @@ const Index = () => {
                   </div>
 
                   <div 
-                    className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6 cursor-pointer hover:shadow-lg transition-all"
-                    onClick={() => setCurrentView('profile')}
+                    className="bg-card shadow-card border-0 rounded-2xl p-6 cursor-pointer hover:shadow-medium transition-all duration-300 hover:-translate-y-1"
+                    onClick={() => setCurrentView('explore')}
                   >
-                    <div className="text-4xl mb-4">🛡️</div>
-                    <h3 className="text-xl font-semibold mb-2">Verified Identity</h3>
-                    <p className="text-muted-foreground">All users are verified with government ID and student credentials for safety.</p>
+                    <div className="text-4xl mb-4">🌟</div>
+                    <h3 className="text-xl font-semibold mb-2">Campus Events</h3>
+                    <p className="text-muted-foreground">Join virtual speed dating nights and interest-based group chats.</p>
                   </div>
                 </div>
 
@@ -86,14 +143,16 @@ const Index = () => {
                   <Button 
                     variant="ghost"
                     onClick={() => setCurrentView('matches')}
+                    className="hover:bg-primary/10 transition-colors"
                   >
                     View Matches
                   </Button>
                   <Button 
                     variant="ghost"
-                    onClick={() => setCurrentView('blind-date')}
+                    onClick={() => setCurrentView('chat')}
+                    className="hover:bg-primary/10 transition-colors"
                   >
-                    Blind Dates
+                    Messages
                   </Button>
                 </div>
               </div>
