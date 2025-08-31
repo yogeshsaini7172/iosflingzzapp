@@ -11,7 +11,7 @@ import ExploreScreen from "@/components/explore/ExploreScreen";
 import DatingHeader from "@/components/dating/DatingHeader";
 
 const Index = () => {
-  const [currentView, setCurrentView] = useState<'splash' | 'login' | 'home' | 'profile' | 'swipe' | 'blind-date' | 'matches' | 'chat' | 'explore'>('splash');
+  const [currentView, setCurrentView] = useState<'splash' | 'login' | 'home' | 'profile' | 'swipe' | 'blind-date' | 'matches' | 'chat' | 'explore'>('home');
 
   const renderCurrentView = () => {
     switch (currentView) {
