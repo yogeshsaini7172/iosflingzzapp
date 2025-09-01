@@ -69,8 +69,6 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
         description: "We sent you a verification link to complete your signup"
       });
 
-      // Proceed to profile setup so the user can continue onboarding
-      onComplete();
     } catch (error: any) {
       toast({
         title: "Sign Up Error", 

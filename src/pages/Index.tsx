@@ -53,7 +53,7 @@ const Index = () => {
       case 'splash':
         return <SplashScreen onContinue={() => setCurrentView('auth')} />;
       case 'auth':
-        return <AuthScreen onBack={() => setCurrentView('splash')} onComplete={() => { setIsAuthenticated(true); setCurrentView('detailed-profile'); }} />;
+        return <AuthScreen onBack={() => setCurrentView('splash')} onComplete={() => { /* handled by auth state listener once session exists */ }} />;
       case 'home':
         return <CampusConnectHome onNavigate={handleNavigate} />;
       case 'profile':
