@@ -273,7 +273,7 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
                         const { error } = await supabase.auth.verifyOtp({
                           email: email,
                           token: otp,
-                          type: 'signup'
+                          type: 'email'
                         });
                         if (error) throw error;
                         toast({ title: 'Verified!', description: 'Account created successfully' });
@@ -301,8 +301,7 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
                         setIsLoading(true);
                         const { error } = await supabase.auth.resend({
                           type: 'signup',
-                          email: email,
-                          options: { emailRedirectTo: `${window.location.origin}` }
+                          email: email
                         });
                         if (error) throw error;
                         setOtp('');
