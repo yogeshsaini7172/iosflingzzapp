@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_reports: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          report_type: string
+          reported_user_id: string
+          reporter_id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          report_type: string
+          reported_user_id: string
+          reporter_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          report_type?: string
+          reported_user_id?: string
+          reporter_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
       blind_dates: {
         Row: {
           created_at: string
@@ -47,6 +83,36 @@ export type Database = {
           requester_id?: string
           status?: Database["public"]["Enums"]["blind_date_status"] | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      compatibility_scores: {
+        Row: {
+          calculated_at: string
+          compatibility_score: number
+          id: string
+          mental_score: number | null
+          physical_score: number | null
+          user1_id: string
+          user2_id: string
+        }
+        Insert: {
+          calculated_at?: string
+          compatibility_score: number
+          id?: string
+          mental_score?: number | null
+          physical_score?: number | null
+          user1_id: string
+          user2_id: string
+        }
+        Update: {
+          calculated_at?: string
+          compatibility_score?: number
+          id?: string
+          mental_score?: number | null
+          physical_score?: number | null
+          user1_id?: string
+          user2_id?: string
         }
         Relationships: []
       }
@@ -161,66 +227,141 @@ export type Database = {
       profiles: {
         Row: {
           bio: string | null
+          college_id_url: string | null
+          compatibility_preferences: Json | null
           created_at: string
           date_of_birth: string
           email: string
           first_name: string
           gender: Database["public"]["Enums"]["gender"]
+          govt_id_url: string | null
           govt_id_verified: boolean | null
+          height: number | null
+          humor_type: string | null
           id: string
           interests: string[] | null
           is_active: boolean | null
           last_name: string
+          lifestyle: Json | null
           location: string | null
+          love_language: string | null
           major: string | null
+          personality_type: string | null
           profile_images: string[] | null
+          relationship_goals: string[] | null
           student_id_verified: boolean | null
+          subscription_expires_at: string | null
+          subscription_tier: string | null
           university: string
           updated_at: string
           user_id: string
+          verification_status: string | null
+          verified_at: string | null
           year_of_study: number | null
         }
         Insert: {
           bio?: string | null
+          college_id_url?: string | null
+          compatibility_preferences?: Json | null
           created_at?: string
           date_of_birth: string
           email: string
           first_name: string
           gender: Database["public"]["Enums"]["gender"]
+          govt_id_url?: string | null
           govt_id_verified?: boolean | null
+          height?: number | null
+          humor_type?: string | null
           id?: string
           interests?: string[] | null
           is_active?: boolean | null
           last_name: string
+          lifestyle?: Json | null
           location?: string | null
+          love_language?: string | null
           major?: string | null
+          personality_type?: string | null
           profile_images?: string[] | null
+          relationship_goals?: string[] | null
           student_id_verified?: boolean | null
+          subscription_expires_at?: string | null
+          subscription_tier?: string | null
           university: string
           updated_at?: string
           user_id: string
+          verification_status?: string | null
+          verified_at?: string | null
           year_of_study?: number | null
         }
         Update: {
           bio?: string | null
+          college_id_url?: string | null
+          compatibility_preferences?: Json | null
           created_at?: string
           date_of_birth?: string
           email?: string
           first_name?: string
           gender?: Database["public"]["Enums"]["gender"]
+          govt_id_url?: string | null
           govt_id_verified?: boolean | null
+          height?: number | null
+          humor_type?: string | null
           id?: string
           interests?: string[] | null
           is_active?: boolean | null
           last_name?: string
+          lifestyle?: Json | null
           location?: string | null
+          love_language?: string | null
           major?: string | null
+          personality_type?: string | null
           profile_images?: string[] | null
+          relationship_goals?: string[] | null
           student_id_verified?: boolean | null
+          subscription_expires_at?: string | null
+          subscription_tier?: string | null
           university?: string
           updated_at?: string
           user_id?: string
+          verification_status?: string | null
+          verified_at?: string | null
           year_of_study?: number | null
+        }
+        Relationships: []
+      }
+      subscription_history: {
+        Row: {
+          amount: number
+          created_at: string
+          end_date: string
+          id: string
+          payment_id: string | null
+          start_date: string
+          status: string | null
+          tier: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          end_date: string
+          id?: string
+          payment_id?: string | null
+          start_date: string
+          status?: string | null
+          tier: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          end_date?: string
+          id?: string
+          payment_id?: string | null
+          start_date?: string
+          status?: string | null
+          tier?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -229,7 +370,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      calculate_compatibility: {
+        Args: { user1_profile: Json; user2_profile: Json }
+        Returns: number
+      }
     }
     Enums: {
       blind_date_status: "pending" | "accepted" | "declined" | "completed"
