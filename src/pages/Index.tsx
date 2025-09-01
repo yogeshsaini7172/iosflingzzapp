@@ -32,21 +32,21 @@ const Index = () => {
       case 'profile':
         return <EnhancedProfileCreation onComplete={() => setCurrentView('home')} onBack={() => setCurrentView('home')} />;
       case 'swipe':
-        return <ModernSwipeCards onNavigate={setCurrentView} />;
+        return <ModernSwipeCards onNavigate={handleNavigate} />;
       case 'blind-date':
-        return <BlindDateSetup onNavigate={setCurrentView} />;
+        return <BlindDateSetup onNavigate={handleNavigate} />;
       case 'matches':
-        return <MatchesList onNavigate={setCurrentView} />;
+        return <MatchesList onNavigate={handleNavigate} />;
       case 'chat':
-        return <ModernChatScreen onNavigate={setCurrentView} />;
+        return <ModernChatScreen onNavigate={handleNavigate} />;
       case 'explore':
-        return <ExploreScreen onNavigate={setCurrentView} />;
+        return <ExploreScreen onNavigate={handleNavigate} />;
       case 'verify':
         return <IDVerificationFlow onComplete={() => setCurrentView('detailed-profile')} onBack={() => setCurrentView('home')} />;
       case 'detailed-profile':
         return <DetailedProfileCreation onComplete={() => setCurrentView('home')} onBack={() => setCurrentView('home')} />;
       case 'enhanced-swipe':
-        return <EnhancedSwipeCards onNavigate={setCurrentView} subscriptionTier={subscriptionTier} />;
+        return <EnhancedSwipeCards onNavigate={handleNavigate} subscriptionTier={subscriptionTier} />;
       case 'subscription':
         return <SubscriptionPlans onSubscribe={(tier) => { setSubscriptionTier(tier as any); setCurrentView('home'); }} currentTier={subscriptionTier} />;
       case 'admin':
