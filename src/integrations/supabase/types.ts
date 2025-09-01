@@ -551,6 +551,10 @@ export type Database = {
         Args: { profile_data: Json }
         Returns: number
       }
+      increment_reports_count: {
+        Args: { user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       blind_date_status: "pending" | "accepted" | "declined" | "completed"

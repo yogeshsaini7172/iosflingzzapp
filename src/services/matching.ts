@@ -85,7 +85,7 @@ export async function getMatches(userId: string, limit: number = 10): Promise<Ma
 
     // Apply gender filter if preferences exist
     if (userPreferences?.preferred_gender && userPreferences.preferred_gender.length > 0) {
-      query = query.in("gender", userPreferences.preferred_gender);
+      query = query.in("gender", userPreferences.preferred_gender as ('male' | 'female' | 'non_binary' | 'prefer_not_to_say')[]);
     }
 
     const { data: potentialMatches, error } = await query;
@@ -233,7 +233,7 @@ export async function createMatch(likerId: string, likedId: string): Promise<boo
       .insert({
         liker_id: likerId,
         liked_id: likedId,
-        status: 'pending'
+        status: 'liked'
       });
 
     if (error) {
@@ -250,13 +250,10 @@ export async function createMatch(likerId: string, likedId: string): Promise<boo
 
 export async function getUserMatches(userId: string): Promise<MatchCandidate[]> {
   try {
+    // Get matches where this user is involved and status is matched
     const { data: matches, error } = await supabase
       .from("matches")
-      .select(`
-        *,
-        liker_profile:profiles!matches_liker_id_fkey(*),
-        liked_profile:profiles!matches_liked_id_fkey(*)
-      `)
+      .select("*")
       .or(`liker_id.eq.${userId},liked_id.eq.${userId}`)
       .eq("status", "matched");
 
@@ -267,17 +264,34 @@ export async function getUserMatches(userId: string): Promise<MatchCandidate[]> 
 
     if (!matches) return [];
 
-    const matchProfiles = matches.map(match => {
-      const otherProfile = match.liker_id === userId ? match.liked_profile : match.liker_profile;
-      return {
-        ...otherProfile,
-        age: calculateAge(otherProfile.date_of_birth),
+    const matchProfiles: MatchCandidate[] = [];
+
+    for (const match of matches) {
+      // Get the other user's profile
+      const otherUserId = match.liker_id === userId ? match.liked_id : match.liker_id;
+      
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", otherUserId)
+        .single();
+
+      if (profileError || !profile) {
+        console.error("Error fetching match profile:", profileError);
+        continue;
+      }
+
+      const age = calculateAge(profile.date_of_birth);
+      
+      matchProfiles.push({
+        ...profile,
+        age,
         compatibility_score: 0, // Could be calculated if needed
         physical_score: 0,
         mental_score: 0,
         qcs_score: 0
-      };
-    });
+      });
+    }
 
     return matchProfiles;
   } catch (error) {

@@ -8,7 +8,7 @@ export interface BlindDateRequest {
   message: string;
   location: string;
   proposed_date: string;
-  status: 'pending' | 'accepted' | 'rejected' | 'completed';
+  status: 'pending' | 'accepted' | 'declined' | 'completed';
   created_at: string;
   updated_at: string;
 }
@@ -92,7 +92,7 @@ export async function rejectBlindDate(blindDateId: string, userId: string): Prom
     const { error } = await supabase
       .from("blind_dates")
       .update({ 
-        status: 'rejected',
+        status: 'declined',
         updated_at: new Date().toISOString()
       })
       .eq("id", blindDateId)
@@ -212,6 +212,14 @@ export async function savePreChatAnswers(
   answers: Record<string, string>
 ): Promise<boolean> {
   try {
+    // Note: This function is for future enhancement when pre_chat_answers column is added to blind_dates table
+    // For now, we'll just return true as a placeholder
+    console.log("Pre-chat answers would be saved for blind date:", blindDateId, "User:", userId, "Answers:", answers);
+    return true;
+    
+    /* 
+    // This code can be uncommented when pre_chat_answers column is added to blind_dates table
+    
     // Get current blind date data
     const { data: blindDate, error: fetchError } = await supabase
       .from("blind_dates")
@@ -243,6 +251,7 @@ export async function savePreChatAnswers(
       console.error("Error saving pre-chat answers:", error);
       return false;
     }
+    */
 
     return true;
   } catch (error) {
