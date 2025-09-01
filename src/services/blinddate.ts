@@ -123,7 +123,7 @@ export async function getBlindDateRequests(userId: string): Promise<BlindDateReq
       return [];
     }
 
-    return data || [];
+    return data as BlindDateRequest[] || [];
   } catch (error) {
     console.error("Error in getBlindDateRequests:", error);
     return [];
@@ -144,7 +144,7 @@ export async function getPendingBlindDateRequests(userId: string): Promise<Blind
       return [];
     }
 
-    return data || [];
+    return data as BlindDateRequest[] || [];
   } catch (error) {
     console.error("Error in getPendingBlindDateRequests:", error);
     return [];
@@ -165,7 +165,7 @@ export async function getAcceptedBlindDates(userId: string): Promise<BlindDateRe
       return [];
     }
 
-    return data || [];
+    return data as BlindDateRequest[] || [];
   } catch (error) {
     console.error("Error in getAcceptedBlindDates:", error);
     return [];
@@ -215,15 +215,13 @@ export async function savePreChatAnswers(
     // Note: This function is for future enhancement when pre_chat_answers column is added to blind_dates table
     // For now, we'll just return true as a placeholder
     console.log("Pre-chat answers would be saved for blind date:", blindDateId, "User:", userId, "Answers:", answers);
-    return true;
     
+    // This would work if pre_chat_answers column existed in blind_dates table
     /* 
-    // This code can be uncommented when pre_chat_answers column is added to blind_dates table
-    
     // Get current blind date data
     const { data: blindDate, error: fetchError } = await supabase
       .from("blind_dates")
-      .select("*")
+      .select("pre_chat_answers")
       .eq("id", blindDateId)
       .single();
 

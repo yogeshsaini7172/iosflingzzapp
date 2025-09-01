@@ -85,7 +85,13 @@ export async function getMatches(userId: string, limit: number = 10): Promise<Ma
 
     // Apply gender filter if preferences exist
     if (userPreferences?.preferred_gender && userPreferences.preferred_gender.length > 0) {
-      query = query.in("gender", userPreferences.preferred_gender as ('male' | 'female' | 'non_binary' | 'prefer_not_to_say')[]);
+      const validGenders = userPreferences.preferred_gender.filter(gender => 
+        ['male', 'female', 'non_binary', 'prefer_not_to_say'].includes(gender)
+      ) as ('male' | 'female' | 'non_binary' | 'prefer_not_to_say')[];
+      
+      if (validGenders.length > 0) {
+        query = query.in("gender", validGenders);
+      }
     }
 
     const { data: potentialMatches, error } = await query;
@@ -213,7 +219,7 @@ export async function createMatch(likerId: string, likedId: string): Promise<boo
       .from("matches")
       .select("*")
       .or(`and(liker_id.eq.${likerId},liked_id.eq.${likedId}),and(liker_id.eq.${likedId},liked_id.eq.${likerId})`)
-      .single();
+      .maybeSingle();
 
     if (existingMatch) {
       // If the other person already liked us, it's a mutual match
@@ -227,13 +233,13 @@ export async function createMatch(likerId: string, likedId: string): Promise<boo
       return false;
     }
 
-    // Create new match
+    // Create new match with the correct status value
     const { error } = await supabase
       .from("matches")
       .insert({
         liker_id: likerId,
         liked_id: likedId,
-        status: 'liked'
+        status: 'liked' as const
       });
 
     if (error) {
@@ -281,16 +287,18 @@ export async function getUserMatches(userId: string): Promise<MatchCandidate[]> 
         continue;
       }
 
-      const age = calculateAge(profile.date_of_birth);
-      
-      matchProfiles.push({
-        ...profile,
-        age,
-        compatibility_score: 0, // Could be calculated if needed
-        physical_score: 0,
-        mental_score: 0,
-        qcs_score: 0
-      });
+      if (profile.date_of_birth) {
+        const age = calculateAge(profile.date_of_birth);
+        
+        matchProfiles.push({
+          ...profile,
+          age,
+          compatibility_score: 0, // Could be calculated if needed
+          physical_score: 0,
+          mental_score: 0,
+          qcs_score: 0
+        });
+      }
     }
 
     return matchProfiles;
