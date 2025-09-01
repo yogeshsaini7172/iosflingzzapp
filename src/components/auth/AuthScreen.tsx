@@ -53,6 +53,8 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
   const handleEmailSignUp = async () => {
     try {
       setIsLoading(true);
+      
+      // Use signInWithOtp for OTP-based signup
       const { error } = await supabase.auth.signInWithOtp({
         email: email,
         options: {
@@ -60,8 +62,7 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
           data: {
             first_name: name.split(' ')[0] || name,
             last_name: name.split(' ').slice(1).join(' ') || '',
-            university: college,
-            password: password
+            university: college
           }
         }
       });
