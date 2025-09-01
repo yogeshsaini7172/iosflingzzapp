@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AuthScreen from "@/components/auth/AuthScreen";
 import CampusConnectHome from "@/components/campus/CampusConnectHome";
 import SplashScreen from "@/components/onboarding/SplashScreen";
@@ -13,11 +13,36 @@ import DetailedProfileCreation from "@/components/profile/DetailedProfileCreatio
 import EnhancedSwipeCards from "@/components/matching/EnhancedSwipeCards";
 import SubscriptionPlans from "@/components/subscription/SubscriptionPlans";
 import AdminDashboard from "@/components/admin/AdminDashboard";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<'splash' | 'auth' | 'home' | 'profile' | 'discover' | 'blind-date' | 'matches' | 'chat' | 'explore' | 'verify' | 'detailed-profile' | 'enhanced-swipe' | 'subscription' | 'admin'>('splash');
   const [subscriptionTier, setSubscriptionTier] = useState<'free' | 'starter' | 'plus' | 'pro'>('free');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!isMounted) return;
+      if (session) {
+        setIsAuthenticated(true);
+        setCurrentView('detailed-profile');
+      }
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        setIsAuthenticated(true);
+        setCurrentView('detailed-profile');
+      } else {
+        setIsAuthenticated(false);
+        setCurrentView('auth');
+      }
+    });
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const handleNavigate = (view: string) => {
     setCurrentView(view as any);
