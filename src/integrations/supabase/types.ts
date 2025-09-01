@@ -86,6 +86,27 @@ export type Database = {
         }
         Relationships: []
       }
+      blocks: {
+        Row: {
+          blocked_user_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          blocked_user_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          blocked_user_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           created_at: string
@@ -344,8 +365,12 @@ export type Database = {
           love_language: string | null
           major: string | null
           personality_type: string | null
+          profile_completion_percentage: number | null
           profile_images: string[] | null
+          questions_answered: number | null
           relationship_goals: string[] | null
+          relationship_status: string | null
+          reports_count: number | null
           student_id_verified: boolean | null
           subscription_expires_at: string | null
           subscription_tier: string | null
@@ -381,8 +406,12 @@ export type Database = {
           love_language?: string | null
           major?: string | null
           personality_type?: string | null
+          profile_completion_percentage?: number | null
           profile_images?: string[] | null
+          questions_answered?: number | null
           relationship_goals?: string[] | null
+          relationship_status?: string | null
+          reports_count?: number | null
           student_id_verified?: boolean | null
           subscription_expires_at?: string | null
           subscription_tier?: string | null
@@ -418,8 +447,12 @@ export type Database = {
           love_language?: string | null
           major?: string | null
           personality_type?: string | null
+          profile_completion_percentage?: number | null
           profile_images?: string[] | null
+          questions_answered?: number | null
           relationship_goals?: string[] | null
+          relationship_status?: string | null
+          reports_count?: number | null
           student_id_verified?: boolean | null
           subscription_expires_at?: string | null
           subscription_tier?: string | null
@@ -430,6 +463,42 @@ export type Database = {
           verification_status?: string | null
           verified_at?: string | null
           year_of_study?: number | null
+        }
+        Relationships: []
+      }
+      qcs: {
+        Row: {
+          behavior_score: number | null
+          college_tier: number | null
+          created_at: string
+          id: string
+          personality_depth: number | null
+          profile_score: number | null
+          total_score: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          behavior_score?: number | null
+          college_tier?: number | null
+          created_at?: string
+          id?: string
+          personality_depth?: number | null
+          profile_score?: number | null
+          total_score?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          behavior_score?: number | null
+          college_tier?: number | null
+          created_at?: string
+          id?: string
+          personality_depth?: number | null
+          profile_score?: number | null
+          total_score?: number | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -476,6 +545,10 @@ export type Database = {
     Functions: {
       calculate_compatibility: {
         Args: { user1_profile: Json; user2_profile: Json }
+        Returns: number
+      }
+      calculate_profile_completion: {
+        Args: { profile_data: Json }
         Returns: number
       }
     }
