@@ -28,7 +28,7 @@ const Index = () => {
       case 'splash':
         return <SplashScreen onContinue={() => setCurrentView('auth')} />;
       case 'auth':
-        return <AuthScreen onBack={() => setCurrentView('splash')} onComplete={() => { setIsAuthenticated(true); setCurrentView('home'); }} />;
+        return <AuthScreen onBack={() => setCurrentView('splash')} onComplete={() => { setIsAuthenticated(true); setCurrentView('detailed-profile'); }} />;
       case 'home':
         return <CampusConnectHome onNavigate={handleNavigate} />;
       case 'profile':
@@ -44,9 +44,9 @@ const Index = () => {
       case 'explore':
         return <ExploreScreen onNavigate={handleNavigate} />;
       case 'verify':
-        return <IDVerificationFlow onComplete={() => setCurrentView('detailed-profile')} onBack={() => setCurrentView('home')} />;
+        return <IDVerificationFlow onComplete={() => setCurrentView('home')} onBack={() => setCurrentView('detailed-profile')} />;
       case 'detailed-profile':
-        return <DetailedProfileCreation onComplete={() => setCurrentView('home')} onBack={() => setCurrentView('home')} />;
+        return <DetailedProfileCreation onComplete={() => setCurrentView('verify')} onBack={() => setCurrentView('auth')} />;
       case 'enhanced-swipe':
         return <EnhancedSwipeCards onNavigate={handleNavigate} subscriptionTier={subscriptionTier} />;
       case 'subscription':
