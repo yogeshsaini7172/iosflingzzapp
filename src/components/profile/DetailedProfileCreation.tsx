@@ -316,22 +316,25 @@ const DetailedProfileCreation = ({ onComplete, onBack }: DetailedProfileCreation
   const renderPersonalityStep = () => (
     <div className="space-y-6">
       <div className="text-center">
-        <div className="w-16 h-16 bg-gradient-secondary rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 bg-gradient-secondary rounded-full flex items-center justify-center mx-auto mb-4 shadow-glow">
           <Brain className="w-8 h-8 text-white" />
         </div>
-        <h2 className="text-2xl font-bold mb-2">Your Personality</h2>
+        <h2 className="text-2xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">Your Personality</h2>
         <p className="text-muted-foreground font-prompt">Help us understand who you are</p>
       </div>
 
-      <div>
-        <Label className="font-semibold">Are you more of an introvert or extrovert?</Label>
-        <div className="grid grid-cols-2 gap-2 mt-2">
+      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-primary/10">
+        <Label className="font-semibold text-lg mb-3 flex items-center">
+          <Heart className="w-4 h-4 mr-2 text-coral" />
+          Are you more of an introvert or extrovert?
+        </Label>
+        <div className="grid grid-cols-2 gap-3 mt-3">
           {['Introvert', 'Extrovert'].map((type) => (
             <Button
               key={type}
               variant={profileData.introvertExtrovert === type ? 'coral' : 'outline'}
               onClick={() => setProfileData(prev => ({ ...prev, introvertExtrovert: type }))}
-              className="rounded-xl"
+              className="rounded-xl h-12 font-semibold hover-lift"
             >
               {type}
             </Button>
@@ -339,15 +342,18 @@ const DetailedProfileCreation = ({ onComplete, onBack }: DetailedProfileCreation
         </div>
       </div>
 
-      <div>
-        <Label className="font-semibold">Humor Style</Label>
-        <div className="grid grid-cols-2 gap-2 mt-2">
-          {['Witty', 'Sarcastic', 'Silly', 'Dry'].map((style) => (
+      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-primary/10">
+        <Label className="font-semibold text-lg mb-3 flex items-center">
+          <Palette className="w-4 h-4 mr-2 text-secondary" />
+          What's your humor style?
+        </Label>
+        <div className="grid grid-cols-2 gap-3 mt-3">
+          {['Dark', 'Witty', 'Light', 'Sarcastic'].map((style) => (
             <Button
               key={style}
               variant={profileData.humorStyle === style ? 'coral' : 'outline'}
               onClick={() => setProfileData(prev => ({ ...prev, humorStyle: style }))}
-              className="rounded-xl"
+              className="rounded-xl h-12 font-semibold hover-lift"
             >
               {style}
             </Button>
@@ -355,61 +361,33 @@ const DetailedProfileCreation = ({ onComplete, onBack }: DetailedProfileCreation
         </div>
       </div>
 
-      <div>
-        <Label className="font-semibold">Love Language</Label>
-        <div className="grid grid-cols-2 gap-2 mt-2">
-          {['Words of Affirmation', 'Physical Touch', 'Quality Time', 'Acts of Service', 'Receiving Gifts'].slice(0, 4).map((language) => (
+      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-primary/10">
+        <Label className="font-semibold text-lg mb-3 flex items-center">
+          <Heart className="w-4 h-4 mr-2 text-coral" />
+          How do you express love?
+        </Label>
+        <div className="grid grid-cols-1 gap-2 mt-3">
+          {['Words of Affirmation', 'Physical Touch', 'Quality Time', 'Acts of Service', 'Receiving Gifts'].map((language) => (
             <Button
               key={language}
               variant={profileData.loveLanguage === language ? 'coral' : 'outline'}
               onClick={() => setProfileData(prev => ({ ...prev, loveLanguage: language }))}
-              className="rounded-xl text-xs"
+              className="rounded-xl h-12 font-semibold hover-lift text-sm"
             >
               {language}
             </Button>
           ))}
         </div>
-        <div className="grid grid-cols-1 gap-2 mt-2">
-          <Button
-            variant={profileData.loveLanguage === 'Receiving Gifts' ? 'coral' : 'outline'}
-            onClick={() => setProfileData(prev => ({ ...prev, loveLanguage: 'Receiving Gifts' }))}
-            className="rounded-xl text-xs"
-          >
-            Receiving Gifts
-          </Button>
-        </div>
       </div>
 
-      <div>
-        <Label className="font-semibold">Hobbies & Interests</Label>
-        <div className="flex flex-wrap gap-2 mt-2">
-          {[
-            'Reading', 'Gaming', 'Sports', 'Music', 'Art', 'Travel', 
-            'Cooking', 'Photography', 'Dancing', 'Hiking', 'Movies', 'Fitness'
-          ].map((hobby) => (
-            <Badge
-              key={hobby}
-              variant={profileData.hobbies.includes(hobby) ? 'default' : 'secondary'}
-              className="cursor-pointer rounded-full px-3 py-1 hover:scale-105 transition-transform"
-              onClick={() => toggleInterest(hobby, 'hobbies')}
-            >
-              {hobby}
-            </Badge>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <Label className="font-semibold">Relationship Goals</Label>
-        <div className="flex flex-wrap gap-2 mt-2">
-          {[
-            'Casual Dating', 'Serious Relationship', 'Marriage', 
-            'Just Friends', 'Something Casual', 'Long-term'
-          ].map((goal) => (
+      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-primary/10">
+        <Label className="font-semibold text-lg mb-3">What are you looking for?</Label>
+        <div className="flex flex-wrap gap-2 mt-3">
+          {['Casual', 'Serious', 'Friendship', 'Marriage', 'Something Fun'].map((goal) => (
             <Badge
               key={goal}
               variant={profileData.relationshipGoals.includes(goal) ? 'default' : 'secondary'}
-              className="cursor-pointer rounded-full px-3 py-1 hover:scale-105 transition-transform"
+              className="cursor-pointer rounded-full px-4 py-2 hover:scale-105 transition-all duration-200 hover:shadow-md text-sm font-semibold"
               onClick={() => toggleInterest(goal, 'relationshipGoals')}
             >
               {goal}
@@ -418,16 +396,280 @@ const DetailedProfileCreation = ({ onComplete, onBack }: DetailedProfileCreation
         </div>
       </div>
 
-      <div>
-        <Label htmlFor="bio" className="font-semibold">Tell us about yourself</Label>
+      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-primary/10">
+        <Label className="font-semibold text-lg mb-3">Hobbies & Interests</Label>
+        <div className="flex flex-wrap gap-2 mt-3">
+          {[
+            'Reading', 'Gaming', 'Sports', 'Music', 'Art', 'Travel', 
+            'Cooking', 'Photography', 'Dancing', 'Hiking', 'Movies', 'Fitness',
+            'Netflix', 'Yoga', 'Partying', 'Study Groups'
+          ].map((hobby) => (
+            <Badge
+              key={hobby}
+              variant={profileData.hobbies.includes(hobby) ? 'default' : 'secondary'}
+              className="cursor-pointer rounded-full px-3 py-1 hover:scale-105 transition-all duration-200 hover:shadow-md"
+              onClick={() => toggleInterest(hobby, 'hobbies')}
+            >
+              {hobby}
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-primary/10">
+        <Label htmlFor="bio" className="font-semibold text-lg mb-3">Describe yourself in one sentence</Label>
         <Textarea
           id="bio"
           value={profileData.bio}
           onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
-          placeholder="Write a short bio about yourself..."
-          className="rounded-xl mt-1"
-          rows={4}
+          placeholder="I'm someone who loves adventure, good coffee, and meaningful conversations..."
+          className="rounded-xl mt-1 border-primary/20 focus:border-primary/50 bg-white/50"
+          rows={3}
         />
+      </div>
+    </div>
+  );
+
+  const renderPhysicalPreferencesStep = () => (
+    <div className="space-y-6">
+      <div className="text-center">
+        <div className="w-16 h-16 bg-gradient-coral rounded-full flex items-center justify-center mx-auto mb-4 shadow-glow">
+          <Target className="w-8 h-8 text-white" />
+        </div>
+        <h2 className="text-2xl font-bold mb-2 bg-gradient-coral bg-clip-text text-transparent">Physical Preferences</h2>
+        <p className="text-muted-foreground font-prompt">What attracts you physically?</p>
+      </div>
+
+      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-coral/20">
+        <Label className="font-semibold text-lg mb-3">Age Range</Label>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label className="text-sm text-muted-foreground">Min Age</Label>
+            <Input
+              type="number"
+              value={profileData.preferredAge.min}
+              onChange={(e) => setProfileData(prev => ({
+                ...prev,
+                preferredAge: { ...prev.preferredAge, min: parseInt(e.target.value) || 18 }
+              }))}
+              className="rounded-xl mt-1"
+              min="18"
+              max="35"
+            />
+          </div>
+          <div>
+            <Label className="text-sm text-muted-foreground">Max Age</Label>
+            <Input
+              type="number"
+              value={profileData.preferredAge.max}
+              onChange={(e) => setProfileData(prev => ({
+                ...prev,
+                preferredAge: { ...prev.preferredAge, max: parseInt(e.target.value) || 30 }
+              }))}
+              className="rounded-xl mt-1"
+              min="18"
+              max="35"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-coral/20">
+        <Label className="font-semibold text-lg mb-3">Height Preference</Label>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label className="text-sm text-muted-foreground">Min Height (cm)</Label>
+            <Input
+              type="number"
+              value={profileData.preferredHeight.min}
+              onChange={(e) => setProfileData(prev => ({
+                ...prev,
+                preferredHeight: { ...prev.preferredHeight, min: parseInt(e.target.value) || 150 }
+              }))}
+              className="rounded-xl mt-1"
+              min="140"
+              max="220"
+            />
+          </div>
+          <div>
+            <Label className="text-sm text-muted-foreground">Max Height (cm)</Label>
+            <Input
+              type="number"
+              value={profileData.preferredHeight.max}
+              onChange={(e) => setProfileData(prev => ({
+                ...prev,
+                preferredHeight: { ...prev.preferredHeight, max: parseInt(e.target.value) || 200 }
+              }))}
+              className="rounded-xl mt-1"
+              min="140"
+              max="220"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-coral/20">
+        <Label className="font-semibold text-lg mb-3">Skin Type Preference</Label>
+        <div className="flex flex-wrap gap-2 mt-3">
+          {['Fair', 'Wheatish', 'Dark', "Doesn't Matter"].map((skin) => (
+            <Badge
+              key={skin}
+              variant={profileData.preferredSkinType.includes(skin) ? 'default' : 'secondary'}
+              className="cursor-pointer rounded-full px-4 py-2 hover:scale-105 transition-all duration-200 hover:shadow-md"
+              onClick={() => toggleInterest(skin, 'preferredSkinType')}
+            >
+              {skin}
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-coral/20">
+        <Label className="font-semibold text-lg mb-3">Body Shape Preference</Label>
+        <div className="flex flex-wrap gap-2 mt-3">
+          {['Slim', 'Fit', 'Athletic', 'Average', 'Curvy', "Doesn't Matter"].map((shape) => (
+            <Badge
+              key={shape}
+              variant={profileData.preferredBodyShape.includes(shape) ? 'default' : 'secondary'}
+              className="cursor-pointer rounded-full px-4 py-2 hover:scale-105 transition-all duration-200 hover:shadow-md"
+              onClick={() => toggleInterest(shape, 'preferredBodyShape')}
+            >
+              {shape}
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-coral/20">
+        <Label className="font-semibold text-lg mb-3">Lifestyle Preferences</Label>
+        <div className="flex flex-wrap gap-2 mt-3">
+          {['Fitness Enthusiast', 'Non-Smoker', 'Social Drinker', 'Vegetarian', 'Vegan', 'Foodie', 'Party Lover', 'Homebody'].map((lifestyle) => (
+            <Badge
+              key={lifestyle}
+              variant={profileData.preferredLifestyle.includes(lifestyle) ? 'default' : 'secondary'}
+              className="cursor-pointer rounded-full px-3 py-1 hover:scale-105 transition-all duration-200 hover:shadow-md"
+              onClick={() => toggleInterest(lifestyle, 'preferredLifestyle')}
+            >
+              {lifestyle}
+            </Badge>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderMentalPreferencesStep = () => (
+    <div className="space-y-6">
+      <div className="text-center">
+        <div className="w-16 h-16 bg-gradient-secondary rounded-full flex items-center justify-center mx-auto mb-4 shadow-glow">
+          <Brain className="w-8 h-8 text-white" />
+        </div>
+        <h2 className="text-2xl font-bold mb-2 bg-gradient-secondary bg-clip-text text-transparent">Mental Connection</h2>
+        <p className="text-muted-foreground font-prompt">What matters to you mentally?</p>
+      </div>
+
+      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-secondary/20">
+        <Label className="font-semibold text-lg mb-3">Preferred Humor Style</Label>
+        <div className="flex flex-wrap gap-2 mt-3">
+          {['Dark', 'Witty', 'Light', 'Sarcastic', "Doesn't Matter"].map((humor) => (
+            <Badge
+              key={humor}
+              variant={profileData.preferredHumor.includes(humor) ? 'default' : 'secondary'}
+              className="cursor-pointer rounded-full px-4 py-2 hover:scale-105 transition-all duration-200 hover:shadow-md"
+              onClick={() => toggleInterest(humor, 'preferredHumor')}
+            >
+              {humor}
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-secondary/20">
+        <Label className="font-semibold text-lg mb-3">Personality Type</Label>
+        <div className="flex flex-wrap gap-2 mt-3">
+          {['Introvert', 'Extrovert', 'Ambivert', "Doesn't Matter"].map((personality) => (
+            <Badge
+              key={personality}
+              variant={profileData.preferredPersonality.includes(personality) ? 'default' : 'secondary'}
+              className="cursor-pointer rounded-full px-4 py-2 hover:scale-105 transition-all duration-200 hover:shadow-md"
+              onClick={() => toggleInterest(personality, 'preferredPersonality')}
+            >
+              {personality}
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-secondary/20">
+        <Label className="font-semibold text-lg mb-3">Values & Priorities</Label>
+        <div className="flex flex-wrap gap-2 mt-3">
+          {[
+            'Career-Focused', 'Family-Oriented', 'Spiritual', 'Open-Minded', 
+            'Ambitious', 'Creative', 'Intellectual', 'Adventure-Seeking',
+            'Compassionate', 'Independent'
+          ].map((value) => (
+            <Badge
+              key={value}
+              variant={profileData.preferredValues.includes(value) ? 'default' : 'secondary'}
+              className="cursor-pointer rounded-full px-3 py-1 hover:scale-105 transition-all duration-200 hover:shadow-md"
+              onClick={() => toggleInterest(value, 'preferredValues')}
+            >
+              {value}
+            </Badge>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderReviewStep = () => (
+    <div className="space-y-6">
+      <div className="text-center">
+        <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4 shadow-glow">
+          <Heart className="w-8 h-8 text-white" />
+        </div>
+        <h2 className="text-2xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">Profile Complete!</h2>
+        <p className="text-muted-foreground font-prompt">Review your profile before continuing</p>
+      </div>
+
+      <div className="bg-gradient-soft/20 rounded-2xl p-6 border border-primary/20">
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          {profileData.photos.slice(0, 2).map((photo, index) => (
+            <div key={index} className="aspect-square rounded-xl overflow-hidden">
+              <img
+                src={URL.createObjectURL(photo)}
+                alt={`Profile ${index + 1}`}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ))}
+        </div>
+        
+        <div className="text-center">
+          <h3 className="text-xl font-bold mb-2">{profileData.firstName} {profileData.lastName}</h3>
+          <p className="text-muted-foreground mb-4">{profileData.college} • {profileData.yearOfStudy} Year</p>
+          <p className="text-sm bg-card/50 rounded-lg p-3 border">{profileData.bio}</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-card/50 rounded-xl p-4 border">
+          <h4 className="font-semibold mb-2 text-primary">Personality</h4>
+          <p className="text-sm text-muted-foreground">{profileData.introvertExtrovert}</p>
+          <p className="text-sm text-muted-foreground">{profileData.humorStyle} humor</p>
+          <p className="text-sm text-muted-foreground">{profileData.loveLanguage}</p>
+        </div>
+        
+        <div className="bg-card/50 rounded-xl p-4 border">
+          <h4 className="font-semibold mb-2 text-coral">Interests</h4>
+          <div className="flex flex-wrap gap-1">
+            {profileData.hobbies.slice(0, 3).map((hobby, index) => (
+              <Badge key={index} variant="secondary" className="text-xs">
+                {hobby}
+              </Badge>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -440,7 +682,11 @@ const DetailedProfileCreation = ({ onComplete, onBack }: DetailedProfileCreation
         return profileData.firstName && profileData.lastName && profileData.dateOfBirth && 
                profileData.gender && profileData.college;
       case 3:
-        return profileData.introvertExtrovert && profileData.hobbies.length > 0;
+        return profileData.introvertExtrovert && profileData.hobbies.length > 0 && profileData.bio.length > 10;
+      case 4:
+        return profileData.preferredSkinType.length > 0 || profileData.preferredBodyShape.length > 0;
+      case 5:
+        return profileData.preferredHumor.length > 0 || profileData.preferredPersonality.length > 0;
       default:
         return true;
     }
@@ -461,11 +707,14 @@ const DetailedProfileCreation = ({ onComplete, onBack }: DetailedProfileCreation
 
         <Progress value={(currentStep / totalSteps) * 100} className="mb-8 rounded-full" />
 
-        <Card className="shadow-card border-0 bg-card/60 backdrop-blur-sm mb-6 rounded-2xl">
+        <Card className="shadow-elegant border-0 bg-card/70 backdrop-blur-md mb-6 rounded-3xl overflow-hidden">
           <CardContent className="p-6">
             {currentStep === 1 && renderPhotosStep()}
             {currentStep === 2 && renderBasicInfoStep()}
             {currentStep === 3 && renderPersonalityStep()}
+            {currentStep === 4 && renderPhysicalPreferencesStep()}
+            {currentStep === 5 && renderMentalPreferencesStep()}
+            {currentStep === 6 && renderReviewStep()}
           </CardContent>
         </Card>
 
@@ -474,17 +723,17 @@ const DetailedProfileCreation = ({ onComplete, onBack }: DetailedProfileCreation
             <Button
               variant="outline"
               onClick={() => setCurrentStep(prev => prev - 1)}
-              className="flex-1 rounded-xl"
+              className="flex-1 rounded-xl h-12 font-semibold border-primary/30 hover:border-primary/50"
             >
               Previous
             </Button>
           )}
           
-          {currentStep < 3 ? (
+          {currentStep < 6 ? (
             <Button
               onClick={() => setCurrentStep(prev => prev + 1)}
               disabled={!canProceed()}
-              className="flex-1 rounded-xl"
+              className="flex-1 rounded-xl h-12 font-semibold shadow-glow hover-lift"
               variant="coral"
             >
               Next
@@ -493,11 +742,11 @@ const DetailedProfileCreation = ({ onComplete, onBack }: DetailedProfileCreation
           ) : (
             <Button
               onClick={onComplete}
-              className="flex-1 rounded-xl"
+              className="flex-1 rounded-xl h-12 font-semibold shadow-glow hover-lift"
               variant="coral"
             >
               Complete Profile
-              <Heart className="w-4 h-4 ml-2" />
+              <Heart className="w-4 h-4 ml-2 animate-pulse" />
             </Button>
           )}
         </div>
