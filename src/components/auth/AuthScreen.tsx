@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Mail, Lock, User, School, Loader2, Shield } from "lucide-react";
+import { ArrowLeft, Mail, Lock, User, School, Loader2, Shield, KeyRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 interface AuthScreenProps {
   onBack: () => void;
@@ -18,6 +19,8 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [college, setCollege] = useState("");
+  const [step, setStep] = useState<'form' | 'verify'>("form");
+  const [otp, setOtp] = useState("");
   const { toast } = useToast();
 
   const handleGoogleAuth = async () => {
@@ -69,6 +72,7 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
         title: "Verification code sent",
         description: "Check your email for the 6-digit verification code"
       });
+      setStep('verify');
 
     } catch (error: any) {
       toast({
@@ -138,100 +142,184 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6 bg-muted/50">
-                <TabsTrigger value="login" className="rounded-lg font-medium">Sign In</TabsTrigger>
-                <TabsTrigger value="signup" className="rounded-lg font-medium">Sign Up</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="login" className="space-y-4">
-                <div className="space-y-4">
-                  <div className="relative group">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                    <Input
-                      type="email"
-                      placeholder="College email address"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10 rounded-xl border-border/50 focus:border-primary transition-colors h-12"
-                    />
+            {step === 'form' ? (
+              <Tabs defaultValue="login" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-6 bg-muted/50">
+                  <TabsTrigger value="login" className="rounded-lg font-medium">Sign In</TabsTrigger>
+                  <TabsTrigger value="signup" className="rounded-lg font-medium">Sign Up</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="login" className="space-y-4">
+                  <div className="space-y-4">
+                    <div className="relative group">
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                      <Input
+                        type="email"
+                        placeholder="College email address"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="pl-10 rounded-xl border-border/50 focus:border-primary transition-colors h-12"
+                      />
+                    </div>
+                    <div className="relative group">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                      <Input
+                        type="password"
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="pl-10 rounded-xl border-border/50 focus:border-primary transition-colors h-12"
+                      />
+                    </div>
+                    <Button
+                      onClick={handleEmailSignIn}
+                      disabled={isLoading || !email || !password}
+                      className="w-full rounded-xl h-12 font-semibold"
+                      variant="coral"
+                    >
+                      {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                      Sign In to CampusConnect
+                    </Button>
                   </div>
-                  <div className="relative group">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                    <Input
-                      type="password"
-                      placeholder="Password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="pl-10 rounded-xl border-border/50 focus:border-primary transition-colors h-12"
-                    />
+                </TabsContent>
+                
+                <TabsContent value="signup" className="space-y-4">
+                  <div className="space-y-4">
+                    <div className="relative group">
+                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                      <Input
+                        type="text"
+                        placeholder="Full name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="pl-10 rounded-xl border-border/50 focus:border-primary transition-colors h-12"
+                      />
+                    </div>
+                    <div className="relative group">
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                      <Input
+                        type="email"
+                        placeholder="College email address"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="pl-10 rounded-xl border-border/50 focus:border-primary transition-colors h-12"
+                      />
+                    </div>
+                    <div className="relative group">
+                      <School className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                      <Input
+                        type="text"
+                        placeholder="University name"
+                        value={college}
+                        onChange={(e) => setCollege(e.target.value)}
+                        className="pl-10 rounded-xl border-border/50 focus:border-primary transition-colors h-12"
+                      />
+                    </div>
+                    <div className="relative group">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                      <Input
+                        type="password"
+                        placeholder="Create password (min 8 chars)"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="pl-10 rounded-xl border-border/50 focus:border-primary transition-colors h-12"
+                      />
+                    </div>
+                    <Button
+                      onClick={handleEmailSignUp}
+                      disabled={isLoading || !name || !email || !college || !password}
+                      className="w-full rounded-xl h-12 font-semibold"
+                      variant="coral"
+                    >
+                      {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                      Create Account
+                    </Button>
                   </div>
+                </TabsContent>
+              </Tabs>
+            ) : (
+              <div className="space-y-6">
+                <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mx-auto">
+                  <KeyRound className="w-8 h-8 text-white" />
+                </div>
+                <div className="text-center space-y-1">
+                  <h2 className="text-xl font-semibold">Enter verification code</h2>
+                  <p className="text-muted-foreground text-sm">We sent a 6-digit code to {email}</p>
+                </div>
+                <div className="flex justify-center">
+                  <InputOTP value={otp} onChange={setOtp} maxLength={6}>
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
                   <Button
-                    onClick={handleEmailSignIn}
-                    disabled={isLoading || !email || !password}
-                    className="w-full rounded-xl h-12 font-semibold"
+                    onClick={() => setStep('form')}
+                    variant="outline"
+                    className="h-12 rounded-xl"
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      try {
+                        setIsLoading(true);
+                        const { error } = await supabase.auth.verifyOtp({
+                          email: email,
+                          token: otp,
+                          type: 'signup'
+                        });
+                        if (error) throw error;
+                        toast({ title: 'Verified!', description: 'Account created successfully' });
+                        onComplete();
+                      } catch (err: any) {
+                        toast({ title: 'Verification failed', description: err.message, variant: 'destructive' });
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
+                    disabled={isLoading || otp.length !== 6}
+                    className="h-12 rounded-xl"
                     variant="coral"
                   >
                     {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                    Sign In to CampusConnect
+                    Verify
                   </Button>
                 </div>
-              </TabsContent>
-              
-              <TabsContent value="signup" className="space-y-4">
-                <div className="space-y-4">
-                  <div className="relative group">
-                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                    <Input
-                      type="text"
-                      placeholder="Full name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="pl-10 rounded-xl border-border/50 focus:border-primary transition-colors h-12"
-                    />
-                  </div>
-                  <div className="relative group">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                    <Input
-                      type="email"
-                      placeholder="College email address"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10 rounded-xl border-border/50 focus:border-primary transition-colors h-12"
-                    />
-                  </div>
-                  <div className="relative group">
-                    <School className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                    <Input
-                      type="text"
-                      placeholder="University name"
-                      value={college}
-                      onChange={(e) => setCollege(e.target.value)}
-                      className="pl-10 rounded-xl border-border/50 focus:border-primary transition-colors h-12"
-                    />
-                  </div>
-                  <div className="relative group">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                    <Input
-                      type="password"
-                      placeholder="Create password (min 8 chars)"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="pl-10 rounded-xl border-border/50 focus:border-primary transition-colors h-12"
-                    />
-                  </div>
+                <div className="text-center">
                   <Button
-                    onClick={handleEmailSignUp}
-                    disabled={isLoading || !name || !email || !college || !password}
-                    className="w-full rounded-xl h-12 font-semibold"
-                    variant="coral"
+                    variant="link"
+                    className="text-sm"
+                    onClick={async () => {
+                      try {
+                        setIsLoading(true);
+                        const { error } = await supabase.auth.resend({
+                          type: 'signup',
+                          email: email,
+                          options: { emailRedirectTo: `${window.location.origin}` }
+                        });
+                        if (error) throw error;
+                        setOtp('');
+                        toast({ title: 'Code resent', description: 'Please check your inbox.' });
+                      } catch (err: any) {
+                        toast({ title: 'Resend failed', description: err.message, variant: 'destructive' });
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
                   >
-                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                    Create Account
+                    Resend code
                   </Button>
                 </div>
-              </TabsContent>
-            </Tabs>
+              </div>
+            )}
+
 
             {/* Divider */}
             <div className="relative my-6">
