@@ -3,7 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Mail, Lock, User, School } from "lucide-react";
+import { ArrowLeft, Mail, Lock, User, School, Loader2, Shield } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface AuthScreenProps {
   onBack: () => void;
@@ -16,163 +18,239 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [college, setCollege] = useState("");
+  const { toast } = useToast();
 
   const handleGoogleAuth = async () => {
-    setIsLoading(true);
-    // Simulate Google OAuth
-    setTimeout(() => {
+    try {
+      setIsLoading(true);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}`
+        }
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Redirecting to Google",
+        description: "Please complete authentication in the new window"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Authentication Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
       setIsLoading(false);
-      onComplete();
-    }, 2000);
+    }
   };
 
-  const handleEmailAuth = async (isSignUp: boolean) => {
-    setIsLoading(true);
-    // Simulate email auth
-    setTimeout(() => {
+  const handleEmailSignUp = async () => {
+    try {
+      setIsLoading(true);
+      const { error } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+          data: {
+            first_name: name.split(' ')[0] || name,
+            last_name: name.split(' ').slice(1).join(' ') || '',
+            university: college
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Check your email",
+        description: "We sent you a verification link to complete your signup"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Sign Up Error", 
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleEmailSignIn = async () => {
+    try {
+      setIsLoading(true);
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+
+      if (error) throw error;
       onComplete();
-    }, 2000);
+    } catch (error: any) {
+      toast({
+        title: "Sign In Error",
+        description: error.message, 
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-soft p-4">
+    <div className="min-h-screen bg-gradient-soft p-4 animate-fade-in">
       <div className="container mx-auto max-w-md">
         <Button
           variant="ghost"
           onClick={onBack}
-          className="mb-6 hover:bg-white/20"
+          className="mb-6 hover:bg-white/20 transition-smooth"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
         </Button>
 
+        {/* Header */}
         <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4 shadow-glow">
+            <Shield className="w-8 h-8 text-white" />
+          </div>
           <h1 className="text-3xl font-bold mb-2 bg-gradient-hero bg-clip-text text-transparent">
             Welcome to CampusConnect
           </h1>
-          <p className="text-muted-foreground font-prompt">
-            The verified student dating platform
+          <p className="text-muted-foreground font-prompt text-lg">
+            The verified student dating platform 💜
           </p>
         </div>
 
-        <Card className="shadow-card border-0 bg-card/50 backdrop-blur-sm">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl">Join the Community</CardTitle>
-            <CardDescription>
-              Connect with verified students from top universities
+        {/* Auth Card */}
+        <Card className="shadow-card border-0 bg-gradient-card backdrop-blur-sm hover:shadow-medium transition-smooth">
+          <CardHeader className="text-center pb-4">
+            <CardTitle className="text-2xl bg-gradient-primary bg-clip-text text-transparent">
+              Join the Community
+            </CardTitle>
+            <CardDescription className="text-base font-prompt">
+              Connect with verified students from top universities ✨
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
             <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="login">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 mb-6 bg-muted/50">
+                <TabsTrigger value="login" className="rounded-lg font-medium">Sign In</TabsTrigger>
+                <TabsTrigger value="signup" className="rounded-lg font-medium">Sign Up</TabsTrigger>
               </TabsList>
               
               <TabsContent value="login" className="space-y-4">
                 <div className="space-y-4">
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <div className="relative group">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                     <Input
                       type="email"
                       placeholder="College email address"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10 rounded-xl border-border/50"
+                      className="pl-10 rounded-xl border-border/50 focus:border-primary transition-colors h-12"
                     />
                   </div>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <div className="relative group">
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                     <Input
                       type="password"
                       placeholder="Password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pl-10 rounded-xl border-border/50"
+                      className="pl-10 rounded-xl border-border/50 focus:border-primary transition-colors h-12"
                     />
                   </div>
                   <Button
-                    onClick={() => handleEmailAuth(false)}
-                    disabled={isLoading}
-                    className="w-full rounded-xl"
+                    onClick={handleEmailSignIn}
+                    disabled={isLoading || !email || !password}
+                    className="w-full rounded-xl h-12 font-semibold"
                     variant="coral"
                   >
-                    Sign In
+                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                    Sign In to CampusConnect
                   </Button>
                 </div>
               </TabsContent>
               
               <TabsContent value="signup" className="space-y-4">
                 <div className="space-y-4">
-                  <div className="relative">
-                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <div className="relative group">
+                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                     <Input
                       type="text"
                       placeholder="Full name"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="pl-10 rounded-xl border-border/50"
+                      className="pl-10 rounded-xl border-border/50 focus:border-primary transition-colors h-12"
                     />
                   </div>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <div className="relative group">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                     <Input
                       type="email"
                       placeholder="College email address"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10 rounded-xl border-border/50"
+                      className="pl-10 rounded-xl border-border/50 focus:border-primary transition-colors h-12"
                     />
                   </div>
-                  <div className="relative">
-                    <School className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <div className="relative group">
+                    <School className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                     <Input
                       type="text"
                       placeholder="University name"
                       value={college}
                       onChange={(e) => setCollege(e.target.value)}
-                      className="pl-10 rounded-xl border-border/50"
+                      className="pl-10 rounded-xl border-border/50 focus:border-primary transition-colors h-12"
                     />
                   </div>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <div className="relative group">
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                     <Input
                       type="password"
-                      placeholder="Create password"
+                      placeholder="Create password (min 8 chars)"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pl-10 rounded-xl border-border/50"
+                      className="pl-10 rounded-xl border-border/50 focus:border-primary transition-colors h-12"
                     />
                   </div>
                   <Button
-                    onClick={() => handleEmailAuth(true)}
-                    disabled={isLoading}
-                    className="w-full rounded-xl"
+                    onClick={handleEmailSignUp}
+                    disabled={isLoading || !name || !email || !college || !password}
+                    className="w-full rounded-xl h-12 font-semibold"
                     variant="coral"
                   >
+                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                     Create Account
                   </Button>
                 </div>
               </TabsContent>
             </Tabs>
 
+            {/* Divider */}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t border-border/50" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground font-prompt">Or continue with</span>
+                <span className="bg-card px-3 text-muted-foreground font-prompt font-medium">
+                  Or continue with
+                </span>
               </div>
             </div>
 
+            {/* Google OAuth */}
             <Button
               onClick={handleGoogleAuth}
               disabled={isLoading}
               variant="outline"
-              className="w-full rounded-xl border-border/50 hover:bg-accent/10 transition-colors"
+              className="w-full rounded-xl border-border/50 hover:bg-accent/10 transition-colors h-12 font-medium"
             >
-              <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+              <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24">
                 <path
                   fill="currentColor"
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -193,10 +271,15 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
               Continue with Google
             </Button>
 
-            <div className="mt-6 text-center text-sm text-muted-foreground font-prompt">
-              Only verified students can join. 
-              <br />
-              ID verification required after signup.
+            {/* Footer */}
+            <div className="mt-6 text-center space-y-2">
+              <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground font-prompt">
+                <Shield className="w-4 h-4 text-success" />
+                <span>Only verified students can join</span>
+              </div>
+              <p className="text-xs text-muted-foreground font-prompt">
+                ID verification required after signup • Safe & Secure
+              </p>
             </div>
           </CardContent>
         </Card>

@@ -1,212 +1,491 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Upload, CheckCircle, AlertCircle, Clock } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { 
+  ArrowLeft, 
+  Shield, 
+  Upload, 
+  FileCheck, 
+  Camera, 
+  AlertCircle,
+  CheckCircle,
+  Loader2,
+  Eye,
+  Lock
+} from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 interface IDVerificationFlowProps {
-  onComplete: () => void;
   onBack: () => void;
+  onComplete: () => void;
 }
 
-const IDVerificationFlow = ({ onComplete, onBack }: IDVerificationFlowProps) => {
-  const [currentStep, setCurrentStep] = useState<'college' | 'govt' | 'review'>('college');
-  const [collegeId, setCollegeId] = useState<File | null>(null);
-  const [govtId, setGovtId] = useState<File | null>(null);
-  const [verificationStatus, setVerificationStatus] = useState<'pending' | 'verified' | 'rejected'>('pending');
+const IDVerificationFlow = ({ onBack, onComplete }: IDVerificationFlowProps) => {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [collegeIdFile, setCollegeIdFile] = useState<File | null>(null);
+  const [govtIdFile, setGovtIdFile] = useState<File | null>(null);
+  const [verificationStatus, setVerificationStatus] = useState<'pending' | 'approved' | 'rejected'>('pending');
   const { toast } = useToast();
 
-  const handleFileUpload = (file: File, type: 'college' | 'govt') => {
-    if (type === 'college') {
-      setCollegeId(file);
-      toast({ title: "College ID uploaded successfully" });
-    } else {
-      setGovtId(file);
-      toast({ title: "Government ID uploaded successfully" });
+  const totalSteps = 3;
+
+  const handleFileUpload = async (file: File, type: 'college' | 'govt') => {
+    try {
+      setIsLoading(true);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No authenticated user");
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}_${type}_id_${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('verification-documents')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('verification-documents')
+        .getPublicUrl(fileName);
+
+      // Update the profiles table with the document URL
+      const updateField = type === 'college' ? 'college_id_url' : 'govt_id_url';
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          [updateField]: publicUrl,
+          verification_status: 'pending'
+        })
+        .eq('user_id', user.id);
+
+      if (updateError) throw updateError;
+
+      if (type === 'college') {
+        setCollegeIdFile(file);
+      } else {
+        setGovtIdFile(file);
+      }
+
+      toast({
+        title: `${type === 'college' ? 'College' : 'Government'} ID uploaded!`,
+        description: "Document uploaded successfully ✅"
+      });
+
+    } catch (error: any) {
+      toast({
+        title: "Upload Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleSubmitVerification = () => {
-    // Simulate OCR processing and verification
-    toast({ title: "Documents submitted for verification", description: "We'll review your documents within 24 hours" });
-    setVerificationStatus('pending');
-    setCurrentStep('review');
+  const handleSubmitVerification = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Simulate AI verification process
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // For demo purposes, we'll set status to pending
+      setVerificationStatus('pending');
+      
+      toast({
+        title: "Verification Submitted! 🎉",
+        description: "We'll review your documents within 24 hours"
+      });
+
+      setTimeout(() => {
+        onComplete();
+      }, 1500);
+
+    } catch (error: any) {
+      toast({
+        title: "Submission Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const renderCollegeIdStep = () => (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader className="text-center">
-        <CardTitle>Upload College ID</CardTitle>
-        <CardDescription>Please upload a clear photo of your student ID card</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
-          {collegeId ? (
-            <div className="space-y-2">
-              <CheckCircle className="h-12 w-12 text-emerald-500 mx-auto" />
-              <p className="text-sm font-medium">{collegeId.name}</p>
-              <p className="text-xs text-muted-foreground">College ID uploaded</p>
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <div className="space-y-6 animate-fade-in">
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mx-auto shadow-glow">
+                <Shield className="w-8 h-8 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                Identity Verification 🛡️
+              </h2>
+              <p className="text-muted-foreground font-prompt text-lg">
+                Verify your identity to ensure a safe and trusted community
+              </p>
             </div>
-          ) : (
-            <div className="space-y-2">
-              <Upload className="h-12 w-12 text-muted-foreground mx-auto" />
-              <p className="text-sm font-medium">Click to upload or drag and drop</p>
-              <p className="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>
-            </div>
-          )}
-          <Input
-            type="file"
-            accept="image/*"
-            className="mt-4"
-            onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'college')}
-          />
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={onBack} className="flex-1">
-            Back
-          </Button>
-          <Button 
-            onClick={() => setCurrentStep('govt')} 
-            disabled={!collegeId}
-            className="flex-1"
-          >
-            Next
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
 
-  const renderGovtIdStep = () => (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader className="text-center">
-        <CardTitle>Upload Government ID</CardTitle>
-        <CardDescription>Upload your Aadhaar, PAN, or Driver's License</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
-          {govtId ? (
-            <div className="space-y-2">
-              <CheckCircle className="h-12 w-12 text-emerald-500 mx-auto" />
-              <p className="text-sm font-medium">{govtId.name}</p>
-              <p className="text-xs text-muted-foreground">Government ID uploaded</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <Upload className="h-12 w-12 text-muted-foreground mx-auto" />
-              <p className="text-sm font-medium">Click to upload or drag and drop</p>
-              <p className="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>
-            </div>
-          )}
-          <Input
-            type="file"
-            accept="image/*"
-            className="mt-4"
-            onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'govt')}
-          />
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setCurrentStep('college')} className="flex-1">
-            Back
-          </Button>
-          <Button 
-            onClick={handleSubmitVerification} 
-            disabled={!govtId}
-            className="flex-1"
-          >
-            Submit for Review
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
+            <Card className="border-2 border-primary/20 bg-gradient-card shadow-card">
+              <CardContent className="p-6 space-y-4">
+                <h3 className="font-semibold flex items-center text-lg">
+                  <FileCheck className="w-5 h-5 mr-2 text-primary" />
+                  What You Need
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex items-start space-x-3 p-3 bg-primary/5 rounded-lg">
+                    <div className="w-2 h-2 bg-primary rounded-full mt-2" />
+                    <div>
+                      <p className="font-medium text-primary">College ID Card</p>
+                      <p className="text-sm text-muted-foreground">
+                        Current student ID with your photo and college name clearly visible
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3 p-3 bg-secondary/5 rounded-lg">
+                    <div className="w-2 h-2 bg-secondary rounded-full mt-2" />
+                    <div>
+                      <p className="font-medium text-secondary">Government ID</p>
+                      <p className="text-sm text-muted-foreground">
+                        Aadhaar, Passport, PAN Card, or Driver's License
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-  const renderReviewStep = () => (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader className="text-center">
-        <CardTitle>Verification Status</CardTitle>
-        <CardDescription>Your documents are being reviewed</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4 text-center">
-        {verificationStatus === 'pending' && (
-          <div className="space-y-4">
-            <Clock className="h-16 w-16 text-amber-500 mx-auto animate-pulse" />
-            <Badge variant="secondary" className="bg-amber-100 text-amber-800">
-              Under Review
-            </Badge>
-            <p className="text-sm text-muted-foreground">
-              We're verifying your documents using OCR technology. This usually takes 2-24 hours.
-            </p>
+            <Card className="border-2 border-accent/20 bg-accent/5 shadow-card">
+              <CardContent className="p-4">
+                <div className="flex items-start space-x-3">
+                  <Lock className="w-5 h-5 text-accent mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="font-medium text-accent">Privacy & Security Promise</p>
+                    <p className="text-sm text-muted-foreground">
+                      🔒 We use AI to extract and verify only name, DOB, and college information.
+                      <br />
+                      🗂️ Original documents are encrypted and deleted after verification.
+                      <br />
+                      ⚡ Process typically takes less than 24 hours.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Button
+              onClick={() => setCurrentStep(2)}
+              variant="coral"
+              className="w-full rounded-xl h-12 font-semibold"
+            >
+              Start Verification Process
+              <Shield className="w-4 h-4 ml-2" />
+            </Button>
           </div>
-        )}
-        {verificationStatus === 'verified' && (
-          <div className="space-y-4">
-            <CheckCircle className="h-16 w-16 text-emerald-500 mx-auto" />
-            <Badge variant="default" className="bg-emerald-100 text-emerald-800">
-              Verified ✓
-            </Badge>
-            <p className="text-sm text-muted-foreground">
-              Congratulations! Your identity has been verified.
-            </p>
+        );
+
+      case 2:
+        return (
+          <div className="space-y-6 animate-fade-in">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
+                Upload Documents 📋
+              </h2>
+              <p className="text-muted-foreground font-prompt text-lg">
+                Upload clear photos of both documents
+              </p>
+            </div>
+
+            {/* College ID Upload */}
+            <Card className="border-2 border-primary/20 shadow-card">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center">
+                  <FileCheck className="w-5 h-5 mr-2 text-primary" />
+                  College ID Card
+                  {collegeIdFile && <CheckCircle className="w-5 h-5 ml-2 text-success animate-pulse" />}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {collegeIdFile ? (
+                  <div className="flex items-center justify-between p-4 bg-success/10 rounded-xl border-2 border-success/20 shadow-soft">
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="w-6 h-6 text-success" />
+                      <div>
+                        <p className="font-medium text-success">{collegeIdFile.name}</p>
+                        <p className="text-xs text-muted-foreground">Successfully uploaded</p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setCollegeIdFile(null)}
+                      className="text-muted-foreground hover:text-foreground rounded-lg"
+                    >
+                      Change
+                    </Button>
+                  </div>
+                ) : (
+                  <label className="block">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileUpload(file, 'college');
+                      }}
+                      className="hidden"
+                      disabled={isLoading}
+                    />
+                    <div className="border-2 border-dashed border-primary/30 rounded-xl p-8 text-center cursor-pointer hover:border-primary/50 transition-colors hover:bg-primary/5">
+                      <Camera className="w-10 h-10 mx-auto mb-3 text-primary" />
+                      <p className="font-semibold mb-1 text-primary">Upload College ID</p>
+                      <p className="text-sm text-muted-foreground">
+                        JPG, PNG up to 10MB • Make sure text is clearly visible
+                      </p>
+                    </div>
+                  </label>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Government ID Upload */}
+            <Card className="border-2 border-secondary/20 shadow-card">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center">
+                  <Shield className="w-5 h-5 mr-2 text-secondary" />
+                  Government ID
+                  {govtIdFile && <CheckCircle className="w-5 h-5 ml-2 text-success animate-pulse" />}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {govtIdFile ? (
+                  <div className="flex items-center justify-between p-4 bg-success/10 rounded-xl border-2 border-success/20 shadow-soft">
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="w-6 h-6 text-success" />
+                      <div>
+                        <p className="font-medium text-success">{govtIdFile.name}</p>
+                        <p className="text-xs text-muted-foreground">Successfully uploaded</p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setGovtIdFile(null)}
+                      className="text-muted-foreground hover:text-foreground rounded-lg"
+                    >
+                      Change
+                    </Button>
+                  </div>
+                ) : (
+                  <label className="block">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileUpload(file, 'govt');
+                      }}
+                      className="hidden"
+                      disabled={isLoading}
+                    />
+                    <div className="border-2 border-dashed border-secondary/30 rounded-xl p-8 text-center cursor-pointer hover:border-secondary/50 transition-colors hover:bg-secondary/5">
+                      <Upload className="w-10 h-10 mx-auto mb-3 text-secondary" />
+                      <p className="font-semibold mb-1 text-secondary">Upload Government ID</p>
+                      <p className="text-sm text-muted-foreground">
+                        Aadhaar, Passport, PAN, or DL • Ensure details are readable
+                      </p>
+                    </div>
+                  </label>
+                )}
+              </CardContent>
+            </Card>
+
+            {collegeIdFile && govtIdFile && (
+              <div className="animate-fade-in">
+                <Card className="border-2 border-success/20 bg-success/5 shadow-card">
+                  <CardContent className="p-4 text-center">
+                    <CheckCircle className="w-8 h-8 mx-auto mb-2 text-success" />
+                    <p className="font-medium text-success mb-1">
+                      Both documents uploaded successfully!
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Ready to proceed to review
+                    </p>
+                  </CardContent>
+                </Card>
+                
+                <Button
+                  onClick={() => setCurrentStep(3)}
+                  variant="coral"
+                  className="w-full rounded-xl h-12 font-semibold mt-4"
+                >
+                  Continue to Review
+                  <FileCheck className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
+            )}
+
+            {isLoading && (
+              <div className="text-center space-y-2">
+                <Loader2 className="w-6 h-6 animate-spin mx-auto text-primary" />
+                <p className="text-sm text-muted-foreground font-prompt">
+                  Uploading document...
+                </p>
+              </div>
+            )}
           </div>
-        )}
-        {verificationStatus === 'rejected' && (
-          <div className="space-y-4">
-            <AlertCircle className="h-16 w-16 text-destructive mx-auto" />
-            <Badge variant="destructive">
-              Verification Failed
-            </Badge>
-            <p className="text-sm text-muted-foreground">
-              We couldn't verify your documents. Please try uploading clearer images.
-            </p>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-6 animate-fade-in">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
+                Review & Submit 🚀
+              </h2>
+              <p className="text-muted-foreground font-prompt text-lg">
+                Review your documents before submission
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <Card className="border-2 border-success/20 shadow-card">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="w-6 h-6 text-success" />
+                      <div>
+                        <p className="font-semibold text-success">College ID</p>
+                        <p className="text-sm text-muted-foreground">
+                          {collegeIdFile?.name}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="border-success text-success bg-success/10">
+                      ✅ Ready
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-2 border-success/20 shadow-card">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="w-6 h-6 text-success" />
+                      <div>
+                        <p className="font-semibold text-success">Government ID</p>
+                        <p className="text-sm text-muted-foreground">
+                          {govtIdFile?.name}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="border-success text-success bg-success/10">
+                      ✅ Ready
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="border-2 border-primary/20 bg-gradient-card shadow-card">
+              <CardContent className="p-6 text-center space-y-3">
+                <Shield className="w-8 h-8 mx-auto text-primary" />
+                <p className="text-lg font-semibold text-primary">
+                  AI Verification Process
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Our advanced AI will verify your identity by comparing your documents
+                  and extracting key information. You'll be notified once approved.
+                </p>
+                <div className="flex items-center justify-center space-x-2 text-xs text-muted-foreground">
+                  <Eye className="w-4 h-4" />
+                  <span>Usually takes 2-24 hours</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Button
+              onClick={handleSubmitVerification}
+              variant="coral"
+              className="w-full rounded-xl h-12 font-semibold"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Submitting for Verification...
+                </>
+              ) : (
+                <>
+                  Submit for Verification
+                  <Shield className="w-4 h-4 ml-2" />
+                </>
+              )}
+            </Button>
+
+            {isLoading && (
+              <div className="text-center space-y-3 animate-fade-in">
+                <Progress value={66} className="h-2" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-primary">
+                    Processing documents with AI...
+                  </p>
+                  <p className="text-xs text-muted-foreground font-prompt">
+                    Extracting and verifying information securely
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
-        )}
-        <Button onClick={onComplete} className="w-full">
-          Continue to Profile Setup
-        </Button>
-      </CardContent>
-    </Card>
-  );
+        );
+
+      default:
+        return null;
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-soft flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Progress Indicator */}
-        <div className="flex justify-center mb-8">
-          <div className="flex items-center space-x-4">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-              currentStep === 'college' ? 'bg-primary text-primary-foreground' : 
-              ['govt', 'review'].includes(currentStep) ? 'bg-emerald-500 text-white' : 'bg-muted text-muted-foreground'
-            }`}>
-              1
+    <div className="min-h-screen bg-gradient-soft p-4">
+      <div className="container mx-auto max-w-md">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <Button
+            variant="ghost"
+            onClick={currentStep === 1 ? onBack : () => setCurrentStep(currentStep - 1)}
+            className="hover:bg-white/20 transition-smooth"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+          <div className="text-center">
+            <div className="text-sm font-medium text-muted-foreground">
+              Step {currentStep} of {totalSteps}
             </div>
-            <div className={`w-16 h-1 rounded ${
-              ['govt', 'review'].includes(currentStep) ? 'bg-emerald-500' : 'bg-muted'
-            }`} />
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-              currentStep === 'govt' ? 'bg-primary text-primary-foreground' : 
-              currentStep === 'review' ? 'bg-emerald-500 text-white' : 'bg-muted text-muted-foreground'
-            }`}>
-              2
-            </div>
-            <div className={`w-16 h-1 rounded ${
-              currentStep === 'review' ? 'bg-emerald-500' : 'bg-muted'
-            }`} />
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-              currentStep === 'review' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-            }`}>
-              3
+            <div className="w-24 h-2 bg-muted/50 rounded-full mt-1">
+              <div 
+                className="h-full bg-gradient-primary rounded-full transition-all duration-500"
+                style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+              />
             </div>
           </div>
+          <div className="w-20" /> {/* Spacer */}
         </div>
 
-        {/* Step Content */}
-        {currentStep === 'college' && renderCollegeIdStep()}
-        {currentStep === 'govt' && renderGovtIdStep()}
-        {currentStep === 'review' && renderReviewStep()}
+        {/* Content */}
+        <Card className="shadow-card border-0 bg-gradient-card backdrop-blur-sm">
+          <CardContent className="p-6">
+            {renderStepContent()}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

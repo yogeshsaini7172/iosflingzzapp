@@ -1,752 +1,783 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { 
   ArrowLeft, 
   ArrowRight, 
-  Upload, 
-  Camera, 
-  Mic, 
-  Video,
+  User, 
+  Calendar, 
+  MapPin,
+  Heart,
+  Camera,
   Plus,
   X,
-  Heart,
-  User,
-  Calendar,
-  Phone,
-  MapPin,
-  Palette,
-  Brain,
-  Target
+  Eye,
+  EyeOff,
+  Sparkles
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface DetailedProfileCreationProps {
-  onComplete: () => void;
   onBack: () => void;
+  onComplete: () => void;
 }
 
-interface ProfileData {
-  // Basic Info
-  firstName: string;
-  lastName: string;
-  dateOfBirth: string;
-  gender: string;
-  phone: string;
-  college: string;
-  major: string;
-  yearOfStudy: string;
-  location: string;
-  
-  // Personality
-  personalityType: string;
-  introvertExtrovert: string;
-  hobbies: string[];
-  relationshipGoals: string[];
-  humorStyle: string;
-  loveLanguage: string;
-  bio: string;
-  
-  // Partner Preferences - Physical
-  preferredAge: { min: number; max: number };
-  preferredHeight: { min: number; max: number };
-  preferredSkinType: string[];
-  preferredBodyShape: string[];
-  preferredLifestyle: string[];
-  
-  // Partner Preferences - Mental
-  preferredHumor: string[];
-  preferredPersonality: string[];
-  preferredValues: string[];
-  
-  // Media
-  photos: File[];
-  videos: File[];
-  voiceIntro: File | null;
-}
-
-const DetailedProfileCreation = ({ onComplete, onBack }: DetailedProfileCreationProps) => {
+const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreationProps) => {
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 6;
-  
-  const [profileData, setProfileData] = useState<ProfileData>({
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+
+  // Profile Data
+  const [profileData, setProfileData] = useState({
+    // Basic Info
     firstName: "",
     lastName: "",
     dateOfBirth: "",
     gender: "",
-    phone: "",
     college: "",
-    major: "",
-    yearOfStudy: "",
-    location: "",
+    phoneNumber: "",
+    
+    // Profile Settings - REPLACED VOICE WITH PUBLIC PROFILE OPTION
+    isProfilePublic: false,
+    
+    // Media
+    profileImages: [] as File[],
+    
+    // Personality
     personalityType: "",
-    introvertExtrovert: "",
-    hobbies: [],
-    relationshipGoals: [],
+    hobbies: [] as string[],
+    relationshipGoal: "",
     humorStyle: "",
     loveLanguage: "",
     bio: "",
-    preferredAge: { min: 18, max: 30 },
-    preferredHeight: { min: 150, max: 200 },
-    preferredSkinType: [],
-    preferredBodyShape: [],
-    preferredLifestyle: [],
-    preferredHumor: [],
-    preferredPersonality: [],
-    preferredValues: [],
-    photos: [],
-    videos: [],
-    voiceIntro: null
+    interests: [] as string[],
+    
+    // Partner Preferences - Physical
+    preferredGender: [] as string[],
+    ageRangeMin: 18,
+    ageRangeMax: 30,
+    heightRangeMin: 150,
+    heightRangeMax: 190,
+    preferredSkinType: [] as string[],
+    preferredBodyShape: [] as string[],
+    
+    // Partner Preferences - Mental
+    preferredHumorStyle: [] as string[],
+    preferredPersonalityType: [] as string[],
+    preferredRelationshipGoal: [] as string[],
+    preferredLifestyleHabits: [] as string[]
   });
 
-  const handlePhotoUpload = (files: FileList | null) => {
-    if (files && profileData.photos.length < 6) {
-      const newPhotos = Array.from(files).slice(0, 6 - profileData.photos.length);
+  const totalSteps = 6;
+
+  const handleNext = () => {
+    if (currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    } else {
+      onBack();
+    }
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (profileData.profileImages.length + files.length > 6) {
+      toast({
+        title: "Too many images",
+        description: "You can upload maximum 6 images",
+        variant: "destructive"
+      });
+      return;
+    }
+    setProfileData(prev => ({
+      ...prev,
+      profileImages: [...prev.profileImages, ...files]
+    }));
+  };
+
+  const removeImage = (index: number) => {
+    setProfileData(prev => ({
+      ...prev,
+      profileImages: prev.profileImages.filter((_, i) => i !== index)
+    }));
+  };
+
+  const addTag = (field: keyof typeof profileData, value: string) => {
+    const currentArray = profileData[field] as string[];
+    if (!currentArray.includes(value) && value.trim()) {
       setProfileData(prev => ({
         ...prev,
-        photos: [...prev.photos, ...newPhotos]
+        [field]: [...currentArray, value]
       }));
     }
   };
 
-  const removePhoto = (index: number) => {
+  const removeTag = (field: keyof typeof profileData, value: string) => {
+    const currentArray = profileData[field] as string[];
     setProfileData(prev => ({
       ...prev,
-      photos: prev.photos.filter((_, i) => i !== index)
+      [field]: currentArray.filter(item => item !== value)
     }));
   };
 
-  const toggleInterest = (interest: string, field: keyof ProfileData) => {
-    setProfileData(prev => ({
-      ...prev,
-      [field]: (prev[field] as string[]).includes(interest)
-        ? (prev[field] as string[]).filter(item => item !== interest)
-        : [...(prev[field] as string[]), interest]
-    }));
+  const handleSubmit = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error("No authenticated user");
+
+      // Upload images to Supabase Storage
+      const imageUrls: string[] = [];
+      for (const image of profileData.profileImages) {
+        const fileExt = image.name.split('.').pop();
+        const fileName = `${user.id}_${Date.now()}.${fileExt}`;
+        const { error: uploadError, data } = await supabase.storage
+          .from('profile-images')
+          .upload(fileName, image);
+        
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('profile-images')
+          .getPublicUrl(fileName);
+        
+        imageUrls.push(publicUrl);
+      }
+
+      // Create profile
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert({
+          first_name: profileData.firstName,
+          last_name: profileData.lastName,
+          email: user.email!,
+          date_of_birth: profileData.dateOfBirth,
+          gender: profileData.gender as "male" | "female" | "non_binary" | "prefer_not_to_say",
+          university: profileData.college,
+          bio: profileData.bio,
+          interests: profileData.interests,
+          profile_images: imageUrls,
+          personality_type: profileData.personalityType,
+          humor_type: profileData.humorStyle,
+          love_language: profileData.loveLanguage,
+          relationship_goals: [profileData.relationshipGoal],
+          verification_status: 'pending'
+        })
+        .eq('user_id', user.id);
+
+      if (profileError) throw profileError;
+
+      // Create partner preferences
+      const { error: preferencesError } = await supabase
+        .from('partner_preferences')
+        .upsert({
+          user_id: user.id,
+          preferred_gender: profileData.preferredGender,
+          age_range_min: profileData.ageRangeMin,
+          age_range_max: profileData.ageRangeMax,
+          preferred_relationship_goal: profileData.preferredRelationshipGoal
+        });
+
+      if (preferencesError) throw preferencesError;
+
+      toast({
+        title: "Profile created successfully! ✨",
+        description: "Let's verify your identity next"
+      });
+
+      onComplete();
+    } catch (error: any) {
+      toast({
+        title: "Error creating profile",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const renderPhotosStep = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <div className="w-16 h-16 bg-gradient-coral rounded-full flex items-center justify-center mx-auto mb-4">
-          <Camera className="w-8 h-8 text-white" />
-        </div>
-        <h2 className="text-2xl font-bold mb-2">Show Your Best Self</h2>
-        <p className="text-muted-foreground font-prompt">Upload 1-6 photos to get more matches</p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        {Array.from({ length: 6 }).map((_, index) => (
-          <div
-            key={index}
-            className="aspect-square border-2 border-dashed border-border/50 rounded-2xl flex items-center justify-center relative overflow-hidden bg-gradient-soft/20 hover:border-primary/50 transition-colors"
-          >
-            {profileData.photos[index] ? (
-              <>
-                <img
-                  src={URL.createObjectURL(profileData.photos[index])}
-                  alt={`Upload ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
-                <Button
-                  variant="destructive"
-                  size="icon-sm"
-                  className="absolute top-2 right-2 rounded-full shadow-medium"
-                  onClick={() => removePhoto(index)}
-                >
-                  <X className="w-3 h-3" />
-                </Button>
-              </>
-            ) : (
-              <label className="cursor-pointer w-full h-full flex flex-col items-center justify-center hover:bg-accent/10 transition-colors rounded-2xl">
-                <Plus className="w-8 h-8 text-muted-foreground mb-2" />
-                <span className="text-sm text-muted-foreground font-prompt">Add Photo</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={(e) => handlePhotoUpload(e.target.files)}
-                />
-              </label>
-            )}
-          </div>
-        ))}
-      </div>
-
-      <div className="space-y-4">
-        <div className="border border-border/50 rounded-2xl p-4 bg-card/50 backdrop-blur-sm">
-          <Label className="flex items-center space-x-2 cursor-pointer mb-2">
-            <Video className="w-5 h-5 text-primary" />
-            <span className="font-semibold">Upload Video (Optional)</span>
-          </Label>
-          <p className="text-sm text-muted-foreground mb-3">Share a 15-second video introduction</p>
-          <input type="file" accept="video/*" className="text-sm w-full" />
-        </div>
-
-        <div className="border border-border/50 rounded-2xl p-4 bg-card/50 backdrop-blur-sm">
-          <Label className="flex items-center space-x-2 cursor-pointer mb-2">
-            <Mic className="w-5 h-5 text-primary" />
-            <span className="font-semibold">Voice Introduction (Optional)</span>
-          </Label>
-          <p className="text-sm text-muted-foreground mb-3">Record a voice message</p>
-          <Button variant="outline" className="rounded-xl">
-            <Mic className="w-4 h-4 mr-2" />
-            Start Recording
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderBasicInfoStep = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4">
-          <User className="w-8 h-8 text-white" />
-        </div>
-        <h2 className="text-2xl font-bold mb-2">Tell Us About You</h2>
-        <p className="text-muted-foreground font-prompt">Basic information to get started</p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="firstName" className="font-semibold">First Name *</Label>
-          <Input
-            id="firstName"
-            value={profileData.firstName}
-            onChange={(e) => setProfileData(prev => ({ ...prev, firstName: e.target.value }))}
-            className="rounded-xl mt-1"
-          />
-        </div>
-        <div>
-          <Label htmlFor="lastName" className="font-semibold">Last Name *</Label>
-          <Input
-            id="lastName"
-            value={profileData.lastName}
-            onChange={(e) => setProfileData(prev => ({ ...prev, lastName: e.target.value }))}
-            className="rounded-xl mt-1"
-          />
-        </div>
-      </div>
-
-      <div>
-        <Label htmlFor="dateOfBirth" className="font-semibold">Date of Birth *</Label>
-        <Input
-          id="dateOfBirth"
-          type="date"
-          value={profileData.dateOfBirth}
-          onChange={(e) => setProfileData(prev => ({ ...prev, dateOfBirth: e.target.value }))}
-          className="rounded-xl mt-1"
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="gender" className="font-semibold">Gender *</Label>
-        <Select value={profileData.gender} onValueChange={(value) => setProfileData(prev => ({ ...prev, gender: value }))}>
-          <SelectTrigger className="rounded-xl mt-1">
-            <SelectValue placeholder="Select gender" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="male">Male</SelectItem>
-            <SelectItem value="female">Female</SelectItem>
-            <SelectItem value="non-binary">Non-binary</SelectItem>
-            <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div>
-        <Label htmlFor="phone" className="font-semibold">Phone Number</Label>
-        <Input
-          id="phone"
-          type="tel"
-          value={profileData.phone}
-          onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
-          className="rounded-xl mt-1"
-          placeholder="Optional"
-        />
-      </div>
-
-      <div>
-        <Label htmlFor="college" className="font-semibold">University *</Label>
-        <Input
-          id="college"
-          value={profileData.college}
-          onChange={(e) => setProfileData(prev => ({ ...prev, college: e.target.value }))}
-          className="rounded-xl mt-1"
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="major" className="font-semibold">Major</Label>
-          <Input
-            id="major"
-            value={profileData.major}
-            onChange={(e) => setProfileData(prev => ({ ...prev, major: e.target.value }))}
-            className="rounded-xl mt-1"
-          />
-        </div>
-        <div>
-          <Label htmlFor="yearOfStudy" className="font-semibold">Year of Study</Label>
-          <Select value={profileData.yearOfStudy} onValueChange={(value) => setProfileData(prev => ({ ...prev, yearOfStudy: value }))}>
-            <SelectTrigger className="rounded-xl mt-1">
-              <SelectValue placeholder="Select year" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1">1st Year</SelectItem>
-              <SelectItem value="2">2nd Year</SelectItem>
-              <SelectItem value="3">3rd Year</SelectItem>
-              <SelectItem value="4">4th Year</SelectItem>
-              <SelectItem value="5">5th Year+</SelectItem>
-              <SelectItem value="graduate">Graduate</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderPersonalityStep = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <div className="w-16 h-16 bg-gradient-secondary rounded-full flex items-center justify-center mx-auto mb-4 shadow-glow">
-          <Brain className="w-8 h-8 text-white" />
-        </div>
-        <h2 className="text-2xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">Your Personality</h2>
-        <p className="text-muted-foreground font-prompt">Help us understand who you are</p>
-      </div>
-
-      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-primary/10">
-        <Label className="font-semibold text-lg mb-3 flex items-center">
-          <Heart className="w-4 h-4 mr-2 text-coral" />
-          Are you more of an introvert or extrovert?
-        </Label>
-        <div className="grid grid-cols-2 gap-3 mt-3">
-          {['Introvert', 'Extrovert'].map((type) => (
-            <Button
-              key={type}
-              variant={profileData.introvertExtrovert === type ? 'coral' : 'outline'}
-              onClick={() => setProfileData(prev => ({ ...prev, introvertExtrovert: type }))}
-              className="rounded-xl h-12 font-semibold hover-lift"
-            >
-              {type}
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-primary/10">
-        <Label className="font-semibold text-lg mb-3 flex items-center">
-          <Palette className="w-4 h-4 mr-2 text-secondary" />
-          What's your humor style?
-        </Label>
-        <div className="grid grid-cols-2 gap-3 mt-3">
-          {['Dark', 'Witty', 'Light', 'Sarcastic'].map((style) => (
-            <Button
-              key={style}
-              variant={profileData.humorStyle === style ? 'coral' : 'outline'}
-              onClick={() => setProfileData(prev => ({ ...prev, humorStyle: style }))}
-              className="rounded-xl h-12 font-semibold hover-lift"
-            >
-              {style}
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-primary/10">
-        <Label className="font-semibold text-lg mb-3 flex items-center">
-          <Heart className="w-4 h-4 mr-2 text-coral" />
-          How do you express love?
-        </Label>
-        <div className="grid grid-cols-1 gap-2 mt-3">
-          {['Words of Affirmation', 'Physical Touch', 'Quality Time', 'Acts of Service', 'Receiving Gifts'].map((language) => (
-            <Button
-              key={language}
-              variant={profileData.loveLanguage === language ? 'coral' : 'outline'}
-              onClick={() => setProfileData(prev => ({ ...prev, loveLanguage: language }))}
-              className="rounded-xl h-12 font-semibold hover-lift text-sm"
-            >
-              {language}
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-primary/10">
-        <Label className="font-semibold text-lg mb-3">What are you looking for?</Label>
-        <div className="flex flex-wrap gap-2 mt-3">
-          {['Casual', 'Serious', 'Friendship', 'Marriage', 'Something Fun'].map((goal) => (
-            <Badge
-              key={goal}
-              variant={profileData.relationshipGoals.includes(goal) ? 'default' : 'secondary'}
-              className="cursor-pointer rounded-full px-4 py-2 hover:scale-105 transition-all duration-200 hover:shadow-md text-sm font-semibold"
-              onClick={() => toggleInterest(goal, 'relationshipGoals')}
-            >
-              {goal}
-            </Badge>
-          ))}
-        </div>
-      </div>
-
-      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-primary/10">
-        <Label className="font-semibold text-lg mb-3">Hobbies & Interests</Label>
-        <div className="flex flex-wrap gap-2 mt-3">
-          {[
-            'Reading', 'Gaming', 'Sports', 'Music', 'Art', 'Travel', 
-            'Cooking', 'Photography', 'Dancing', 'Hiking', 'Movies', 'Fitness',
-            'Netflix', 'Yoga', 'Partying', 'Study Groups'
-          ].map((hobby) => (
-            <Badge
-              key={hobby}
-              variant={profileData.hobbies.includes(hobby) ? 'default' : 'secondary'}
-              className="cursor-pointer rounded-full px-3 py-1 hover:scale-105 transition-all duration-200 hover:shadow-md"
-              onClick={() => toggleInterest(hobby, 'hobbies')}
-            >
-              {hobby}
-            </Badge>
-          ))}
-        </div>
-      </div>
-
-      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-primary/10">
-        <Label htmlFor="bio" className="font-semibold text-lg mb-3">Describe yourself in one sentence</Label>
-        <Textarea
-          id="bio"
-          value={profileData.bio}
-          onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
-          placeholder="I'm someone who loves adventure, good coffee, and meaningful conversations..."
-          className="rounded-xl mt-1 border-primary/20 focus:border-primary/50 bg-white/50"
-          rows={3}
-        />
-      </div>
-    </div>
-  );
-
-  const renderPhysicalPreferencesStep = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <div className="w-16 h-16 bg-gradient-coral rounded-full flex items-center justify-center mx-auto mb-4 shadow-glow">
-          <Target className="w-8 h-8 text-white" />
-        </div>
-        <h2 className="text-2xl font-bold mb-2 bg-gradient-coral bg-clip-text text-transparent">Physical Preferences</h2>
-        <p className="text-muted-foreground font-prompt">What attracts you physically?</p>
-      </div>
-
-      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-coral/20">
-        <Label className="font-semibold text-lg mb-3">Age Range</Label>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label className="text-sm text-muted-foreground">Min Age</Label>
-            <Input
-              type="number"
-              value={profileData.preferredAge.min}
-              onChange={(e) => setProfileData(prev => ({
-                ...prev,
-                preferredAge: { ...prev.preferredAge, min: parseInt(e.target.value) || 18 }
-              }))}
-              className="rounded-xl mt-1"
-              min="18"
-              max="35"
-            />
-          </div>
-          <div>
-            <Label className="text-sm text-muted-foreground">Max Age</Label>
-            <Input
-              type="number"
-              value={profileData.preferredAge.max}
-              onChange={(e) => setProfileData(prev => ({
-                ...prev,
-                preferredAge: { ...prev.preferredAge, max: parseInt(e.target.value) || 30 }
-              }))}
-              className="rounded-xl mt-1"
-              min="18"
-              max="35"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-coral/20">
-        <Label className="font-semibold text-lg mb-3">Height Preference</Label>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label className="text-sm text-muted-foreground">Min Height (cm)</Label>
-            <Input
-              type="number"
-              value={profileData.preferredHeight.min}
-              onChange={(e) => setProfileData(prev => ({
-                ...prev,
-                preferredHeight: { ...prev.preferredHeight, min: parseInt(e.target.value) || 150 }
-              }))}
-              className="rounded-xl mt-1"
-              min="140"
-              max="220"
-            />
-          </div>
-          <div>
-            <Label className="text-sm text-muted-foreground">Max Height (cm)</Label>
-            <Input
-              type="number"
-              value={profileData.preferredHeight.max}
-              onChange={(e) => setProfileData(prev => ({
-                ...prev,
-                preferredHeight: { ...prev.preferredHeight, max: parseInt(e.target.value) || 200 }
-              }))}
-              className="rounded-xl mt-1"
-              min="140"
-              max="220"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-coral/20">
-        <Label className="font-semibold text-lg mb-3">Skin Type Preference</Label>
-        <div className="flex flex-wrap gap-2 mt-3">
-          {['Fair', 'Wheatish', 'Dark', "Doesn't Matter"].map((skin) => (
-            <Badge
-              key={skin}
-              variant={profileData.preferredSkinType.includes(skin) ? 'default' : 'secondary'}
-              className="cursor-pointer rounded-full px-4 py-2 hover:scale-105 transition-all duration-200 hover:shadow-md"
-              onClick={() => toggleInterest(skin, 'preferredSkinType')}
-            >
-              {skin}
-            </Badge>
-          ))}
-        </div>
-      </div>
-
-      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-coral/20">
-        <Label className="font-semibold text-lg mb-3">Body Shape Preference</Label>
-        <div className="flex flex-wrap gap-2 mt-3">
-          {['Slim', 'Fit', 'Athletic', 'Average', 'Curvy', "Doesn't Matter"].map((shape) => (
-            <Badge
-              key={shape}
-              variant={profileData.preferredBodyShape.includes(shape) ? 'default' : 'secondary'}
-              className="cursor-pointer rounded-full px-4 py-2 hover:scale-105 transition-all duration-200 hover:shadow-md"
-              onClick={() => toggleInterest(shape, 'preferredBodyShape')}
-            >
-              {shape}
-            </Badge>
-          ))}
-        </div>
-      </div>
-
-      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-coral/20">
-        <Label className="font-semibold text-lg mb-3">Lifestyle Preferences</Label>
-        <div className="flex flex-wrap gap-2 mt-3">
-          {['Fitness Enthusiast', 'Non-Smoker', 'Social Drinker', 'Vegetarian', 'Vegan', 'Foodie', 'Party Lover', 'Homebody'].map((lifestyle) => (
-            <Badge
-              key={lifestyle}
-              variant={profileData.preferredLifestyle.includes(lifestyle) ? 'default' : 'secondary'}
-              className="cursor-pointer rounded-full px-3 py-1 hover:scale-105 transition-all duration-200 hover:shadow-md"
-              onClick={() => toggleInterest(lifestyle, 'preferredLifestyle')}
-            >
-              {lifestyle}
-            </Badge>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderMentalPreferencesStep = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <div className="w-16 h-16 bg-gradient-secondary rounded-full flex items-center justify-center mx-auto mb-4 shadow-glow">
-          <Brain className="w-8 h-8 text-white" />
-        </div>
-        <h2 className="text-2xl font-bold mb-2 bg-gradient-secondary bg-clip-text text-transparent">Mental Connection</h2>
-        <p className="text-muted-foreground font-prompt">What matters to you mentally?</p>
-      </div>
-
-      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-secondary/20">
-        <Label className="font-semibold text-lg mb-3">Preferred Humor Style</Label>
-        <div className="flex flex-wrap gap-2 mt-3">
-          {['Dark', 'Witty', 'Light', 'Sarcastic', "Doesn't Matter"].map((humor) => (
-            <Badge
-              key={humor}
-              variant={profileData.preferredHumor.includes(humor) ? 'default' : 'secondary'}
-              className="cursor-pointer rounded-full px-4 py-2 hover:scale-105 transition-all duration-200 hover:shadow-md"
-              onClick={() => toggleInterest(humor, 'preferredHumor')}
-            >
-              {humor}
-            </Badge>
-          ))}
-        </div>
-      </div>
-
-      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-secondary/20">
-        <Label className="font-semibold text-lg mb-3">Personality Type</Label>
-        <div className="flex flex-wrap gap-2 mt-3">
-          {['Introvert', 'Extrovert', 'Ambivert', "Doesn't Matter"].map((personality) => (
-            <Badge
-              key={personality}
-              variant={profileData.preferredPersonality.includes(personality) ? 'default' : 'secondary'}
-              className="cursor-pointer rounded-full px-4 py-2 hover:scale-105 transition-all duration-200 hover:shadow-md"
-              onClick={() => toggleInterest(personality, 'preferredPersonality')}
-            >
-              {personality}
-            </Badge>
-          ))}
-        </div>
-      </div>
-
-      <div className="bg-gradient-soft/10 rounded-2xl p-4 border border-secondary/20">
-        <Label className="font-semibold text-lg mb-3">Values & Priorities</Label>
-        <div className="flex flex-wrap gap-2 mt-3">
-          {[
-            'Career-Focused', 'Family-Oriented', 'Spiritual', 'Open-Minded', 
-            'Ambitious', 'Creative', 'Intellectual', 'Adventure-Seeking',
-            'Compassionate', 'Independent'
-          ].map((value) => (
-            <Badge
-              key={value}
-              variant={profileData.preferredValues.includes(value) ? 'default' : 'secondary'}
-              className="cursor-pointer rounded-full px-3 py-1 hover:scale-105 transition-all duration-200 hover:shadow-md"
-              onClick={() => toggleInterest(value, 'preferredValues')}
-            >
-              {value}
-            </Badge>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderReviewStep = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4 shadow-glow">
-          <Heart className="w-8 h-8 text-white" />
-        </div>
-        <h2 className="text-2xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">Profile Complete!</h2>
-        <p className="text-muted-foreground font-prompt">Review your profile before continuing</p>
-      </div>
-
-      <div className="bg-gradient-soft/20 rounded-2xl p-6 border border-primary/20">
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          {profileData.photos.slice(0, 2).map((photo, index) => (
-            <div key={index} className="aspect-square rounded-xl overflow-hidden">
-              <img
-                src={URL.createObjectURL(photo)}
-                alt={`Profile ${index + 1}`}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          ))}
-        </div>
-        
-        <div className="text-center">
-          <h3 className="text-xl font-bold mb-2">{profileData.firstName} {profileData.lastName}</h3>
-          <p className="text-muted-foreground mb-4">{profileData.college} • {profileData.yearOfStudy} Year</p>
-          <p className="text-sm bg-card/50 rounded-lg p-3 border">{profileData.bio}</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-card/50 rounded-xl p-4 border">
-          <h4 className="font-semibold mb-2 text-primary">Personality</h4>
-          <p className="text-sm text-muted-foreground">{profileData.introvertExtrovert}</p>
-          <p className="text-sm text-muted-foreground">{profileData.humorStyle} humor</p>
-          <p className="text-sm text-muted-foreground">{profileData.loveLanguage}</p>
-        </div>
-        
-        <div className="bg-card/50 rounded-xl p-4 border">
-          <h4 className="font-semibold mb-2 text-coral">Interests</h4>
-          <div className="flex flex-wrap gap-1">
-            {profileData.hobbies.slice(0, 3).map((hobby, index) => (
-              <Badge key={index} variant="secondary" className="text-xs">
-                {hobby}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const canProceed = () => {
+  const renderStepContent = () => {
     switch (currentStep) {
       case 1:
-        return profileData.photos.length >= 1;
+        return (
+          <div className="space-y-6 animate-fade-in">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
+                Show Your Best Self ✨
+              </h2>
+              <p className="text-muted-foreground font-prompt">Upload up to 6 photos that represent you</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="aspect-square bg-gradient-card rounded-xl border-2 border-dashed border-border/50 flex items-center justify-center relative overflow-hidden hover:border-primary/50 transition-smooth hover:shadow-soft"
+                >
+                  {profileData.profileImages[index] ? (
+                    <>
+                      <img
+                        src={URL.createObjectURL(profileData.profileImages[index])}
+                        alt={`Profile ${index + 1}`}
+                        className="w-full h-full object-cover rounded-xl"
+                      />
+                      <button
+                        onClick={() => removeImage(index)}
+                        className="absolute top-2 right-2 w-6 h-6 bg-destructive rounded-full flex items-center justify-center text-white hover:bg-destructive/80 shadow-soft"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </>
+                  ) : (
+                    <label className="cursor-pointer flex flex-col items-center p-4 text-center w-full h-full">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        multiple
+                      />
+                      <Camera className="w-8 h-8 text-muted-foreground mb-2" />
+                      <span className="text-sm text-muted-foreground font-prompt font-medium">
+                        {index === 0 ? "Main Photo" : `Photo ${index + 1}`}
+                      </span>
+                    </label>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* PUBLIC PROFILE OPTION - REPLACED VOICE */}
+            <Card className="border-2 border-primary/20 bg-gradient-card shadow-card">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <div className="flex items-center space-x-2">
+                      {profileData.isProfilePublic ? 
+                        <Eye className="w-4 h-4 text-success" /> : 
+                        <EyeOff className="w-4 h-4 text-muted-foreground" />
+                      }
+                      <Label htmlFor="public-profile" className="font-medium">
+                        Do you want to show your profile publicly?
+                      </Label>
+                    </div>
+                    <p className="text-sm text-muted-foreground font-prompt">
+                      {profileData.isProfilePublic 
+                        ? "Your profile will be visible to other verified students for matching" 
+                        : "Your profile will be private until you manually enable public visibility"
+                      }
+                    </p>
+                  </div>
+                  <Switch
+                    id="public-profile"
+                    checked={profileData.isProfilePublic}
+                    onCheckedChange={(checked) => 
+                      setProfileData(prev => ({ ...prev, isProfilePublic: checked }))
+                    }
+                    className="data-[state=checked]:bg-success"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
       case 2:
-        return profileData.firstName && profileData.lastName && profileData.dateOfBirth && 
-               profileData.gender && profileData.college;
+        return (
+          <div className="space-y-6 animate-fade-in">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
+                Basic Information 📝
+              </h2>
+              <p className="text-muted-foreground font-prompt">Tell us about yourself</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>First Name</Label>
+                <Input
+                  placeholder="John"
+                  value={profileData.firstName}
+                  onChange={(e) => setProfileData(prev => ({ ...prev, firstName: e.target.value }))}
+                  className="rounded-xl h-12 border-border/50 focus:border-primary"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Last Name</Label>
+                <Input
+                  placeholder="Doe"
+                  value={profileData.lastName}
+                  onChange={(e) => setProfileData(prev => ({ ...prev, lastName: e.target.value }))}
+                  className="rounded-xl h-12 border-border/50 focus:border-primary"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Date of Birth</Label>
+              <Input
+                type="date"
+                value={profileData.dateOfBirth}
+                onChange={(e) => setProfileData(prev => ({ ...prev, dateOfBirth: e.target.value }))}
+                className="rounded-xl h-12 border-border/50 focus:border-primary"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Gender</Label>
+              <Select value={profileData.gender} onValueChange={(value) => setProfileData(prev => ({ ...prev, gender: value }))}>
+                <SelectTrigger className="rounded-xl h-12 border-border/50 focus:border-primary">
+                  <SelectValue placeholder="Select your gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>University/College</Label>
+              <Input
+                placeholder="Harvard University"
+                value={profileData.college}
+                onChange={(e) => setProfileData(prev => ({ ...prev, college: e.target.value }))}
+                className="rounded-xl h-12 border-border/50 focus:border-primary"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Phone Number (Optional)</Label>
+              <Input
+                placeholder="+1 (555) 000-0000"
+                value={profileData.phoneNumber}
+                onChange={(e) => setProfileData(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                className="rounded-xl h-12 border-border/50 focus:border-primary"
+              />
+            </div>
+          </div>
+        );
+
       case 3:
-        return profileData.introvertExtrovert && profileData.hobbies.length > 0 && profileData.bio.length > 10;
+        return (
+          <div className="space-y-6 animate-fade-in">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
+                Your Personality 🌟
+              </h2>
+              <p className="text-muted-foreground font-prompt">Help us understand who you are</p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Personality Type</Label>
+                <Select value={profileData.personalityType} onValueChange={(value) => setProfileData(prev => ({ ...prev, personalityType: value }))}>
+                  <SelectTrigger className="rounded-xl h-12 border-border/50 focus:border-primary">
+                    <SelectValue placeholder="How would you describe yourself?" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="introvert">Introvert 🤫</SelectItem>
+                    <SelectItem value="extrovert">Extrovert 🎉</SelectItem>
+                    <SelectItem value="ambivert">Ambivert ⚖️</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Relationship Goal</Label>
+                <Select value={profileData.relationshipGoal} onValueChange={(value) => setProfileData(prev => ({ ...prev, relationshipGoal: value }))}>
+                  <SelectTrigger className="rounded-xl h-12 border-border/50 focus:border-primary">
+                    <SelectValue placeholder="What are you looking for?" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="casual">Casual Dating 😄</SelectItem>
+                    <SelectItem value="serious">Serious Relationship 💍</SelectItem>
+                    <SelectItem value="friendship">Friendship 👫</SelectItem>
+                    <SelectItem value="networking">Networking 🤝</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Humor Style</Label>
+                <Select value={profileData.humorStyle} onValueChange={(value) => setProfileData(prev => ({ ...prev, humorStyle: value }))}>
+                  <SelectTrigger className="rounded-xl h-12 border-border/50 focus:border-primary">
+                    <SelectValue placeholder="What's your humor like?" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="witty">Witty 🧠</SelectItem>
+                    <SelectItem value="sarcastic">Sarcastic 😏</SelectItem>
+                    <SelectItem value="light">Light & Fun 😊</SelectItem>
+                    <SelectItem value="dark">Dark Humor 🖤</SelectItem>
+                    <SelectItem value="silly">Silly 🤪</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Love Language</Label>
+                <Select value={profileData.loveLanguage} onValueChange={(value) => setProfileData(prev => ({ ...prev, loveLanguage: value }))}>
+                  <SelectTrigger className="rounded-xl h-12 border-border/50 focus:border-primary">
+                    <SelectValue placeholder="How do you express love?" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="words_of_affirmation">Words of Affirmation 💬</SelectItem>
+                    <SelectItem value="acts_of_service">Acts of Service 🤲</SelectItem>
+                    <SelectItem value="receiving_gifts">Receiving Gifts 🎁</SelectItem>
+                    <SelectItem value="quality_time">Quality Time ⏰</SelectItem>
+                    <SelectItem value="physical_touch">Physical Touch 🤗</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Bio</Label>
+                <Textarea
+                  placeholder="Tell us about yourself in your own words..."
+                  value={profileData.bio}
+                  onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
+                  className="rounded-xl min-h-[100px] resize-none border-border/50 focus:border-primary"
+                  maxLength={500}
+                />
+                <p className="text-xs text-muted-foreground text-right">
+                  {profileData.bio.length}/500
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+
       case 4:
-        return profileData.preferredSkinType.length > 0 || profileData.preferredBodyShape.length > 0;
+        return (
+          <div className="space-y-6 animate-fade-in">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
+                Partner Physical Preferences 💕
+              </h2>
+              <p className="text-muted-foreground font-prompt">What attracts you physically?</p>
+            </div>
+
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <Label>Preferred Gender</Label>
+                <div className="flex flex-wrap gap-2">
+                  {['male', 'female', 'other'].map((gender) => (
+                    <Badge
+                      key={gender}
+                      variant={profileData.preferredGender.includes(gender) ? "default" : "outline"}
+                      className="cursor-pointer px-4 py-2 rounded-full hover:scale-105 transition-smooth"
+                      onClick={() => {
+                        if (profileData.preferredGender.includes(gender)) {
+                          removeTag('preferredGender', gender);
+                        } else {
+                          addTag('preferredGender', gender);
+                        }
+                      }}
+                    >
+                      {gender.charAt(0).toUpperCase() + gender.slice(1)}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Label>Age Range</Label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Input
+                      type="number"
+                      placeholder="Min age"
+                      value={profileData.ageRangeMin}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, ageRangeMin: parseInt(e.target.value) || 18 }))}
+                      min={18}
+                      max={65}
+                      className="rounded-xl h-12 border-border/50 focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <Input
+                      type="number"
+                      placeholder="Max age"
+                      value={profileData.ageRangeMax}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, ageRangeMax: parseInt(e.target.value) || 30 }))}
+                      min={18}
+                      max={65}
+                      className="rounded-xl h-12 border-border/50 focus:border-primary"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Label>Preferred Skin Type</Label>
+                <div className="flex flex-wrap gap-2">
+                  {['fair', 'wheatish', 'dark', 'doesnt_matter'].map((type) => (
+                    <Badge
+                      key={type}
+                      variant={profileData.preferredSkinType.includes(type) ? "default" : "outline"}
+                      className="cursor-pointer px-4 py-2 rounded-full hover:scale-105 transition-smooth"
+                      onClick={() => {
+                        if (profileData.preferredSkinType.includes(type)) {
+                          removeTag('preferredSkinType', type);
+                        } else {
+                          addTag('preferredSkinType', type);
+                        }
+                      }}
+                    >
+                      {type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Label>Preferred Body Shape</Label>
+                <div className="flex flex-wrap gap-2">
+                  {['slim', 'fit', 'average', 'curvy', 'doesnt_matter'].map((shape) => (
+                    <Badge
+                      key={shape}
+                      variant={profileData.preferredBodyShape.includes(shape) ? "default" : "outline"}
+                      className="cursor-pointer px-4 py-2 rounded-full hover:scale-105 transition-smooth"
+                      onClick={() => {
+                        if (profileData.preferredBodyShape.includes(shape)) {
+                          removeTag('preferredBodyShape', shape);
+                        } else {
+                          addTag('preferredBodyShape', shape);
+                        }
+                      }}
+                    >
+                      {shape.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
       case 5:
-        return profileData.preferredHumor.length > 0 || profileData.preferredPersonality.length > 0;
+        return (
+          <div className="space-y-6 animate-fade-in">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
+                Partner Mental Preferences 🧠
+              </h2>
+              <p className="text-muted-foreground font-prompt">What personality attracts you?</p>
+            </div>
+
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <Label>Preferred Humor Style</Label>
+                <div className="flex flex-wrap gap-2">
+                  {['witty', 'sarcastic', 'light', 'dark', 'silly'].map((humor) => (
+                    <Badge
+                      key={humor}
+                      variant={profileData.preferredHumorStyle.includes(humor) ? "default" : "outline"}
+                      className="cursor-pointer px-4 py-2 rounded-full hover:scale-105 transition-smooth"
+                      onClick={() => {
+                        if (profileData.preferredHumorStyle.includes(humor)) {
+                          removeTag('preferredHumorStyle', humor);
+                        } else {
+                          addTag('preferredHumorStyle', humor);
+                        }
+                      }}
+                    >
+                      {humor.charAt(0).toUpperCase() + humor.slice(1)}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Label>Preferred Personality Type</Label>
+                <div className="flex flex-wrap gap-2">
+                  {['introvert', 'extrovert', 'ambivert'].map((personality) => (
+                    <Badge
+                      key={personality}
+                      variant={profileData.preferredPersonalityType.includes(personality) ? "default" : "outline"}
+                      className="cursor-pointer px-4 py-2 rounded-full hover:scale-105 transition-smooth"
+                      onClick={() => {
+                        if (profileData.preferredPersonalityType.includes(personality)) {
+                          removeTag('preferredPersonalityType', personality);
+                        } else {
+                          addTag('preferredPersonalityType', personality);
+                        }
+                      }}
+                    >
+                      {personality.charAt(0).toUpperCase() + personality.slice(1)}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Label>Preferred Relationship Goal</Label>
+                <div className="flex flex-wrap gap-2">
+                  {['casual', 'serious', 'friendship', 'networking'].map((goal) => (
+                    <Badge
+                      key={goal}
+                      variant={profileData.preferredRelationshipGoal.includes(goal) ? "default" : "outline"}
+                      className="cursor-pointer px-4 py-2 rounded-full hover:scale-105 transition-smooth"
+                      onClick={() => {
+                        if (profileData.preferredRelationshipGoal.includes(goal)) {
+                          removeTag('preferredRelationshipGoal', goal);
+                        } else {
+                          addTag('preferredRelationshipGoal', goal);
+                        }
+                      }}
+                    >
+                      {goal.charAt(0).toUpperCase() + goal.slice(1)}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 6:
+        return (
+          <div className="space-y-6 animate-fade-in">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
+                Review Your Profile ✨
+              </h2>
+              <p className="text-muted-foreground font-prompt">Make sure everything looks perfect</p>
+            </div>
+
+            <div className="space-y-4">
+              <Card className="border border-primary/20 shadow-card">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg">Basic Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  <p><strong>Name:</strong> {profileData.firstName} {profileData.lastName}</p>
+                  <p><strong>Gender:</strong> {profileData.gender}</p>
+                  <p><strong>College:</strong> {profileData.college}</p>
+                  <p><strong>Profile Public:</strong> {profileData.isProfilePublic ? "✅ Yes" : "❌ No"}</p>
+                </CardContent>
+              </Card>
+
+              <Card className="border border-primary/20 shadow-card">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg">Media</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm">📸 {profileData.profileImages.length} photo(s) uploaded</p>
+                </CardContent>
+              </Card>
+
+              <Card className="border border-primary/20 shadow-card">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg">Personality</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  <p><strong>Type:</strong> {profileData.personalityType}</p>
+                  <p><strong>Relationship Goal:</strong> {profileData.relationshipGoal}</p>
+                  <p><strong>Humor:</strong> {profileData.humorStyle}</p>
+                  <p><strong>Love Language:</strong> {profileData.loveLanguage}</p>
+                </CardContent>
+              </Card>
+
+              <Card className="border border-success/20 bg-success/5 shadow-card">
+                <CardContent className="p-4 text-center">
+                  <Sparkles className="w-6 h-6 mx-auto mb-2 text-success" />
+                  <p className="text-sm font-medium text-success">
+                    Profile looks amazing! Ready to verify your identity.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        );
+
       default:
-        return true;
+        return null;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-soft">
-      <div className="container mx-auto max-w-md px-4 py-6">
+    <div className="min-h-screen bg-gradient-soft p-4">
+      <div className="container mx-auto max-w-md">
+        {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <Button variant="ghost" onClick={onBack} className="hover:bg-white/20 rounded-xl">
+          <Button variant="ghost" onClick={handleBack} className="hover:bg-white/20 transition-smooth">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
           </Button>
-          <div className="text-sm text-muted-foreground font-prompt">
-            Step {currentStep} of {totalSteps}
+          <div className="text-center">
+            <div className="text-sm font-medium text-muted-foreground">
+              Step {currentStep} of {totalSteps}
+            </div>
+            <div className="w-24 h-2 bg-muted/50 rounded-full mt-1">
+              <div 
+                className="h-full bg-gradient-primary rounded-full transition-all duration-500"
+                style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+              />
+            </div>
           </div>
+          <div className="w-20" /> {/* Spacer */}
         </div>
 
-        <Progress value={(currentStep / totalSteps) * 100} className="mb-8 rounded-full" />
-
-        <Card className="shadow-elegant border-0 bg-card/70 backdrop-blur-md mb-6 rounded-3xl overflow-hidden">
+        {/* Content Card */}
+        <Card className="shadow-card border-0 bg-gradient-card backdrop-blur-sm">
           <CardContent className="p-6">
-            {currentStep === 1 && renderPhotosStep()}
-            {currentStep === 2 && renderBasicInfoStep()}
-            {currentStep === 3 && renderPersonalityStep()}
-            {currentStep === 4 && renderPhysicalPreferencesStep()}
-            {currentStep === 5 && renderMentalPreferencesStep()}
-            {currentStep === 6 && renderReviewStep()}
+            {renderStepContent()}
           </CardContent>
         </Card>
 
-        <div className="flex space-x-4">
-          {currentStep > 1 && (
+        {/* Navigation */}
+        <div className="flex justify-between mt-6">
+          <div /> {/* Spacer */}
+          {currentStep < totalSteps ? (
             <Button
-              variant="outline"
-              onClick={() => setCurrentStep(prev => prev - 1)}
-              className="flex-1 rounded-xl h-12 font-semibold border-primary/30 hover:border-primary/50"
-            >
-              Previous
-            </Button>
-          )}
-          
-          {currentStep < 6 ? (
-            <Button
-              onClick={() => setCurrentStep(prev => prev + 1)}
-              disabled={!canProceed()}
-              className="flex-1 rounded-xl h-12 font-semibold shadow-glow hover-lift"
+              onClick={handleNext}
               variant="coral"
+              className="rounded-xl px-8 font-semibold"
+              disabled={
+                (currentStep === 1 && profileData.profileImages.length === 0) ||
+                (currentStep === 2 && (!profileData.firstName || !profileData.lastName || !profileData.gender)) ||
+                (currentStep === 3 && !profileData.personalityType)
+              }
             >
-              Next
+              Continue
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           ) : (
             <Button
-              onClick={onComplete}
-              className="flex-1 rounded-xl h-12 font-semibold shadow-glow hover-lift"
+              onClick={handleSubmit}
               variant="coral"
+              className="rounded-xl px-8 font-semibold"
+              disabled={isLoading}
             >
-              Complete Profile
-              <Heart className="w-4 h-4 ml-2 animate-pulse" />
+              {isLoading ? (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2 animate-spin" />
+                  Creating Profile...
+                </>
+              ) : (
+                <>
+                  Complete Profile
+                  <Sparkles className="w-4 h-4 ml-2" />
+                </>
+              )}
             </Button>
           )}
         </div>

@@ -86,6 +86,68 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_messages: {
+        Row: {
+          created_at: string
+          id: string
+          match_id: string
+          message_text: string | null
+          sender_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          match_id: string
+          message_text?: string | null
+          sender_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          match_id?: string
+          message_text?: string | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      colleges: {
+        Row: {
+          city: string
+          created_at: string
+          id: string
+          is_verified: boolean | null
+          name: string
+          state: string
+          tier: string
+        }
+        Insert: {
+          city: string
+          created_at?: string
+          id?: string
+          is_verified?: boolean | null
+          name: string
+          state: string
+          tier?: string
+        }
+        Update: {
+          city?: string
+          created_at?: string
+          id?: string
+          is_verified?: boolean | null
+          name?: string
+          state?: string
+          tier?: string
+        }
+        Relationships: []
+      }
       compatibility_scores: {
         Row: {
           calculated_at: string
@@ -224,10 +286,44 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_preferences: {
+        Row: {
+          age_range_max: number | null
+          age_range_min: number | null
+          created_at: string
+          id: string
+          preferred_gender: string[] | null
+          preferred_relationship_goal: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          age_range_max?: number | null
+          age_range_min?: number | null
+          created_at?: string
+          id?: string
+          preferred_gender?: string[] | null
+          preferred_relationship_goal?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          age_range_max?: number | null
+          age_range_min?: number | null
+          created_at?: string
+          id?: string
+          preferred_gender?: string[] | null
+          preferred_relationship_goal?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           bio: string | null
           college_id_url: string | null
+          college_tier: string | null
           compatibility_preferences: Json | null
           created_at: string
           date_of_birth: string
@@ -241,6 +337,7 @@ export type Database = {
           id: string
           interests: string[] | null
           is_active: boolean | null
+          is_profile_public: boolean | null
           last_name: string
           lifestyle: Json | null
           location: string | null
@@ -252,6 +349,7 @@ export type Database = {
           student_id_verified: boolean | null
           subscription_expires_at: string | null
           subscription_tier: string | null
+          total_qcs: number | null
           university: string
           updated_at: string
           user_id: string
@@ -262,6 +360,7 @@ export type Database = {
         Insert: {
           bio?: string | null
           college_id_url?: string | null
+          college_tier?: string | null
           compatibility_preferences?: Json | null
           created_at?: string
           date_of_birth: string
@@ -275,6 +374,7 @@ export type Database = {
           id?: string
           interests?: string[] | null
           is_active?: boolean | null
+          is_profile_public?: boolean | null
           last_name: string
           lifestyle?: Json | null
           location?: string | null
@@ -286,6 +386,7 @@ export type Database = {
           student_id_verified?: boolean | null
           subscription_expires_at?: string | null
           subscription_tier?: string | null
+          total_qcs?: number | null
           university: string
           updated_at?: string
           user_id: string
@@ -296,6 +397,7 @@ export type Database = {
         Update: {
           bio?: string | null
           college_id_url?: string | null
+          college_tier?: string | null
           compatibility_preferences?: Json | null
           created_at?: string
           date_of_birth?: string
@@ -309,6 +411,7 @@ export type Database = {
           id?: string
           interests?: string[] | null
           is_active?: boolean | null
+          is_profile_public?: boolean | null
           last_name?: string
           lifestyle?: Json | null
           location?: string | null
@@ -320,6 +423,7 @@ export type Database = {
           student_id_verified?: boolean | null
           subscription_expires_at?: string | null
           subscription_tier?: string | null
+          total_qcs?: number | null
           university?: string
           updated_at?: string
           user_id?: string
