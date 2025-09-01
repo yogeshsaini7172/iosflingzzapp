@@ -9,9 +9,19 @@ import MatchesList from "@/components/dating/MatchesList";
 import ModernChatScreen from "@/components/chat/ModernChatScreen";
 import ExploreScreen from "@/components/explore/ExploreScreen";
 import DatingHeader from "@/components/dating/DatingHeader";
+import IDVerificationFlow from "@/components/verification/IDVerificationFlow";
+import DetailedProfileCreation from "@/components/profile/DetailedProfileCreation";
+import EnhancedSwipeCards from "@/components/matching/EnhancedSwipeCards";
+import SubscriptionPlans from "@/components/subscription/SubscriptionPlans";
+import AdminDashboard from "@/components/admin/AdminDashboard";
 
 const Index = () => {
-  const [currentView, setCurrentView] = useState<'splash' | 'login' | 'home' | 'profile' | 'swipe' | 'blind-date' | 'matches' | 'chat' | 'explore'>('home');
+  const [currentView, setCurrentView] = useState<'splash' | 'login' | 'home' | 'profile' | 'swipe' | 'blind-date' | 'matches' | 'chat' | 'explore' | 'verify' | 'detailed-profile' | 'enhanced-swipe' | 'subscription' | 'admin'>('home');
+  const [subscriptionTier, setSubscriptionTier] = useState<'free' | 'starter' | 'plus' | 'pro'>('free');
+
+  const handleNavigate = (view: string) => {
+    setCurrentView(view as any);
+  };
 
   const renderCurrentView = () => {
     switch (currentView) {
@@ -31,6 +41,16 @@ const Index = () => {
         return <ModernChatScreen onNavigate={setCurrentView} />;
       case 'explore':
         return <ExploreScreen onNavigate={setCurrentView} />;
+      case 'verify':
+        return <IDVerificationFlow onComplete={() => setCurrentView('detailed-profile')} onBack={() => setCurrentView('home')} />;
+      case 'detailed-profile':
+        return <DetailedProfileCreation onComplete={() => setCurrentView('home')} onBack={() => setCurrentView('home')} />;
+      case 'enhanced-swipe':
+        return <EnhancedSwipeCards onNavigate={setCurrentView} subscriptionTier={subscriptionTier} />;
+      case 'subscription':
+        return <SubscriptionPlans onSubscribe={(tier) => { setSubscriptionTier(tier as any); setCurrentView('home'); }} currentTier={subscriptionTier} />;
+      case 'admin':
+        return <AdminDashboard />;
       default:
         return (
           <main className="min-h-screen bg-gradient-soft">
