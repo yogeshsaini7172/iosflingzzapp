@@ -4,10 +4,121 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Mail, Lock, User, GraduationCap, Phone } from "lucide-react";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { ArrowLeft, Mail, Lock, User, GraduationCap, Phone, KeyRound } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Auth = () => {
   const [currentStep, setCurrentStep] = useState<'auth' | 'verify' | 'profile'>('auth');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [otp, setOtp] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleSignUp = async () => {
+    if (!email || !password) return;
+    
+    try {
+      setIsLoading(true);
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email,
+        options: {
+          shouldCreateUser: true,
+          data: {
+            password: password
+          }
+        }
+      });
+
+      if (error) throw error;
+      
+      toast({
+        title: "Verification code sent",
+        description: "Check your email for the 6-digit verification code"
+      });
+      
+      setCurrentStep('verify');
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    if (!email || !otp) return;
+    
+    try {
+      setIsLoading(true);
+      const { error } = await supabase.auth.verifyOtp({
+        email: email,
+        token: otp,
+        type: 'email'
+      });
+
+      if (error) throw error;
+      
+      // Set the password after verification
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: password
+      });
+      
+      if (updateError) throw updateError;
+      
+      toast({
+        title: "Email verified",
+        description: "Your account has been created successfully"
+      });
+      
+      setCurrentStep('profile');
+    } catch (error: any) {
+      toast({
+        title: "Verification failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendOTP = async () => {
+    if (!email) return;
+    
+    try {
+      setIsLoading(true);
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email,
+        options: {
+          shouldCreateUser: true,
+          data: {
+            password: password
+          }
+        }
+      });
+
+      if (error) throw error;
+      
+      toast({
+        title: "Code resent",
+        description: "A new verification code has been sent to your email"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const AuthForm = () => (
     <div className="space-y-6">
@@ -27,6 +138,8 @@ const Auth = () => {
                 placeholder="your.name@college.edu" 
                 type="email"
                 className="pl-10"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
@@ -42,6 +155,8 @@ const Auth = () => {
                 placeholder="Create a strong password" 
                 type="password"
                 className="pl-10"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </div>
@@ -50,9 +165,10 @@ const Auth = () => {
           <Button 
             className="w-full" 
             variant="hero"
-            onClick={() => setCurrentStep('verify')}
+            onClick={handleSignUp}
+            disabled={isLoading}
           >
-            Create Account
+            {isLoading ? "Sending OTP..." : "Create Account"}
           </Button>
         </TabsContent>
         
@@ -114,33 +230,53 @@ const Auth = () => {
   const VerificationStep = () => (
     <div className="space-y-6 text-center">
       <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mx-auto">
-        <Mail className="w-8 h-8 text-white" />
+        <KeyRound className="w-8 h-8 text-white" />
       </div>
       
       <div>
-        <h3 className="text-xl font-semibold mb-2">Check Your Email</h3>
+        <h3 className="text-xl font-semibold mb-2">Enter Verification Code</h3>
         <p className="text-muted-foreground">
-          We've sent a verification link to your college email address. 
-          Click the link to verify your account and continue.
+          We've sent a 6-digit verification code to {email}. 
+          Enter the code below to verify your account.
         </p>
+      </div>
+      
+      <div className="space-y-4">
+        <div className="flex justify-center">
+          <InputOTP
+            value={otp}
+            onChange={setOtp}
+            maxLength={6}
+          >
+            <InputOTPGroup>
+              <InputOTPSlot index={0} />
+              <InputOTPSlot index={1} />
+              <InputOTPSlot index={2} />
+              <InputOTPSlot index={3} />
+              <InputOTPSlot index={4} />
+              <InputOTPSlot index={5} />
+            </InputOTPGroup>
+          </InputOTP>
+        </div>
+        
+        <Button 
+          variant="hero" 
+          className="w-full"
+          onClick={handleVerifyOTP}
+          disabled={isLoading || otp.length !== 6}
+        >
+          {isLoading ? "Verifying..." : "Verify Code"}
+        </Button>
       </div>
       
       <div className="bg-muted/50 rounded-lg p-4">
         <p className="text-sm text-muted-foreground mb-3">
-          Didn't receive the email? Check your spam folder or
+          Didn't receive the code? Check your spam folder or
         </p>
-        <Button variant="outline" size="sm">
-          Resend Verification Email
+        <Button variant="outline" size="sm" onClick={handleResendOTP} disabled={isLoading}>
+          Resend Code
         </Button>
       </div>
-      
-      <Button 
-        variant="hero" 
-        className="w-full"
-        onClick={() => setCurrentStep('profile')}
-      >
-        I've Verified My Email
-      </Button>
     </div>
   );
 

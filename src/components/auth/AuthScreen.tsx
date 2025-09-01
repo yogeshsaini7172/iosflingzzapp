@@ -50,14 +50,15 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
   const handleEmailSignUp = async () => {
     try {
       setIsLoading(true);
-      const { error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signInWithOtp({
         email: email,
-        password: password,
         options: {
+          shouldCreateUser: true,
           data: {
             first_name: name.split(' ')[0] || name,
             last_name: name.split(' ').slice(1).join(' ') || '',
-            university: college
+            university: college,
+            password: password
           }
         }
       });
@@ -65,8 +66,8 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
       if (error) throw error;
 
       toast({
-        title: "Check your email",
-        description: "We sent you a verification link to complete your signup"
+        title: "Verification code sent",
+        description: "Check your email for the 6-digit verification code"
       });
 
     } catch (error: any) {
