@@ -18,17 +18,34 @@ const Auth = () => {
   const { toast } = useToast();
 
   const handleSignUp = async () => {
-    if (!email || !password) return;
+    if (!email || !password) {
+      toast({
+        title: "Missing information",
+        description: "Please enter both email and password",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Validate email format (basic .edu check)
+    if (!email.endsWith('.edu')) {
+      toast({
+        title: "Invalid email",
+        description: "Please use a valid .edu email address",
+        variant: "destructive"
+      });
+      return;
+    }
     
     try {
       setIsLoading(true);
-      const { error } = await supabase.auth.signInWithOtp({
+      
+      // Use signUp with email confirmation
+      const { error } = await supabase.auth.signUp({
         email: email,
+        password: password,
         options: {
-          shouldCreateUser: true,
-          data: {
-            password: password
-          }
+          emailRedirectTo: `${window.location.origin}/auth`
         }
       });
 
@@ -42,7 +59,7 @@ const Auth = () => {
       setCurrentStep('verify');
     } catch (error: any) {
       toast({
-        title: "Error",
+        title: "Signup Error",
         description: error.message,
         variant: "destructive"
       });
@@ -52,37 +69,43 @@ const Auth = () => {
   };
 
   const handleVerifyOTP = async () => {
-    if (!email || !otp) return;
+    if (!email || !otp) {
+      toast({
+        title: "Missing information",
+        description: "Please enter the verification code",
+        variant: "destructive"
+      });
+      return;
+    }
     
     try {
       setIsLoading(true);
+      
+      // Verify the OTP token
       const { error } = await supabase.auth.verifyOtp({
         email: email,
         token: otp,
-        type: 'email'
+        type: 'signup'
       });
 
       if (error) throw error;
       
-      // Set the password after verification
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: password
-      });
-      
-      if (updateError) throw updateError;
-      
       toast({
-        title: "Email verified",
-        description: "Your account has been created successfully"
+        title: "Email verified successfully",
+        description: "Your account has been created! Now complete your profile."
       });
       
       setCurrentStep('profile');
     } catch (error: any) {
       toast({
         title: "Verification failed",
-        description: error.message,
+        description: error.message === "Token has expired or is invalid" 
+          ? "The verification code has expired or is invalid. Please request a new one."
+          : error.message,
         variant: "destructive"
       });
+      // Clear invalid OTP
+      setOtp("");
     } finally {
       setIsLoading(false);
     }
@@ -93,13 +116,13 @@ const Auth = () => {
     
     try {
       setIsLoading(true);
-      const { error } = await supabase.auth.signInWithOtp({
+      
+      // Resend signup confirmation
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
         email: email,
         options: {
-          shouldCreateUser: true,
-          data: {
-            password: password
-          }
+          emailRedirectTo: `${window.location.origin}/auth`
         }
       });
 
@@ -109,6 +132,9 @@ const Auth = () => {
         title: "Code resent",
         description: "A new verification code has been sent to your email"
       });
+      
+      // Clear the current OTP input
+      setOtp("");
     } catch (error: any) {
       toast({
         title: "Error",
@@ -118,6 +144,56 @@ const Auth = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSignIn = async () => {
+    if (!email || !password) {
+      toast({
+        title: "Missing information",
+        description: "Please enter both email and password",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+
+      if (error) throw error;
+      
+      toast({
+        title: "Welcome back!",
+        description: "You have successfully signed in"
+      });
+      
+      // Redirect to main app
+      window.location.href = '/';
+    } catch (error: any) {
+      toast({
+        title: "Sign In Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCompleteProfile = async () => {
+    // For now, just redirect to main app
+    toast({
+      title: "Profile setup complete!",
+      description: "Welcome to GradSync"
+    });
+    
+    // Redirect to main app
+    setTimeout(() => {
+      window.location.href = '/';
+    }, 1000);
   };
 
   const AuthForm = () => (
@@ -182,6 +258,8 @@ const Auth = () => {
                 placeholder="your.email@college.edu" 
                 type="email"
                 className="pl-10"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
           </div>
@@ -195,12 +273,19 @@ const Auth = () => {
                 placeholder="Enter your password" 
                 type="password"
                 className="pl-10"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
             </div>
           </div>
           
-          <Button className="w-full" variant="hero">
-            Sign In
+          <Button 
+            className="w-full" 
+            variant="hero"
+            onClick={handleSignIn}
+            disabled={isLoading}
+          >
+            {isLoading ? "Signing In..." : "Sign In"}
           </Button>
           
           <div className="text-center">
@@ -247,6 +332,7 @@ const Auth = () => {
             value={otp}
             onChange={setOtp}
             maxLength={6}
+            onComplete={handleVerifyOTP}
           >
             <InputOTPGroup>
               <InputOTPSlot index={0} />
@@ -258,6 +344,10 @@ const Auth = () => {
             </InputOTPGroup>
           </InputOTP>
         </div>
+        
+        <p className="text-xs text-muted-foreground text-center">
+          Enter the 6-digit code sent to your email
+        </p>
         
         <Button 
           variant="hero" 
@@ -335,8 +425,12 @@ const Auth = () => {
         </div>
       </div>
       
-      <Button variant="hero" className="w-full">
-        Complete Setup
+      <Button 
+        variant="hero" 
+        className="w-full"
+        onClick={handleCompleteProfile}
+      >
+        Complete Setup & Continue
       </Button>
     </div>
   );
@@ -364,6 +458,14 @@ const Auth = () => {
             </div>
           </div>
           
+        <div className="space-y-2">
+          {/* Progress indicator */}
+          <div className="flex justify-center space-x-2 mb-4">
+            <div className={`w-2 h-2 rounded-full transition-all ${currentStep === 'auth' ? 'bg-primary' : currentStep === 'verify' || currentStep === 'profile' ? 'bg-primary' : 'bg-muted'}`}></div>
+            <div className={`w-2 h-2 rounded-full transition-all ${currentStep === 'verify' ? 'bg-primary' : currentStep === 'profile' ? 'bg-primary' : 'bg-muted'}`}></div>
+            <div className={`w-2 h-2 rounded-full transition-all ${currentStep === 'profile' ? 'bg-primary' : 'bg-muted'}`}></div>
+          </div>
+          
           <CardTitle className="text-2xl">
             {currentStep === 'auth' && 'Welcome to GradSync'}
             {currentStep === 'verify' && 'Verify Your Email'}
@@ -374,6 +476,7 @@ const Auth = () => {
             {currentStep === 'verify' && 'We need to verify your student status'}
             {currentStep === 'profile' && 'Set up your profile to get started'}
           </CardDescription>
+        </div>
         </CardHeader>
         
         <CardContent>
