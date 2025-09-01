@@ -144,7 +144,7 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
       const imageUrls: string[] = [];
       for (const image of profileData.profileImages) {
         const fileExt = image.name.split('.').pop();
-        const fileName = `${user.id}_${Date.now()}.${fileExt}`;
+        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
         const { error: uploadError, data } = await supabase.storage
           .from('profile-images')
           .upload(fileName, image);
@@ -158,13 +158,12 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
         imageUrls.push(publicUrl);
       }
 
-      // Create profile
+      // Update existing profile (created by trigger) or create new one
       const { error: profileError } = await supabase
         .from('profiles')
-        .upsert({
+        .update({
           first_name: profileData.firstName,
           last_name: profileData.lastName,
-          email: user.email!,
           date_of_birth: profileData.dateOfBirth,
           gender: profileData.gender as "male" | "female" | "non_binary" | "prefer_not_to_say",
           university: profileData.college,
@@ -175,7 +174,9 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
           humor_type: profileData.humorStyle,
           love_language: profileData.loveLanguage,
           relationship_goals: [profileData.relationshipGoal],
-          verification_status: 'pending'
+          verification_status: 'pending',
+          is_profile_public: profileData.isProfilePublic,
+          college_tier: 'tier3'
         })
         .eq('user_id', user.id);
 
@@ -201,6 +202,7 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
 
       onComplete();
     } catch (error: any) {
+      console.error('Profile creation error:', error);
       toast({
         title: "Error creating profile",
         description: error.message,

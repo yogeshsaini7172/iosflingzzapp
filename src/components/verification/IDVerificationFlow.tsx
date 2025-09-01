@@ -41,7 +41,7 @@ const IDVerificationFlow = ({ onBack, onComplete }: IDVerificationFlowProps) => 
       if (!user) throw new Error("No authenticated user");
 
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}_${type}_id_${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}/${type}_id_${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('verification-documents')
@@ -77,6 +77,7 @@ const IDVerificationFlow = ({ onBack, onComplete }: IDVerificationFlowProps) => 
       });
 
     } catch (error: any) {
+      console.error('File upload error:', error);
       toast({
         title: "Upload Error",
         description: error.message,
