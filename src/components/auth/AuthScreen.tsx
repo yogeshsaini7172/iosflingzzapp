@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Mail, Lock, User, School, Loader2, Shield, KeyRound } from "lucide-react";
+import { ArrowLeft, Mail, User, School, Loader2, Shield, KeyRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
@@ -16,7 +16,7 @@ interface AuthScreenProps {
 const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [name, setName] = useState("");
   const [college, setCollege] = useState("");
   const [step, setStep] = useState<'form' | 'verify'>("form");
@@ -50,62 +50,43 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
     }
   };
 
-  const handleEmailSignUp = async () => {
+  const handleSendCode = async () => {
     try {
       setIsLoading(true);
-      
-      // Use signInWithOtp for OTP-based signup
+      const shouldCreateUser = authMode === 'signup';
       const { error } = await supabase.auth.signInWithOtp({
-        email: email,
+        email,
         options: {
-          shouldCreateUser: true,
-          data: {
-            first_name: name.split(' ')[0] || name,
-            last_name: name.split(' ').slice(1).join(' ') || '',
-            university: college
-          }
-        }
+          shouldCreateUser,
+          data: shouldCreateUser
+            ? {
+                first_name: name.split(' ')[0] || name,
+                last_name: name.split(' ').slice(1).join(' ') || '',
+                university: college,
+              }
+            : undefined,
+        },
       });
 
       if (error) throw error;
 
       toast({
         title: "Verification code sent",
-        description: "Check your email for the 6-digit verification code"
+        description: "Check your email for the 6-digit verification code",
       });
       setStep('verify');
-
     } catch (error: any) {
       toast({
-        title: "Sign Up Error", 
+        title: "Error sending code",
         description: error.message,
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleEmailSignIn = async () => {
-    try {
-      setIsLoading(true);
-      const { error } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: password
-      });
-
-      if (error) throw error;
-      onComplete();
-    } catch (error: any) {
-      toast({
-        title: "Sign In Error",
-        description: error.message, 
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Password-based sign-in removed; OTP-only flow in use.
 
   return (
     <div className="min-h-screen bg-gradient-soft p-4 animate-fade-in">
@@ -144,7 +125,7 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
           </CardHeader>
           <CardContent className="space-y-6">
             {step === 'form' ? (
-              <Tabs defaultValue="login" className="w-full">
+              <Tabs value={authMode} onValueChange={(v) => setAuthMode(v as 'login' | 'signup')} className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-6 bg-muted/50">
                   <TabsTrigger value="login" className="rounded-lg font-medium">Sign In</TabsTrigger>
                   <TabsTrigger value="signup" className="rounded-lg font-medium">Sign Up</TabsTrigger>
@@ -300,15 +281,11 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
                     onClick={async () => {
                       try {
                         setIsLoading(true);
-                        const { error } = await supabase.auth.resend({
-                          type: 'signup',
-                          email: email
-                        });
-                        if (error) throw error;
+                        await handleSendCode();
                         setOtp('');
                         toast({ title: 'Code resent', description: 'Please check your inbox.' });
                       } catch (err: any) {
-                        toast({ title: 'Resend failed', description: err.message, variant: 'destructive' });
+                        // Errors already handled in handleSendCode
                       } finally {
                         setIsLoading(false);
                       }
