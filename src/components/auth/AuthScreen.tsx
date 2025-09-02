@@ -318,6 +318,17 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
               Continue with Google
             </Button>
 
+            {/* Skip Option */}
+            <div className="mt-4 text-center">
+              <Button
+                onClick={onComplete}
+                variant="link"
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                Skip for now
+              </Button>
+            </div>
+
             {/* Footer */}
             <div className="mt-6 text-center space-y-2">
               <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground font-prompt">
