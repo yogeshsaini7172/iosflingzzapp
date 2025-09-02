@@ -143,24 +143,14 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
                         className="pl-10 rounded-xl border-border/50 focus:border-primary transition-colors h-12"
                       />
                     </div>
-                    <div className="relative group">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                      <Input
-                        type="password"
-                        placeholder="Password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10 rounded-xl border-border/50 focus:border-primary transition-colors h-12"
-                      />
-                    </div>
                     <Button
-                      onClick={handleEmailSignIn}
-                      disabled={isLoading || !email || !password}
+                      onClick={handleSendCode}
+                      disabled={isLoading || !email}
                       className="w-full rounded-xl h-12 font-semibold"
                       variant="coral"
                     >
                       {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                      Sign In to CampusConnect
+                      Send login code
                     </Button>
                   </div>
                 </TabsContent>
@@ -197,24 +187,14 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
                         className="pl-10 rounded-xl border-border/50 focus:border-primary transition-colors h-12"
                       />
                     </div>
-                    <div className="relative group">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                      <Input
-                        type="password"
-                        placeholder="Create password (min 8 chars)"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10 rounded-xl border-border/50 focus:border-primary transition-colors h-12"
-                      />
-                    </div>
                     <Button
-                      onClick={handleEmailSignUp}
-                      disabled={isLoading || !name || !email || !college || !password}
+                      onClick={handleSendCode}
+                      disabled={isLoading || !name || !email || !college}
                       className="w-full rounded-xl h-12 font-semibold"
                       variant="coral"
                     >
                       {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                      Create Account
+                      Send verification code
                     </Button>
                   </div>
                 </TabsContent>
