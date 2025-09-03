@@ -165,6 +165,15 @@ const NewAuth = () => {
                 </Button>
               </form>
 
+              {/* Skip Auth Button */}
+              <Button 
+                variant="ghost" 
+                className="w-full" 
+                onClick={() => navigate('/')}
+              >
+                Skip for now
+              </Button>
+
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <Separator className="w-full" />
