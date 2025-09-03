@@ -193,7 +193,7 @@ const DatingApp = () => {
                 <Sparkles className="w-8 h-8 group-hover:rotate-12 transition-transform" />
                 <div className="text-center">
                   <div className="text-lg font-bold">Swipe & Match</div>
-                  <div className="text-sm opacity-90 rounded-sm">Classic dating experience</div>
+                  <div className="text-sm opacity-90 rounded-sm bg-[#e9eaec]/[0.31]">Classic dating experience</div>
                 </div>
               </div>
             </Button>
