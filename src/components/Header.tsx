@@ -6,7 +6,7 @@ const Header = () => {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-gradient-primary rounded-lg"></div>
-          <span className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+          <span className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent" title="WebFlow - Modern web solutions">
             WebFlow
           </span>
         </div>

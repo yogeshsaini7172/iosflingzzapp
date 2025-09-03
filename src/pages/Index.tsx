@@ -10,27 +10,15 @@ const Index = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isLoading && !user) {
-      navigate('/auth');
-    }
-  }, [user, isLoading, navigate]);
+    document.title = "CampusConnect – Dashboard";
+  }, []);
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/auth');
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
 
-  if (!user) {
-    return null; // Will redirect to auth via useEffect
-  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -40,17 +28,19 @@ const Index = () => {
           <h1 className="text-xl font-bold">Dating App</h1>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">
-              Welcome, {user.email}
+              Welcome, {user?.email ?? 'Guest'}
             </span>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={handleSignOut}
-              className="flex items-center gap-2"
-            >
-              <LogOut className="h-4 w-4" />
-              Sign out
-            </Button>
+            {user && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleSignOut}
+                className="flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign out
+              </Button>
+            )}
           </div>
         </div>
       </div>
