@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, MessageCircle, User, Zap, Settings, Eye, Star, Sparkles, TrendingUp } from 'lucide-react';
+import { Heart, MessageCircle, User, Zap, Settings, Eye, Star, Sparkles, TrendingUp, X } from 'lucide-react';
 import PremiumSwipeCards from '@/components/dating/PremiumSwipeCards';
 import MatchesList from '@/components/dating/MatchesList';
 import ProfileManagement from '@/components/profile/ProfileManagement';
@@ -56,6 +56,52 @@ const DatingApp = () => {
           </div>
         </Button>
       </div>
+
+      {/* Swipe Profile Card */}
+      <Card className="bg-gradient-card border-0 shadow-royal hover-luxury">
+        <CardContent className="p-5">
+          <div className="flex items-center space-x-4">
+            <div className="relative">
+              <div className="w-14 h-14 rounded-full bg-gradient-rose p-0.5">
+                <img 
+                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=face" 
+                  alt="Profile" 
+                  className="w-full h-full rounded-full object-cover"
+                />
+              </div>
+              <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-success rounded-full border-2 border-white flex items-center justify-center">
+                <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+              </div>
+            </div>
+            
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <h4 className="font-semibold text-foreground">Sophia, 20</h4>
+                <Badge className="bg-accent/10 text-accent border-accent/20 text-xs">
+                  Art Major
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                "Passionate about photography and travel ✨ Let's create memories together!"
+              </p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                <span>📍 1.2 miles away</span>
+                <span>•</span>
+                <span>🎨 Creative</span>
+              </div>
+            </div>
+            
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" className="border-2 border-muted-foreground/20 w-10 h-10 rounded-full hover-luxury">
+                <X className="w-4 h-4 text-muted-foreground" />
+              </Button>
+              <Button size="sm" className="bg-gradient-rose hover:shadow-gold transition-luxury w-10 h-10 rounded-full">
+                <Heart className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>;
   const renderPremiumStatus = () => {
     if (userProfile.subscriptionTier === 'free') {
