@@ -30,7 +30,7 @@ const SplashScreen = ({ onContinue }: SplashScreenProps) => {
           
           <div className="space-y-2">
             <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              datingSigma
+              datingSigma App
             </h1>
             <p className="text-muted-foreground text-lg">
               Find your vibe at college
