@@ -25,11 +25,23 @@ serve(async (req) => {
 
     const authHeader = req.headers.get('Authorization')!;
     const token = authHeader.replace('Bearer ', '');
-    const { data } = await supabaseClient.auth.getUser(token);
-    const user = data.user;
-    if (!user) throw new Error('User not authenticated');
+    
+    // Extract user_id from token for demo (since auth is removed)
+    let userId: string;
+    if (token.startsWith('dummy-token-')) {
+      userId = token.replace('dummy-token-', '');
+    } else {
+      // Fallback: try to get user from auth
+      const { data } = await supabaseClient.auth.getUser(token);
+      const user = data.user;
+      if (!user) throw new Error('User not authenticated');
+      userId = user.id;
+    }
 
-    const { action, profile: profileData }: ProfileRequest = await req.json();
+    const { action, profile: profileData, user_id }: ProfileRequest & { user_id?: string } = await req.json();
+    
+    // Use provided user_id if available (for direct calls)
+    const finalUserId = user_id || userId;
 
     switch (action) {
       case 'create':
@@ -42,14 +54,14 @@ serve(async (req) => {
         const { data: existingProfile } = await supabaseClient
           .from('profiles')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('user_id', finalUserId)
           .single();
 
         if (!existingProfile && action === 'create') {
           // Create new profile
           const newProfile = {
-            user_id: user.id,
-            email: user.email,
+            user_id: finalUserId,
+            email: profileData.email || 'demo@example.com',
             ...profileData,
             // Initialize default values
             subscription_tier: 'free',
@@ -73,10 +85,10 @@ serve(async (req) => {
 
           if (createError) throw createError;
 
-          console.log(`Profile created for ${user.id}`);
+          console.log(`Profile created for ${finalUserId}`);
           return new Response(JSON.stringify({
             success: true,
-            data: { user_id: user.id, profile: createdProfile },
+            data: { user_id: finalUserId, profile: createdProfile },
             message: 'Profile created'
           }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -93,16 +105,16 @@ serve(async (req) => {
           const { data: updated, error: updateError } = await supabaseClient
             .from('profiles')
             .update(updatedProfile)
-            .eq('user_id', user.id)
+            .eq('user_id', finalUserId)
             .select()
             .single();
 
           if (updateError) throw updateError;
 
-          console.log(`Profile updated for ${user.id}`);
+          console.log(`Profile updated for ${finalUserId}`);
           return new Response(JSON.stringify({
             success: true,
-            data: { user_id: user.id, profile: updated },
+            data: { user_id: finalUserId, profile: updated },
             message: 'Profile updated'
           }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -114,7 +126,7 @@ serve(async (req) => {
         const { data: profile, error: getError } = await supabaseClient
           .from('profiles')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('user_id', finalUserId)
           .single();
 
         if (getError) throw getError;
@@ -125,7 +137,7 @@ serve(async (req) => {
 
         return new Response(JSON.stringify({
           success: true,
-          data: { user_id: user.id, profile },
+          data: { user_id: finalUserId, profile },
           message: 'Profile fetched'
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },

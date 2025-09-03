@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 interface Profile {
@@ -25,6 +24,24 @@ interface Profile {
   blinddate_requests_left: number;
   is_profile_public: boolean;
   verification_status: string;
+  height?: number;
+  body_type?: string;
+  skin_tone?: string;
+  values?: string;
+  mindset?: string;
+  show_profile?: boolean;
+  major?: string;
+  location?: string;
+  face_type?: string;
+  field_of_study?: string;
+  year_of_study?: number;
+  relationship_status?: string;
+  college_tier?: string;
+  govt_id_verified?: boolean;
+  student_id_verified?: boolean;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface PartnerPreferences {
@@ -40,42 +57,65 @@ export const useProfileData = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [preferences, setPreferences] = useState<PartnerPreferences | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { user } = useAuth();
   const { toast } = useToast();
 
+  // Use demo user ID since auth is removed
+  const getCurrentUserId = () => {
+    return localStorage.getItem('demoUserId') || 'alice-johnson-123';
+  };
+
   const fetchProfileData = async () => {
-    if (!user) {
-      setIsLoading(false);
-      return;
-    }
+    const userId = getCurrentUserId();
 
     try {
       setIsLoading(true);
 
-      // Fetch profile
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+      // Fetch profile using edge function
+      const response = await fetch('/functions/v1/profile-management', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer dummy-token-${userId}`,
+        },
+        body: JSON.stringify({
+          action: 'get',
+          user_id: userId
+        })
+      });
 
-      if (profileError && profileError.code !== 'PGRST116') {
-        throw profileError;
+      const result = await response.json();
+      
+      if (result.success) {
+        setProfile(result.data.profile);
+        
+        // Also fetch partner preferences
+        const { data: preferencesData } = await supabase
+          .from('partner_preferences')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+        
+        setPreferences(preferencesData);
+      } else {
+        // If profile doesn't exist, try to get from test data
+        const { data: testProfile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+          
+        if (testProfile) {
+          setProfile(testProfile);
+          
+          const { data: preferencesData } = await supabase
+            .from('partner_preferences')
+            .select('*')
+            .eq('user_id', userId)
+            .single();
+          
+          setPreferences(preferencesData);
+        }
       }
-
-      // Fetch partner preferences
-      const { data: preferencesData, error: preferencesError } = await supabase
-        .from('partner_preferences')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (preferencesError && preferencesError.code !== 'PGRST116') {
-        console.log('No preferences found, will create default ones');
-      }
-
-      setProfile(profileData);
-      setPreferences(preferencesData);
 
     } catch (error: any) {
       console.error('Error fetching profile data:', error);
@@ -90,22 +130,36 @@ export const useProfileData = () => {
   };
 
   const updateProfile = async (updates: Partial<Profile>) => {
-    if (!user || !profile) return;
+    const userId = getCurrentUserId();
+    if (!profile) return;
 
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      setProfile(prev => prev ? { ...prev, ...updates } : null);
-      
-      toast({
-        title: "Profile updated",
-        description: "Your changes have been saved successfully"
+      // Use edge function for profile updates
+      const response = await fetch('/functions/v1/profile-management', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer dummy-token-${userId}`,
+        },
+        body: JSON.stringify({
+          action: 'update',
+          user_id: userId,
+          profile: updates
+        })
       });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setProfile(prev => prev ? { ...prev, ...updates } : null);
+        
+        toast({
+          title: "Profile updated",
+          description: "Your changes have been saved successfully"
+        });
+      } else {
+        throw new Error(result.error);
+      }
 
     } catch (error: any) {
       console.error('Error updating profile:', error);
@@ -118,19 +172,19 @@ export const useProfileData = () => {
   };
 
   const updatePreferences = async (updates: Partial<PartnerPreferences>) => {
-    if (!user) return;
+    const userId = getCurrentUserId();
 
     try {
       const { error } = await supabase
         .from('partner_preferences')
         .upsert({
-          user_id: user.id,
+          user_id: userId,
           ...updates
         });
 
       if (error) throw error;
 
-      setPreferences(prev => prev ? { ...prev, ...updates } : { user_id: user.id, ...updates } as PartnerPreferences);
+      setPreferences(prev => prev ? { ...prev, ...updates } : { user_id: userId, ...updates } as PartnerPreferences);
       
       toast({
         title: "Preferences updated",
@@ -149,7 +203,7 @@ export const useProfileData = () => {
 
   useEffect(() => {
     fetchProfileData();
-  }, [user]);
+  }, []);
 
   return {
     profile,

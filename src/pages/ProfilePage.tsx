@@ -1,11 +1,11 @@
-import ProfileManagement from '@/components/profile/ProfileManagement';
+import EnhancedProfileManagement from '@/components/profile/EnhancedProfileManagement';
 
 interface ProfilePageProps {
   onNavigate: (view: string) => void;
 }
 
 const ProfilePage = ({ onNavigate }: ProfilePageProps) => {
-  return <ProfileManagement onNavigate={onNavigate} />;
+  return <EnhancedProfileManagement onNavigate={onNavigate} />;
 };
 
 export default ProfilePage;
