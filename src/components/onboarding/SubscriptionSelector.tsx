@@ -7,12 +7,13 @@ import SubscriptionPlans from "@/components/subscription/SubscriptionPlans";
 interface SubscriptionSelectorProps {
   onBack: () => void;
   onComplete: () => void;
+  onSkip?: () => void;
 }
 
-const SubscriptionSelector = ({ onBack, onComplete }: SubscriptionSelectorProps) => {
-  const [selectedPlan, setSelectedPlan] = useState<'free' | 'premium' | 'elite' | null>(null);
+const SubscriptionSelector = ({ onBack, onComplete, onSkip }: SubscriptionSelectorProps) => {
+  const [selectedPlan, setSelectedPlan] = useState<'free' | 'silver' | 'gold' | 'platinum' | null>(null);
 
-  const handlePlanSelect = (plan: 'free' | 'premium' | 'elite') => {
+  const handlePlanSelect = (plan: 'free' | 'silver' | 'gold' | 'platinum') => {
     setSelectedPlan(plan);
     // Auto-proceed after selecting a plan
     setTimeout(() => {
@@ -53,6 +54,7 @@ const SubscriptionSelector = ({ onBack, onComplete }: SubscriptionSelectorProps)
             <SubscriptionPlans 
               onPlanSelect={handlePlanSelect}
               showCurrentPlan={false}
+              onSkip={onSkip || onComplete}
             />
 
             {selectedPlan && (

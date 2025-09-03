@@ -1,6 +1,6 @@
 import DatingApp from "@/components/DatingApp";
 import SplashScreen from "@/components/onboarding/SplashScreen";
-import EnhancedProfileCreation from "@/components/dating/EnhancedProfileCreation";
+import ProfileSetupFlow from "@/components/profile/ProfileSetupFlow";
 import SubscriptionSelector from "@/components/onboarding/SubscriptionSelector";
 import IDVerificationFlow from "@/components/verification/IDVerificationFlow";
 import { useState } from "react";
@@ -19,7 +19,7 @@ const Index = () => {
 
     case 'profile':
       return (
-        <EnhancedProfileCreation 
+        <ProfileSetupFlow 
           onBack={() => setCurrentStep('splash')}
           onComplete={() => setCurrentStep('subscription')}
         />
@@ -30,6 +30,7 @@ const Index = () => {
         <SubscriptionSelector 
           onBack={() => setCurrentStep('profile')}
           onComplete={() => setCurrentStep('verification')}
+          onSkip={() => setCurrentStep('verification')}
         />
       );
 

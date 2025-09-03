@@ -2,25 +2,24 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, Crown, Star, Zap } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Check, Crown, Star, Zap, Gem } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
 
 interface SubscriptionPlansProps {
-  currentPlan?: 'free' | 'premium' | 'elite';
-  onPlanSelect?: (plan: 'free' | 'premium' | 'elite') => void;
+  currentPlan?: 'free' | 'silver' | 'gold' | 'platinum';
+  onPlanSelect?: (plan: 'free' | 'silver' | 'gold' | 'platinum') => void;
   showCurrentPlan?: boolean;
+  onSkip?: () => void;
 }
 
 const SubscriptionPlans = ({ 
   currentPlan = 'free', 
   onPlanSelect,
-  showCurrentPlan = true 
+  showCurrentPlan = true,
+  onSkip 
 }: SubscriptionPlansProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
 
   const plans = [
     {
@@ -28,118 +27,147 @@ const SubscriptionPlans = ({
       name: 'Free Plan',
       price: '₹0',
       period: 'Forever',
-      description: 'Perfect to start connecting with fellow students',
+      description: 'Get started with basic features',
       icon: <Star className="w-6 h-6" />,
       color: 'border-muted-foreground',
+      bgColor: 'bg-muted/20',
+      textColor: 'text-muted-foreground',
       features: [
         '10 swipes per day',
-        'Match & chat after mutual swipes',
-        'Standard profile visibility',
-        'Basic text chat',
-        'Campus filtering'
-      ],
-      limitations: [
-        'Limited daily swipes',
-        'No advanced filters',
-        'Standard visibility'
+        'Match & chat after mutual right swipe',
+        'Standard profile visibility'
       ]
     },
     {
-      id: 'premium' as const,
-      name: 'Premium Plan',
-      price: '₹299',
+      id: 'silver' as const,
+      name: 'Silver Plan',
+      price: '₹49',
       period: 'per month',
-      description: 'Enhanced features for serious connections',
+      description: 'Unlock more connections',
       icon: <Crown className="w-6 h-6" />,
-      color: 'border-primary',
+      color: 'border-slate-400',
+      bgColor: 'bg-slate-100',
+      textColor: 'text-slate-600',
       popular: true,
       features: [
-        'Unlimited swipes per day',
-        'Priority visibility in feeds',
-        'See "Who Liked Me"',
-        'Advanced filters (age, campus, body type)',
-        '1 free profile boost per week',
-        'Premium chat with images & stickers',
-        'Read receipts',
-        'Extended matching radius'
-      ],
-      limitations: []
+        'Unlock & see all 10 profiles in daily pairing',
+        'Unlimited swipes',
+        '2 Blind Date requests per month'
+      ]
     },
     {
-      id: 'elite' as const,
-      name: 'Elite Plan',
-      price: '₹599',
+      id: 'gold' as const,
+      name: 'Gold Plan',
+      price: '₹89',
       period: 'per month',
-      description: 'Ultimate experience with exclusive features',
-      icon: <Zap className="w-6 h-6" />,
-      color: 'border-accent',
+      description: 'Enhanced matching power',
+      icon: <Gem className="w-6 h-6" />,
+      color: 'border-yellow-400',
+      bgColor: 'bg-yellow-100',
+      textColor: 'text-yellow-600',
       features: [
-        'Everything in Premium',
-        'Unlimited profile boosts',
-        'Incognito mode (browse invisibly)',
-        'Direct messaging without matches',
-        'Exclusive events & communities',
-        'Priority customer support',
-        'Early access to new features',
-        'Profile verification fast-track'
-      ],
-      limitations: []
+        'Everything in Silver (₹49 plan)',
+        '+2 extra pairing requests per day',
+        '4 Blind Date requests per month'
+      ]
+    },
+    {
+      id: 'platinum' as const,
+      name: 'Platinum Plan',
+      price: '₹129',
+      period: 'per month',
+      description: 'Ultimate dating experience',
+      icon: <Zap className="w-6 h-6" />,
+      color: 'border-purple-400',
+      bgColor: 'bg-purple-100',
+      textColor: 'text-purple-600',
+      features: [
+        'Everything in Gold (₹89 plan)',
+        '+10 extra pairing requests per day',
+        'Unlimited Blind Date requests'
+      ]
     }
   ];
 
-  const handlePlanSelect = async (planId: 'free' | 'premium' | 'elite') => {
-    // Get demo user ID from localStorage
-    const demoUserId = localStorage.getItem('demoUserId');
-    if (!demoUserId) {
-      toast({
-        title: "Profile required",
-        description: "Please complete your profile first",
-        variant: "destructive"
-      });
-      return;
-    }
+  const handlePlanSelect = async (planId: 'free' | 'silver' | 'gold' | 'platinum') => {
+    try {
+      setIsLoading(true);
+      
+      // Get demo user ID from localStorage
+      const demoUserId = localStorage.getItem('demoUserId');
+      if (!demoUserId) {
+        toast({
+          title: "Profile required",
+          description: "Please complete your profile first",
+          variant: "destructive"
+        });
+        return;
+      }
 
-    if (planId === 'free') {
-      // Handle free plan selection
-      try {
-        setIsLoading(true);
-        
-        // For demo: Update localStorage
-        const existingProfile = JSON.parse(localStorage.getItem('demoProfile') || '{}');
-        const updatedProfile = {
-          ...existingProfile,
-          subscription_tier: 'free',
-          swipes_left: 10,
-          pairing_requests_left: 1,
-          blinddate_requests_left: 0
-        };
-        localStorage.setItem('demoProfile', JSON.stringify(updatedProfile));
+      // Update localStorage with selected plan
+      const existingProfile = JSON.parse(localStorage.getItem('demoProfile') || '{}');
+      
+      let planLimits;
+      switch(planId) {
+        case 'free':
+          planLimits = {
+            subscription_tier: 'free',
+            swipes_left: 10,
+            pairing_requests_left: 1,
+            blinddate_requests_left: 0
+          };
+          break;
+        case 'silver':
+          planLimits = {
+            subscription_tier: 'silver',
+            swipes_left: -1, // unlimited
+            pairing_requests_left: 10,
+            blinddate_requests_left: 2
+          };
+          break;
+        case 'gold':
+          planLimits = {
+            subscription_tier: 'gold', 
+            swipes_left: -1, // unlimited
+            pairing_requests_left: 12, // 10 + 2 extra
+            blinddate_requests_left: 4
+          };
+          break;
+        case 'platinum':
+          planLimits = {
+            subscription_tier: 'platinum',
+            swipes_left: -1, // unlimited
+            pairing_requests_left: 20, // 10 + 10 extra
+            blinddate_requests_left: -1 // unlimited
+          };
+          break;
+      }
 
+      const updatedProfile = { ...existingProfile, ...planLimits };
+      localStorage.setItem('demoProfile', JSON.stringify(updatedProfile));
+
+      if (planId === 'free') {
         toast({
           title: "Free plan activated! 🎉",
           description: "You now have 10 swipes per day"
         });
-
-        onPlanSelect?.(planId);
-      } catch (error: any) {
-        console.error('Error selecting free plan:', error);
+      } else {
         toast({
-          title: "Error",
-          description: "Failed to activate free plan",
-          variant: "destructive"
+          title: `${planId.charAt(0).toUpperCase() + planId.slice(1)} plan selected! 💫`,
+          description: "Payment integration coming soon. Enjoy premium features!"
         });
-      } finally {
-        setIsLoading(false);
       }
-    } else {
-      // For premium/elite, show upgrade message for now
-      toast({
-        title: "Coming Soon! 🚀",
-        description: `${planId === 'premium' ? 'Premium' : 'Elite'} plan integration will be available soon. For now, enjoy the Free plan!`,
-      });
-      
-      // Still call onPlanSelect to allow flow to continue
+
       onPlanSelect?.(planId);
+    } catch (error: any) {
+      console.error('Error selecting plan:', error);
+      toast({
+        title: "Error",
+        description: "Failed to select plan",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -154,7 +182,7 @@ const SubscriptionPlans = ({
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {plans.map((plan) => (
           <Card 
             key={plan.id}
@@ -175,23 +203,17 @@ const SubscriptionPlans = ({
             )}
 
             <CardHeader className="text-center">
-              <div className={`w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-4 ${
-                plan.id === 'free' ? 'bg-muted' : 
-                plan.id === 'premium' ? 'bg-primary/20' : 'bg-accent/20'
-              }`}>
-                <span className={`${
-                  plan.id === 'free' ? 'text-muted-foreground' : 
-                  plan.id === 'premium' ? 'text-primary' : 'text-accent'
-                }`}>
+              <div className={`w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-4 ${plan.bgColor}`}>
+                <span className={plan.textColor}>
                   {plan.icon}
                 </span>
               </div>
               
-              <CardTitle className="text-2xl">{plan.name}</CardTitle>
+              <CardTitle className="text-xl">{plan.name}</CardTitle>
               <CardDescription className="text-sm">{plan.description}</CardDescription>
               
               <div className="mt-4">
-                <div className="text-4xl font-bold">
+                <div className="text-3xl font-bold">
                   {plan.price}
                 </div>
                 <div className="text-sm text-muted-foreground">{plan.period}</div>
@@ -202,7 +224,7 @@ const SubscriptionPlans = ({
               <div className="space-y-3">
                 {plan.features.map((feature, index) => (
                   <div key={index} className="flex items-start space-x-3">
-                    <Check className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
+                    <Check className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
                     <span className="text-sm">{feature}</span>
                   </div>
                 ))}
@@ -212,8 +234,9 @@ const SubscriptionPlans = ({
                 onClick={() => handlePlanSelect(plan.id)}
                 disabled={isLoading || (currentPlan === plan.id && showCurrentPlan)}
                 className={`w-full ${
-                  plan.id === 'premium' ? 'bg-primary hover:bg-primary/90' :
-                  plan.id === 'elite' ? 'bg-accent hover:bg-accent/90' :
+                  plan.id === 'silver' ? 'bg-slate-500 hover:bg-slate-600' :
+                  plan.id === 'gold' ? 'bg-yellow-500 hover:bg-yellow-600' :
+                  plan.id === 'platinum' ? 'bg-purple-500 hover:bg-purple-600' :
                   'bg-muted hover:bg-muted/90 text-muted-foreground'
                 }`}
                 variant={plan.id === 'free' ? 'outline' : 'default'}
@@ -227,6 +250,15 @@ const SubscriptionPlans = ({
           </Card>
         ))}
       </div>
+
+      {/* Skip Button */}
+      {onSkip && (
+        <div className="mt-8 text-center">
+          <Button variant="ghost" onClick={onSkip} className="text-muted-foreground">
+            Skip for now - I'll choose later
+          </Button>
+        </div>
+      )}
 
       <div className="mt-8 text-center text-sm text-muted-foreground">
         <p>All plans include campus verification • Secure & private • Cancel anytime</p>
