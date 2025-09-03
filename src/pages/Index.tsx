@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 
 const Index = () => {
+  console.log('Index component rendered');
   const { user, isLoading, signOut } = useAuth();
   const navigate = useNavigate();
+  console.log('Index - user:', user, 'isLoading:', isLoading);
 
   useEffect(() => {
     document.title = "CampusConnect – Dashboard";

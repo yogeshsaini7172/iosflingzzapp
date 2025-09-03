@@ -10,6 +10,7 @@ import ChatSystem from '@/components/chat/ChatSystem';
 import ComprehensiveProfileCreation from '@/components/profile/ComprehensiveProfileCreation';
 type View = 'home' | 'profile' | 'swipe' | 'blind-date' | 'matches' | 'chat' | 'create-profile';
 const DatingApp = () => {
+  console.log('DatingApp component rendered');
   const [currentView, setCurrentView] = useState<View>('create-profile');
 
   // Enhanced mock user data with premium features

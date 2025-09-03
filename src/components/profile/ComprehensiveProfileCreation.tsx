@@ -42,6 +42,8 @@ interface ComprehensiveProfileCreationProps {
 }
 
 const ComprehensiveProfileCreation = ({ onComplete }: ComprehensiveProfileCreationProps) => {
+  console.log('ComprehensiveProfileCreation component rendered');
+  
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [profileData, setProfileData] = useState<ProfileData>({
