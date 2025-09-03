@@ -2,24 +2,12 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Heart, 
-  MessageCircle, 
-  User, 
-  Zap, 
-  Settings,
-  Eye,
-  Star,
-  Sparkles,
-  TrendingUp
-} from 'lucide-react';
+import { Heart, MessageCircle, User, Zap, Settings, Eye, Star, Sparkles, TrendingUp } from 'lucide-react';
 import PremiumSwipeCards from '@/components/dating/PremiumSwipeCards';
 import MatchesList from '@/components/dating/MatchesList';
 import ProfileManagement from '@/components/profile/ProfileManagement';
 import ChatSystem from '@/components/chat/ChatSystem';
-
 type View = 'home' | 'profile' | 'swipe' | 'blind-date' | 'matches' | 'chat';
-
 const DatingApp = () => {
   const [currentView, setCurrentView] = useState<View>('home');
 
@@ -37,13 +25,10 @@ const DatingApp = () => {
     completionPercentage: 85,
     lastActive: 'now'
   };
-
   const handleNavigate = (view: View) => {
     setCurrentView(view);
   };
-
-  const renderStats = () => (
-    <div className="grid grid-cols-3 gap-3 mb-6">
+  const renderStats = () => <div className="grid grid-cols-3 gap-3 mb-6">
       <Card className="relative overflow-hidden border-0 shadow-card bg-gradient-to-br from-primary/10 to-primary/5 hover:shadow-medium transition-all group">
         <CardContent className="p-4 text-center">
           <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-5 transition-opacity" />
@@ -73,30 +58,17 @@ const DatingApp = () => {
           <div className="text-xs opacity-70">this week</div>
         </CardContent>
       </Card>
-    </div>
-  );
-
-  const renderQuickActions = () => (
-    <div className="space-y-4 mb-6">
-      <Button 
-        onClick={() => setCurrentView('swipe')}
-        className="w-full h-16 bg-gradient-primary hover:scale-105 hover:shadow-xl transition-all text-lg font-semibold group relative overflow-hidden"
-        disabled={userProfile.swipesLeft === 0}
-      >
+    </div>;
+  const renderQuickActions = () => <div className="space-y-4 mb-6">
+      <Button onClick={() => setCurrentView('swipe')} className="w-full h-16 bg-gradient-primary hover:scale-105 hover:shadow-xl transition-all text-lg font-semibold group relative overflow-hidden" disabled={userProfile.swipesLeft === 0}>
         <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
         <Sparkles className="w-6 h-6 mr-3 group-hover:rotate-12 transition-transform" />
         {userProfile.swipesLeft === 0 ? 'No Swipes Left Today' : 'Discover Amazing People'}
-        {userProfile.subscriptionTier === 'premium' && (
-          <Star className="w-4 h-4 ml-2 text-amber-300" />
-        )}
+        {userProfile.subscriptionTier === 'premium' && <Star className="w-4 h-4 ml-2 text-amber-300" />}
       </Button>
       
       <div className="grid grid-cols-2 gap-3">
-        <Button 
-          variant="outline" 
-          onClick={() => setCurrentView('chat')}
-          className="h-16 bg-gradient-to-br from-card to-muted/50 hover:from-primary/5 hover:to-primary/10 border-2 border-primary/20 hover:border-primary hover:shadow-lg transition-all group relative overflow-hidden"
-        >
+        <Button variant="outline" onClick={() => setCurrentView('chat')} className="h-16 bg-gradient-to-br from-card to-muted/50 hover:from-primary/5 hover:to-primary/10 border-2 border-primary/20 hover:border-primary hover:shadow-lg transition-all group relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-5 transition-opacity" />
           <div className="text-center">
             <MessageCircle className="w-6 h-6 mx-auto mb-1 group-hover:scale-110 transition-transform" />
@@ -105,11 +77,7 @@ const DatingApp = () => {
           </div>
         </Button>
         
-        <Button 
-          variant="outline" 
-          onClick={() => setCurrentView('matches')}
-          className="h-16 bg-gradient-to-br from-card to-muted/50 hover:from-secondary/5 hover:to-secondary/10 border-2 border-secondary/20 hover:border-secondary hover:shadow-lg transition-all group relative overflow-hidden"
-        >
+        <Button variant="outline" onClick={() => setCurrentView('matches')} className="h-16 bg-gradient-to-br from-card to-muted/50 hover:from-secondary/5 hover:to-secondary/10 border-2 border-secondary/20 hover:border-secondary hover:shadow-lg transition-all group relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-secondary opacity-0 group-hover:opacity-5 transition-opacity" />
           <div className="text-center">
             <Heart className="w-6 h-6 mx-auto mb-1 group-hover:scale-110 transition-transform" />
@@ -118,13 +86,10 @@ const DatingApp = () => {
           </div>
         </Button>
       </div>
-    </div>
-  );
-
+    </div>;
   const renderPremiumStatus = () => {
     if (userProfile.subscriptionTier === 'free') {
-      return (
-        <Card className="mb-6 bg-gradient-secondary border-0 text-white shadow-medium relative overflow-hidden">
+      return <Card className="mb-6 bg-gradient-secondary border-0 text-white shadow-medium relative overflow-hidden">
           <div className="absolute inset-0 bg-white/5" />
           <CardContent className="p-4 relative">
             <div className="flex items-center justify-between">
@@ -143,12 +108,9 @@ const DatingApp = () => {
               </Button>
             </div>
           </CardContent>
-        </Card>
-      );
+        </Card>;
     }
-
-    return (
-      <Card className="mb-6 bg-gradient-to-r from-amber-500/20 to-amber-600/20 border border-amber-500/20 shadow-medium">
+    return <Card className="mb-6 bg-gradient-to-r from-amber-500/20 to-amber-600/20 border border-amber-500/20 shadow-medium">
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -165,12 +127,9 @@ const DatingApp = () => {
             </Badge>
           </div>
         </CardContent>
-      </Card>
-    );
+      </Card>;
   };
-
-  const renderDashboard = () => (
-    <div className="min-h-screen bg-gradient-soft">
+  const renderDashboard = () => <div className="min-h-screen bg-gradient-soft">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-card/80 backdrop-blur-lg border-b border-border shadow-soft">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -179,22 +138,18 @@ const DatingApp = () => {
               <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center shadow-lg">
                 <Heart className="w-6 h-6 text-white" />
               </div>
-              {userProfile.subscriptionTier === 'premium' && (
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 rounded-full flex items-center justify-center">
+              {userProfile.subscriptionTier === 'premium' && <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 rounded-full flex items-center justify-center">
                   <Star className="w-2.5 h-2.5 text-white" />
-                </div>
-              )}
+                </div>}
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
                   CampusConnect
                 </h1>
-                {userProfile.subscriptionTier === 'premium' && (
-                  <Badge className="bg-amber-100 text-amber-700 border-0 text-xs">
+                {userProfile.subscriptionTier === 'premium' && <Badge className="bg-amber-100 text-amber-700 border-0 text-xs">
                     Premium
-                  </Badge>
-                )}
+                  </Badge>}
               </div>
               <div className="text-sm text-muted-foreground">
                 Hey {userProfile.firstName}! ✨ {userProfile.lastActive}
@@ -203,16 +158,12 @@ const DatingApp = () => {
           </div>
           
           <div className="flex items-center gap-2">
-            {userProfile.isVerified ? (
-              <Badge className="bg-success/10 text-success border-success/20 text-xs">
+            {userProfile.isVerified ? <Badge className="bg-success/10 text-success border-success/20 text-xs">
                 <Star className="w-3 h-3 mr-1" />
                 Verified
-              </Badge>
-            ) : (
-              <Badge variant="outline" className="text-xs border-amber-500/20 text-amber-600">
+              </Badge> : <Badge variant="outline" className="text-xs border-amber-500/20 text-amber-600">
                 Verify Account
-              </Badge>
-            )}
+              </Badge>}
             <Button variant="ghost" size="sm" onClick={() => setCurrentView('profile')} className="hover:bg-primary/5">
               <User className="w-4 h-4" />
             </Button>
@@ -236,25 +187,18 @@ const DatingApp = () => {
             </p>
           </div>
           <div className="grid grid-cols-1 gap-4">
-            <Button 
-              onClick={() => setCurrentView('swipe')}
-              className="h-20 bg-gradient-primary hover:scale-105 hover:shadow-xl transition-all group relative overflow-hidden"
-              disabled={userProfile.swipesLeft === 0}
-            >
-              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <Button onClick={() => setCurrentView('swipe')} className="h-20 bg-gradient-primary hover:scale-105 hover:shadow-xl transition-all group relative overflow-hidden" disabled={userProfile.swipesLeft === 0}>
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity mx-[5px] my-[5px] px-[5px] py-[5px] bg-slate-500" />
               <div className="flex items-center justify-center gap-4">
                 <Sparkles className="w-8 h-8 group-hover:rotate-12 transition-transform" />
                 <div className="text-center">
                   <div className="text-lg font-bold">Swipe & Match</div>
-                  <div className="text-sm opacity-90">Classic dating experience</div>
+                  <div className="text-sm opacity-90 rounded-sm">Classic dating experience</div>
                 </div>
               </div>
             </Button>
             
-            <Button 
-              onClick={() => setCurrentView('matches')}
-              className="h-20 bg-gradient-secondary hover:scale-105 hover:shadow-xl transition-all group relative overflow-hidden"
-            >
+            <Button onClick={() => setCurrentView('matches')} className="h-20 bg-gradient-secondary hover:scale-105 hover:shadow-xl transition-all group relative overflow-hidden">
               <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="flex items-center justify-center gap-4">
                 <Heart className="w-8 h-8 group-hover:scale-110 transition-transform" />
@@ -265,10 +209,7 @@ const DatingApp = () => {
               </div>
             </Button>
             
-            <Button 
-              onClick={() => setCurrentView('blind-date')}
-              className="h-20 bg-gradient-to-r from-accent to-secondary hover:scale-105 hover:shadow-xl transition-all group relative overflow-hidden"
-            >
+            <Button onClick={() => setCurrentView('blind-date')} className="h-20 bg-gradient-to-r from-accent to-secondary hover:scale-105 hover:shadow-xl transition-all group relative overflow-hidden">
               <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="flex items-center justify-center gap-4">
                 <Eye className="w-8 h-8 group-hover:scale-110 transition-transform" />
@@ -326,8 +267,7 @@ const DatingApp = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 
   // Route to different views
   switch (currentView) {
@@ -341,8 +281,7 @@ const DatingApp = () => {
       return <ProfileManagement onNavigate={handleNavigate} />;
     case 'blind-date':
       // TODO: Create BlindDate component
-      return (
-        <div className="min-h-screen bg-gradient-soft flex items-center justify-center p-4">
+      return <div className="min-h-screen bg-gradient-soft flex items-center justify-center p-4">
           <Card className="text-center p-8 shadow-medium border-0">
             <CardContent>
               <div className="w-16 h-16 bg-gradient-secondary rounded-full flex items-center justify-center mx-auto mb-4">
@@ -357,11 +296,9 @@ const DatingApp = () => {
               </Button>
             </CardContent>
           </Card>
-        </div>
-      );
+        </div>;
     default:
       return renderDashboard();
   }
 };
-
 export default DatingApp;
