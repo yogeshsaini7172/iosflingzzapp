@@ -226,43 +226,65 @@ const DatingApp = () => {
         {renderPremiumStatus()}
         {renderQuickActions()}
 
-        {/* Recent Activity */}
+        {/* Subscription Pricing */}
         <Card className="shadow-medium border-0 bg-gradient-to-br from-card to-muted/30">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold">Recent Activity</h3>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-bold">Premium Plans</h3>
               <Badge variant="secondary" className="bg-primary/10 text-primary border-0">
-                {userProfile.profileViews} views this week
+                Limited Time
               </Badge>
             </div>
             <div className="space-y-4">
-              <div className="flex items-center gap-4 p-3 rounded-xl bg-gradient-to-r from-success/5 to-success/10 border border-success/20 hover:from-success/10 hover:to-success/15 transition-all">
-                <div className="w-8 h-8 bg-success/20 rounded-full flex items-center justify-center">
-                  <Heart className="w-4 h-4 text-success" />
-                </div>
+              <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 hover:from-primary/10 hover:to-primary/15 transition-all">
                 <div className="flex-1">
-                  <p className="font-medium text-sm">Emma liked your profile</p>
-                  <p className="text-xs text-muted-foreground">Psychology major • 2h ago</p>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Star className="w-4 h-4 text-primary" />
+                    <p className="font-semibold text-primary">Premium Monthly</p>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Unlimited swipes & premium features</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-xl font-bold text-primary">$19.99</div>
+                  <div className="text-xs text-muted-foreground">/month</div>
                 </div>
               </div>
-              <div className="flex items-center gap-4 p-3 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 hover:from-primary/10 hover:to-primary/15 transition-all">
-                <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 text-primary" />
-                </div>
+              
+              <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-secondary/5 to-secondary/10 border border-secondary/20 hover:from-secondary/10 hover:to-secondary/15 transition-all">
                 <div className="flex-1">
-                  <p className="font-medium text-sm">New match with Alex!</p>
-                  <p className="text-xs text-muted-foreground">Computer Science • 1d ago</p>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Sparkles className="w-4 h-4 text-secondary" />
+                    <p className="font-semibold text-secondary">Premium Yearly</p>
+                    <Badge className="bg-success/10 text-success border-success/20 text-xs">Save 50%</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Best value • All premium features</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-xl font-bold text-secondary">$119.99</div>
+                  <div className="text-xs text-muted-foreground">/year</div>
                 </div>
               </div>
-              <div className="flex items-center gap-4 p-3 rounded-xl bg-gradient-to-r from-secondary/5 to-secondary/10 border border-secondary/20 hover:from-secondary/10 hover:to-secondary/15 transition-all">
-                <div className="w-8 h-8 bg-secondary/20 rounded-full flex items-center justify-center">
-                  <MessageCircle className="w-4 h-4 text-secondary" />
-                </div>
+              
+              <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-accent/5 to-accent/10 border border-accent/20 hover:from-accent/10 hover:to-accent/15 transition-all">
                 <div className="flex-1">
-                  <p className="font-medium text-sm">Sophia sent a message</p>
-                  <p className="text-xs text-muted-foreground">"Let's grab coffee sometime!" • 2d ago</p>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Zap className="w-4 h-4 text-accent" />
+                    <p className="font-semibold text-accent">Premium Lifetime</p>
+                    <Badge className="bg-amber-100 text-amber-700 border-0 text-xs">Popular</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">One-time payment • Forever access</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-xl font-bold text-accent">$299.99</div>
+                  <div className="text-xs text-muted-foreground">once</div>
                 </div>
               </div>
+            </div>
+            
+            <div className="mt-6 p-3 rounded-lg bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/10">
+              <p className="text-sm text-center text-muted-foreground">
+                ✨ All plans include: Unlimited swipes, Super likes, See who liked you, Advanced filters, Priority support
+              </p>
             </div>
           </CardContent>
         </Card>
