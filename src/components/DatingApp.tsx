@@ -29,37 +29,6 @@ const DatingApp = () => {
   const handleNavigate = (view: View) => {
     setCurrentView(view);
   };
-  const renderStats = () => <div className="grid grid-cols-3 gap-3 mb-6">
-      <Card className="relative overflow-hidden border-0 shadow-card bg-gradient-to-br from-primary/10 to-primary/5 hover:shadow-medium transition-all group">
-        <CardContent className="p-4 text-center">
-          <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-5 transition-opacity" />
-          <Sparkles className="w-5 h-5 text-primary mx-auto mb-2 group-hover:scale-110 transition-transform" />
-          <div className="text-2xl font-bold text-primary">{userProfile.swipesLeft}</div>
-          <div className="text-xs text-muted-foreground">Swipes Left</div>
-          <div className="text-xs opacity-70">of {userProfile.maxSwipes} daily</div>
-        </CardContent>
-      </Card>
-      
-      <Card className="relative overflow-hidden border-0 shadow-card bg-gradient-to-br from-secondary/10 to-secondary/5 hover:shadow-medium transition-all group">
-        <CardContent className="p-4 text-center">
-          <div className="absolute inset-0 bg-gradient-secondary opacity-0 group-hover:opacity-5 transition-opacity" />
-          <Heart className="w-5 h-5 text-secondary mx-auto mb-2 group-hover:scale-110 transition-transform" />
-          <div className="text-2xl font-bold text-secondary">{userProfile.matches}</div>
-          <div className="text-xs text-muted-foreground">Matches</div>
-          <div className="text-xs opacity-70">active chats</div>
-        </CardContent>
-      </Card>
-      
-      <Card className="relative overflow-hidden border-0 shadow-card bg-gradient-to-br from-accent/10 to-accent/5 hover:shadow-medium transition-all group">
-        <CardContent className="p-4 text-center">
-          <div className="absolute inset-0 bg-gradient-to-r from-accent to-secondary opacity-0 group-hover:opacity-5 transition-opacity" />
-          <TrendingUp className="w-5 h-5 text-accent mx-auto mb-2 group-hover:scale-110 transition-transform" />
-          <div className="text-2xl font-bold text-accent">{userProfile.profileViews}</div>
-          <div className="text-xs text-muted-foreground">Profile Views</div>
-          <div className="text-xs opacity-70">this week</div>
-        </CardContent>
-      </Card>
-    </div>;
   const renderQuickActions = () => <div className="space-y-4 mb-6">
       <Button onClick={() => setCurrentView('swipe')} className="w-full h-16 bg-gradient-primary hover:scale-105 hover:shadow-xl transition-all text-lg font-semibold group relative overflow-hidden" disabled={userProfile.swipesLeft === 0}>
         <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -248,7 +217,6 @@ const DatingApp = () => {
           </div>
         </div>
 
-        {renderStats()}
         {renderPremiumStatus()}
         {renderQuickActions()}
 
