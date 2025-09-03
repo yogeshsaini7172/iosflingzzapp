@@ -170,9 +170,8 @@ const DatingApp = () => {
         </CardContent>
       </Card>;
   };
-  const renderDashboard = () => <div className="min-h-screen bg-gradient-soft">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-card/80 backdrop-blur-lg border-b border-border shadow-soft">
+  const renderDashboard = () => <div className="min-h-screen bg-gradient-elegant">{/* Header */}
+      <div className="sticky top-0 z-40 bg-gradient-primary/80 backdrop-blur-lg border-b border-primary/20 shadow-royal">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative">
@@ -216,7 +215,7 @@ const DatingApp = () => {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-6 max-w-md">
+      <div className="container mx-auto px-4 py-6 max-w-md bg-gradient-royal/5 backdrop-blur-sm rounded-t-3xl shadow-premium border-t border-primary/10">
         {/* Connection Options */}
         <div className="mb-8">
           <div className="text-center mb-6">
