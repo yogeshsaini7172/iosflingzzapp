@@ -225,17 +225,55 @@ const DatingApp = () => {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6 max-w-md">
-        {/* Welcome Message */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-primary rounded-full mb-4 shadow-lg">
-            <Heart className="w-8 h-8 text-white animate-pulse" />
-          </div>
-          <h2 className="text-3xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
-            Ready to spark connections?
+        {/* Connection Options */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-center mb-6 bg-gradient-primary bg-clip-text text-transparent">
+            Choose Your Connection Style
           </h2>
-          <p className="text-muted-foreground text-lg">
-            Discover amazing people who share your vibe ✨
-          </p>
+          <div className="grid grid-cols-1 gap-4">
+            <Button 
+              onClick={() => setCurrentView('swipe')}
+              className="h-20 bg-gradient-primary hover:scale-105 hover:shadow-xl transition-all group relative overflow-hidden"
+              disabled={userProfile.swipesLeft === 0}
+            >
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="flex items-center justify-center gap-4">
+                <Sparkles className="w-8 h-8 group-hover:rotate-12 transition-transform" />
+                <div className="text-center">
+                  <div className="text-lg font-bold">Swipe & Match</div>
+                  <div className="text-sm opacity-90">Classic dating experience</div>
+                </div>
+              </div>
+            </Button>
+            
+            <Button 
+              onClick={() => setCurrentView('matches')}
+              className="h-20 bg-gradient-secondary hover:scale-105 hover:shadow-xl transition-all group relative overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="flex items-center justify-center gap-4">
+                <Heart className="w-8 h-8 group-hover:scale-110 transition-transform" />
+                <div className="text-center">
+                  <div className="text-lg font-bold text-white">Smart Pairing</div>
+                  <div className="text-sm text-white/90">AI-powered connections</div>
+                </div>
+              </div>
+            </Button>
+            
+            <Button 
+              onClick={() => setCurrentView('blind-date')}
+              className="h-20 bg-gradient-to-r from-accent to-secondary hover:scale-105 hover:shadow-xl transition-all group relative overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="flex items-center justify-center gap-4">
+                <Eye className="w-8 h-8 group-hover:scale-110 transition-transform" />
+                <div className="text-center">
+                  <div className="text-lg font-bold text-white">Blind Date</div>
+                  <div className="text-sm text-white/90">Mystery connections</div>
+                </div>
+              </div>
+            </Button>
+          </div>
         </div>
 
         {renderStats()}
