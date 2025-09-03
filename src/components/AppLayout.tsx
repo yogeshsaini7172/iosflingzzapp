@@ -1,12 +1,28 @@
-import { useState, useEffect } from 'react';
-import { Heart, User, MessageCircle, Search, Calendar, Settings, LogOut, Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import {
+  Heart,
+  User,
+  MessageCircle,
+  Search,
+  Calendar,
+  Settings,
+  LogOut,
+  Sparkles,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
-type View = 'dashboard' | 'swipe' | 'pairing' | 'matches' | 'chat' | 'profile' | 'blind-date';
+type View =
+  | "dashboard"
+  | "swipe"
+  | "pairing"
+  | "matches"
+  | "chat"
+  | "profile"
+  | "blind-date";
 
 interface User {
   id: string;
@@ -26,60 +42,60 @@ const AppLayout = ({ children, currentView, onViewChange }: AppLayoutProps) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const user = localStorage.getItem('currentUser');
+    const user = localStorage.getItem("currentUser");
     if (user) {
       setCurrentUser(JSON.parse(user));
     } else {
-      navigate('/login');
+      navigate("/login");
     }
   }, [navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem('currentUser');
-    toast.success('Logged out successfully');
-    navigate('/login');
+    localStorage.removeItem("currentUser");
+    toast.success("Logged out successfully");
+    navigate("/login");
   };
 
   const navItems = [
     {
-      id: 'dashboard' as View,
-      label: 'Dashboard',
+      id: "dashboard" as View,
+      label: "Dashboard",
       icon: <Sparkles className="h-5 w-5" />,
-      description: 'Overview & Stats'
+      description: "Overview & Stats",
     },
     {
-      id: 'swipe' as View,
-      label: 'Swipe',
+      id: "swipe" as View,
+      label: "Swipe",
       icon: <Heart className="h-5 w-5" />,
-      description: 'Discover People',
-      badge: 'Hot'
+      description: "Discover People",
+      badge: "Hot",
     },
     {
-      id: 'pairing' as View,
-      label: 'Smart Pairing',
+      id: "pairing" as View,
+      label: "Smart Pairing",
       icon: <Search className="h-5 w-5" />,
-      description: 'AI Matching',
-      badge: 'Premium'
+      description: "AI Matching",
+      badge: "Premium",
     },
     {
-      id: 'matches' as View,
-      label: 'Matches',
+      id: "matches" as View,
+      label: "Matches",
       icon: <User className="h-5 w-5" />,
-      description: 'Your Connections'
+      description: "Your Connections",
     },
     {
-      id: 'chat' as View,
-      label: 'Messages',
+      id: "chat" as View,
+      label: "Messages",
       icon: <MessageCircle className="h-5 w-5" />,
-      description: 'Conversations'
+      description: "Conversations",
     },
     {
-      id: 'blind-date' as View,
-      label: 'Blind Dates',
+      id: "blind-date" as View,
+      label: "Blind Dates",
       icon: <Calendar className="h-5 w-5" />,
-      description: 'Coming Soon',
-      disabled: true
-    }
+      description: "Coming Soon",
+      disabled: true,
+    },
   ];
 
   if (!currentUser) {
@@ -93,7 +109,7 @@ const AppLayout = ({ children, currentView, onViewChange }: AppLayoutProps) => {
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <div className="flex h-screen">
-        {/* Sidebar */}
+        {/* Left Sidebar */}
         <div className="w-80 bg-gradient-card border-r border-border/50 flex flex-col shadow-medium">
           {/* Header */}
           <div className="p-6 border-b border-border/50">
@@ -102,11 +118,15 @@ const AppLayout = ({ children, currentView, onViewChange }: AppLayoutProps) => {
                 <Heart className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-elegant font-bold text-gradient-primary">GradSync</h1>
-                <p className="text-xs text-muted-foreground">Elite College Dating</p>
+                <h1 className="text-xl font-elegant font-bold text-gradient-primary">
+                  GradSync
+                </h1>
+                <p className="text-xs text-muted-foreground">
+                  Elite College Dating
+                </p>
               </div>
             </div>
-            
+
             {/* User Info */}
             <Card className="p-4 bg-gradient-subtle border-border/50">
               <div className="flex items-center space-x-3">
@@ -115,10 +135,12 @@ const AppLayout = ({ children, currentView, onViewChange }: AppLayoutProps) => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">{currentUser.name}</p>
-                  <p className="text-sm text-muted-foreground truncate">{currentUser.profile?.university}</p>
+                  <p className="text-sm text-muted-foreground truncate">
+                    {currentUser.profile?.university}
+                  </p>
                   <div className="flex items-center mt-1">
                     <Badge variant="secondary" className="text-xs px-2 py-0">
-                      QCS: {currentUser.profile?.total_qcs || 'N/A'}
+                      QCS: {currentUser.profile?.total_qcs || "N/A"}
                     </Badge>
                   </div>
                 </div>
@@ -131,12 +153,12 @@ const AppLayout = ({ children, currentView, onViewChange }: AppLayoutProps) => {
             {navItems.map((item) => (
               <Button
                 key={item.id}
-                variant={currentView === item.id ? 'default' : 'ghost'}
+                variant={currentView === item.id ? "default" : "ghost"}
                 className={`w-full justify-start h-auto p-4 transition-elegant ${
-                  currentView === item.id 
-                    ? 'bg-gradient-primary text-white shadow-royal' 
-                    : 'hover:bg-muted/50'
-                } ${item.disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  currentView === item.id
+                    ? "bg-gradient-primary text-white shadow-royal"
+                    : "hover:bg-muted/50"
+                } ${item.disabled ? "opacity-50 cursor-not-allowed" : ""}`}
                 onClick={() => !item.disabled && onViewChange(item.id)}
                 disabled={item.disabled}
               >
@@ -145,12 +167,16 @@ const AppLayout = ({ children, currentView, onViewChange }: AppLayoutProps) => {
                     {item.icon}
                     <div className="text-left">
                       <div className="font-medium">{item.label}</div>
-                      <div className="text-xs opacity-80">{item.description}</div>
+                      <div className="text-xs opacity-80">
+                        {item.description}
+                      </div>
                     </div>
                   </div>
                   {item.badge && (
-                    <Badge 
-                      variant={item.badge === 'Premium' ? 'default' : 'secondary'} 
+                    <Badge
+                      variant={
+                        item.badge === "Premium" ? "default" : "secondary"
+                      }
                       className="text-xs"
                     >
                       {item.badge}
@@ -166,7 +192,7 @@ const AppLayout = ({ children, currentView, onViewChange }: AppLayoutProps) => {
             <Button
               variant="ghost"
               className="w-full justify-start"
-              onClick={() => onViewChange('profile')}
+              onClick={() => onViewChange("profile")}
             >
               <Settings className="h-4 w-4 mr-2" />
               Profile Settings
@@ -182,9 +208,31 @@ const AppLayout = ({ children, currentView, onViewChange }: AppLayoutProps) => {
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 overflow-hidden">
-          {children}
+        {/* Main Content + Right Sidebar */}
+        <div className="flex-1 flex">
+          {/* Main Feed */}
+          <div className="flex-1 overflow-y-auto">{children}</div>
+
+          {/* Right Sidebar */}
+          <div className="hidden lg:block w-96 border-l border-border/50 p-6 bg-white">
+            <h2 className="text-xl font-bold mb-4">Dashboard</h2>
+
+            <div className="bg-gradient-subtle rounded-xl p-4 mb-4">
+              <h3 className="font-semibold">Match Insights</h3>
+              <p className="text-sm text-muted-foreground">
+                You have 12 new likes today 🎉
+              </p>
+            </div>
+
+            <div className="bg-gradient-subtle rounded-xl p-4">
+              <h3 className="font-semibold mb-2">Recent Activity</h3>
+              <ul className="text-sm space-y-1">
+                <li>Emma viewed your profile</li>
+                <li>David sent you a like</li>
+                <li>Anna matched with you</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,368 +1,244 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Home, 
-  Search, 
-  PlusSquare, 
-  Play, 
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Home,
   Heart,
   MessageCircle,
-  Send,
-  Bookmark,
-  MoreHorizontal,
-  Settings,
   User,
-  Sparkles,
   Zap,
-  Coffee
-} from 'lucide-react';
-import { useProfileData } from '@/hooks/useProfileData';
-// Import QCS fix - this will auto-run to sync scores
-import '@/services/fix-qcs';
+  Coffee,
+} from "lucide-react";
+
+import { useProfilesFeed } from "@/hooks/useProfilesFeed";
+import { usePairing } from "@/hooks/usePairing";
 
 interface InstagramUIProps {
   onNavigate: (view: string) => void;
 }
 
 const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
-  const [activeTab, setActiveTab] = useState<'home' | 'swipe' | 'pairing' | 'blinddate' | 'profile'>('home');
-  const { profile } = useProfileData();
+  const [activeTab, setActiveTab] = useState<
+    "home" | "swipe" | "pairing" | "blinddate" | "profile"
+  >("home");
 
-  const stories = [
-    { id: 1, name: 'Your story', image: profile?.profile_images?.[0] || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150', hasStory: false, isOwn: true },
-    { id: 2, name: 'alice_j', image: 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=150', hasStory: true, badge: 'New Match!' },
-    { id: 3, name: 'bob_m', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150', hasStory: true, badge: 'Online' },
-    { id: 4, name: 'emma_s', image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150', hasStory: true, badge: '💕' },
-    { id: 5, name: 'david_k', image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150', hasStory: true, badge: 'Likes You' }
-  ];
+  // ✅ Profiles feed from Supabase (for Swipe tab)
+  const { profiles = [], loading, setProfiles } = useProfilesFeed();
 
-  const posts = [
+  // ✅ Paired profiles (for Pairing tab)
+  const { pairedProfiles = [], loading: pairingLoading } = usePairing();
+
+  // ✅ Swipe handler
+  const handleSwipe = async (id: string, direction: "left" | "right") => {
+    console.log(`Swiped ${direction} on profile ${id}`);
+    setProfiles((prev) => prev.filter((p) => p.id !== id));
+
+    // TODO: Save swipe action to Supabase if required
+  };
+
+  // ✅ Subscription Plans
+  const plans = [
     {
       id: 1,
-      username: 'alice_j',
-      userImage: 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=150',
-      location: 'Stanford University',
-      image: 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=500',
-      likes: 247,
-      caption: 'Beautiful sunset from my dorm room 🌅 Looking for someone to watch sunsets with! #StanfordLife #sunset #LookingForLove',
-      timeAgo: '2h',
-      compatibility: 94,
-      isMatch: false
+      name: "Basic",
+      price: "₹49 / month",
+      features: ["10 Swipes per day", "Basic Matching", "Chat with Matches"],
+      color: "border-blue-500",
+      buttonColor: "bg-blue-500 hover:bg-blue-600",
     },
     {
       id: 2,
-      username: 'bob_m',
-      userImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-      location: 'MIT Campus',
-      image: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=500',
-      likes: 189,
-      caption: 'Late night coding session ☕️💻 Would love a study buddy! #MIT #coding #SingleLife',
-      timeAgo: '4h',
-      compatibility: 87,
-      isMatch: true
-    }
+      name: "Premium",
+      price: "₹89 / month",
+      features: [
+        "Unlimited Swipes",
+        "Smart AI Pairing",
+        "Priority Matches",
+        "See Who Liked You",
+      ],
+      color: "border-purple-500",
+      buttonColor: "bg-purple-500 hover:bg-purple-600",
+    },
+    {
+      id: 3,
+      name: "Elite",
+      price: "₹129 / month",
+      features: [
+        "Everything in Premium",
+        "Exclusive Elite Profiles",
+        "1 Blind Date Credit Daily",
+        "VIP Support",
+      ],
+      color: "border-yellow-500",
+      buttonColor: "bg-yellow-500 hover:bg-yellow-600",
+    },
   ];
 
-  const renderStories = () => (
-    <div className="flex space-x-4 p-4 overflow-x-auto bg-card border-b">
-      {stories.map((story) => (
-        <div key={story.id} className="flex flex-col items-center space-y-1 flex-shrink-0">
-          <div className={`relative ${story.hasStory ? 'p-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full' : ''}`}>
-            <div className="w-16 h-16 rounded-full overflow-hidden bg-card border-2 border-background">
-              <img src={story.image} alt={story.name} className="w-full h-full object-cover" />
-            </div>
-            {story.isOwn && !story.hasStory && (
-              <div className="absolute -bottom-0 -right-0 w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center border-2 border-background">
-                <PlusSquare className="w-3 h-3" />
-              </div>
-            )}
-            {!story.isOwn && story.badge && (
-              <div className="absolute -top-1 -right-1">
-                <Badge className="text-xs px-1 py-0 bg-red-500 text-white">{story.badge}</Badge>
-              </div>
-            )}
-          </div>
-          <span className="text-xs text-muted-foreground truncate w-16 text-center">
-            {story.isOwn ? 'Your story' : story.name}
-          </span>
-        </div>
+  const renderPlans = () => (
+    <div className="grid gap-6">
+      {plans.map((plan) => (
+        <Card
+          key={plan.id}
+          className={`border-2 ${plan.color} shadow-md rounded-xl`}
+        >
+          <CardContent className="p-6">
+            <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
+            <p className="text-2xl font-semibold mb-4">{plan.price}</p>
+
+            <ul className="space-y-2 mb-4 text-sm text-gray-600">
+              {plan.features.map((f, idx) => (
+                <li key={idx}>✅ {f}</li>
+              ))}
+            </ul>
+
+            <Button
+              className={`w-full text-white ${plan.buttonColor}`}
+              onClick={() => alert(`Subscribed to ${plan.name}`)}
+            >
+              Subscribe
+            </Button>
+          </CardContent>
+        </Card>
       ))}
     </div>
   );
 
-  const renderPost = (post: any) => (
-    <Card key={post.id} className="border-0 rounded-none bg-card shadow-none">
-      {/* Post Header */}
-      <div className="flex items-center justify-between p-3">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-full overflow-hidden">
-            <img src={post.userImage} alt={post.username} className="w-full h-full object-cover" />
-          </div>
-          <div>
-            <p className="font-semibold text-sm">{post.username}</p>
-            <p className="text-xs text-muted-foreground">{post.location}</p>
-          </div>
-        </div>
-        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-          <MoreHorizontal className="w-4 h-4" />
-        </Button>
-      </div>
-
-      {/* Post Image */}
-      <div className="relative">
-        <img src={post.image} alt="Post" className="w-full aspect-square object-cover" />
-        
-        {/* Dating App Overlays */}
-        <div className="absolute top-3 left-3 right-3 flex justify-between">
-          <Badge className="bg-gradient-primary text-white border-0 shadow-lg">
-            <Sparkles className="w-3 h-3 mr-1" />
-            {post.compatibility}% Match
-          </Badge>
-          {post.isMatch && (
-            <Badge className="bg-green-500 text-white border-0 shadow-lg">
-              💕 Mutual Match
-            </Badge>
-          )}
-        </div>
-        
-        {/* Dating Action Buttons */}
-        <div className="absolute bottom-3 left-3 right-3 flex justify-between">
-          <Button 
-            size="sm" 
-            className="bg-red-500 hover:bg-red-600 text-white rounded-full flex-1 mr-2"
-            onClick={() => onNavigate('swipe')}
-          >
-            <Heart className="w-4 h-4 mr-1" />
-            Like
-          </Button>
-          <Button 
-            size="sm" 
-            className="bg-blue-500 hover:bg-blue-600 text-white rounded-full flex-1 mr-2"
-            onClick={() => onNavigate('chat')}
-          >
-            <MessageCircle className="w-4 h-4 mr-1" />
-            Chat
-          </Button>
-          <Button 
-            size="sm" 
-            className="bg-purple-500 hover:bg-purple-600 text-white rounded-full flex-1"
-            onClick={() => onNavigate('pairing')}
-          >
-            <Zap className="w-4 h-4 mr-1" />
-            Pair
-          </Button>
-        </div>
-      </div>
-
-      {/* Post Actions */}
-      <div className="p-3">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex space-x-4">
-            <Button variant="ghost" size="sm" className="h-8 px-0">
-              <Heart className="w-6 h-6" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="h-8 px-0"
-              onClick={() => onNavigate('chat')}
-            >
-              <MessageCircle className="w-6 h-6" />
-            </Button>
-            <Button variant="ghost" size="sm" className="h-8 px-0">
-              <Send className="w-6 h-6" />
-            </Button>
-          </div>
-          <Button variant="ghost" size="sm" className="h-8 px-0">
-            <Bookmark className="w-6 h-6" />
-          </Button>
-        </div>
-
-        <p className="font-semibold text-sm mb-1">{post.likes} likes</p>
-        <p className="text-sm">
-          <span className="font-semibold">{post.username}</span> {post.caption}
-        </p>
-        <div className="flex items-center justify-between mt-2">
-          <p className="text-xs text-muted-foreground">{post.timeAgo}</p>
-          <Badge variant="outline" className="text-xs">
-            {post.compatibility}% Compatible
-          </Badge>
-        </div>
-      </div>
-    </Card>
-  );
-
+  // ✅ Main content per tab
   const renderContent = () => {
     switch (activeTab) {
-      case 'home':
-        return (
-          <div className="flex-1 overflow-y-auto">
-            {renderStories()}
-            <div className="divide-y">
-              {posts.map(renderPost)}
-            </div>
-          </div>
-        );
-      case 'swipe':
-        return (
-          <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20">
-            <div className="text-center">
-              <div className="w-24 h-24 bg-gradient-to-r from-red-400 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                <Heart className="w-12 h-12 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold mb-2 text-gradient-primary">Discover Your Match</h3>
-              <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
-                Swipe through potential matches based on compatibility scores
-              </p>
-              <div className="flex flex-col space-y-3">
-                <Button onClick={() => onNavigate('swipe')} className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white px-8 py-3">
-                  <Heart className="w-5 h-5 mr-2" />
-                  Start Swiping
-                </Button>
-                <p className="text-sm text-muted-foreground">
-                  {profile?.swipes_left || 20} swipes remaining today
-                </p>
-              </div>
-            </div>
-          </div>
-        );
-      case 'pairing':
-        return (
-          <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
-            <div className="text-center">
-              <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                <Zap className="w-12 h-12 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold mb-2 text-gradient-primary">Smart Pairing</h3>
-              <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
-                AI-powered matching based on compatibility algorithms and QCS scores
-              </p>
-              <div className="flex flex-col space-y-3">
-                <Button onClick={() => onNavigate('pairing')} className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3">
-                  <Zap className="w-5 h-5 mr-2" />
-                  Find My Match
-                </Button>
-                <p className="text-sm text-muted-foreground">
-                  {profile?.pairing_requests_left || 1} pairing requests left today
-                </p>
-              </div>
-            </div>
-          </div>
-        );
-      case 'blinddate':
-        return (
-          <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20">
-            <div className="text-center">
-              <div className="w-24 h-24 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                <Coffee className="w-12 h-12 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold mb-2 text-gradient-primary">Blind Date</h3>
-              <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
-                Take a chance! Meet someone new without seeing their profile first
-              </p>
-              <div className="flex flex-col space-y-3">
-                <Button onClick={() => onNavigate('blind-date')} className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white px-8 py-3">
-                  <Coffee className="w-5 h-5 mr-2" />
-                  Start Blind Date
-                </Button>
-                <p className="text-sm text-muted-foreground">
-                  {profile?.blinddate_requests_left || 0} blind dates available
-                </p>
-              </div>
-            </div>
-          </div>
-        );
-      case 'profile':
+      case "home":
         return (
           <div className="flex-1 overflow-y-auto p-4">
-            <div className="text-center mb-6">
-              <div className="w-24 h-24 rounded-full overflow-hidden mx-auto mb-4 border-2 border-primary">
-                <img 
-                  src={profile?.profile_images?.[0] || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200'} 
-                  alt="Profile" 
-                  className="w-full h-full object-cover" 
-                />
-              </div>
-              <h2 className="text-xl font-bold">{profile?.first_name} {profile?.last_name}</h2>
-              <p className="text-muted-foreground">{profile?.bio}</p>
-              
-              <div className="flex justify-center space-x-8 mt-4">
-                <div className="text-center">
-                  <p className="font-semibold text-lg text-red-500">❤️ 24</p>
-                  <p className="text-sm text-muted-foreground">Likes</p>
-                </div>
-                <div className="text-center">
-                  <p className="font-semibold text-lg text-green-500">💚 12</p>
-                  <p className="text-sm text-muted-foreground">Matches</p>
-                </div>
-                <div className="text-center">
-                  <p className="font-semibold text-lg text-purple-500">⚡ {profile?.total_qcs || 0}</p>
-                  <p className="text-sm text-muted-foreground">QCS Score</p>
-                </div>
-              </div>
-              
-              <div className="flex space-x-3 mt-6">
-                <Button 
-                  onClick={() => onNavigate('profile')} 
-                  className="flex-1 bg-gradient-primary"
-                >
-                  Edit Profile
-                </Button>
-                <Button variant="outline" size="icon">
-                  <Settings className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Dating Stats */}
-            <Card className="mb-6 bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
-              <CardContent className="p-4">
-                <h4 className="font-semibold mb-3 flex items-center">
-                  <Sparkles className="w-4 h-4 mr-2 text-primary" />
-                  Daily Limits
-                </h4>
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <p className="text-lg font-bold text-red-500">{profile?.swipes_left || 20}</p>
-                    <p className="text-xs text-muted-foreground">Swipes Left</p>
-                  </div>
-                  <div>
-                    <p className="text-lg font-bold text-blue-500">{profile?.pairing_requests_left || 1}</p>
-                    <p className="text-xs text-muted-foreground">Pairings Left</p>
-                  </div>
-                  <div>
-                    <p className="text-lg font-bold text-purple-500">{profile?.blinddate_requests_left || 0}</p>
-                    <p className="text-xs text-muted-foreground">Blind Dates</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Quick Actions Grid */}
-            <div className="grid grid-cols-2 gap-4 mt-6">
-              <Button 
-                variant="outline" 
-                className="h-16 flex-col space-y-2 border-red-200 hover:bg-red-50"
-                onClick={() => onNavigate('matches')}
-              >
-                <Heart className="w-6 h-6 text-red-500" />
-                <span className="text-sm">My Matches</span>
-              </Button>
-              <Button 
-                variant="outline" 
-                className="h-16 flex-col space-y-2 border-blue-200 hover:bg-blue-50"
-                onClick={() => onNavigate('chat')}
-              >
-                <MessageCircle className="w-6 h-6 text-blue-500" />
-                <span className="text-sm">Messages</span>
-              </Button>
-            </div>
+            <h2 className="text-2xl font-bold mb-6 text-center">
+              Choose Your Plan
+            </h2>
+            {renderPlans()}
           </div>
         );
+
+      case "swipe":
+        return (
+          <div className="flex-1 flex flex-col items-center justify-center p-6">
+            {loading ? (
+              <h3 className="text-lg font-semibold text-gray-500">
+                Loading profiles...
+              </h3>
+            ) : profiles.length > 0 ? (
+              <div className="relative w-full max-w-sm h-[500px]">
+                {profiles.map((profile, index) => (
+                  <Card
+                    key={profile.id}
+                    className="absolute w-full h-full rounded-2xl shadow-xl overflow-hidden transition-all duration-300"
+                    style={{ zIndex: profiles.length - index }}
+                  >
+                    <img
+                      src={
+                        profile.profile_images?.[0] ||
+                        "https://via.placeholder.com/400"
+                      }
+                      alt={`${profile.first_name} ${profile.last_name}`}
+                      className="w-full h-3/4 object-cover"
+                    />
+                    <div className="p-4">
+                      <h3 className="text-xl font-bold">
+                        {profile.first_name} {profile.last_name},{" "}
+                        {profile.date_of_birth
+                          ? new Date().getFullYear() -
+                            new Date(profile.date_of_birth).getFullYear()
+                          : "?"}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        {profile.university}
+                      </p>
+                    </div>
+
+                    {/* Swipe Buttons */}
+                    <div className="absolute bottom-6 left-0 right-0 flex justify-center space-x-6">
+                      <Button
+                        size="lg"
+                        className="bg-red-500 hover:bg-red-600 text-white rounded-full w-16 h-16"
+                        onClick={() => handleSwipe(profile.id, "left")}
+                      >
+                        ❌
+                      </Button>
+                      <Button
+                        size="lg"
+                        className="bg-green-500 hover:bg-green-600 text-white rounded-full w-16 h-16"
+                        onClick={() => handleSwipe(profile.id, "right")}
+                      >
+                        ❤️
+                      </Button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <h3 className="text-lg font-semibold text-gray-500">
+                No more profiles to swipe 👏
+              </h3>
+            )}
+          </div>
+        );
+
+      case "pairing":
+        return (
+          <div className="flex-1 overflow-y-auto p-4">
+            <h2 className="text-2xl font-bold mb-4 text-center">✨ Smart Pairing</h2>
+
+            {pairingLoading ? (
+              <p className="text-center text-gray-500">
+                Finding your perfect matches...
+              </p>
+            ) : pairedProfiles.length === 0 ? (
+              <p className="text-center text-gray-500">
+                No pairings yet. Try again later 💡
+              </p>
+            ) : (
+              <div className="grid gap-4">
+                {pairedProfiles.map((p) => (
+                  <Card
+                    key={p.id}
+                    className="p-4 flex items-center space-x-4 shadow-md"
+                  >
+                    <img
+                      src={p.profile_images?.[0] || "https://via.placeholder.com/150"}
+                      alt={`${p.first_name} ${p.last_name}`}
+                      className="w-16 h-16 rounded-full object-cover"
+                    />
+                    <div>
+                      <h3 className="font-semibold text-lg">
+                        {p.first_name} {p.last_name}
+                      </h3>
+                      <p className="text-sm text-gray-500">{p.university}</p>
+                      <p className="text-sm">QCS Score: {p.total_qcs || "N/A"}</p>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+
+      case "blinddate":
+        return (
+          <div className="flex-1 flex items-center justify-center p-6">
+            <h3 className="text-xl font-bold">Blind Date Page Placeholder</h3>
+          </div>
+        );
+
+      case "profile":
+        return (
+          <div className="flex-1 flex items-center justify-center p-6">
+            <h3 className="text-xl font-bold">Profile Page Placeholder</h3>
+          </div>
+        );
+
       default:
-        return null;
+        return (
+          <div className="p-6 text-center text-red-500">
+            ❌ Nothing to render — activeTab: {activeTab}
+          </div>
+        );
     }
   };
 
@@ -372,10 +248,14 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b">
         <div className="flex items-center justify-between px-4 py-3">
           <h1 className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            CampusConnect
+            DatingSigma
           </h1>
           <div className="flex space-x-2">
-            <Button variant="ghost" size="icon" onClick={() => onNavigate('chat')}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onNavigate("chat")}
+            >
               <MessageCircle className="w-6 h-6" />
             </Button>
             <Button variant="ghost" size="icon">
@@ -392,18 +272,33 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
       <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t">
         <div className="flex items-center justify-around py-2">
           {[
-            { id: 'home', icon: Home, label: 'Home', color: 'text-blue-500' },
-            { id: 'swipe', icon: Heart, label: 'Swipe', color: 'text-red-500' },
-            { id: 'pairing', icon: Zap, label: 'Pairing', color: 'text-purple-500' },
-            { id: 'blinddate', icon: Coffee, label: 'Blind Date', color: 'text-orange-500' },
-            { id: 'profile', icon: User, label: 'Profile', color: 'text-green-500' }
+            { id: "home", icon: Home, label: "Home", color: "text-blue-500" },
+            { id: "swipe", icon: Heart, label: "Swipe", color: "text-red-500" },
+            {
+              id: "pairing",
+              icon: Zap,
+              label: "Pairing",
+              color: "text-purple-500",
+            },
+            {
+              id: "blinddate",
+              icon: Coffee,
+              label: "Blind Date",
+              color: "text-orange-500",
+            },
+            {
+              id: "profile",
+              icon: User,
+              label: "Profile",
+              color: "text-green-500",
+            },
           ].map((tab) => (
             <Button
               key={tab.id}
               variant="ghost"
               size="sm"
               className={`flex-col space-y-1 h-auto py-2 relative ${
-                activeTab === tab.id ? `${tab.color}` : 'text-muted-foreground'
+                activeTab === tab.id ? `${tab.color}` : "text-muted-foreground"
               }`}
               onClick={() => setActiveTab(tab.id as any)}
             >
