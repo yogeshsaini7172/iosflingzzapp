@@ -237,47 +237,47 @@ const DatingApp = () => {
               </Badge>
             </div>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 hover:from-primary/10 hover:to-primary/15 transition-all">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-slate-100/50 to-slate-200/50 border border-slate-300/20 hover:from-slate-200/50 hover:to-slate-300/50 transition-all">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <Star className="w-4 h-4 text-primary" />
-                    <p className="font-semibold text-primary">Premium Monthly</p>
+                    <Star className="w-4 h-4 text-slate-600" />
+                    <p className="font-semibold text-slate-600">⭐ Silver Plan</p>
                   </div>
-                  <p className="text-sm text-muted-foreground">Unlimited swipes & premium features</p>
+                  <p className="text-sm text-muted-foreground">Unlock & see all 10 profiles • Unlimited swipes • 2 Blind Date requests</p>
                 </div>
                 <div className="text-right">
-                  <div className="text-xl font-bold text-primary">$19.99</div>
+                  <div className="text-xl font-bold text-slate-600">₹49</div>
                   <div className="text-xs text-muted-foreground">/month</div>
                 </div>
               </div>
               
-              <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-secondary/5 to-secondary/10 border border-secondary/20 hover:from-secondary/10 hover:to-secondary/15 transition-all">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-yellow-100/50 to-yellow-200/50 border border-yellow-300/20 hover:from-yellow-200/50 hover:to-yellow-300/50 transition-all">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <Sparkles className="w-4 h-4 text-secondary" />
-                    <p className="font-semibold text-secondary">Premium Yearly</p>
-                    <Badge className="bg-success/10 text-success border-success/20 text-xs">Save 50%</Badge>
+                    <Sparkles className="w-4 h-4 text-yellow-600" />
+                    <p className="font-semibold text-yellow-600">💛 Gold Plan</p>
+                    <Badge className="bg-success/10 text-success border-success/20 text-xs">Most Popular</Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground">Best value • All premium features</p>
+                  <p className="text-sm text-muted-foreground">Everything in Silver + 2 extra pairings/day + 4 Blind Date requests</p>
                 </div>
                 <div className="text-right">
-                  <div className="text-xl font-bold text-secondary">$119.99</div>
-                  <div className="text-xs text-muted-foreground">/year</div>
+                  <div className="text-xl font-bold text-yellow-600">₹89</div>
+                  <div className="text-xs text-muted-foreground">/month</div>
                 </div>
               </div>
               
-              <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-accent/5 to-accent/10 border border-accent/20 hover:from-accent/10 hover:to-accent/15 transition-all">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-purple-100/50 to-purple-200/50 border border-purple-300/20 hover:from-purple-200/50 hover:to-purple-300/50 transition-all">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <Zap className="w-4 h-4 text-accent" />
-                    <p className="font-semibold text-accent">Premium Lifetime</p>
-                    <Badge className="bg-amber-100 text-amber-700 border-0 text-xs">Popular</Badge>
+                    <Zap className="w-4 h-4 text-purple-600" />
+                    <p className="font-semibold text-purple-600">🔥 Platinum Plan</p>
+                    <Badge className="bg-amber-100 text-amber-700 border-0 text-xs">Premium</Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground">One-time payment • Forever access</p>
+                  <p className="text-sm text-muted-foreground">Everything in Gold + 10 extra pairings/day + Unlimited Blind Dates</p>
                 </div>
                 <div className="text-right">
-                  <div className="text-xl font-bold text-accent">$299.99</div>
-                  <div className="text-xs text-muted-foreground">once</div>
+                  <div className="text-xl font-bold text-purple-600">₹129</div>
+                  <div className="text-xs text-muted-foreground">/month</div>
                 </div>
               </div>
             </div>
