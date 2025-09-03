@@ -7,11 +7,17 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
+  // Email OTP (kept for backward-compat)
   signUpWithEmail: (email: string) => Promise<{ error?: any }>;
   verifyOTP: (email: string, otp: string) => Promise<{ error?: any }>;
+  resendOTP: (email: string) => Promise<{ error?: any }>;
+  // Phone OTP
+  signInWithPhone: (phone: string) => Promise<{ error?: any }>;
+  verifyPhoneOTP: (phone: string, otp: string) => Promise<{ error?: any }>;
+  resendPhoneOTP: (phone: string) => Promise<{ error?: any }>;
+  // OAuth
   signInWithGoogle: () => Promise<{ error?: any }>;
   signOut: () => Promise<{ error?: any }>;
-  resendOTP: (email: string) => Promise<{ error?: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -163,6 +169,68 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  // Phone-based OTP
+  const signInWithPhone = async (phone: string) => {
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        phone,
+        options: { shouldCreateUser: true },
+      });
+      if (error) {
+        console.error('Phone sign-in error:', error);
+        toast.error(error.message);
+        return { error };
+      }
+      toast.success('OTP sent via SMS!');
+      return {};
+    } catch (error: any) {
+      console.error('Phone sign-in error:', error);
+      toast.error('An unexpected error occurred');
+      return { error };
+    }
+  };
+
+  const verifyPhoneOTP = async (phone: string, otp: string) => {
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        phone,
+        token: otp,
+        type: 'sms',
+      });
+      if (error) {
+        console.error('SMS verification error:', error);
+        toast.error(error.message);
+        return { error };
+      }
+      if (data.user) {
+        toast.success('Phone verified successfully!');
+        return {};
+      }
+      return { error: { message: 'Verification failed' } };
+    } catch (error: any) {
+      console.error('SMS verification error:', error);
+      toast.error('An unexpected error occurred');
+      return { error };
+    }
+  };
+
+  const resendPhoneOTP = async (phone: string) => {
+    try {
+      const { error } = await supabase.auth.signInWithOtp({ phone, options: { shouldCreateUser: true } });
+      if (error) {
+        console.error('Resend SMS OTP error:', error);
+        toast.error(error.message);
+        return { error };
+      }
+      toast.success('OTP resent via SMS!');
+      return {};
+    } catch (error: any) {
+      console.error('Resend SMS OTP error:', error);
+      toast.error('An unexpected error occurred');
+      return { error };
+    }
+  };
+
   const signOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -185,11 +253,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     user,
     session,
     isLoading,
+    // email OTP (legacy)
     signUpWithEmail,
     verifyOTP,
+    resendOTP,
+    // phone OTP (primary)
+    signInWithPhone,
+    verifyPhoneOTP,
+    resendPhoneOTP,
+    // oauth
     signInWithGoogle,
     signOut,
-    resendOTP,
   };
 
   return (

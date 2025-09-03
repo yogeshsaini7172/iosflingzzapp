@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
-import { ArrowLeft, Mail, Phone } from 'lucide-react';
+import { ArrowLeft, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 
 const NewAuth = () => {
@@ -18,7 +18,7 @@ const NewAuth = () => {
   
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, isLoading: authLoading, signUpWithEmail, verifyOTP, signInWithGoogle, resendOTP } = useAuth();
+  const { user, isLoading: authLoading, signInWithPhone, verifyPhoneOTP, signInWithGoogle, resendPhoneOTP } = useAuth();
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -34,23 +34,24 @@ const NewAuth = () => {
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
-      toast.error('Please enter your email address');
+      toast.error('Please enter your phone number');
       return;
     }
 
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      toast.error('Please enter a valid email address');
+    // Basic E.164 phone validation (allows + and 8-15 digits)
+    const phoneRegex = /^\+?[1-9]\d{7,14}$/;
+    const normalized = email.replace(/\s|-/g, '');
+    if (!phoneRegex.test(normalized)) {
+      toast.error('Enter a valid phone in international format (e.g., +919876543210)');
       return;
     }
 
     setIsLoading(true);
-    const { error } = await signUpWithEmail(email);
+    const { error } = await signInWithPhone(normalized);
     
     if (!error) {
       setStep('otp');
-      toast.success('Check your email for the verification code!');
+      toast.success('We sent a 6-digit code via SMS');
     }
     setIsLoading(false);
   };
@@ -63,7 +64,7 @@ const NewAuth = () => {
     }
 
     setIsLoading(true);
-    const { error } = await verifyOTP(email, otp);
+    const { error } = await verifyPhoneOTP(email, otp);
     
     if (!error) {
       // Success is handled by AuthContext
@@ -80,7 +81,7 @@ const NewAuth = () => {
 
   const handleResendOTP = async () => {
     setIsLoading(true);
-    await resendOTP(email);
+    await resendPhoneOTP(email);
     setIsLoading(false);
   };
 
@@ -103,7 +104,7 @@ const NewAuth = () => {
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-between">
             <CardTitle className="text-2xl font-bold">
-              {step === 'email' ? 'Welcome' : 'Verify Email'}
+              {step === 'email' ? 'Welcome' : 'Verify Phone'}
             </CardTitle>
             {step === 'otp' && (
               <Button 
@@ -127,16 +128,16 @@ const NewAuth = () => {
         <CardContent className="space-y-4">
           {step === 'email' ? (
             <>
-              {/* Email Form */}
+              {/* Phone Form */}
               <form onSubmit={handleEmailSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email address</Label>
+                  <Label htmlFor="phone">Phone number</Label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
-                      id="email"
-                      type="email"
-                      placeholder="Enter your email"
+                      id="phone"
+                      type="tel"
+                      placeholder="e.g. +919876543210"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="pl-10"
@@ -228,7 +229,7 @@ const NewAuth = () => {
                     </InputOTP>
                   </div>
                   <p className="text-sm text-muted-foreground text-center">
-                    Enter the 6-digit code from your email
+                    Enter the 6-digit code from your SMS
                   </p>
                 </div>
                 
