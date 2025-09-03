@@ -353,6 +353,7 @@ export type Database = {
         Row: {
           bio: string | null
           blinddate_requests_left: number | null
+          body_type: string | null
           college_id_url: string | null
           college_tier: string | null
           compatibility_preferences: Json | null
@@ -361,6 +362,8 @@ export type Database = {
           daily_outgoing_matches: number | null
           date_of_birth: string
           email: string
+          face_type: string | null
+          field_of_study: string | null
           first_name: string
           gender: Database["public"]["Enums"]["gender"]
           govt_id_url: string | null
@@ -377,6 +380,7 @@ export type Database = {
           location: string | null
           love_language: string | null
           major: string | null
+          mindset: string | null
           pairing_requests_left: number | null
           personality_type: string | null
           profile_completion_percentage: number | null
@@ -388,6 +392,7 @@ export type Database = {
           reports_count: number | null
           requirements: Json | null
           show_profile: boolean | null
+          skin_tone: string | null
           student_id_verified: boolean | null
           subscription_expires_at: string | null
           subscription_tier: string | null
@@ -396,6 +401,7 @@ export type Database = {
           university: string
           updated_at: string
           user_id: string
+          values: string | null
           verification_status: string | null
           verified_at: string | null
           year_of_study: number | null
@@ -403,6 +409,7 @@ export type Database = {
         Insert: {
           bio?: string | null
           blinddate_requests_left?: number | null
+          body_type?: string | null
           college_id_url?: string | null
           college_tier?: string | null
           compatibility_preferences?: Json | null
@@ -411,6 +418,8 @@ export type Database = {
           daily_outgoing_matches?: number | null
           date_of_birth: string
           email: string
+          face_type?: string | null
+          field_of_study?: string | null
           first_name: string
           gender: Database["public"]["Enums"]["gender"]
           govt_id_url?: string | null
@@ -427,6 +436,7 @@ export type Database = {
           location?: string | null
           love_language?: string | null
           major?: string | null
+          mindset?: string | null
           pairing_requests_left?: number | null
           personality_type?: string | null
           profile_completion_percentage?: number | null
@@ -438,6 +448,7 @@ export type Database = {
           reports_count?: number | null
           requirements?: Json | null
           show_profile?: boolean | null
+          skin_tone?: string | null
           student_id_verified?: boolean | null
           subscription_expires_at?: string | null
           subscription_tier?: string | null
@@ -446,6 +457,7 @@ export type Database = {
           university: string
           updated_at?: string
           user_id: string
+          values?: string | null
           verification_status?: string | null
           verified_at?: string | null
           year_of_study?: number | null
@@ -453,6 +465,7 @@ export type Database = {
         Update: {
           bio?: string | null
           blinddate_requests_left?: number | null
+          body_type?: string | null
           college_id_url?: string | null
           college_tier?: string | null
           compatibility_preferences?: Json | null
@@ -461,6 +474,8 @@ export type Database = {
           daily_outgoing_matches?: number | null
           date_of_birth?: string
           email?: string
+          face_type?: string | null
+          field_of_study?: string | null
           first_name?: string
           gender?: Database["public"]["Enums"]["gender"]
           govt_id_url?: string | null
@@ -477,6 +492,7 @@ export type Database = {
           location?: string | null
           love_language?: string | null
           major?: string | null
+          mindset?: string | null
           pairing_requests_left?: number | null
           personality_type?: string | null
           profile_completion_percentage?: number | null
@@ -488,6 +504,7 @@ export type Database = {
           reports_count?: number | null
           requirements?: Json | null
           show_profile?: boolean | null
+          skin_tone?: string | null
           student_id_verified?: boolean | null
           subscription_expires_at?: string | null
           subscription_tier?: string | null
@@ -496,6 +513,7 @@ export type Database = {
           university?: string
           updated_at?: string
           user_id?: string
+          values?: string | null
           verification_status?: string | null
           verified_at?: string | null
           year_of_study?: number | null
