@@ -227,9 +227,14 @@ const DatingApp = () => {
       <div className="container mx-auto px-4 py-6 max-w-md">
         {/* Connection Options */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-center mb-6 bg-gradient-primary bg-clip-text text-transparent">
-            Choose Your Connection Style
-          </h2>
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-primary rounded-full mb-3 shadow-lg">
+              <Heart className="w-6 h-6 text-white animate-pulse" />
+            </div>
+            <p className="text-muted-foreground text-lg">
+              Discover amazing people who share your vibe ✨
+            </p>
+          </div>
           <div className="grid grid-cols-1 gap-4">
             <Button 
               onClick={() => setCurrentView('swipe')}
