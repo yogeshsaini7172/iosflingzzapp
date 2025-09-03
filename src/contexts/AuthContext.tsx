@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         email,
         options: {
           shouldCreateUser: true,
-          emailRedirectTo: `${window.location.origin}/auth?verified=true`,
+          // Remove emailRedirectTo to force OTP codes instead of magic links
         },
       });
 
@@ -80,7 +80,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         return { error };
       }
 
-      toast.success('Check your email for the OTP code!');
+      toast.success('Check your email for the 6-digit OTP code!');
       return {};
     } catch (error: any) {
       console.error('Sign up error:', error);
@@ -141,9 +141,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const resendOTP = async (email: string) => {
     try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
+      const { error } = await supabase.auth.signInWithOtp({
         email,
+        options: {
+          shouldCreateUser: true,
+        },
       });
 
       if (error) {
