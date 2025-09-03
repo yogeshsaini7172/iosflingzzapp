@@ -218,6 +218,7 @@ const DatingApp = () => {
         </div>
 
         {renderPremiumStatus()}
+
         {renderQuickActions()}
 
         {/* Subscription Pricing */}
