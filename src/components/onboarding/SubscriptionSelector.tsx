@@ -23,34 +23,34 @@ const SubscriptionSelector = ({ onBack, onComplete, onSkip }: SubscriptionSelect
 
   return (
     <div className="min-h-screen bg-gradient-subtle flex items-center justify-center p-4">
-      <div className="w-full max-w-6xl">
-        <Card className="border-0 shadow-elegant bg-gradient-card backdrop-blur-sm">
-          <CardHeader className="text-center space-y-4 pb-8">
+      <div className="w-full max-w-7xl">
+        <Card className="border-0 shadow-premium bg-gradient-card backdrop-blur-sm">
+          <CardHeader className="text-center space-y-6 pb-10">
             <div className="flex items-center justify-between">
               <Button 
                 variant="ghost" 
                 onClick={onBack}
-                className="rounded-full w-10 h-10 p-0 hover:bg-primary/10"
+                className="rounded-full w-12 h-12 p-0 hover:bg-primary/10 transition-luxury hover-luxury"
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
-              <div className="text-sm text-muted-foreground font-prompt">
-                Step 4 of 4 • Almost done! ✨
+              <div className="text-sm text-muted-foreground font-modern font-medium">
+                Choose Your Experience ✨
               </div>
-              <div className="w-10" /> {/* Spacer */}
+              <div className="w-12" /> {/* Spacer */}
             </div>
             
-            <div className="space-y-2">
-              <CardTitle className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+            <div className="space-y-4">
+              <CardTitle className="text-4xl font-elegant font-bold text-gradient-royal animate-fade-in">
                 Choose Your Experience
               </CardTitle>
-              <CardDescription className="text-lg font-prompt">
-                Start with our free plan and upgrade anytime to unlock premium features
+              <CardDescription className="text-lg font-modern text-muted-foreground">
+                Unlock premium features and enhance your campus connections
               </CardDescription>
             </div>
           </CardHeader>
 
-          <CardContent className="px-6 pb-8">
+          <CardContent className="px-8 pb-10">
             <SubscriptionPlans 
               onPlanSelect={handlePlanSelect}
               showCurrentPlan={false}
@@ -58,12 +58,12 @@ const SubscriptionSelector = ({ onBack, onComplete, onSkip }: SubscriptionSelect
             />
 
             {selectedPlan && (
-              <div className="mt-6 text-center">
-                <div className="animate-fade-in">
-                  <p className="text-success font-medium">
+              <div className="mt-8 text-center">
+                <div className="animate-bounce-in">
+                  <p className="text-success font-semibold font-modern text-lg">
                     {selectedPlan === 'free' 
-                      ? "🎉 Free plan activated! Redirecting to your dashboard..."
-                      : `✨ ${selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)} plan selected! Setting up your experience...`
+                      ? "🎉 Free plan activated! Setting up your experience..."
+                      : `✨ ${selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)} plan selected! Preparing your premium experience...`
                     }
                   </p>
                 </div>
