@@ -136,64 +136,48 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
     try {
       setIsLoading(true);
       
-      // Get current user
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) throw new Error("No authenticated user");
+      // Create a mock user ID for demo purposes
+      const mockUserId = `demo_user_${Date.now()}`;
 
-      // Upload images to Supabase Storage
-      const imageUrls: string[] = [];
-      for (const image of profileData.profileImages) {
-        const fileExt = image.name.split('.').pop();
-        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-        const { error: uploadError, data } = await supabase.storage
-          .from('profile-images')
-          .upload(fileName, image);
-        
-        if (uploadError) throw uploadError;
-        
-        const { data: { publicUrl } } = supabase.storage
-          .from('profile-images')
-          .getPublicUrl(fileName);
-        
-        imageUrls.push(publicUrl);
-      }
+      // For demo: Create mock image URLs (in real app these would be uploaded to storage)
+      const imageUrls: string[] = profileData.profileImages.map((_, index) => 
+        `https://via.placeholder.com/400x600?text=Profile+Photo+${index + 1}`
+      );
 
-      // Update existing profile (created by trigger) or create new one
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          first_name: profileData.firstName,
-          last_name: profileData.lastName,
-          date_of_birth: profileData.dateOfBirth,
-          gender: profileData.gender as "male" | "female" | "non_binary" | "prefer_not_to_say",
-          university: profileData.college,
-          bio: profileData.bio,
-          interests: profileData.interests,
-          profile_images: imageUrls,
-          personality_type: profileData.personalityType,
-          humor_type: profileData.humorStyle,
-          love_language: profileData.loveLanguage,
-          relationship_goals: [profileData.relationshipGoal],
-          verification_status: 'pending',
-          is_profile_public: profileData.isProfilePublic,
-          college_tier: 'tier3'
-        })
-        .eq('user_id', user.id);
+      // For demo: Store profile data in localStorage (in real app this would go to database)
+      const profileDataToStore = {
+        user_id: mockUserId,
+        first_name: profileData.firstName,
+        last_name: profileData.lastName,
+        date_of_birth: profileData.dateOfBirth,
+        gender: profileData.gender,
+        university: profileData.college,
+        bio: profileData.bio,
+        interests: profileData.interests,
+        profile_images: imageUrls,
+        personality_type: profileData.personalityType,
+        humor_type: profileData.humorStyle,
+        love_language: profileData.loveLanguage,
+        relationship_goals: [profileData.relationshipGoal],
+        verification_status: 'pending',
+        is_profile_public: profileData.isProfilePublic,
+        college_tier: 'tier3',
+        subscription_tier: 'free',
+        swipes_left: 10
+      };
 
-      if (profileError) throw profileError;
+      const preferencesDataToStore = {
+        user_id: mockUserId,
+        preferred_gender: profileData.preferredGender,
+        age_range_min: profileData.ageRangeMin,
+        age_range_max: profileData.ageRangeMax,
+        preferred_relationship_goal: profileData.preferredRelationshipGoal
+      };
 
-      // Create partner preferences
-      const { error: preferencesError } = await supabase
-        .from('partner_preferences')
-        .upsert({
-          user_id: user.id,
-          preferred_gender: profileData.preferredGender,
-          age_range_min: profileData.ageRangeMin,
-          age_range_max: profileData.ageRangeMax,
-          preferred_relationship_goal: profileData.preferredRelationshipGoal
-        });
-
-      if (preferencesError) throw preferencesError;
+      // Store in localStorage for demo
+      localStorage.setItem('demoProfile', JSON.stringify(profileDataToStore));
+      localStorage.setItem('demoPreferences', JSON.stringify(preferencesDataToStore));
+      localStorage.setItem('demoUserId', mockUserId);
 
       toast({
         title: "Profile created successfully! ✨",

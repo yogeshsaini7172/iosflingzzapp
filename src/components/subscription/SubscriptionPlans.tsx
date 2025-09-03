@@ -88,10 +88,12 @@ const SubscriptionPlans = ({
   ];
 
   const handlePlanSelect = async (planId: 'free' | 'premium' | 'elite') => {
-    if (!user) {
+    // Get demo user ID from localStorage
+    const demoUserId = localStorage.getItem('demoUserId');
+    if (!demoUserId) {
       toast({
-        title: "Authentication required",
-        description: "Please sign in to select a plan",
+        title: "Profile required",
+        description: "Please complete your profile first",
         variant: "destructive"
       });
       return;
@@ -102,17 +104,16 @@ const SubscriptionPlans = ({
       try {
         setIsLoading(true);
         
-        const { error } = await supabase
-          .from('profiles')
-          .update({ 
-            subscription_tier: 'free',
-            swipes_left: 10,
-            pairing_requests_left: 1,
-            blinddate_requests_left: 0
-          })
-          .eq('user_id', user.id);
-
-        if (error) throw error;
+        // For demo: Update localStorage
+        const existingProfile = JSON.parse(localStorage.getItem('demoProfile') || '{}');
+        const updatedProfile = {
+          ...existingProfile,
+          subscription_tier: 'free',
+          swipes_left: 10,
+          pairing_requests_left: 1,
+          blinddate_requests_left: 0
+        };
+        localStorage.setItem('demoProfile', JSON.stringify(updatedProfile));
 
         toast({
           title: "Free plan activated! 🎉",

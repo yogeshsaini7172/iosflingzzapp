@@ -21,9 +21,10 @@ import { useToast } from "@/hooks/use-toast";
 interface IDVerificationFlowProps {
   onBack: () => void;
   onComplete: () => void;
+  onSkip?: () => void;
 }
 
-const IDVerificationFlow = ({ onBack, onComplete }: IDVerificationFlowProps) => {
+const IDVerificationFlow = ({ onBack, onComplete, onSkip }: IDVerificationFlowProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [collegeIdFile, setCollegeIdFile] = useState<File | null>(null);
