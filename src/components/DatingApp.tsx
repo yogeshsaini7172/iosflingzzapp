@@ -136,7 +136,7 @@ const DatingApp = () => {
           <div className="flex items-center gap-3">
             <div className="relative">
               <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center shadow-lg">
-                <Heart className="w-6 h-6 text-white" />
+                <User className="w-6 h-6 text-white" />
               </div>
               {userProfile.subscriptionTier === 'premium' && <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 rounded-full flex items-center justify-center">
                   <Star className="w-2.5 h-2.5 text-white" />
@@ -164,8 +164,8 @@ const DatingApp = () => {
               </Badge> : <Badge variant="outline" className="text-xs border-amber-500/20 text-amber-600">
                 Verify Account
               </Badge>}
-            <Button variant="ghost" size="sm" onClick={() => setCurrentView('profile')} className="hover:bg-primary/5">
-              <User className="w-4 h-4" />
+            <Button variant="ghost" size="sm" onClick={() => setCurrentView('chat')} className="hover:bg-primary/5">
+              <MessageCircle className="w-4 h-4" />
             </Button>
             <Button variant="ghost" size="sm" className="hover:bg-primary/5">
               <Settings className="w-4 h-4" />
