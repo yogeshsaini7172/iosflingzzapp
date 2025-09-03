@@ -688,6 +688,33 @@ export type Database = {
         }
         Relationships: []
       }
+      test_credentials: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          password: string
+          profile_name: string
+          university: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          password: string
+          profile_name: string
+          university: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          password?: string
+          profile_name?: string
+          university?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

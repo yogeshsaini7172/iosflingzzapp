@@ -5,7 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
-import NewAuth from "./pages/NewAuth";
+import LoginPage from "./pages/LoginPage";
+import DatingAppContainer from "./components/DatingAppContainer";
+import WelcomePage from "./components/WelcomePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -26,8 +28,9 @@ function App() {
             <Toaster />
             <Sonner />
             <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<NewAuth />} />
+              <Route path="/" element={<WelcomePage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/app" element={<DatingAppContainer />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TooltipProvider>
