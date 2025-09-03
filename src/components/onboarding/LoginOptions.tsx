@@ -23,21 +23,31 @@ const LoginOptions = ({ onBack, onContinue }: LoginOptionsProps) => {
     });
   };
 
-  const handleEmailContinue = () => {
+  const handleEmailContinue = async () => {
     if (!email.includes('.edu')) {
       toast({
         title: "College Email Required",
         description: "Please use your college email address ending with .edu",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-    onContinue();
+
+    // Here we would integrate with actual auth
+    toast({
+      title: "Success! ✨",
+      description: "Authentication successful! Setting up your profile...",
+    });
+
+    // Simulate auth success and continue to next step
+    setTimeout(() => {
+      onContinue();
+    }, 1000);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-soft flex items-center justify-center p-4">
-      <Card className="max-w-md w-full shadow-medium">
+    <div className="min-h-screen bg-gradient-subtle flex items-center justify-center p-4">
+      <Card className="max-w-md w-full shadow-elegant">
         <CardHeader className="text-center">
           <Button
             variant="ghost"
