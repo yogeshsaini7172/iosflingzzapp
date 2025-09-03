@@ -7,11 +7,10 @@ import PremiumSwipeCards from '@/components/dating/PremiumSwipeCards';
 import MatchesList from '@/components/dating/MatchesList';
 import ProfileManagement from '@/components/profile/ProfileManagement';
 import ChatSystem from '@/components/chat/ChatSystem';
-import ComprehensiveProfileCreation from '@/components/profile/ComprehensiveProfileCreation';
-type View = 'home' | 'profile' | 'swipe' | 'blind-date' | 'matches' | 'chat' | 'create-profile';
+type View = 'home' | 'profile' | 'swipe' | 'blind-date' | 'matches' | 'chat';
 const DatingApp = () => {
   console.log('DatingApp component rendered');
-  const [currentView, setCurrentView] = useState<View>('create-profile');
+  const [currentView, setCurrentView] = useState<View>('home');
 
   // Enhanced mock user data with premium features
   const userProfile = {
@@ -321,8 +320,6 @@ const DatingApp = () => {
             </CardContent>
           </Card>
         </div>;
-    case 'create-profile':
-      return <ComprehensiveProfileCreation onComplete={() => setCurrentView('home')} />;
     default:
       return renderDashboard();
   }
