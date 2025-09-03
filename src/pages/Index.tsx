@@ -1,89 +1,66 @@
-import { useEffect, useState } from "react";
-import AuthScreen from "@/components/auth/AuthScreen";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import CampusConnectHome from "@/components/campus/CampusConnectHome";
-import SplashScreen from "@/components/onboarding/SplashScreen";
-import EnhancedProfileCreation from "@/components/dating/EnhancedProfileCreation";
-import ModernSwipeCards from "@/components/dating/ModernSwipeCards";
-import BlindDateSetup from "@/components/dating/BlindDateSetup";
-import MatchesList from "@/components/dating/MatchesList";
-import ModernChatScreen from "@/components/chat/ModernChatScreen";
-import ExploreScreen from "@/components/explore/ExploreScreen";
-import IDVerificationFlow from "@/components/verification/IDVerificationFlow";
-import DetailedProfileCreation from "@/components/profile/DetailedProfileCreation";
-import EnhancedSwipeCards from "@/components/matching/EnhancedSwipeCards";
-import SubscriptionPlans from "@/components/subscription/SubscriptionPlans";
-import AdminDashboard from "@/components/admin/AdminDashboard";
-import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
 
 const Index = () => {
-  const [currentView, setCurrentView] = useState<'splash' | 'auth' | 'home' | 'profile' | 'discover' | 'blind-date' | 'matches' | 'chat' | 'explore' | 'verify' | 'detailed-profile' | 'enhanced-swipe' | 'subscription' | 'admin'>('splash');
-  const [subscriptionTier, setSubscriptionTier] = useState<'free' | 'starter' | 'plus' | 'pro'>('free');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { user, isLoading, signOut } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    let isMounted = true;
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!isMounted) return;
-      if (session) {
-        setIsAuthenticated(true);
-        setCurrentView('detailed-profile');
-      }
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        setIsAuthenticated(true);
-        setCurrentView('detailed-profile');
-      } else {
-        setIsAuthenticated(false);
-        setCurrentView('auth');
-      }
-    });
-    return () => {
-      isMounted = false;
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  const handleNavigate = (view: string) => {
-    setCurrentView(view as any);
-  };
-
-  const renderCurrentView = () => {
-    switch (currentView) {
-      case 'splash':
-        return <SplashScreen onContinue={() => setCurrentView('auth')} />;
-      case 'auth':
-        return <AuthScreen onBack={() => setCurrentView('splash')} onComplete={() => { /* handled by auth state listener once session exists */ }} />;
-      case 'home':
-        return <CampusConnectHome onNavigate={handleNavigate} />;
-      case 'profile':
-        return <EnhancedProfileCreation onComplete={() => setCurrentView('home')} onBack={() => setCurrentView('home')} />;
-      case 'discover':
-        return <ModernSwipeCards onNavigate={handleNavigate} />;
-      case 'blind-date':
-        return <BlindDateSetup onNavigate={handleNavigate} />;
-      case 'matches':
-        return <MatchesList onNavigate={handleNavigate} />;
-      case 'chat':
-        return <ModernChatScreen onNavigate={handleNavigate} />;
-      case 'explore':
-        return <ExploreScreen onNavigate={handleNavigate} />;
-      case 'verify':
-        return <IDVerificationFlow onComplete={() => setCurrentView('home')} onBack={() => setCurrentView('detailed-profile')} />;
-      case 'detailed-profile':
-        return <DetailedProfileCreation onComplete={() => setCurrentView('verify')} onBack={() => setCurrentView('auth')} />;
-      case 'enhanced-swipe':
-        return <EnhancedSwipeCards onNavigate={handleNavigate} subscriptionTier={subscriptionTier} />;
-      case 'subscription':
-        return <SubscriptionPlans onSubscribe={(tier) => { setSubscriptionTier(tier as any); setCurrentView('home'); }} currentTier={subscriptionTier} />;
-      case 'admin':
-        return <AdminDashboard />;
-      default:
-        return <CampusConnectHome onNavigate={handleNavigate} />;
+    if (!isLoading && !user) {
+      navigate('/auth');
     }
+  }, [user, isLoading, navigate]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
   };
 
-  return renderCurrentView();
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null; // Will redirect to auth via useEffect
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Top bar with sign out */}
+      <div className="sticky top-0 z-50 bg-background/80 backdrop-blur border-b">
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+          <h1 className="text-xl font-bold">Dating App</h1>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-muted-foreground">
+              Welcome, {user.email}
+            </span>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleSignOut}
+              className="flex items-center gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign out
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main content */}
+      <div className="container mx-auto px-4 py-6">
+        <CampusConnectHome onNavigate={(view) => console.log('Navigate to:', view)} />
+      </div>
+    </div>
+  );
 };
 
 export default Index;
