@@ -27,15 +27,15 @@ interface InstagramUIProps {
 }
 
 const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
-  const [activeTab, setActiveTab] = useState<'home' | 'search' | 'create' | 'reels' | 'profile'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'swipe' | 'pairing' | 'blinddate' | 'profile'>('home');
   const { profile } = useProfileData();
 
   const stories = [
     { id: 1, name: 'Your story', image: profile?.profile_images?.[0] || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150', hasStory: false, isOwn: true },
-    { id: 2, name: 'alice_j', image: 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=150', hasStory: true },
-    { id: 3, name: 'bob_m', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150', hasStory: true },
-    { id: 4, name: 'emma_s', image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150', hasStory: true },
-    { id: 5, name: 'david_k', image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150', hasStory: true }
+    { id: 2, name: 'alice_j', image: 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=150', hasStory: true, badge: 'New Match!' },
+    { id: 3, name: 'bob_m', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150', hasStory: true, badge: 'Online' },
+    { id: 4, name: 'emma_s', image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150', hasStory: true, badge: '💕' },
+    { id: 5, name: 'david_k', image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150', hasStory: true, badge: 'Likes You' }
   ];
 
   const posts = [
@@ -46,8 +46,10 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
       location: 'Stanford University',
       image: 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=500',
       likes: 247,
-      caption: 'Beautiful sunset from my dorm room 🌅 #StanfordLife #sunset #gratitude',
-      timeAgo: '2h'
+      caption: 'Beautiful sunset from my dorm room 🌅 Looking for someone to watch sunsets with! #StanfordLife #sunset #LookingForLove',
+      timeAgo: '2h',
+      compatibility: 94,
+      isMatch: false
     },
     {
       id: 2,
@@ -56,8 +58,10 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
       location: 'MIT Campus',
       image: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=500',
       likes: 189,
-      caption: 'Late night coding session ☕️💻 #MIT #coding #hustle',
-      timeAgo: '4h'
+      caption: 'Late night coding session ☕️💻 Would love a study buddy! #MIT #coding #SingleLife',
+      timeAgo: '4h',
+      compatibility: 87,
+      isMatch: true
     }
   ];
 
@@ -72,6 +76,11 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
             {story.isOwn && !story.hasStory && (
               <div className="absolute -bottom-0 -right-0 w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center border-2 border-background">
                 <PlusSquare className="w-3 h-3" />
+              </div>
+            )}
+            {!story.isOwn && story.badge && (
+              <div className="absolute -top-1 -right-1">
+                <Badge className="text-xs px-1 py-0 bg-red-500 text-white">{story.badge}</Badge>
               </div>
             )}
           </div>
@@ -105,39 +114,44 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
       <div className="relative">
         <img src={post.image} alt="Post" className="w-full aspect-square object-cover" />
         
-        {/* Dating App Overlay - This is the key differentiator */}
-        <div className="absolute top-3 right-3 flex space-x-2">
+        {/* Dating App Overlays */}
+        <div className="absolute top-3 left-3 right-3 flex justify-between">
           <Badge className="bg-gradient-primary text-white border-0 shadow-lg">
             <Sparkles className="w-3 h-3 mr-1" />
-            Dating Mode
+            {post.compatibility}% Match
           </Badge>
+          {post.isMatch && (
+            <Badge className="bg-green-500 text-white border-0 shadow-lg">
+              💕 Mutual Match
+            </Badge>
+          )}
         </div>
         
-        {/* Quick Action Buttons - Dating specific */}
+        {/* Dating Action Buttons */}
         <div className="absolute bottom-3 left-3 right-3 flex justify-between">
           <Button 
             size="sm" 
-            className="bg-red-500 hover:bg-red-600 text-white rounded-full"
+            className="bg-red-500 hover:bg-red-600 text-white rounded-full flex-1 mr-2"
             onClick={() => onNavigate('swipe')}
           >
             <Heart className="w-4 h-4 mr-1" />
-            Swipe
+            Like
           </Button>
           <Button 
             size="sm" 
-            className="bg-blue-500 hover:bg-blue-600 text-white rounded-full"
+            className="bg-blue-500 hover:bg-blue-600 text-white rounded-full flex-1 mr-2"
+            onClick={() => onNavigate('chat')}
+          >
+            <MessageCircle className="w-4 h-4 mr-1" />
+            Chat
+          </Button>
+          <Button 
+            size="sm" 
+            className="bg-purple-500 hover:bg-purple-600 text-white rounded-full flex-1"
             onClick={() => onNavigate('pairing')}
           >
             <Zap className="w-4 h-4 mr-1" />
-            Smart Pair
-          </Button>
-          <Button 
-            size="sm" 
-            className="bg-purple-500 hover:bg-purple-600 text-white rounded-full"
-            onClick={() => onNavigate('blind-date')}
-          >
-            <Coffee className="w-4 h-4 mr-1" />
-            Blind Date
+            Pair
           </Button>
         </div>
       </div>
@@ -170,7 +184,12 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
         <p className="text-sm">
           <span className="font-semibold">{post.username}</span> {post.caption}
         </p>
-        <p className="text-xs text-muted-foreground mt-1">{post.timeAgo}</p>
+        <div className="flex items-center justify-between mt-2">
+          <p className="text-xs text-muted-foreground">{post.timeAgo}</p>
+          <Badge variant="outline" className="text-xs">
+            {post.compatibility}% Compatible
+          </Badge>
+        </div>
       </div>
     </Card>
   );
@@ -186,39 +205,72 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
             </div>
           </div>
         );
-      case 'search':
+      case 'swipe':
         return (
-          <div className="flex-1 flex items-center justify-center">
+          <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20">
             <div className="text-center">
-              <Search className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-semibold mb-2">Discover People</h3>
-              <p className="text-muted-foreground mb-4">Find your perfect match</p>
-              <Button onClick={() => onNavigate('swipe')} className="bg-gradient-primary">
-                Start Swiping
-              </Button>
+              <div className="w-24 h-24 bg-gradient-to-r from-red-400 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <Heart className="w-12 h-12 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold mb-2 text-gradient-primary">Discover Your Match</h3>
+              <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
+                Swipe through potential matches based on compatibility scores
+              </p>
+              <div className="flex flex-col space-y-3">
+                <Button onClick={() => onNavigate('swipe')} className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white px-8 py-3">
+                  <Heart className="w-5 h-5 mr-2" />
+                  Start Swiping
+                </Button>
+                <p className="text-sm text-muted-foreground">
+                  {profile?.swipes_left || 20} swipes remaining today
+                </p>
+              </div>
             </div>
           </div>
         );
-      case 'create':
+      case 'pairing':
         return (
-          <div className="flex-1 flex items-center justify-center">
+          <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
             <div className="text-center">
-              <PlusSquare className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-semibold mb-2">Create Post</h3>
-              <p className="text-muted-foreground mb-4">Share your best moments</p>
-              <Button className="bg-gradient-primary">
-                Choose Photo
-              </Button>
+              <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <Zap className="w-12 h-12 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold mb-2 text-gradient-primary">Smart Pairing</h3>
+              <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
+                AI-powered matching based on compatibility algorithms and QCS scores
+              </p>
+              <div className="flex flex-col space-y-3">
+                <Button onClick={() => onNavigate('pairing')} className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3">
+                  <Zap className="w-5 h-5 mr-2" />
+                  Find My Match
+                </Button>
+                <p className="text-sm text-muted-foreground">
+                  {profile?.pairing_requests_left || 1} pairing requests left today
+                </p>
+              </div>
             </div>
           </div>
         );
-      case 'reels':
+      case 'blinddate':
         return (
-          <div className="flex-1 flex items-center justify-center">
+          <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20">
             <div className="text-center">
-              <Play className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-semibold mb-2">Dating Reels</h3>
-              <p className="text-muted-foreground mb-4">Coming soon...</p>
+              <div className="w-24 h-24 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <Coffee className="w-12 h-12 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold mb-2 text-gradient-primary">Blind Date</h3>
+              <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
+                Take a chance! Meet someone new without seeing their profile first
+              </p>
+              <div className="flex flex-col space-y-3">
+                <Button onClick={() => onNavigate('blind-date')} className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white px-8 py-3">
+                  <Coffee className="w-5 h-5 mr-2" />
+                  Start Blind Date
+                </Button>
+                <p className="text-sm text-muted-foreground">
+                  {profile?.blinddate_requests_left || 0} blind dates available
+                </p>
+              </div>
             </div>
           </div>
         );
@@ -238,16 +290,16 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
               
               <div className="flex justify-center space-x-8 mt-4">
                 <div className="text-center">
-                  <p className="font-semibold">12</p>
-                  <p className="text-sm text-muted-foreground">Posts</p>
+                  <p className="font-semibold text-lg text-red-500">❤️ 24</p>
+                  <p className="text-sm text-muted-foreground">Likes</p>
                 </div>
                 <div className="text-center">
-                  <p className="font-semibold">247</p>
+                  <p className="font-semibold text-lg text-green-500">💚 12</p>
                   <p className="text-sm text-muted-foreground">Matches</p>
                 </div>
                 <div className="text-center">
-                  <p className="font-semibold">189</p>
-                  <p className="text-sm text-muted-foreground">Likes</p>
+                  <p className="font-semibold text-lg text-purple-500">⚡ {profile?.total_qcs || 0}</p>
+                  <p className="text-sm text-muted-foreground">QCS Score</p>
                 </div>
               </div>
               
@@ -264,11 +316,35 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
               </div>
             </div>
 
+            {/* Dating Stats */}
+            <Card className="mb-6 bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
+              <CardContent className="p-4">
+                <h4 className="font-semibold mb-3 flex items-center">
+                  <Sparkles className="w-4 h-4 mr-2 text-primary" />
+                  Daily Limits
+                </h4>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <p className="text-lg font-bold text-red-500">{profile?.swipes_left || 20}</p>
+                    <p className="text-xs text-muted-foreground">Swipes Left</p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold text-blue-500">{profile?.pairing_requests_left || 1}</p>
+                    <p className="text-xs text-muted-foreground">Pairings Left</p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold text-purple-500">{profile?.blinddate_requests_left || 0}</p>
+                    <p className="text-xs text-muted-foreground">Blind Dates</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Quick Actions Grid */}
             <div className="grid grid-cols-2 gap-4 mt-6">
               <Button 
                 variant="outline" 
-                className="h-16 flex-col space-y-2"
+                className="h-16 flex-col space-y-2 border-red-200 hover:bg-red-50"
                 onClick={() => onNavigate('matches')}
               >
                 <Heart className="w-6 h-6 text-red-500" />
@@ -276,11 +352,11 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
               </Button>
               <Button 
                 variant="outline" 
-                className="h-16 flex-col space-y-2"
-                onClick={() => onNavigate('pairing')}
+                className="h-16 flex-col space-y-2 border-blue-200 hover:bg-blue-50"
+                onClick={() => onNavigate('chat')}
               >
-                <Zap className="w-6 h-6 text-purple-500" />
-                <span className="text-sm">Smart Pairing</span>
+                <MessageCircle className="w-6 h-6 text-blue-500" />
+                <span className="text-sm">Messages</span>
               </Button>
             </div>
           </div>
@@ -316,23 +392,26 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
       <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t">
         <div className="flex items-center justify-around py-2">
           {[
-            { id: 'home', icon: Home, label: 'Home' },
-            { id: 'search', icon: Search, label: 'Search' },
-            { id: 'create', icon: PlusSquare, label: 'Create' },
-            { id: 'reels', icon: Play, label: 'Reels' },
-            { id: 'profile', icon: User, label: 'Profile' }
+            { id: 'home', icon: Home, label: 'Home', color: 'text-blue-500' },
+            { id: 'swipe', icon: Heart, label: 'Swipe', color: 'text-red-500' },
+            { id: 'pairing', icon: Zap, label: 'Pairing', color: 'text-purple-500' },
+            { id: 'blinddate', icon: Coffee, label: 'Blind Date', color: 'text-orange-500' },
+            { id: 'profile', icon: User, label: 'Profile', color: 'text-green-500' }
           ].map((tab) => (
             <Button
               key={tab.id}
               variant="ghost"
               size="sm"
-              className={`flex-col space-y-1 h-auto py-2 ${
-                activeTab === tab.id ? 'text-primary' : 'text-muted-foreground'
+              className={`flex-col space-y-1 h-auto py-2 relative ${
+                activeTab === tab.id ? `${tab.color}` : 'text-muted-foreground'
               }`}
               onClick={() => setActiveTab(tab.id as any)}
             >
               <tab.icon className="w-6 h-6" />
               <span className="text-xs">{tab.label}</span>
+              {activeTab === tab.id && (
+                <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-current rounded-full"></div>
+              )}
             </Button>
           ))}
         </div>

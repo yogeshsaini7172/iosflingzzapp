@@ -42,6 +42,7 @@ interface Profile {
   is_active?: boolean;
   created_at?: string;
   updated_at?: string;
+  total_qcs?: number;
 }
 
 interface PartnerPreferences {
