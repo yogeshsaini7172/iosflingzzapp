@@ -1,11 +1,9 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Heart, Plus, X } from "lucide-react";
-import { useState } from "react";
+import { User, X } from "lucide-react";
 
 interface WhatYouAreStepProps {
   data: any;
@@ -13,40 +11,48 @@ interface WhatYouAreStepProps {
 }
 
 const WhatYouAreStep = ({ data, onChange }: WhatYouAreStepProps) => {
-  const [newInterest, setNewInterest] = useState("");
-  const [newGoal, setNewGoal] = useState("");
-
   const updateField = (field: string, value: any) => {
-    onChange(prev => ({ ...prev, [field]: value }));
+    onChange((prev: any) => ({ ...prev, [field]: value }));
   };
 
-  const addInterest = () => {
-    if (newInterest.trim() && !data.interests.includes(newInterest.trim())) {
-      updateField('interests', [...data.interests, newInterest.trim()]);
-      setNewInterest("");
-    }
-  };
+  const personalityTypes = [
+    "Adventurous", "Analytical", "Creative", "Outgoing", "Introverted", 
+    "Empathetic", "Ambitious", "Laid-back", "Intellectual", "Spontaneous"
+  ];
 
-  const removeInterest = (interest: string) => {
-    updateField('interests', data.interests.filter(i => i !== interest));
-  };
+  const valueOptions = [
+    "Family-oriented", "Career-focused", "Adventure-seeking", "Spiritual", 
+    "Health-conscious", "Creative", "Intellectual", "Social justice", 
+    "Environmental", "Traditional"
+  ];
 
-  const addGoal = () => {
-    if (newGoal.trim() && !data.relationshipGoals.includes(newGoal.trim())) {
-      updateField('relationshipGoals', [...data.relationshipGoals, newGoal.trim()]);
-      setNewGoal("");
-    }
-  };
+  const relationshipGoalOptions = [
+    "Serious relationship", "Casual dating", "Marriage", "Friendship first", 
+    "Open to anything", "Long-term commitment"
+  ];
 
-  const removeGoal = (goal: string) => {
-    updateField('relationshipGoals', data.relationshipGoals.filter(g => g !== goal));
+  const interestOptions = [
+    "Travel", "Reading", "Music", "Movies", "Sports", "Cooking", "Art", 
+    "Technology", "Nature", "Photography", "Dancing", "Gaming", "Fitness", 
+    "Writing", "Volunteering", "Fashion", "Food", "History", "Science", "Politics"
+  ];
+
+  const toggleArrayItem = (field: string, item: string, maxItems: number = 10) => {
+    const currentArray = data[field] || [];
+    const newArray = currentArray.includes(item)
+      ? currentArray.filter((i: string) => i !== item)
+      : currentArray.length < maxItems
+      ? [...currentArray, item]
+      : currentArray;
+    
+    updateField(field, newArray);
   };
 
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="text-center mb-6">
-        <Heart className="w-12 h-12 text-primary mx-auto mb-3" />
-        <p className="text-muted-foreground">Tell us about your personality and what makes you unique</p>
+        <User className="w-12 h-12 text-primary mx-auto mb-3" />
+        <p className="text-muted-foreground">Tell us about yourself</p>
       </div>
 
       {/* Physical Attributes */}
@@ -54,7 +60,8 @@ const WhatYouAreStep = ({ data, onChange }: WhatYouAreStepProps) => {
         <div className="space-y-2">
           <Label>Height (cm)</Label>
           <Input
-            placeholder="170"
+            type="number"
+            placeholder="175"
             value={data.height}
             onChange={(e) => updateField('height', e.target.value)}
             className="rounded-xl h-12"
@@ -68,10 +75,10 @@ const WhatYouAreStep = ({ data, onChange }: WhatYouAreStepProps) => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="slim">Slim</SelectItem>
-              <SelectItem value="average">Average</SelectItem>
               <SelectItem value="athletic">Athletic</SelectItem>
+              <SelectItem value="average">Average</SelectItem>
               <SelectItem value="curvy">Curvy</SelectItem>
-              <SelectItem value="plus-size">Plus Size</SelectItem>
+              <SelectItem value="plus_size">Plus Size</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -84,6 +91,7 @@ const WhatYouAreStep = ({ data, onChange }: WhatYouAreStepProps) => {
             <SelectValue placeholder="Select skin tone" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="very_fair">Very Fair</SelectItem>
             <SelectItem value="fair">Fair</SelectItem>
             <SelectItem value="medium">Medium</SelectItem>
             <SelectItem value="olive">Olive</SelectItem>
@@ -94,114 +102,98 @@ const WhatYouAreStep = ({ data, onChange }: WhatYouAreStepProps) => {
       </div>
 
       {/* Personality */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>Personality Type</Label>
-          <Select value={data.personalityType} onValueChange={(value) => updateField('personalityType', value)}>
-            <SelectTrigger className="rounded-xl h-12">
-              <SelectValue placeholder="How would you describe yourself?" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="introvert">Introvert</SelectItem>
-              <SelectItem value="extrovert">Extrovert</SelectItem>
-              <SelectItem value="ambivert">Ambivert</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label>Values</Label>
-          <Select value={data.values} onValueChange={(value) => updateField('values', value)}>
-            <SelectTrigger className="rounded-xl h-12">
-              <SelectValue placeholder="What matters to you?" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="family">Family-oriented</SelectItem>
-              <SelectItem value="career">Career-focused</SelectItem>
-              <SelectItem value="spiritual">Spiritual</SelectItem>
-              <SelectItem value="adventurous">Adventurous</SelectItem>
-              <SelectItem value="traditional">Traditional</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      <div className="space-y-2">
+        <Label>Personality Type</Label>
+        <Select value={data.personalityType} onValueChange={(value) => updateField('personalityType', value)}>
+          <SelectTrigger className="rounded-xl h-12">
+            <SelectValue placeholder="Select personality type" />
+          </SelectTrigger>
+          <SelectContent>
+            {personalityTypes.map((type) => (
+              <SelectItem key={type} value={type.toLowerCase().replace(' ', '_')}>
+                {type}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Values</Label>
+        <Select value={data.values} onValueChange={(value) => updateField('values', value)}>
+          <SelectTrigger className="rounded-xl h-12">
+            <SelectValue placeholder="Select your values" />
+          </SelectTrigger>
+          <SelectContent>
+            {valueOptions.map((value) => (
+              <SelectItem key={value} value={value.toLowerCase().replace(' ', '_').replace('-', '_')}>
+                {value}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="space-y-2">
         <Label>Mindset</Label>
         <Select value={data.mindset} onValueChange={(value) => updateField('mindset', value)}>
           <SelectTrigger className="rounded-xl h-12">
-            <SelectValue placeholder="Your general outlook" />
+            <SelectValue placeholder="Select your mindset" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="growth">Growth Mindset</SelectItem>
+            <SelectItem value="positive">Positive Thinking</SelectItem>
+            <SelectItem value="pragmatic">Pragmatic</SelectItem>
             <SelectItem value="optimistic">Optimistic</SelectItem>
             <SelectItem value="realistic">Realistic</SelectItem>
-            <SelectItem value="pragmatic">Pragmatic</SelectItem>
-            <SelectItem value="creative">Creative</SelectItem>
-            <SelectItem value="analytical">Analytical</SelectItem>
+            <SelectItem value="ambitious">Ambitious</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      {/* Interests */}
+      {/* Relationship Goals */}
       <div className="space-y-3">
-        <Label>Interests & Hobbies</Label>
-        <div className="flex space-x-2">
-          <Input
-            placeholder="Add an interest..."
-            value={newInterest}
-            onChange={(e) => setNewInterest(e.target.value)}
-            className="rounded-xl h-10"
-            onKeyPress={(e) => e.key === 'Enter' && addInterest()}
-          />
-          <Button onClick={addInterest} size="sm" className="rounded-xl">
-            <Plus className="w-4 h-4" />
-          </Button>
-        </div>
+        <Label>Relationship Goals (select up to 3)</Label>
         <div className="flex flex-wrap gap-2">
-          {data.interests.map((interest, index) => (
-            <Badge key={index} variant="secondary" className="text-xs">
-              {interest}
+          {relationshipGoalOptions.map((goal) => {
+            const isSelected = data.relationshipGoals?.includes(goal);
+            return (
               <Button
-                variant="ghost"
+                key={goal}
+                variant={isSelected ? "default" : "outline"}
                 size="sm"
-                className="ml-1 h-auto p-0"
-                onClick={() => removeInterest(interest)}
+                onClick={() => toggleArrayItem('relationshipGoals', goal, 3)}
+                className="rounded-full text-xs"
+                disabled={!isSelected && (data.relationshipGoals?.length >= 3)}
               >
-                <X className="w-3 h-3" />
+                {goal}
+                {isSelected && <X className="w-3 h-3 ml-1" />}
               </Button>
-            </Badge>
-          ))}
+            );
+          })}
         </div>
       </div>
 
-      {/* Relationship Goals */}
+      {/* Interests */}
       <div className="space-y-3">
-        <Label>Relationship Goals</Label>
-        <div className="flex space-x-2">
-          <Input
-            placeholder="Add a relationship goal..."
-            value={newGoal}
-            onChange={(e) => setNewGoal(e.target.value)}
-            className="rounded-xl h-10"
-            onKeyPress={(e) => e.key === 'Enter' && addGoal()}
-          />
-          <Button onClick={addGoal} size="sm" className="rounded-xl">
-            <Plus className="w-4 h-4" />
-          </Button>
-        </div>
+        <Label>Interests (select up to 10)</Label>
         <div className="flex flex-wrap gap-2">
-          {data.relationshipGoals.map((goal, index) => (
-            <Badge key={index} variant="secondary" className="text-xs">
-              {goal}
+          {interestOptions.map((interest) => {
+            const isSelected = data.interests?.includes(interest);
+            return (
               <Button
-                variant="ghost"
+                key={interest}
+                variant={isSelected ? "default" : "outline"}
                 size="sm"
-                className="ml-1 h-auto p-0"
-                onClick={() => removeGoal(goal)}
+                onClick={() => toggleArrayItem('interests', interest, 10)}
+                className="rounded-full text-xs"
+                disabled={!isSelected && (data.interests?.length >= 10)}
               >
-                <X className="w-3 h-3" />
+                {interest}
+                {isSelected && <X className="w-3 h-3 ml-1" />}
               </Button>
-            </Badge>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -212,11 +204,11 @@ const WhatYouAreStep = ({ data, onChange }: WhatYouAreStepProps) => {
           placeholder="Tell us about yourself in a few sentences..."
           value={data.bio}
           onChange={(e) => updateField('bio', e.target.value)}
-          className="rounded-xl min-h-[100px]"
-          maxLength={300}
+          className="rounded-xl min-h-[100px] resize-none"
+          maxLength={500}
         />
-        <div className="text-xs text-muted-foreground text-right">
-          {data.bio.length}/300 characters
+        <div className="text-right text-xs text-muted-foreground">
+          {data.bio?.length || 0}/500
         </div>
       </div>
     </div>
