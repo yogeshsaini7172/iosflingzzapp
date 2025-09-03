@@ -488,6 +488,15 @@ const IDVerificationFlow = ({ onBack, onComplete, onSkip }: IDVerificationFlowPr
             {renderStepContent()}
           </CardContent>
         </Card>
+
+        {/* Skip Button */}
+        {onSkip && (
+          <div className="mt-6 text-center">
+            <Button variant="ghost" onClick={onSkip} className="text-muted-foreground hover:text-primary">
+              Skip verification - I'll do this later
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

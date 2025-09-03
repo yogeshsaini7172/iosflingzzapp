@@ -39,6 +39,7 @@ const Index = () => {
         <IDVerificationFlow 
           onBack={() => setCurrentStep('subscription')}
           onComplete={() => setCurrentStep('app')}
+          onSkip={() => setCurrentStep('app')}
         />
       );
 
