@@ -261,24 +261,33 @@ export type Database = {
       }
       matches: {
         Row: {
+          compatibility_score: number | null
           created_at: string
           id: string
           liked_id: string
           liker_id: string
+          mental_score: number | null
+          physical_score: number | null
           status: Database["public"]["Enums"]["match_status"]
         }
         Insert: {
+          compatibility_score?: number | null
           created_at?: string
           id?: string
           liked_id: string
           liker_id: string
+          mental_score?: number | null
+          physical_score?: number | null
           status: Database["public"]["Enums"]["match_status"]
         }
         Update: {
+          compatibility_score?: number | null
           created_at?: string
           id?: string
           liked_id?: string
           liker_id?: string
+          mental_score?: number | null
+          physical_score?: number | null
           status?: Database["public"]["Enums"]["match_status"]
         }
         Relationships: []
@@ -343,10 +352,13 @@ export type Database = {
       profiles: {
         Row: {
           bio: string | null
+          blinddate_requests_left: number | null
           college_id_url: string | null
           college_tier: string | null
           compatibility_preferences: Json | null
           created_at: string
+          daily_incoming_matches: number | null
+          daily_outgoing_matches: number | null
           date_of_birth: string
           email: string
           first_name: string
@@ -360,20 +372,26 @@ export type Database = {
           is_active: boolean | null
           is_profile_public: boolean | null
           last_name: string
+          last_reset: string | null
           lifestyle: Json | null
           location: string | null
           love_language: string | null
           major: string | null
+          pairing_requests_left: number | null
           personality_type: string | null
           profile_completion_percentage: number | null
           profile_images: string[] | null
+          qualities: Json | null
           questions_answered: number | null
           relationship_goals: string[] | null
           relationship_status: string | null
           reports_count: number | null
+          requirements: Json | null
+          show_profile: boolean | null
           student_id_verified: boolean | null
           subscription_expires_at: string | null
           subscription_tier: string | null
+          swipes_left: number | null
           total_qcs: number | null
           university: string
           updated_at: string
@@ -384,10 +402,13 @@ export type Database = {
         }
         Insert: {
           bio?: string | null
+          blinddate_requests_left?: number | null
           college_id_url?: string | null
           college_tier?: string | null
           compatibility_preferences?: Json | null
           created_at?: string
+          daily_incoming_matches?: number | null
+          daily_outgoing_matches?: number | null
           date_of_birth: string
           email: string
           first_name: string
@@ -401,20 +422,26 @@ export type Database = {
           is_active?: boolean | null
           is_profile_public?: boolean | null
           last_name: string
+          last_reset?: string | null
           lifestyle?: Json | null
           location?: string | null
           love_language?: string | null
           major?: string | null
+          pairing_requests_left?: number | null
           personality_type?: string | null
           profile_completion_percentage?: number | null
           profile_images?: string[] | null
+          qualities?: Json | null
           questions_answered?: number | null
           relationship_goals?: string[] | null
           relationship_status?: string | null
           reports_count?: number | null
+          requirements?: Json | null
+          show_profile?: boolean | null
           student_id_verified?: boolean | null
           subscription_expires_at?: string | null
           subscription_tier?: string | null
+          swipes_left?: number | null
           total_qcs?: number | null
           university: string
           updated_at?: string
@@ -425,10 +452,13 @@ export type Database = {
         }
         Update: {
           bio?: string | null
+          blinddate_requests_left?: number | null
           college_id_url?: string | null
           college_tier?: string | null
           compatibility_preferences?: Json | null
           created_at?: string
+          daily_incoming_matches?: number | null
+          daily_outgoing_matches?: number | null
           date_of_birth?: string
           email?: string
           first_name?: string
@@ -442,20 +472,26 @@ export type Database = {
           is_active?: boolean | null
           is_profile_public?: boolean | null
           last_name?: string
+          last_reset?: string | null
           lifestyle?: Json | null
           location?: string | null
           love_language?: string | null
           major?: string | null
+          pairing_requests_left?: number | null
           personality_type?: string | null
           profile_completion_percentage?: number | null
           profile_images?: string[] | null
+          qualities?: Json | null
           questions_answered?: number | null
           relationship_goals?: string[] | null
           relationship_status?: string | null
           reports_count?: number | null
+          requirements?: Json | null
+          show_profile?: boolean | null
           student_id_verified?: boolean | null
           subscription_expires_at?: string | null
           subscription_tier?: string | null
+          swipes_left?: number | null
           total_qcs?: number | null
           university?: string
           updated_at?: string
@@ -538,6 +574,60 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_limits: {
+        Row: {
+          blinddate_limit: number
+          id: string
+          pairing_limit: number
+          subscription_tier: Database["public"]["Enums"]["app_subscription_tier"]
+          swipe_limit: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          blinddate_limit?: number
+          id?: string
+          pairing_limit?: number
+          subscription_tier?: Database["public"]["Enums"]["app_subscription_tier"]
+          swipe_limit?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          blinddate_limit?: number
+          id?: string
+          pairing_limit?: number
+          subscription_tier?: Database["public"]["Enums"]["app_subscription_tier"]
+          swipe_limit?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      swipes: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          direction: Database["public"]["Enums"]["swipe_direction"]
+          id: string
+          user_id: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          direction: Database["public"]["Enums"]["swipe_direction"]
+          id?: string
+          user_id: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          direction?: Database["public"]["Enums"]["swipe_direction"]
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -555,11 +645,17 @@ export type Database = {
         Args: { user_id: string }
         Returns: undefined
       }
+      reset_daily_limits: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
+      app_subscription_tier: "free" | "basic" | "plus" | "premium"
       blind_date_status: "pending" | "accepted" | "declined" | "completed"
       gender: "male" | "female" | "non_binary" | "prefer_not_to_say"
       match_status: "liked" | "passed" | "matched"
+      swipe_direction: "left" | "right"
       verification_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
@@ -688,9 +784,11 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_subscription_tier: ["free", "basic", "plus", "premium"],
       blind_date_status: ["pending", "accepted", "declined", "completed"],
       gender: ["male", "female", "non_binary", "prefer_not_to_say"],
       match_status: ["liked", "passed", "matched"],
+      swipe_direction: ["left", "right"],
       verification_status: ["pending", "approved", "rejected"],
     },
   },
