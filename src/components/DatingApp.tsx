@@ -188,12 +188,12 @@ const DatingApp = () => {
           </div>
           <div className="grid grid-cols-1 gap-4">
             <Button onClick={() => setCurrentView('swipe')} className="h-20 bg-gradient-primary hover:scale-105 hover:shadow-xl transition-all group relative overflow-hidden" disabled={userProfile.swipesLeft === 0}>
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity mx-[5px] my-[5px] px-[5px] py-[5px] bg-slate-500" />
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="flex items-center justify-center gap-4">
                 <Sparkles className="w-8 h-8 group-hover:rotate-12 transition-transform" />
                 <div className="text-center">
-                  <div className="text-lg font-bold">Swipe & Match</div>
-                  <div className="text-sm opacity-90 rounded-sm bg-[#e9eaec]/[0.31]">Classic dating experience</div>
+                  <div className="text-lg font-bold text-white">Swipe & Match</div>
+                  <div className="text-sm text-white/90">Classic dating experience</div>
                 </div>
               </div>
             </Button>
