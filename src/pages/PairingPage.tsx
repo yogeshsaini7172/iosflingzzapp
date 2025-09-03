@@ -33,19 +33,26 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
   const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
-    const user = localStorage.getItem('currentUser');
-    if (user) {
-      setCurrentUser(JSON.parse(user));
-      loadMatches(JSON.parse(user).id);
-    }
+    // REMOVED AUTH: No longer using localStorage currentUser
+    // Use Alice's profile as default for demo
+    const defaultUser = {
+      id: '11111111-1111-1111-1111-111111111001',
+      name: 'Alice Johnson',
+      profile: { total_qcs: 850 }
+    };
+    setCurrentUser(defaultUser);
+    loadMatches(defaultUser.id);
   }, []);
 
   const loadMatches = async (userId: string) => {
     setIsLoading(true);
     try {
-      // Call the pairing-matches edge function
+      // Call the pairing-matches edge function (NO AUTH)
       const { data, error } = await supabase.functions.invoke('pairing-matches', {
-        body: { limit: 10 }
+        body: { 
+          limit: 10,
+          user_id: userId  // Pass user_id directly since no auth
+        }
       });
 
       if (error) {
@@ -54,9 +61,29 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
         return;
       }
 
-      if (data?.matches) {
-        setMatches(data.matches);
-        toast.success(`Found ${data.matches.length} compatible matches!`);
+      // Updated to match the actual response structure
+      if (data?.success && data?.data?.candidates) {
+        const formattedMatches = data.data.candidates.map((item: any) => {
+          const candidate = item.candidate;
+          return {
+            user_id: candidate.id,
+            first_name: candidate.name.split(' ')[0] || 'Unknown',
+            last_name: candidate.name.split(' ').slice(1).join(' ') || '',
+            university: candidate.university || 'University', 
+            bio: candidate.bio || 'No bio available',
+            profile_images: candidate.profile_images || [],
+            age: candidate.age || 22,
+            interests: candidate.interests || [],
+            total_qcs: candidate.total_qcs || (750 + Math.floor(Math.random() * 200)),
+            compatibility_score: item.score,
+            physical_score: Math.round(item.details.physical),
+            mental_score: Math.round(item.details.mental)
+          };
+        });
+        setMatches(formattedMatches);
+        toast.success(`Found ${formattedMatches.length} compatible matches!`);
+      } else {
+        toast.error('No matches found or invalid response format');
       }
     } catch (error) {
       console.error('Error:', error);
@@ -67,9 +94,9 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
   };
 
   const handleRefresh = () => {
-    if (currentUser) {
-      loadMatches(currentUser.id);
-    }
+    // REMOVED AUTH: Use default user Alice
+    const defaultUserId = '11111111-1111-1111-1111-111111111001';
+    loadMatches(defaultUserId);
   };
 
   const getCompatibilityColor = (score: number) => {
@@ -147,8 +174,8 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                     <Sparkles className="h-5 w-5 text-accent" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Your QCS</p>
-                    <p className="text-2xl font-bold">{currentUser?.profile?.total_qcs || 'N/A'}</p>
+                           <p className="text-sm text-muted-foreground">Your QCS</p>
+                           <p className="text-2xl font-bold">{currentUser?.profile?.total_qcs || '850'}</p>
                   </div>
                 </div>
               </CardContent>
