@@ -30,7 +30,7 @@ const Index = () => {
         <SubscriptionSelector 
           onBack={() => setCurrentStep('profile')}
           onComplete={() => setCurrentStep('verification')}
-          onSkip={() => setCurrentStep('verification')}
+          onSkip={() => setCurrentStep('app')}
         />
       );
 
