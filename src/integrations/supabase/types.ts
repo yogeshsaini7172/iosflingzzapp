@@ -360,6 +360,7 @@ export type Database = {
           created_at: string
           daily_incoming_matches: number | null
           daily_outgoing_matches: number | null
+          daily_swipes_used: number | null
           date_of_birth: string
           email: string
           face_type: string | null
@@ -376,6 +377,7 @@ export type Database = {
           is_profile_public: boolean | null
           last_name: string
           last_reset: string | null
+          last_swipe_reset: string | null
           lifestyle: Json | null
           location: string | null
           love_language: string | null
@@ -416,6 +418,7 @@ export type Database = {
           created_at?: string
           daily_incoming_matches?: number | null
           daily_outgoing_matches?: number | null
+          daily_swipes_used?: number | null
           date_of_birth: string
           email: string
           face_type?: string | null
@@ -432,6 +435,7 @@ export type Database = {
           is_profile_public?: boolean | null
           last_name: string
           last_reset?: string | null
+          last_swipe_reset?: string | null
           lifestyle?: Json | null
           location?: string | null
           love_language?: string | null
@@ -472,6 +476,7 @@ export type Database = {
           created_at?: string
           daily_incoming_matches?: number | null
           daily_outgoing_matches?: number | null
+          daily_swipes_used?: number | null
           date_of_birth?: string
           email?: string
           face_type?: string | null
@@ -488,6 +493,7 @@ export type Database = {
           is_profile_public?: boolean | null
           last_name?: string
           last_reset?: string | null
+          last_swipe_reset?: string | null
           lifestyle?: Json | null
           location?: string | null
           love_language?: string | null
@@ -553,6 +559,42 @@ export type Database = {
           total_score?: number | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          stripe_customer_id: string | null
+          subscribed: boolean
+          subscription_end: string | null
+          subscription_tier: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          stripe_customer_id?: string | null
+          subscribed?: boolean
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          stripe_customer_id?: string | null
+          subscribed?: boolean
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
