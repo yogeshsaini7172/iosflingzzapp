@@ -90,23 +90,48 @@ const DatingApp = () => {
     </div>;
   const renderPremiumStatus = () => {
     if (userProfile.subscriptionTier === 'free') {
-      return <Card className="mb-6 bg-gradient-secondary border-0 text-white shadow-medium relative overflow-hidden">
-          <div className="absolute inset-0 bg-white/5" />
-          <CardContent className="p-4 relative">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <Star className="w-5 h-5 text-amber-300" />
-                  <span className="font-semibold">Unlock Premium Magic</span>
+      return <Card className="mb-6 bg-gradient-card border-0 shadow-elegant relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-primary/5" />
+          <CardContent className="p-6 relative">
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <div className="w-16 h-16 rounded-full bg-gradient-primary p-0.5">
+                  <img 
+                    src="https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=400&h=400&fit=crop&crop=face" 
+                    alt="Profile" 
+                    className="w-full h-full rounded-full object-cover"
+                  />
                 </div>
-                <div className="text-sm opacity-90">
-                  Unlimited swipes • Super Likes • See who liked you
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-success rounded-full border-2 border-white flex items-center justify-center">
+                  <div className="w-2 h-2 bg-white rounded-full"></div>
                 </div>
               </div>
-              <Button variant="secondary" size="sm" className="bg-white/20 hover:bg-white/30 text-white border-0 font-semibold">
-                <Zap className="w-4 h-4 mr-1" />
-                Upgrade
-              </Button>
+              
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-semibold text-lg text-foreground">Emma, 21</h3>
+                  <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">
+                    CS Junior
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground mb-2">
+                  "Love hiking and coding! Looking for someone to explore the city with 🌟"
+                </p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>📍 0.5 miles away</span>
+                  <span>•</span>
+                  <span>💎 Premium</span>
+                </div>
+              </div>
+              
+              <div className="flex flex-col gap-2">
+                <Button size="sm" className="bg-gradient-primary hover:shadow-royal transition-luxury">
+                  <Heart className="w-4 h-4" />
+                </Button>
+                <Button size="sm" variant="outline" className="border-2 hover-luxury">
+                  <MessageCircle className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>;
