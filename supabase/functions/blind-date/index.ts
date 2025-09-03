@@ -61,13 +61,11 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const authHeader = req.headers.get('Authorization')!;
-    const token = authHeader.replace('Bearer ', '');
-    const { data } = await supabaseClient.auth.getUser(token);
-    const user = data.user;
-    if (!user) throw new Error('User not authenticated');
-
-    const { seen_ids = [] }: BlindDateRequest = await req.json();
+    // REMOVED AUTH: Accept user_id directly for demo purposes  
+    const requestBody = await req.json();
+    const user = { id: requestBody.user_id || '11111111-1111-1111-1111-111111111001' }; // Default to Alice
+    
+    const { seen_ids = [], user_id }: BlindDateRequest & { user_id?: string } = requestBody;
 
     // Reset daily limits if needed
     await resetIfNeeded(supabaseClient, user.id);

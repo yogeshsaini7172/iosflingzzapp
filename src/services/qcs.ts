@@ -52,11 +52,22 @@ export async function calculateQCS(userId: string): Promise<number> {
         profile_score: profileScore,
         college_tier: collegeTier,
         personality_depth: personalityDepth,
-        behavior_score: behaviorScore
+        behavior_score: behaviorScore,
+        total_score: totalScore
       });
 
     if (qcsError) {
       console.error("Error updating QCS:", qcsError);
+    }
+
+    // CRITICAL FIX: Sync total_qcs to profiles table
+    const { error: profileQcsError } = await supabase
+      .from("profiles")
+      .update({ total_qcs: totalScore })
+      .eq("user_id", userId);
+
+    if (profileQcsError) {
+      console.error("Error syncing QCS to profile:", profileQcsError);
     }
 
     return totalScore;

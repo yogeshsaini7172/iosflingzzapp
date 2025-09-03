@@ -182,9 +182,14 @@ export async function getMatches(userId: string, limit: number = 10): Promise<Ma
 
       mentalScore = Math.min(100, mentalScore);
 
-      // Get QCS score (20% of total)
-      const qcsData = await getQCSScore(candidate.user_id);
-      const qcsScore = qcsData ? Math.min(100, qcsData.total_score) : 50;
+      // Get QCS score (20% of total) - Use profile.total_qcs with fallback
+      let qcsScore = candidate.total_qcs || 0;
+      if (qcsScore === 0) {
+        // Fallback: try to get from qcs table
+        const qcsData = await getQCSScore(candidate.user_id);
+        qcsScore = qcsData ? qcsData.total_score : 50;
+      }
+      qcsScore = Math.min(100, qcsScore);
 
       // Final compatibility score
       const compatibilityScore = Math.round(
