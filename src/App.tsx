@@ -27,12 +27,11 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    // Check if user is already logged in
-    const userId = localStorage.getItem("demoUserId");
-    if (userId) {
-      setIsLoggedIn(true);
-      setCurrentView('app');
-    }
+    // Clear any existing demo data to start fresh
+    localStorage.removeItem("demoUserId");
+    localStorage.removeItem("currentUser");
+    setIsLoggedIn(false);
+    setCurrentView('auth');
   }, []);
 
   const handleLoginSuccess = (userId: string) => {

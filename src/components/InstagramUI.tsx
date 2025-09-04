@@ -144,8 +144,26 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
 
       case "blinddate":
         return (
-          <div className="flex-1 flex items-center justify-center p-6">
-            <h3 className="text-xl font-bold">Blind Date Page Placeholder</h3>
+          <div className="flex-1 overflow-y-auto">
+            <div className="min-h-full bg-gradient-soft flex items-center justify-center p-4">
+              <Card className="text-center p-8 shadow-medium border-0">
+                <CardContent>
+                  <div className="w-16 h-16 bg-gradient-secondary rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Coffee className="w-8 h-8 text-white" />
+                  </div>
+                  <h2 className="text-2xl font-bold mb-4">Blind Date Experience</h2>
+                  <p className="text-muted-foreground mb-6">
+                    Connect with someone special without seeing their profile first. 
+                  </p>
+                  <p className="text-lg font-semibold text-orange-500 mb-6">
+                    Coming Soon! 🎭
+                  </p>
+                  <Button onClick={() => setActiveTab('home')} className="bg-gradient-primary">
+                    Back to Home
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         );
 
