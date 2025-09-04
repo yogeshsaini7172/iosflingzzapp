@@ -121,8 +121,8 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
     switch (activeTab) {
       case "home":
         return (
-          <div className="flex-1 overflow-y-auto bg-black text-white min-h-screen">
-            {/* Mobile-First Hero - Full Screen Impact */}
+          <div className="flex-1 overflow-y-auto bg-gradient-to-b from-black via-gray-900 to-black text-white min-h-screen scroll-smooth">
+            {/* Enhanced Mobile-First Hero with Better Layout */}
             <div className="relative min-h-screen bg-gradient-to-br from-pink-900 via-purple-900 to-pink-800 flex flex-col justify-center items-center px-4 overflow-hidden">
               {/* Gen Z Animated Background Elements */}
               <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-pink-500/10 animate-pulse"></div>
@@ -170,8 +170,13 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
               </div>
             </div>
 
-            {/* Mobile Card Stack - Premium Features */}
-            <div className="px-4 pt-4 pb-8 space-y-6 max-w-sm mx-auto">
+            {/* Enhanced Mobile Card Stack - Better Spacing */}
+            <div className="px-6 py-12 space-y-8 max-w-md mx-auto">
+              <div className="text-center mb-12">
+                <h2 className="text-2xl font-bold mb-3 bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent">Why Choose Us?</h2>
+                <p className="text-gray-400 text-sm">Experience the future of dating</p>
+              </div>
+              
               {[
                 { 
                   title: "Smart AI Matching", 
@@ -208,18 +213,19 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
               ))}
             </div>
 
-            {/* Mobile Subscription Cards */}
-            <div className="px-4 py-8 max-w-sm mx-auto space-y-4">
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-black mb-2">Choose Your Plan</h2>
-                <p className="text-gray-400">Unlock premium features</p>
+            {/* Enhanced Mobile Subscription Cards with Better Layout */}
+            <div className="px-6 py-16 max-w-md mx-auto">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl font-black mb-4 bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent">Choose Your Plan</h2>
+                <p className="text-gray-400 text-lg">Unlock your dating potential</p>
               </div>
               
+              <div className="space-y-6">
               {plans.map((plan, index) => (
                 <div
                   key={plan.id}
-                  className={`relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-6 border border-gray-700 animate-scale-in ${
-                    index === 1 ? 'ring-2 ring-pink-500 scale-105' : ''
+                  className={`relative bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-3xl p-8 border border-gray-700/50 shadow-2xl animate-scale-in transition-all duration-300 hover:scale-102 hover:border-pink-500/30 ${
+                    index === 1 ? 'ring-2 ring-pink-500/50 scale-105 shadow-pink-500/25' : ''
                   }`}
                   style={{ animationDelay: `${index * 0.15}s` }}
                 >
@@ -266,17 +272,18 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                     Get {plan.name}
                   </button>
                 </div>
-              ))}
+                ))}
+              </div>
             </div>
 
-            {/* Mobile Success Stories */}
-            <div className="px-4 py-8 max-w-sm mx-auto">
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-black mb-2">Success Stories</h2>
-                <p className="text-gray-400">Real love, real results</p>
+            {/* Enhanced Success Stories with Better Layout */}
+            <div className="px-6 py-16 max-w-md mx-auto">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl font-black mb-4 bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent">Success Stories</h2>
+                <p className="text-gray-400 text-lg">Real love, real results</p>
               </div>
               
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {[
                   {
                     quote: "Found my soulmate in just 2 weeks!",
@@ -311,11 +318,11 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
               </div>
             </div>
 
-            {/* Mobile Dating Preferences */}
-            <div className="px-4 py-8 max-w-sm mx-auto">
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-black mb-2">Your Style</h2>
-                <p className="text-gray-400">What are you looking for?</p>
+            {/* Enhanced Dating Preferences with Modern Layout */}
+            <div className="px-6 py-16 max-w-md mx-auto">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl font-black mb-4 bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent">Your Style</h2>
+                <p className="text-gray-400 text-lg">What are you looking for?</p>
               </div>
               
               {/* Featured - Serious Relationship */}
@@ -348,14 +355,14 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
               </div>
             </div>
 
-            {/* Mobile Final CTA */}
-            <div className="px-4 py-12 max-w-sm mx-auto text-center">
-              <div className="bg-gradient-to-b from-gray-900 to-gray-800 rounded-3xl p-8 border border-gray-700">
-                <h2 className="text-3xl font-black mb-4">Ready to Start?</h2>
-                <p className="text-gray-300 mb-8 leading-relaxed">
+            {/* Enhanced Final CTA with Premium Layout */}
+            <div className="px-6 py-20 max-w-md mx-auto text-center">
+              <div className="bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-md rounded-3xl p-10 border border-gray-700/50 shadow-2xl">
+                <h2 className="text-4xl font-black mb-6 bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent">Ready to Start?</h2>
+                <p className="text-gray-300 mb-10 leading-relaxed text-lg">
                   Join thousands finding meaningful connections through intelligent matching.
                 </p>
-                <button className="w-full bg-gradient-to-r from-pink-600 to-purple-700 text-white font-bold py-4 rounded-full text-lg hover:from-pink-700 hover:to-purple-800 transition-all duration-300">
+                <button className="w-full bg-gradient-to-r from-pink-600 to-purple-700 text-white font-bold py-5 rounded-full text-xl hover:from-pink-700 hover:to-purple-800 transition-all duration-300 shadow-lg hover:shadow-pink-500/25">
                   Begin Your Journey ✨
                 </button>
               </div>
