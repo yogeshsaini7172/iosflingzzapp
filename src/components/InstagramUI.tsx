@@ -14,6 +14,9 @@ import {
   MapPin,
   Send,
   Bookmark,
+  Plus,
+  MoreHorizontal,
+  Sparkles,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -156,102 +159,146 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
   const renderContent = () => {
     switch (activeTab) {
       case "home":
-return (
-          <div className="flex-1 overflow-y-auto bg-background min-h-screen scroll-smooth relative">
-            <header className="sticky top-0 z-20 backdrop-blur bg-background/70 border-b">
+        return (
+          <div className="flex-1 overflow-y-auto bg-black min-h-screen scroll-smooth relative">
+            {/* GenZ Dark Header */}
+            <header className="sticky top-0 z-20 backdrop-blur bg-black/80 border-b border-white/10">
               <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-                <h1 className="text-2xl font-elegant font-bold text-gradient-primary">DatingSigma</h1>
-                <span className="text-sm text-muted-foreground font-modern">Elite College Dating</span>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-pink-500 to-blue-500 bg-clip-text text-transparent">
+                  DatingSigma
+                </h1>
+                <span className="text-sm text-white/60 font-medium">Gen Z Dating 🔥</span>
               </div>
             </header>
-            {/* Revolutionary Hero Section - Dark/Light Split */}
-            <div className="relative min-h-screen overflow-hidden">
-              {/* Split Background Effect */}
-              <div className="absolute inset-0">
-                <div className="absolute left-0 top-0 w-1/2 h-full bg-gradient-to-br from-background to-muted"></div>
-                <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-bl from-primary/90 via-primary to-primary-dark"></div>
-                <div className="absolute left-1/2 top-0 w-px h-full bg-gradient-to-b from-transparent via-border to-transparent transform -translate-x-1/2"></div>
-              </div>
-              
-              {/* Floating Orbs Animation */}
-              <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute top-20 left-16 w-32 h-32 bg-primary/20 rounded-full blur-2xl animate-float"></div>
-                <div className="absolute top-40 right-20 w-24 h-24 bg-accent/30 rounded-full blur-xl animate-pulse-glow delay-1000"></div>
-                <div className="absolute bottom-32 left-1/3 w-20 h-20 bg-secondary/25 rounded-full blur-lg animate-float delay-2000"></div>
-                <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-primary-glow/30 rounded-full blur-md animate-pulse-glow delay-500"></div>
-              </div>
 
-              {/* Main Content Container */}
-              <div className="relative z-10 flex items-center justify-center min-h-screen px-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-6xl w-full items-center">
-                  
-                  {/* Left Side - Light Theme */}
-                  <div className="text-center md:text-left animate-elegant-entrance">
-                    <div className="mb-8">
-                      <span className="inline-block px-4 py-2 bg-accent/10 text-accent rounded-full text-sm font-medium mb-6 animate-bounce-in">
-                        ✨ Premium Dating Experience
-                      </span>
-                      <h1 className="text-5xl md:text-7xl font-elegant font-black leading-none mb-6 tracking-tight">
-                        Find Your
-                        <br/>
-                        <span className="text-gradient-primary animate-shimmer">
-                          Soulmate
-                        </span>
-                      </h1>
-                      <p className="text-lg text-muted-foreground font-modern leading-relaxed max-w-lg">
-                        Where authentic connections meet intelligent matching. Join the most exclusive dating platform designed for meaningful relationships.
-                      </p>
-                    </div>
-                    
-                    <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                      <button className="px-8 py-4 bg-gradient-primary text-white font-bold rounded-full text-lg shadow-premium hover-luxury transition-luxury font-modern">
-                        Start Matching
-                      </button>
-                      <button className="px-8 py-4 border-2 border-primary text-primary font-bold rounded-full text-lg hover:bg-primary hover:text-white transition-luxury font-modern">
-                        Learn More
-                      </button>
-                    </div>
-
-                    {/* Stats */}
-                    <div className="flex justify-center md:justify-start gap-8 text-sm">
-                      <div className="text-center animate-bounce-in" style={{ animationDelay: '0.2s' }}>
-                        <div className="font-bold text-primary text-2xl">50K+</div>
-                        <div className="text-muted-foreground font-modern">Active Users</div>
-                      </div>
-                      <div className="text-center animate-bounce-in" style={{ animationDelay: '0.4s' }}>
-                        <div className="font-bold text-accent text-2xl">15K+</div>
-                        <div className="text-muted-foreground font-modern">Success Stories</div>
-                      </div>
-                      <div className="text-center animate-bounce-in" style={{ animationDelay: '0.6s' }}>
-                        <div className="font-bold text-secondary text-2xl">4.9⭐</div>
-                        <div className="text-muted-foreground font-modern">App Rating</div>
-                      </div>
-                    </div>
+            {/* Stories Section - GenZ Dark Theme */}
+            <div className="px-4 py-6 border-b border-white/10 bg-black">
+              <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
+                {/* Add Story */}
+                <div className="flex-shrink-0 text-center">
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-2 border-dashed border-white/30 rounded-full flex items-center justify-center mb-2">
+                    <Plus className="w-6 h-6 text-white/70" />
                   </div>
+                  <span className="text-xs text-white/60 font-medium">Your Story</span>
+                </div>
+                
+                {/* Story Items */}
+                {[
+                  { name: "Alex", gradient: "from-purple-500 to-pink-500", emoji: "💜" },
+                  { name: "Sam", gradient: "from-blue-500 to-cyan-500", emoji: "💙" },
+                  { name: "Jordan", gradient: "from-pink-500 to-red-500", emoji: "❤️" },
+                  { name: "Taylor", gradient: "from-green-500 to-teal-500", emoji: "💚" },
+                  { name: "Casey", gradient: "from-yellow-500 to-orange-500", emoji: "🧡" },
+                  { name: "Riley", gradient: "from-indigo-500 to-purple-500", emoji: "💜" },
+                ].map((story, index) => (
+                  <div key={story.name} className="flex-shrink-0 text-center">
+                    <div 
+                      className={`w-16 h-16 bg-gradient-to-br ${story.gradient} p-0.5 rounded-full mb-2 animate-pulse-glow`}
+                      style={{ animationDelay: `${index * 0.1}s` }}
+                    >
+                      <div className="w-full h-full bg-black rounded-full flex items-center justify-center text-2xl">
+                        {story.emoji}
+                      </div>
+                    </div>
+                    <span className="text-xs text-white/80 font-medium">{story.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-                  {/* Right Side - Dark Theme with Cards */}
-                  <div className="relative animate-slide-up">
-                    <div className="relative">
-                      {/* Floating Cards Stack */}
-                      <div className="relative w-80 h-96 mx-auto">
-                        <div className="absolute inset-0 glass-luxury rounded-3xl shadow-premium rotate-6 animate-float opacity-90"></div>
-                        <div className="absolute inset-0 glass-dark-luxury rounded-3xl shadow-royal -rotate-3 animate-pulse-glow delay-300"></div>
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-3xl shadow-elegant border border-white/20 p-8 flex flex-col items-center justify-center text-white">
-                          <div className="w-20 h-20 bg-gradient-secondary rounded-full mb-6 flex items-center justify-center animate-pulse-glow">
-                            <Heart className="w-10 h-10 text-white" fill="currentColor" />
+            {/* Main Feed - GenZ Dark Theme */}
+            <div className="relative min-h-screen bg-black">
+              {/* Neon Glow Effects */}
+              <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute top-20 left-1/4 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl animate-float"></div>
+                <div className="absolute bottom-20 right-1/4 w-48 h-48 bg-pink-500/10 rounded-full blur-2xl animate-pulse-glow delay-1000"></div>
+                <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-blue-500/10 rounded-full blur-xl animate-float delay-500"></div>
+              </div>
+
+              <div className="relative z-10 px-4 py-8">
+                <div className="max-w-lg mx-auto space-y-6">
+                  {/* Post Cards */}
+                  {[
+                    {
+                      user: "midnight_vibes",
+                      time: "2h",
+                      content: "late night thoughts hit different when you're single ngl 🌙✨",
+                      likes: "247",
+                      gradient: "from-purple-600/20 to-black"
+                    },
+                    {
+                      user: "coffee_addict_22",
+                      time: "4h", 
+                      content: "looking for someone who gets my 3am energy and doesn't judge my spotify wrapped 😅☕",
+                      likes: "189",
+                      gradient: "from-pink-600/20 to-black"
+                    },
+                    {
+                      user: "aesthetic_soul",
+                      time: "6h",
+                      content: "manifesting a connection that feels like home 🏠💫 no fake energy pls",
+                      likes: "312",
+                      gradient: "from-blue-600/20 to-black"
+                    }
+                  ].map((post, index) => (
+                    <div 
+                      key={post.user}
+                      className={`bg-gradient-to-br ${post.gradient} border border-white/10 rounded-2xl p-4 animate-fade-in backdrop-blur-sm`}
+                      style={{ animationDelay: `${index * 0.2}s` }}
+                    >
+                      {/* Post Header */}
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                            <User className="w-5 h-5 text-white" />
                           </div>
-                          <h3 className="text-2xl font-elegant font-bold mb-4">Perfect Match Awaits</h3>
-                          <p className="text-white/80 text-center text-sm font-modern leading-relaxed">
-                            Our AI analyzes 200+ compatibility factors to find your ideal partner
-                          </p>
-                          <div className="flex space-x-2 mt-6">
-                            <div className="w-3 h-3 bg-white/60 rounded-full animate-pulse"></div>
-                            <div className="w-3 h-3 bg-white/40 rounded-full animate-pulse delay-200"></div>
-                            <div className="w-3 h-3 bg-white/20 rounded-full animate-pulse delay-400"></div>
+                          <div>
+                            <p className="text-white font-semibold text-sm">@{post.user}</p>
+                            <p className="text-white/60 text-xs">{post.time} ago</p>
                           </div>
                         </div>
+                        <MoreHorizontal className="w-5 h-5 text-white/60" />
+                      </div>
+                      
+                      {/* Post Content */}
+                      <p className="text-white/90 text-sm leading-relaxed mb-4">
+                        {post.content}
+                      </p>
+                      
+                      {/* Post Actions */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <button className="flex items-center space-x-2 text-white/60 hover:text-pink-400 transition-colors">
+                            <Heart className="w-5 h-5" />
+                            <span className="text-xs">{post.likes}</span>
+                          </button>
+                          <button className="flex items-center space-x-2 text-white/60 hover:text-blue-400 transition-colors">
+                            <MessageCircle className="w-5 h-5" />
+                            <span className="text-xs">{Math.floor(Math.random() * 50 + 10)}</span>
+                          </button>
+                          <button className="text-white/60 hover:text-green-400 transition-colors">
+                            <Send className="w-5 h-5" />
+                          </button>
+                        </div>
+                        <button className="text-white/60 hover:text-white transition-colors">
+                          <Bookmark className="w-5 h-5" />
+                        </button>
                       </div>
                     </div>
+                  ))}
+
+                  {/* Call to Action Card */}
+                  <div className="bg-gradient-to-br from-purple-600/30 via-pink-600/30 to-blue-600/30 border border-white/20 rounded-2xl p-6 text-center animate-pulse-glow">
+                    <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                      <Sparkles className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">Ready to find your vibe? ✨</h3>
+                    <p className="text-white/70 text-sm mb-4">
+                      Join thousands of Gen Z finding real connections, not just hookups
+                    </p>
+                    <button className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 text-white font-bold py-3 rounded-full hover:scale-105 transition-all duration-300 shadow-lg">
+                      Start Swiping 🔥
+                    </button>
                   </div>
                 </div>
               </div>
