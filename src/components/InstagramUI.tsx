@@ -306,11 +306,6 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
 
             {/* Revolutionary Features Section */}
             <div className="relative py-24 bg-gradient-to-br from-muted/50 to-background overflow-hidden">
-              {/* Background Effects */}
-              <div className="absolute inset-0">
-                <div className="absolute top-20 left-1/4 w-40 h-40 bg-primary/10 rounded-full blur-3xl animate-float"></div>
-                <div className="absolute bottom-20 right-1/4 w-32 h-32 bg-accent/10 rounded-full blur-2xl animate-pulse-glow delay-1000"></div>
-              </div>
 
               <div className="relative z-10 max-w-6xl mx-auto px-4">
                 <div className="text-center mb-16 animate-elegant-entrance">
