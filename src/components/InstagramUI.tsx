@@ -171,7 +171,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
             </div>
 
             {/* Mobile Card Stack - Premium Features */}
-            <div className="px-4 py-8 space-y-6 max-w-sm mx-auto">
+            <div className="px-4 pt-4 pb-8 space-y-6 max-w-sm mx-auto">
               {[
                 { 
                   title: "Smart AI Matching", 
