@@ -83,8 +83,8 @@ const PairingMatches: React.FC = () => {
     return (
       <div className="flex items-center justify-center min-h-[40vh]">
         <div className="text-center space-y-4">
-          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-muted-foreground">Finding your perfect matches...</p>
+          <div className="w-16 h-16 border-4 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-white/70">Finding your perfect matches... ✨</p>
         </div>
       </div>
     );
@@ -93,12 +93,12 @@ const PairingMatches: React.FC = () => {
   if (matches.length === 0) {
     return (
       <div className="text-center space-y-6 py-12">
-        <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto">
-          <Users className="w-10 h-10 text-purple-500" />
+        <div className="w-20 h-20 bg-gradient-to-br from-purple-500/20 to-indigo-500/20 rounded-full flex items-center justify-center mx-auto border border-purple-400/30">
+          <Users className="w-10 h-10 text-purple-400" />
         </div>
         <div>
-          <h3 className="text-xl font-bold mb-2">No Matches Yet</h3>
-          <p className="text-muted-foreground">Complete your profile and start swiping to get AI-powered matches!</p>
+          <h3 className="text-xl font-bold mb-2 text-white">No Matches Yet</h3>
+          <p className="text-white/70">Complete your profile and start swiping to get AI-powered matches! ✨</p>
         </div>
       </div>
     );
@@ -106,11 +106,11 @@ const PairingMatches: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
+      {/* Header - Dark Theme */}
       <div className="text-center space-y-2 mb-6">
-        <h2 className="text-2xl font-bold">Smart Pairing Matches</h2>
-        <p className="text-muted-foreground">AI-selected compatible profiles based on deep analysis</p>
-        <Badge className="bg-purple-100 text-purple-700">
+        <h2 className="text-2xl font-bold text-gradient-royal">Smart Pairing Matches</h2>
+        <p className="text-white/70">AI-selected compatible profiles based on deep analysis</p>
+        <Badge className="bg-purple-500/20 text-purple-300 border border-purple-400/30">
           <Brain className="w-3 h-3 mr-1" />
           {matches.length} compatible matches found
         </Badge>
@@ -121,8 +121,10 @@ const PairingMatches: React.FC = () => {
         {matches.map((match, index) => (
           <Card 
             key={match.user_id} 
-            className={`overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.01] cursor-pointer group ${
-              index === 0 ? 'ring-2 ring-purple-200 shadow-lg bg-gradient-to-br from-purple-50/50 to-pink-50/50' : 'hover:bg-gradient-to-br hover:from-purple-50/30 hover:to-pink-50/30'
+            className={`overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.01] cursor-pointer group border-0 ${
+              index === 0 
+                ? 'ring-2 ring-purple-400/50 shadow-xl bg-black/60 backdrop-blur-md border border-purple-400/30' 
+                : 'genZ-glass-card hover:bg-black/70'
             }`}
           >
             <CardContent className="p-0">
@@ -132,9 +134,9 @@ const PairingMatches: React.FC = () => {
               >
                 {/* Profile Image & Status */}
                 <div className="relative flex-shrink-0">
-                  <Avatar className="w-16 h-16 md:w-20 md:h-20 border-3 border-purple-200 shadow-md transition-transform group-hover:scale-110">
+                  <Avatar className="w-16 h-16 md:w-20 md:h-20 border-3 border-purple-400/50 shadow-lg transition-transform group-hover:scale-110">
                     <AvatarImage src={match.profile_images?.[0]} />
-                    <AvatarFallback className="bg-gradient-to-br from-purple-100 to-pink-100 text-lg md:text-xl font-bold">
+                    <AvatarFallback className="bg-gradient-to-br from-purple-600/80 to-pink-600/80 text-white text-lg md:text-xl font-bold">
                       {match.first_name[0]}
                     </AvatarFallback>
                   </Avatar>
@@ -144,38 +146,38 @@ const PairingMatches: React.FC = () => {
                     </div>
                   )}
                   {/* Online Status */}
-                  <div className="absolute bottom-0 right-0 w-4 h-4 md:w-5 md:h-5 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
+                  <div className="absolute bottom-0 right-0 w-4 h-4 md:w-5 md:h-5 bg-green-400 rounded-full border-2 border-black animate-pulse"></div>
                 </div>
 
                 {/* Profile Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center space-x-2 mb-1">
-                    <h3 className="font-bold text-lg md:text-xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent truncate">
+                    <h3 className="font-bold text-lg md:text-xl bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent truncate">
                       {match.first_name}
                     </h3>
-                    <Shield className="w-4 h-4 md:w-5 md:h-5 text-blue-500 flex-shrink-0" />
-                    <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-yellow-500 flex-shrink-0" />
+                    <Shield className="w-4 h-4 md:w-5 md:h-5 text-blue-400 flex-shrink-0" />
+                    <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-yellow-400 flex-shrink-0" />
                   </div>
                   
                   <div className="flex items-center space-x-1 mb-2">
-                    <GraduationCap className="w-3 h-3 md:w-4 md:h-4 text-purple-500 flex-shrink-0" />
-                    <p className="text-xs md:text-sm text-muted-foreground font-medium truncate">{match.university}</p>
+                    <GraduationCap className="w-3 h-3 md:w-4 md:h-4 text-purple-400 flex-shrink-0" />
+                    <p className="text-xs md:text-sm text-white/70 font-medium truncate">{match.university}</p>
                   </div>
                   
                   {/* Enhanced Compatibility Score */}
                   <div className="flex items-center space-x-2 mb-2">
-                    <Badge className={`text-xs md:text-sm py-1 px-2 font-bold animate-fade-in ${
+                    <Badge className={`text-xs md:text-sm py-1 px-2 font-bold animate-fade-in border-0 ${
                       (match.compatibility_score || 0) >= 90 
-                        ? 'bg-gradient-to-r from-green-400 to-green-600 text-white shadow-lg' 
+                        ? 'bg-gradient-to-r from-green-500/80 to-green-600/80 text-white shadow-lg' 
                         : (match.compatibility_score || 0) >= 80
-                        ? 'bg-gradient-to-r from-blue-400 to-blue-600 text-white shadow-lg'
-                        : 'bg-gradient-to-r from-purple-400 to-purple-600 text-white shadow-lg'
+                        ? 'bg-gradient-to-r from-blue-500/80 to-blue-600/80 text-white shadow-lg'
+                        : 'bg-gradient-to-r from-purple-500/80 to-purple-600/80 text-white shadow-lg'
                     }`}>
                       🔥 {match.compatibility_score}%
                     </Badge>
                     
                     {match.total_qcs && (
-                      <Badge variant="outline" className="text-xs border-purple-200 bg-purple-50 hidden sm:inline-flex">
+                      <Badge variant="outline" className="text-xs border-purple-400/50 bg-purple-500/20 text-purple-300 hidden sm:inline-flex">
                         <Brain className="w-3 h-3 mr-1" />
                         QCS: {match.total_qcs}
                       </Badge>
@@ -184,14 +186,14 @@ const PairingMatches: React.FC = () => {
 
                   {/* Quick Info Tags - Mobile Optimized */}
                   <div className="flex gap-1 flex-wrap">
-                    <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5">
+                    <Badge variant="secondary" className="text-xs bg-blue-500/20 text-blue-300 px-2 py-0.5 border-0">
                       📍 2km
                     </Badge>
-                    <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 px-2 py-0.5">
+                    <Badge variant="secondary" className="text-xs bg-green-500/20 text-green-300 px-2 py-0.5 border-0">
                       🟢 Active
                     </Badge>
                     {index < 3 && (
-                      <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 hidden sm:inline-flex">
+                      <Badge variant="secondary" className="text-xs bg-purple-500/20 text-purple-300 px-2 py-0.5 border-0 hidden sm:inline-flex">
                         ⭐ Top
                       </Badge>
                     )}
@@ -206,7 +208,7 @@ const PairingMatches: React.FC = () => {
                         e.stopPropagation();
                         handleChatRequest(match.user_id, true);
                       }}
-                      className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-xs md:text-sm px-3 py-2"
+                      className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-xs md:text-sm px-3 py-2 border-0"
                       size="sm"
                     >
                       <MessageCircle className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
@@ -219,7 +221,7 @@ const PairingMatches: React.FC = () => {
                         e.stopPropagation();
                         handleChatRequest(match.user_id, false);
                       }}
-                      className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-xs md:text-sm px-3 py-2"
+                      className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-xs md:text-sm px-3 py-2 border-0"
                       size="sm"
                     >
                       <MessageCircle className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
@@ -233,8 +235,8 @@ const PairingMatches: React.FC = () => {
               {/* Enhanced Bio Preview - Mobile Optimized */}
               {match.bio && (
                 <div className="px-4 pb-3">
-                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-3 border border-purple-100">
-                    <p className="text-xs md:text-sm text-muted-foreground line-clamp-2 leading-relaxed italic">
+                  <div className="bg-black/40 backdrop-blur-sm rounded-xl p-3 border border-white/10">
+                    <p className="text-xs md:text-sm text-white/80 line-clamp-2 leading-relaxed italic">
                       "{match.bio}"
                     </p>
                   </div>
@@ -242,7 +244,7 @@ const PairingMatches: React.FC = () => {
               )}
 
               {/* Enhanced Quick Actions Footer - Mobile Optimized */}
-              <div className="border-t bg-gradient-to-r from-purple-50/50 to-pink-50/50 px-4 py-3">
+              <div className="border-t border-white/10 bg-black/30 backdrop-blur-sm px-4 py-3">
                 <div className="flex justify-between items-center">
                   <div className="flex space-x-2">
                     <Button 
@@ -252,7 +254,7 @@ const PairingMatches: React.FC = () => {
                         e.stopPropagation();
                         handleAction(match.user_id, 'ghost');
                       }}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200 text-xs px-2 py-1"
+                      className="text-red-400 hover:text-red-300 hover:bg-red-500/20 transition-all duration-200 text-xs px-2 py-1 border-0"
                     >
                       👻 <span className="hidden sm:inline ml-1">Ghost</span>
                     </Button>
@@ -263,7 +265,7 @@ const PairingMatches: React.FC = () => {
                         e.stopPropagation();
                         handleAction(match.user_id, 'bench');
                       }}
-                      className="text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 transition-all duration-200 text-xs px-2 py-1"
+                      className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/20 transition-all duration-200 text-xs px-2 py-1 border-0"
                     >
                       ⏸️ <span className="hidden sm:inline ml-1">Bench</span>
                     </Button>
@@ -273,7 +275,7 @@ const PairingMatches: React.FC = () => {
                     variant="ghost" 
                     size="sm"
                     onClick={() => openProfileModal(match)}
-                    className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 font-semibold transition-all duration-200 text-xs px-2 py-1"
+                    className="text-purple-300 hover:text-purple-200 hover:bg-purple-500/20 font-semibold transition-all duration-200 text-xs px-2 py-1 border-0"
                   >
                     <span className="hidden sm:inline">View Full Profile</span>
                     <span className="sm:hidden">View Profile</span>
@@ -296,12 +298,12 @@ const PairingMatches: React.FC = () => {
         />
       )}
 
-      {/* Bottom CTA */}
+      {/* Bottom CTA - Dark Theme */}
       <div className="text-center py-6">
-        <p className="text-sm text-muted-foreground mb-4">
-          Looking for more matches? Keep swiping to increase your compatibility pool!
+        <p className="text-sm text-white/60 mb-4">
+          Looking for more matches? Keep swiping to increase your compatibility pool! ✨
         </p>
-        <Button variant="outline">
+        <Button variant="outline" className="border-purple-400/50 bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 hover:text-purple-200">
           <Zap className="w-4 h-4 mr-2" />
           Get More Matches
         </Button>
