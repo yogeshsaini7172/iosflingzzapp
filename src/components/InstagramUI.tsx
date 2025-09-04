@@ -499,7 +499,9 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
 
       {/* Bottom Navigation */}
       <div className="sticky bottom-0 bg-white/20 backdrop-blur-md border-t border-white/30">
-        <div className="flex items-center justify-around py-4">
+        <div className="flex items-center justify-around py-4 relative" style={{
+          clipPath: 'polygon(5% 0%, 95% 0%, 100% 15%, 100% 85%, 95% 100%, 5% 100%, 0% 85%, 0% 15%)'
+        }}>
           {[
             { id: "home", icon: Home, label: "Home", gradient: "from-gray-600 to-gray-800" },
             { id: "swipe", icon: Heart, label: "Swipe", gradient: "from-purple-600 to-purple-800" },
