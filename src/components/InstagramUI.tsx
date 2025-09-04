@@ -121,7 +121,16 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
     switch (activeTab) {
       case "home":
         return (
-          <div className="flex-1 overflow-y-auto bg-gradient-to-b from-black via-gray-900 to-black text-white min-h-screen scroll-smooth">
+          <div className="flex-1 overflow-y-auto bg-gradient-to-br from-pink-900 via-black to-purple-900 text-white min-h-screen scroll-smooth relative">
+            {/* Gen Z Pink Background Effects */}
+            <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-pink-500/10 animate-pulse"></div>
+            <div className="absolute top-0 left-0 w-full h-full">
+              <div className="absolute top-10 left-10 w-40 h-40 bg-pink-400/20 rounded-full blur-2xl animate-bounce"></div>
+              <div className="absolute top-1/3 right-20 w-32 h-32 bg-purple-400/20 rounded-full blur-xl animate-pulse delay-1000"></div>
+              <div className="absolute bottom-20 left-1/4 w-28 h-28 bg-pink-300/20 rounded-full blur-lg animate-bounce delay-2000"></div>
+              <div className="absolute top-1/2 left-1/2 w-24 h-24 bg-purple-300/20 rounded-full blur-md animate-pulse delay-500"></div>
+            </div>
+            
             {/* Enhanced Mobile-First Hero with Better Layout */}
             <div className="relative min-h-screen bg-gradient-to-br from-pink-900 via-purple-900 to-pink-800 flex flex-col justify-center items-center px-4 overflow-hidden">
               {/* Gen Z Animated Background Elements */}
