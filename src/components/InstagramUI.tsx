@@ -527,11 +527,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
             <Button
               key={tab.id}
               size="sm"
-              className={`flex-col space-y-1 h-auto py-3 px-4 relative transition-all duration-300 text-foreground bg-transparent border-0 outline-none focus:outline-none hover:outline-none active:outline-none ${
-                activeTab === tab.id 
-                  ? "text-primary scale-105 -translate-y-2" 
-                  : "hover:scale-102 hover:-translate-y-1"
-              }`}
+              className="flex-col space-y-1 h-auto py-3 px-4 relative text-foreground bg-transparent border-0 outline-none focus:outline-none hover:outline-none active:outline-none"
               onClick={() => setActiveTab(tab.id as any)}
             >
               <tab.icon className="w-6 h-6" />
