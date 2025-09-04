@@ -17,12 +17,14 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
 import { useProfilesFeed } from "@/hooks/useProfilesFeed";
 import { usePairing } from "@/hooks/usePairing";
 import UserSelector from "@/components/debug/UserSelector";
 import SwipeCards from "@/components/swipe/SwipeCards";
 import PairingMatches from "@/components/pairing/PairingMatches";
 import GhostBenchBar from "@/components/ui/ghost-bench-bar";
+import { useToast } from "@/hooks/use-toast";
 
 interface InstagramUIProps {
   onNavigate: (view: string) => void;
@@ -32,12 +34,48 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
   const [activeTab, setActiveTab] = useState<
     "home" | "swipe" | "pairing" | "blinddate" | "profile"
   >("home");
+  const { toast } = useToast();
 
   // ✅ Profiles feed from Supabase (only for Swipe tab)
   const { profiles = [], loading, setProfiles } = useProfilesFeed();
 
   // ✅ Paired profiles (only for Pairing tab)
   const { pairedProfiles = [], loading: pairingLoading } = usePairing();
+
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        toast({
+          title: "Logout failed",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      toast({
+        title: "Logged out successfully",
+        description: "You have been signed out"
+      });
+      
+      // Clear any stored demo data
+      localStorage.removeItem('demoProfile');
+      localStorage.removeItem('demoPreferences');
+      localStorage.removeItem('demoUserId');
+      localStorage.removeItem('demoQCS');
+      
+      // Navigate back to welcome/login page
+      window.location.href = '/';
+    } catch (error: any) {
+      toast({
+        title: "Logout error",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
 
   // ✅ Swipe handler
   const handleSwipe = async (id: string, direction: "left" | "right") => {
@@ -396,6 +434,43 @@ return (
                 <h2 className="text-2xl font-bold mb-2">Profile Management</h2>
                 <p className="text-muted-foreground">View and manage your profile information</p>
               </div>
+              
+              {/* User Account Section */}
+              <Card className="glass-luxury border-gradient shadow-premium">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gradient-primary">Account Settings</h3>
+                      <p className="text-sm text-muted-foreground">Manage your account preferences</p>
+                    </div>
+                    <User className="w-8 h-8 text-primary" />
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-primary rounded-full flex items-center justify-center">
+                          <User className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-medium">Demo User</p>
+                          <p className="text-sm text-muted-foreground">demo@example.com</p>
+                        </div>
+                      </div>
+                      <Badge className="bg-success text-success-foreground">Active</Badge>
+                    </div>
+                    
+                    <Button 
+                      onClick={handleLogout}
+                      variant="outline" 
+                      className="w-full border-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-colors"
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      Sign Out
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
               
               {/* User Selector for Testing */}
               <UserSelector />
