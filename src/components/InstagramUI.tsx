@@ -503,31 +503,31 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
           clipPath: 'polygon(5% 0%, 95% 0%, 100% 15%, 100% 85%, 95% 100%, 5% 100%, 0% 85%, 0% 15%)'
         }}>
           {[
-            { id: "home", icon: Home, label: "Home", gradient: "from-gray-600 to-gray-800" },
-            { id: "swipe", icon: Heart, label: "Swipe", gradient: "from-purple-600 to-purple-800" },
+            { id: "home", icon: Home, label: "Home", color: "text-pink-500" },
+            { id: "swipe", icon: Heart, label: "Swipe", color: "text-red-500" },
             {
               id: "pairing",
               icon: Zap,
               label: "Pairing",
-              gradient: "from-indigo-600 to-indigo-800",
+              color: "text-yellow-400",
             },
             {
               id: "blinddate",
               icon: Coffee,
               label: "Blind Date",
-              gradient: "from-pink-600 to-purple-700",
+              color: "text-orange-500",
             },
             {
               id: "profile",
               icon: User,
               label: "Profile",
-              gradient: "from-emerald-600 to-gray-700",
+              color: "text-purple-500",
             },
           ].map((tab) => (
             <Button
               key={tab.id}
               size="sm"
-              className="flex-col space-y-1 h-auto py-3 px-4 relative text-foreground bg-transparent border-0 outline-none focus:outline-none hover:outline-none active:outline-none"
+              className={`flex-col space-y-1 h-auto py-3 px-4 relative bg-transparent border-0 outline-none focus:outline-none hover:outline-none active:outline-none ${tab.color}`}
               onClick={() => setActiveTab(tab.id as any)}
             >
               <tab.icon className="w-6 h-6" fill="currentColor" />
