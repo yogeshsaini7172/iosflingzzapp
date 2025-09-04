@@ -475,7 +475,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b">
-        <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center justify-between px-4 py-3 backdrop-blur-xl bg-white/5 border-b border-white/10 shadow-lg">
           <h1 className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
             DatingSigma
           </h1>
