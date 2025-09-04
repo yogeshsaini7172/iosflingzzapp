@@ -287,18 +287,33 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                     </div>
                   ))}
 
-                  {/* Call to Action Card */}
-                  <div className="bg-gradient-to-br from-purple-600/30 via-pink-600/30 to-blue-600/30 border border-white/20 rounded-2xl p-6 text-center animate-pulse-glow">
-                    <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                      <Sparkles className="w-8 h-8 text-white" />
-                    </div>
-                    <h3 className="text-xl font-bold text-white mb-2">Ready to find your vibe? ✨</h3>
-                    <p className="text-white/70 text-sm mb-4">
-                      Join thousands of Gen Z finding real connections, not just hookups
-                    </p>
-                    <button className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 text-white font-bold py-3 rounded-full hover:scale-105 transition-all duration-300 shadow-lg">
-                      Start Swiping 🔥
-                    </button>
+                  {/* Subscription Plans */}
+                  <div className="grid gap-6">
+                    {plans.map((plan) => (
+                      <div
+                        key={plan.id}
+                        className={`border-2 ${plan.color} shadow-md rounded-xl bg-black/50 backdrop-blur-sm animate-fade-in`}
+                        style={{ animationDelay: `${plan.id * 0.1}s` }}
+                      >
+                        <div className="p-6">
+                          <h3 className="text-xl font-bold mb-2 text-white">{plan.name}</h3>
+                          <p className="text-2xl font-semibold mb-4 text-white">{plan.price}</p>
+
+                          <ul className="space-y-2 mb-4 text-sm text-gray-300">
+                            {plan.features.map((f, idx) => (
+                              <li key={idx}>✅ {f}</li>
+                            ))}
+                          </ul>
+
+                          <button
+                            className={`w-full text-white ${plan.buttonColor} py-3 rounded-xl font-semibold hover:scale-105 transition-all duration-300`}
+                            onClick={() => alert(`Subscribed to ${plan.name}`)}
+                          >
+                            Subscribe
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
