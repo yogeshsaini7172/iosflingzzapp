@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +10,8 @@ import Index from "./pages/Index";
 import DatingAppContainer from "./components/DatingAppContainer";
 // REMOVED AUTH: import WelcomePage from "./components/WelcomePage";
 import NotFound from "./pages/NotFound";
+import LoginSignup from "./pages/LoginSignup";
+import ProfileSetupFlow from "./components/profile/ProfileSetupFlow";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -20,6 +23,59 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  const [currentView, setCurrentView] = useState<'auth' | 'setup' | 'app'>('auth');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    // Check if user is already logged in
+    const userId = localStorage.getItem("demoUserId");
+    if (userId) {
+      setIsLoggedIn(true);
+      setCurrentView('app');
+    }
+  }, []);
+
+  const handleLoginSuccess = (userId: string) => {
+    setIsLoggedIn(true);
+    setCurrentView('app');
+  };
+
+  const handleSignupSuccess = () => {
+    setCurrentView('setup');
+  };
+
+  const handleProfileSetupComplete = (userId: string) => {
+    setIsLoggedIn(true);
+    setCurrentView('app');
+  };
+
+  if (!isLoggedIn && currentView === 'auth') {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <LoginSignup 
+            onLoginSuccess={handleLoginSuccess}
+            onSignupSuccess={handleSignupSuccess}
+          />
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
+  }
+
+  if (!isLoggedIn && currentView === 'setup') {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <ProfileSetupFlow onComplete={handleProfileSetupComplete} />
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
+  }
+
   return (
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>

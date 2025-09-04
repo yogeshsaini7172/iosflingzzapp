@@ -139,6 +139,76 @@ export type Database = {
           },
         ]
       }
+      chat_messages_enhanced: {
+        Row: {
+          chat_room_id: string
+          created_at: string
+          id: string
+          message_text: string
+          read_at: string | null
+          sender_id: string
+        }
+        Insert: {
+          chat_room_id: string
+          created_at?: string
+          id?: string
+          message_text: string
+          read_at?: string | null
+          sender_id: string
+        }
+        Update: {
+          chat_room_id?: string
+          created_at?: string
+          id?: string
+          message_text?: string
+          read_at?: string | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_enhanced_chat_room_id_fkey"
+            columns: ["chat_room_id"]
+            isOneToOne: false
+            referencedRelation: "chat_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_rooms: {
+        Row: {
+          created_at: string
+          id: string
+          match_id: string | null
+          updated_at: string
+          user1_id: string
+          user2_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          match_id?: string | null
+          updated_at?: string
+          user1_id: string
+          user2_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          match_id?: string | null
+          updated_at?: string
+          user1_id?: string
+          user2_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_rooms_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "enhanced_matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       colleges: {
         Row: {
           city: string
@@ -196,6 +266,63 @@ export type Database = {
           physical_score?: number | null
           user1_id?: string
           user2_id?: string
+        }
+        Relationships: []
+      }
+      enhanced_matches: {
+        Row: {
+          chat_room_id: string | null
+          created_at: string
+          id: string
+          status: string
+          user1_id: string
+          user1_swiped: boolean | null
+          user2_id: string
+          user2_swiped: boolean | null
+        }
+        Insert: {
+          chat_room_id?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          user1_id: string
+          user1_swiped?: boolean | null
+          user2_id: string
+          user2_swiped?: boolean | null
+        }
+        Update: {
+          chat_room_id?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          user1_id?: string
+          user1_swiped?: boolean | null
+          user2_id?: string
+          user2_swiped?: boolean | null
+        }
+        Relationships: []
+      }
+      enhanced_swipes: {
+        Row: {
+          created_at: string
+          direction: string
+          id: string
+          target_user_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          direction: string
+          id?: string
+          target_user_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          direction?: string
+          id?: string
+          target_user_id?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -712,6 +839,65 @@ export type Database = {
           password?: string
           profile_name?: string
           university?: string
+        }
+        Relationships: []
+      }
+      test_users: {
+        Row: {
+          created_at: string
+          id: string
+          password: string
+          profile_id: string | null
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          password: string
+          profile_id?: string | null
+          username: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          password?: string
+          profile_id?: string | null
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_users_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      user_interactions: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          interaction_type: string
+          target_user_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          interaction_type: string
+          target_user_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          interaction_type?: string
+          target_user_id?: string
+          user_id?: string
         }
         Relationships: []
       }

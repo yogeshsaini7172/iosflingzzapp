@@ -11,11 +11,10 @@ import IDVerificationStep from "./steps/IDVerificationStep";
 import ProgressIndicator from "./steps/ProgressIndicator";
 
 interface ProfileSetupFlowProps {
-  onBack: () => void;
-  onComplete: () => void;
+  onComplete: (userId: string) => void;
 }
 
-const ProfileSetupFlow = ({ onBack, onComplete }: ProfileSetupFlowProps) => {
+const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -81,8 +80,6 @@ const ProfileSetupFlow = ({ onBack, onComplete }: ProfileSetupFlowProps) => {
   const handleBack = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
-    } else {
-      onBack();
     }
   };
 
@@ -155,7 +152,7 @@ const ProfileSetupFlow = ({ onBack, onComplete }: ProfileSetupFlowProps) => {
         description: "Your profile is ready for the next step"
       });
 
-      onComplete();
+      onComplete(mockUserId);
     } catch (error: any) {
       console.error('Profile creation error:', error);
       toast({

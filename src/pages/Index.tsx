@@ -20,8 +20,7 @@ const Index = () => {
     case 'profile':
       return (
         <ProfileSetupFlow 
-          onBack={() => setCurrentStep('splash')}
-          onComplete={() => setCurrentStep('subscription')}
+          onComplete={(userId) => setCurrentStep('subscription')}
         />
       );
 
