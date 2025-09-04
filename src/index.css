@@ -514,31 +514,83 @@
     animation: shimmer 1.5s infinite;
   }
 
-  /* GenZ App Container */
+  /* Instagram-like Responsive App Container */
   .genZ-app-container {
     position: relative;
     min-height: 100vh;
     background: transparent;
+    /* Progressive enhancement - lighter on mobile */
+    overflow-x: hidden;
+  }
+  
+  @media (max-width: 767px) {
+    .genZ-app-container {
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+  
+  @media (min-width: 768px) {
+    .genZ-app-container {
+      overflow: hidden;
+    }
   }
 
-  /* GenZ Glass Cards */
+  /* Instagram-like Glass Cards with Device Adaptation */
   .genZ-glass-card {
-    background: rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 24px;
+    background: rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 20px;
     box-shadow: 
       0 8px 32px rgba(0, 0, 0, 0.3),
       inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Touch-friendly minimum height */
+    min-height: 44px;
+  }
+  
+  /* Mobile optimizations */
+  @media (max-width: 767px) {
+    .genZ-glass-card {
+      background: rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      padding: 12px;
+    }
+  }
+  
+  /* Desktop enhancements */
+  @media (min-width: 768px) {
+    .genZ-glass-card:hover {
+      background: rgba(0, 0, 0, 0.25);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+      box-shadow: 
+        0 16px 48px rgba(0, 0, 0, 0.4),
+        0 0 32px rgba(147, 51, 234, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
   }
 
-  /* GenZ Floating Elements */
+  /* Instagram-like Floating Elements with GPU Acceleration */
   .genZ-floating-element {
     position: fixed;
     pointer-events: none;
     z-index: 1;
-    opacity: 0.6;
-    animation: floatRandom 10s ease-in-out infinite;
+    opacity: 0.4;
+    transform: translateZ(0);
+    will-change: transform;
+    animation: floatRandom 8s ease-in-out infinite;
+  }
+  
+  /* Reduce animations on mobile for performance */
+  @media (max-width: 767px) {
+    .genZ-floating-element {
+      opacity: 0.2;
+      animation: floatRandom 12s ease-in-out infinite;
+    }
   }
 
   @keyframes floatRandom {
@@ -556,15 +608,69 @@
     }
   }
 
-  /* Enhanced hover effects */
+  /* Instagram-like Interactive Effects */
   .genZ-hover-lift {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateZ(0);
+    cursor: pointer;
+  }
+  
+  /* No hover effects on touch devices */
+  @media (hover: hover) and (pointer: fine) {
+    .genZ-hover-lift:hover {
+      transform: translateY(-4px) translateZ(0) scale(1.02);
+      box-shadow: 
+        0 16px 48px rgba(0, 0, 0, 0.4),
+        0 0 32px rgba(147, 51, 234, 0.3);
+    }
   }
 
-  .genZ-hover-lift:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 
-      0 20px 60px rgba(0, 0, 0, 0.4),
-      0 0 40px rgba(147, 51, 234, 0.3);
+  /* Instagram-like Touch Feedback */
+  .touch-feedback {
+    transition: all 0.1s ease-out;
+    transform: translateZ(0);
+  }
+  
+  .touch-feedback:active {
+    transform: scale(0.96) translateZ(0);
+    opacity: 0.8;
+  }
+
+  /* PWA & App-like Styles */
+  .pwa-ready {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+  }
+
+  /* Instagram-like Smooth Scrolling */
+  .smooth-scroll {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  .smooth-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Device-specific Safe Areas */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .safe-area-left {
+    padding-left: env(safe-area-inset-left);
+  }
+  
+  .safe-area-right {
+    padding-right: env(safe-area-inset-right);
   }
 }

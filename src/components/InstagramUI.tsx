@@ -162,13 +162,28 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
       case "home":
         return (
           <div className="flex-1 overflow-y-auto bg-black min-h-screen scroll-smooth relative">
-            {/* GenZ Header - Updated for transparent background */}
-            <header className="sticky top-0 z-20 backdrop-blur-md bg-black/30 border-b border-white/10">
-              <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-pink-500 to-blue-500 bg-clip-text text-transparent">
-                  datingSigma
-                </h1>
-                <span className="text-sm text-white/80 font-medium">GenZ Dating 🔥</span>
+            {/* Instagram-style responsive header */}
+            <header className="sticky top-0 z-20 backdrop-blur-xl bg-black/40 border-b border-white/10 safe-area-top">
+              <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-glow">
+                    <span className="text-white font-bold text-lg sm:text-xl">💕</span>
+                  </div>
+                  <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-purple-400 via-pink-500 to-blue-500 bg-clip-text text-transparent">
+                    datingSigma
+                  </h1>
+                </div>
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <button 
+                    className="touch-feedback genZ-hover-lift p-2 sm:p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 min-w-[44px] min-h-[44px]"
+                    aria-label="Notifications"
+                  >
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5z" />
+                    </svg>
+                  </button>
+                  <span className="text-xs sm:text-sm text-white/80 font-medium hidden sm:block">GenZ Dating 🔥</span>
+                </div>
               </div>
             </header>
 
@@ -653,9 +668,9 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
       {/* Main Content */}
       {renderContent()}
 
-      {/* Premium Bottom Navigation - Enhanced GenZ */}
-      <div className="sticky bottom-0 genZ-glass-card border-t border-white/20 shadow-premium">
-        <div className="flex items-center justify-around py-6 px-4">
+      {/* Instagram-style bottom navigation */}
+      <div className="sticky bottom-0 genZ-glass-card border-t border-white/20 shadow-premium safe-area-bottom">
+        <div className="flex items-center justify-around py-2 sm:py-3 px-2 sm:px-4">
           {[
             { id: "home", icon: Home, label: "Home", gradient: "from-primary to-primary-glow", emoji: "🏠" },
             {
@@ -683,30 +698,31 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
             <Button
               key={tab.id}
               size="sm"
-              className={`flex-col space-y-2 h-auto py-4 px-4 relative bg-transparent border-0 transition-luxury group ${
+              className={`touch-feedback genZ-hover-lift flex-col space-y-1 sm:space-y-2 h-auto py-2 sm:py-4 px-2 sm:px-4 relative bg-transparent border-0 transition-all duration-200 group min-w-[60px] min-h-[60px] ${
                 activeTab === tab.id 
-                  ? "scale-110 -translate-y-3 shadow-glow" 
-                  : "hover:scale-105 hover:-translate-y-1 hover:shadow-soft"
+                  ? "scale-105 -translate-y-1 sm:-translate-y-3 shadow-glow" 
+                  : ""
               }`}
               onClick={() => setActiveTab(tab.id as any)}
+              aria-label={tab.label}
             >
-              <div className={`p-3 rounded-full bg-gradient-to-r ${tab.gradient} ${
+              <div className={`p-2 sm:p-3 rounded-full bg-gradient-to-r ${tab.gradient} ${
                 activeTab === tab.id ? 'shadow-premium animate-pulse-glow' : 'group-hover:shadow-royal'
-              }`}>
-                <tab.icon className="w-5 h-5 text-white" fill="currentColor" />
+              } transition-all duration-200`}>
+                <tab.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" />
               </div>
-              <div className="flex flex-col items-center space-y-1">
-                <span className={`text-xs font-modern font-medium ${
+              <div className="flex flex-col items-center space-y-0.5 sm:space-y-1">
+                <span className={`text-xs font-modern font-medium hidden sm:block ${
                   activeTab === tab.id 
                     ? `bg-gradient-to-r ${tab.gradient} bg-clip-text text-transparent font-semibold` 
                     : 'text-white/70 group-hover:text-white'
                 }`}>
                   {tab.label}
                 </span>
-                <span className="text-xs">{tab.emoji}</span>
+                <span className="text-xs sm:hidden">{tab.emoji}</span>
               </div>
               {activeTab === tab.id && (
-                <div className={`absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gradient-to-r ${tab.gradient} rounded-full animate-pulse-glow`}></div>
+                <div className={`absolute -top-0.5 sm:-top-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r ${tab.gradient} rounded-full animate-pulse-glow`}></div>
               )}
             </Button>
           ))}

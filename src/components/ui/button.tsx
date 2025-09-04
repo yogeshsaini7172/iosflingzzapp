@@ -5,34 +5,34 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold ring-offset-background transition-smooth focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-95",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold ring-offset-background transition-all duration-200 ease-elegant focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 transform-gpu touch-feedback pwa-ready",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft hover:shadow-medium",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft hover:shadow-medium active:scale-95",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-soft",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-soft active:scale-95",
         outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground shadow-soft",
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground shadow-soft active:scale-95",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-soft hover:shadow-medium",
-        ghost: "hover:bg-accent hover:text-accent-foreground rounded-xl",
-        link: "text-primary underline-offset-4 hover:underline",
-        hero: "bg-gradient-primary text-white hover:shadow-glow hover:scale-105 transition-bounce shadow-medium border-0 font-bold",
-        coral: "bg-gradient-coral text-white hover:shadow-coral hover:scale-105 transition-bounce shadow-medium border-0 font-bold",
-        verified: "bg-gradient-verified text-success-foreground hover:shadow-verified hover:scale-105 transition-bounce shadow-medium border-0 font-bold",
-        "ghost-white": "bg-white/10 text-white border border-white/20 hover:bg-white/20 backdrop-blur-sm rounded-xl",
-        premium: "bg-gradient-hero text-white hover:shadow-glow hover:scale-105 transition-bounce shadow-love border-0 font-bold relative overflow-hidden",
-        neon: "bg-primary/10 text-primary border-2 border-primary hover:bg-primary hover:text-primary-foreground shadow-glow backdrop-blur-sm font-bold",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-soft hover:shadow-medium active:scale-95",
+        ghost: "hover:bg-accent hover:text-accent-foreground rounded-xl active:scale-95",
+        link: "text-primary underline-offset-4 hover:underline active:scale-95",
+        hero: "bg-gradient-primary text-white hover:shadow-glow hover:scale-105 transition-bounce shadow-medium border-0 font-bold active:scale-95",
+        coral: "bg-gradient-coral text-white hover:shadow-coral hover:scale-105 transition-bounce shadow-medium border-0 font-bold active:scale-95",
+        verified: "bg-gradient-verified text-success-foreground hover:shadow-verified hover:scale-105 transition-bounce shadow-medium border-0 font-bold active:scale-95",
+        "ghost-white": "bg-white/10 text-white border border-white/20 hover:bg-white/20 backdrop-blur-sm rounded-xl active:scale-95",
+        premium: "bg-gradient-hero text-white hover:shadow-glow hover:scale-105 transition-bounce shadow-love border-0 font-bold relative overflow-hidden active:scale-95",
+        neon: "bg-primary/10 text-primary border-2 border-primary hover:bg-primary hover:text-primary-foreground shadow-glow backdrop-blur-sm font-bold active:scale-95",
       },
       size: {
-        default: "h-11 px-5 py-2.5",
-        sm: "h-9 rounded-lg px-3 text-xs",
-        lg: "h-14 rounded-xl px-8 text-base",
-        xl: "h-16 rounded-2xl px-10 text-lg",
-        icon: "h-11 w-11 rounded-xl",
-        "icon-sm": "h-9 w-9 rounded-lg",
-        "icon-lg": "h-14 w-14 rounded-xl",
+        default: "h-11 px-5 py-2.5 min-w-[44px]", // Instagram-like minimum touch target
+        sm: "h-9 rounded-lg px-3 text-xs min-w-[36px]",
+        lg: "h-14 rounded-xl px-8 text-base min-w-[56px]",
+        xl: "h-16 rounded-2xl px-10 text-lg min-w-[64px]",
+        icon: "h-11 w-11 rounded-xl min-w-[44px] min-h-[44px]", // iOS minimum touch target
+        "icon-sm": "h-9 w-9 rounded-lg min-w-[36px] min-h-[36px]",
+        "icon-lg": "h-14 w-14 rounded-xl min-w-[56px] min-h-[56px]",
       },
     },
     defaultVariants: {
