@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import DatingAppContainer from "./components/DatingAppContainer";
 import NotFound from "./pages/NotFound";
-import AuthScreen from "./components/auth/AuthScreen";
+import SimpleAuthScreen from "./components/auth/SimpleAuthScreen";
 import ProfileSetupFlow from "./components/profile/ProfileSetupFlow";
 import GenZBackground from "./components/ui/genZ-background";
 import AuthCallback from "./pages/AuthCallback";
@@ -24,7 +24,7 @@ const queryClient = new QueryClient({
 });
 
 function AppContent() {
-  const { user, session, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
   const [currentView, setCurrentView] = useState<'auth' | 'setup' | 'app'>('auth');
   const [hasProfile, setHasProfile] = useState(false);
   const [profileCheckLoading, setProfileCheckLoading] = useState(false);
@@ -42,7 +42,7 @@ function AppContent() {
         const { data, error } = await supabase
           .from('profiles')
           .select('id, first_name, is_active')
-          .eq('user_id', user.id)
+          .eq('user_id', user.uid)
           .maybeSingle();
         
         if (error) {
@@ -56,7 +56,7 @@ function AppContent() {
           setHasProfile(true);
           setCurrentView('app');
           // Set user ID in localStorage for demo compatibility
-          localStorage.setItem('demoUserId', user.id);
+          localStorage.setItem('demoUserId', user.uid);
         } else {
           setCurrentView('setup');
           setHasProfile(false);
@@ -106,7 +106,7 @@ function AppContent() {
             <Sonner />
             <Routes>
               <Route path="/auth/callback" element={<AuthCallback />} />
-              <Route path="*" element={<AuthScreen />} />
+              <Route path="*" element={<SimpleAuthScreen />} />
             </Routes>
           </GenZBackground>
         </TooltipProvider>
