@@ -20,37 +20,29 @@ export function useProfilesFeed() {
   const [profiles, setProfiles] = useState<FeedProfile[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const getCurrentUserId = () => {
+    return localStorage.getItem("demoUserId") || "6e6a510a-d406-4a01-91ab-64efdbca98f2";
+  };
+
   useEffect(() => {
     const fetchFeed = async () => {
-      if (!profile || !preferences) return;
-
       setLoading(true);
 
       try {
-        let query = supabase.from("profiles").select("*");
+        const currentUserId = getCurrentUserId();
+        
+        // Fetch profiles excluding current user
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .neq("user_id", currentUserId)
+          .eq("is_active", true)
+          .not("profile_images", "is", null)
+          .limit(20);
 
-        // 🚫 Exclude current user
-        query = query.neq("user_id", profile.user_id);
-
-        // ✅ Gender filter
-        if (preferences.preferred_gender?.length > 0) {
-          query = query.in("gender", preferences.preferred_gender);
-        }
-
-        // ✅ Age filter (calculate from DOB)
-        if (preferences.age_range_min && preferences.age_range_max) {
-          const currentYear = new Date().getFullYear();
-          const minYear = currentYear - preferences.age_range_max;
-          const maxYear = currentYear - preferences.age_range_min;
-
-          query = query.gte("date_of_birth", `${minYear}-01-01`);
-          query = query.lte("date_of_birth", `${maxYear}-12-31`);
-        }
-
-        // 🎯 Fetch 20 candidate profiles
-        const { data, error } = await query.limit(20);
         if (error) throw error;
 
+        console.log("✅ Fetched profiles:", data?.length);
         setProfiles(data || []);
       } catch (err) {
         console.error("❌ Error fetching feed profiles:", err);
@@ -60,7 +52,7 @@ export function useProfilesFeed() {
     };
 
     fetchFeed();
-  }, [profile, preferences]);
+  }, []); // Remove dependency on profile/preferences for now
 
   return { profiles, loading, setProfiles };
 }
