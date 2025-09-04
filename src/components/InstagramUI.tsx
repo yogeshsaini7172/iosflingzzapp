@@ -244,158 +244,21 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
               ))}
             </div>
 
-            {/* Enhanced Mobile Subscription Cards with Better Layout */}
-            <div className="px-6 py-16 max-w-md mx-auto">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl font-black mb-4 bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent">Choose Your Plan</h2>
-                <p className="text-gray-400 text-lg">Unlock your dating potential</p>
-              </div>
-              
-              <div className="space-y-6">
-              {plans.map((plan, index) => (
-                <div
-                  key={plan.id}
-                  className={`relative bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-3xl p-8 border border-gray-700/50 shadow-2xl animate-scale-in transition-all duration-300 hover:scale-102 hover:border-pink-500/30 ${
-                    index === 1 ? 'ring-2 ring-pink-500/50 scale-105 shadow-pink-500/25' : ''
-                  }`}
-                  style={{ animationDelay: `${index * 0.15}s` }}
-                >
-                  {/* Popular Badge */}
-                  {index === 1 && (
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                      <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-1 rounded-full text-xs font-bold">
-                        MOST POPULAR
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="text-2xl font-black text-white">{plan.name}</h3>
-                      <div className="text-2xl font-bold text-pink-400">{plan.price}</div>
-                    </div>
-                    <div className="text-3xl">
-                      {plan.id === 1 && "💜"}
-                      {plan.id === 2 && "👑"}
-                      {plan.id === 3 && "💎"}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 mb-6">
-                    {plan.features.slice(0, 3).map((feature, idx) => (
-                      <div key={idx} className="flex items-center space-x-3">
-                        <div className="w-4 h-4 bg-pink-500 rounded-full flex items-center justify-center">
-                          <span className="text-white text-xs">✓</span>
-                        </div>
-                        <span className="text-gray-300 text-sm">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <button
-                    className={`w-full py-3 font-bold rounded-2xl transition-all duration-300 ${
-                      index === 1 
-                        ? 'bg-gradient-to-r from-pink-600 to-purple-700 text-white' 
-                        : 'bg-gray-700 text-white hover:bg-gray-600'
-                    }`}
-                    onClick={() => alert(`Welcome to ${plan.name}! ✨`)}
-                  >
-                    Get {plan.name}
-                  </button>
-                </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Enhanced Success Stories with Better Layout */}
-            <div className="px-6 py-16 max-w-md mx-auto">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl font-black mb-4 bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent">Success Stories</h2>
-                <p className="text-gray-400 text-lg">Real love, real results</p>
-              </div>
-              
-              <div className="space-y-6">
-                {[
-                  {
-                    quote: "Found my soulmate in just 2 weeks!",
-                    author: "Emma & Jake",
-                    match: "98%"
-                  },
-                  {
-                    quote: "Finally, quality over quantity.",
-                    author: "Sarah & Alex", 
-                    match: "94%"
-                  },
-                  {
-                    quote: "The AI really understands me.",
-                    author: "Maya & Chris",
-                    match: "96%"
-                  }
-                ].map((story, index) => (
-                  <div 
-                    key={index}
-                    className="bg-gradient-to-r from-gray-900/80 to-gray-800/80 backdrop-blur-sm rounded-3xl p-6 border border-white/10 animate-scale-in"
-                    style={{ animationDelay: `${index * 0.2}s` }}
-                  >
-                    <p className="text-gray-200 italic mb-4">"{story.quote}"</p>
-                    <div className="flex justify-between items-center">
-                      <span className="font-bold text-white">{story.author}</span>
-                      <span className="bg-pink-500 text-white px-3 py-1 rounded-full text-xs font-bold">
-                        {story.match} match
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Enhanced Dating Preferences with Modern Layout */}
+            {/* Enhanced Dating Preferences - Text Version */}
             <div className="px-6 py-16 max-w-md mx-auto">
               <div className="text-center mb-12">
                 <h2 className="text-3xl font-black mb-4 bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent">Your Style</h2>
                 <p className="text-gray-400 text-lg">What are you looking for?</p>
               </div>
               
-              {/* Featured - Serious Relationship */}
-              <div className="mb-6">
-                <div className="bg-gradient-to-r from-pink-600/30 to-purple-600/30 backdrop-blur-sm rounded-3xl p-8 border-2 border-pink-500/50 text-center hover:scale-105 transition-all duration-300 cursor-pointer">
-                  <div className="text-5xl mb-4">💜</div>
-                  <h3 className="text-2xl font-black text-white mb-2">Serious Relationship</h3>
-                  <p className="text-gray-300">Ready for something real</p>
+              <div className="space-y-6 text-center">
+                <div className="space-y-4">
+                  <p className="text-xl font-bold text-white">💜 Serious Relationship - Ready for something real</p>
+                  <p className="text-lg text-gray-300">✨ Casual - Keep it light</p>
+                  <p className="text-lg text-gray-300">🌙 Slow Burn - Take your time</p>
+                  <p className="text-lg text-gray-300">🎭 Complex - It's complicated</p>
+                  <p className="text-lg text-gray-300">🎯 Selective - Quality first</p>
                 </div>
-              </div>
-              
-              {/* Other Options */}
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { emoji: "✨", title: "Casual", desc: "Keep it light" },
-                  { emoji: "🌙", title: "Slow Burn", desc: "Take time" },
-                  { emoji: "🎭", title: "Complex", desc: "It's complicated" },
-                  { emoji: "🎯", title: "Selective", desc: "Quality first" }
-                ].map((style, index) => (
-                  <div 
-                    key={style.title}
-                    className="bg-gray-900/80 backdrop-blur-sm rounded-2xl p-4 border border-gray-700 text-center hover:border-gray-600 transition-all duration-300 cursor-pointer animate-scale-in"
-                    style={{ animationDelay: `${index * 0.1}s` }}
-                  >
-                    <div className="text-3xl mb-2">{style.emoji}</div>
-                    <h3 className="font-bold text-white text-sm mb-1">{style.title}</h3>
-                    <p className="text-gray-400 text-xs">{style.desc}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Enhanced Final CTA with Premium Layout */}
-            <div className="px-6 py-20 max-w-md mx-auto text-center">
-              <div className="bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-md rounded-3xl p-10 border border-gray-700/50 shadow-2xl">
-                <h2 className="text-4xl font-black mb-6 bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent">Ready to Start?</h2>
-                <p className="text-gray-300 mb-10 leading-relaxed text-lg">
-                  Join thousands finding meaningful connections through intelligent matching.
-                </p>
-                <button className="w-full bg-gradient-to-r from-pink-600 to-purple-700 text-white font-bold py-5 rounded-full text-xl hover:from-pink-700 hover:to-purple-800 transition-all duration-300 shadow-lg hover:shadow-pink-500/25">
-                  Begin Your Journey ✨
-                </button>
               </div>
             </div>
           </div>
@@ -503,31 +366,35 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
           clipPath: 'polygon(5% 0%, 95% 0%, 100% 15%, 100% 85%, 95% 100%, 5% 100%, 0% 85%, 0% 15%)'
         }}>
           {[
-            { id: "home", icon: Home, label: "Home", color: "text-pink-500" },
-            { id: "swipe", icon: Heart, label: "Swipe", color: "text-red-500" },
+            { id: "home", icon: Home, label: "Home", color: "text-pink-600" },
+            { id: "swipe", icon: Heart, label: "Swipe", color: "text-red-600" },
             {
               id: "pairing",
-              icon: Zap,
+              icon: Heart,
               label: "Pairing",
-              color: "text-yellow-400",
+              color: "text-yellow-500",
             },
             {
               id: "blinddate",
               icon: Coffee,
               label: "Blind Date",
-              color: "text-orange-500",
+              color: "text-orange-600",
             },
             {
               id: "profile",
               icon: User,
               label: "Profile",
-              color: "text-purple-500",
+              color: "text-purple-600",
             },
           ].map((tab) => (
             <Button
               key={tab.id}
               size="sm"
-              className={`flex-col space-y-1 h-auto py-3 px-4 relative bg-transparent border-0 outline-none focus:outline-none hover:outline-none active:outline-none ${tab.color}`}
+              className={`flex-col space-y-1 h-auto py-3 px-4 relative bg-transparent border-0 outline-none focus:outline-none hover:outline-none active:outline-none transition-all duration-300 ${tab.color} ${
+                activeTab === tab.id 
+                  ? "scale-110 -translate-y-2 drop-shadow-2xl" 
+                  : "hover:scale-105 hover:-translate-y-1 hover:drop-shadow-lg"
+              }`}
               onClick={() => setActiveTab(tab.id as any)}
             >
               <tab.icon className="w-6 h-6" fill="currentColor" />
