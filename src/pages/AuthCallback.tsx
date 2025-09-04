@@ -11,7 +11,31 @@ export default function AuthCallback() {
       try {
         console.log('AuthCallback: Starting OAuth callback handling');
         
-        // First, let Supabase handle the OAuth callback automatically
+        // Check for OAuth code in URL and exchange it for session
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        
+        if (code) {
+          console.log('AuthCallback: Found OAuth code, exchanging for session');
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+          
+          if (error) {
+            console.error('AuthCallback: Code exchange error:', error);
+            setStatus(`Login failed: ${error.message}`);
+            return;
+          }
+          
+          if (data.session?.user) {
+            console.log('AuthCallback: Session created successfully');
+            setStatus('Login successful! Redirecting...');
+            setTimeout(() => {
+              navigate('/app', { replace: true });
+            }, 100);
+            return;
+          }
+        }
+        
+        // Fallback: Check for existing session
         const { data, error } = await supabase.auth.getSession();
         
         console.log('AuthCallback: Session check result:', { 
