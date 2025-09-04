@@ -1,11 +1,11 @@
-import PremiumSwipeCards from '@/components/dating/PremiumSwipeCards';
+import EnhancedSwipeInterface from '@/components/swipe/EnhancedSwipeInterface';
 
 interface SwipePageProps {
   onNavigate: (view: string) => void;
 }
 
 const SwipePage = ({ onNavigate }: SwipePageProps) => {
-  return <PremiumSwipeCards onNavigate={onNavigate} />;
+  return <EnhancedSwipeInterface onNavigate={onNavigate} />;
 };
 
 export default SwipePage;
