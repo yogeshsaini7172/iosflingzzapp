@@ -307,65 +307,6 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
             {/* Revolutionary Features Section */}
             <div className="relative py-24 bg-gradient-to-br from-muted/50 to-background overflow-hidden">
 
-              <div className="relative z-10 max-w-6xl mx-auto px-4">
-                <div className="text-center mb-16 animate-elegant-entrance">
-                  <span className="inline-block px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium mb-6">
-                    🚀 Next Generation Features
-                  </span>
-                  <h2 className="text-4xl md:text-6xl font-elegant font-black mb-6 tracking-tight">
-                    Why We're
-                    <span className="text-gradient-gold animate-shimmer"> Different</span>
-                  </h2>
-                  <p className="text-xl text-muted-foreground font-modern max-w-2xl mx-auto">
-                    Revolutionary technology meets human connection
-                  </p>
-                </div>
-
-                {/* Features Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  {[
-                    {
-                      icon: "🧠",
-                      title: "AI-Powered Matching",
-                      description: "Advanced neural networks analyze personality, values, and lifestyle for perfect compatibility",
-                      gradient: "from-primary to-primary-glow",
-                      delay: "0s"
-                    },
-                    {
-                      icon: "🔐",
-                      title: "Verified Profiles",
-                      description: "Multi-layer verification ensures authentic connections with real people",
-                      gradient: "from-accent to-accent-glow", 
-                      delay: "0.2s"
-                    },
-                    {
-                      icon: "💎",
-                      title: "Premium Experience",
-                      description: "Curated matches, priority support, and exclusive events for members",
-                      gradient: "from-secondary to-secondary-glow",
-                      delay: "0.4s"
-                    }
-                  ].map((feature, index) => (
-                    <div 
-                      key={index} 
-                      className="group relative animate-bounce-in" 
-                      style={{ animationDelay: feature.delay }}
-                    >
-                      <div className="relative glass-luxury rounded-3xl p-8 border-gradient shadow-premium hover-elegant transition-luxury h-full">
-                        <div className={`w-16 h-16 bg-gradient-to-r ${feature.gradient} rounded-2xl mb-6 flex items-center justify-center text-2xl animate-pulse-glow group-hover:scale-110 transition-luxury`}>
-                          {feature.icon}
-                        </div>
-                        <h3 className="text-xl font-elegant font-bold mb-4 text-foreground group-hover:text-gradient-primary transition-colors">
-                          {feature.title}
-                        </h3>
-                        <p className="text-muted-foreground font-modern leading-relaxed">
-                          {feature.description}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
 
             {/* Interactive Preferences Section */}
