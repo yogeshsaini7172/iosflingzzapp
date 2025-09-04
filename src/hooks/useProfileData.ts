@@ -95,10 +95,6 @@ export const useProfileData = () => {
     }
   };
 
-  useEffect(() => {
-    fetchProfileData();
-  }, []);
-
   const updateProfile = async (updates: Partial<Profile>) => {
     const userId = getCurrentUserId();
     
@@ -154,6 +150,10 @@ export const useProfileData = () => {
       });
     }
   };
+
+  useEffect(() => {
+    fetchProfileData();
+  }, []);
 
   return {
     profile,
