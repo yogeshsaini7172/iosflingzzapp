@@ -525,11 +525,20 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
             <Button
               key={tab.id}
               size="sm"
-              className={`flex-col space-y-1 h-auto py-3 px-4 relative rounded-2xl transition-all duration-300 text-white bg-gradient-to-br ${tab.gradient} border-0 outline-none focus:outline-none hover:outline-none active:outline-none ${
+              className={`flex-col space-y-1 h-auto py-3 px-4 relative transition-all duration-300 text-white bg-gradient-to-br ${tab.gradient} border-0 outline-none focus:outline-none hover:outline-none active:outline-none ${
+                tab.id === 'pairing' 
+                  ? 'rounded-none' 
+                  : 'rounded-none'
+              } ${
                 activeTab === tab.id 
                   ? "shadow-2xl shadow-purple-500/50 scale-105 -translate-y-2" 
                   : "shadow-lg shadow-black/20 hover:scale-102 hover:-translate-y-1 hover:shadow-xl"
               }`}
+              style={{
+                clipPath: tab.id === 'pairing' 
+                  ? 'path("M12,21.35l-1.45-1.32C5.4,15.36,2,12.28,2,8.5 C2,5.42,4.42,3,7.5,3c1.74,0,3.41,0.81,4.5,2.09C13.09,3.81,14.76,3,16.5,3 C19.58,3,22,5.42,22,8.5c0,3.78-3.4,6.86-8.55,11.54L12,21.35z")' 
+                  : 'polygon(15% 0%, 85% 0%, 100% 15%, 100% 85%, 85% 100%, 15% 100%, 0% 85%, 0% 15%)'
+              }}
               onClick={() => setActiveTab(tab.id as any)}
             >
               <tab.icon className="w-6 h-6" />
