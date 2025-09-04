@@ -18,14 +18,21 @@ export const usePairing = () => {
     try {
       setLoading(true);
 
-      // Call the pairing-matches function
-      const { data, error } = await supabase.functions.invoke("pairing-matches", {
-        body: { user_id: userId, limit: 10 }
+      // Call the swipe-feed function (new enhanced function)
+      const { data, error } = await supabase.functions.invoke("swipe-feed", {
+        body: { 
+          user_id: userId, 
+          limit: 10,
+          filters: {
+            ageMin: 18,
+            ageMax: 30
+          }
+        }
       });
 
       if (error) throw error;
 
-      setPairedProfiles(data?.matches || []);
+      setPairedProfiles(data?.profiles || []);
     } catch (error: any) {
       console.error("❌ Error fetching paired profiles:", error);
       // Friendly fallback: show suggested profiles if pairing limit reached or function fails

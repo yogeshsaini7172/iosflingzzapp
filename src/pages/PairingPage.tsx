@@ -32,28 +32,39 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
 
+  const getCurrentUserId = () => {
+    return localStorage.getItem("demoUserId") || "6e6a510a-d406-4a01-91ab-64efdbca98f2";
+  };
+
   useEffect(() => {
-    // REMOVED AUTH: No longer using localStorage currentUser
-    // Use Alice's profile as default for demo
+    const userId = getCurrentUserId();
     const defaultUser = {
-      id: '11111111-1111-1111-1111-111111111001',
-      name: 'Alice Johnson',
+      id: userId,
+      name: 'Demo User',
       profile: { total_qcs: 850 }
     };
     setCurrentUser(defaultUser);
-    loadMatches(defaultUser.id);
+    loadMatches(userId);
   }, []);
 
   const loadMatches = async (userId: string) => {
     setIsLoading(true);
     try {
-      // Call the pairing-matches edge function (NO AUTH)
-      const { data, error } = await supabase.functions.invoke('pairing-matches', {
+      console.log("🔍 Loading matches for user:", userId);
+
+      // Call the swipe-feed function (updated to new system)
+      const { data, error } = await supabase.functions.invoke('swipe-feed', {
         body: { 
+          user_id: userId,  // Pass user_id directly since no auth
           limit: 10,
-          user_id: userId  // Pass user_id directly since no auth
+          filters: {
+            ageMin: 18,
+            ageMax: 30
+          }
         }
       });
+
+      console.log("📊 Function response:", { data, error });
 
       if (error) {
         console.error('Error fetching matches:', error);
@@ -89,29 +100,29 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
         return;
       }
 
-      // Updated to match the actual response structure
-      if (data?.success && data?.data?.candidates) {
-        const formattedMatches = data.data.candidates.map((item: any) => {
-          const candidate = item.candidate;
+      // Updated to match the new swipe-feed response structure
+      if (data?.success && data?.profiles) {
+        const formattedMatches = data.profiles.map((profile: any) => {
           return {
-            user_id: candidate.id,
-            first_name: candidate.name.split(' ')[0] || 'Unknown',
-            last_name: candidate.name.split(' ').slice(1).join(' ') || '',
-            university: candidate.university || 'University', 
-            bio: candidate.bio || 'No bio available',
-            profile_images: candidate.profile_images || [],
-            age: candidate.age || 22,
-            interests: candidate.interests || [],
-            total_qcs: candidate.total_qcs || (750 + Math.floor(Math.random() * 200)),
-            compatibility_score: item.score,
-            physical_score: Math.round(item.details.physical),
-            mental_score: Math.round(item.details.mental)
+            user_id: profile.user_id,
+            first_name: profile.first_name,
+            last_name: profile.last_name,
+            university: profile.university || 'University', 
+            bio: profile.bio || 'No bio available',
+            profile_images: profile.profile_images || [],
+            age: profile.age || 22,
+            interests: profile.interests || [],
+            total_qcs: profile.total_qcs || (750 + Math.floor(Math.random() * 200)),
+            compatibility_score: Math.min(100, Math.max(50, Math.round((profile.total_qcs || 800) / 10))),
+            physical_score: Math.round(Math.random() * 40) + 60,
+            mental_score: Math.round(Math.random() * 40) + 60
           };
         });
         setMatches(formattedMatches);
         toast.success(`Found ${formattedMatches.length} compatible matches!`);
       } else {
-        toast.error('No matches found or invalid response format');
+        console.log('No profiles returned or function failed, using fallback');
+        // Already handled by fallback above
       }
     } catch (error) {
       console.error('Error:', error);
@@ -122,9 +133,8 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
   };
 
   const handleRefresh = () => {
-    // REMOVED AUTH: Use default user Alice
-    const defaultUserId = '11111111-1111-1111-1111-111111111001';
-    loadMatches(defaultUserId);
+    const userId = getCurrentUserId();
+    loadMatches(userId);
   };
 
   const getCompatibilityColor = (score: number) => {

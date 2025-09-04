@@ -59,37 +59,69 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
     setIsLoading(true);
     const userId = getCurrentUserId();
 
+    console.log("🔍 Starting profile fetch for user:", userId);
+
     try {
-      // Get profiles excluding already swiped users and current user
-      const { data: swipedIds } = await supabase
+      // First, try direct database query as it's more reliable
+      console.log("📊 Using direct database query for profiles");
+      
+      // Get already swiped users
+      const { data: swipedIds, error: swipeError } = await supabase
         .from("enhanced_swipes")
         .select("target_user_id")
         .eq("user_id", userId);
 
-      const excludedIds = [userId, ...(swipedIds?.map(s => s.target_user_id) || [])];
+      if (swipeError) {
+        console.log("⚠️ No swipe history found (expected for new users):", swipeError);
+      }
+
+      // Get ghosted users to exclude
+      const { data: ghostedIds } = await supabase
+        .from("user_interactions")
+        .select("target_user_id")
+        .eq("user_id", userId)
+        .eq("interaction_type", "ghost")
+        .gt("expires_at", new Date().toISOString());
+
+      const excludedIds = [
+        userId,
+        ...(swipedIds?.map(s => s.target_user_id) || []),
+        ...(ghostedIds?.map(g => g.target_user_id) || [])
+      ];
+
+      console.log("🚫 Excluding user IDs:", excludedIds);
 
       const { data: profilesData, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("is_active", true)
         .not("user_id", "in", `(${excludedIds.join(",")})`)
-        .gte("date_of_birth", new Date(new Date().getFullYear() - filters.ageMax, 0, 1).toISOString())
-        .lte("date_of_birth", new Date(new Date().getFullYear() - filters.ageMin, 11, 31).toISOString())
         .limit(10);
 
-      if (error) throw error;
+      if (error) {
+        console.error("❌ Database query error:", error);
+        throw error;
+      }
 
       const formattedProfiles = (profilesData || []).map(profile => ({
         ...profile,
-        age: new Date().getFullYear() - new Date(profile.date_of_birth).getFullYear()
+        age: profile.date_of_birth ? new Date().getFullYear() - new Date(profile.date_of_birth).getFullYear() : 22
       }));
 
+      console.log("✅ Fetched profiles via DB:", formattedProfiles.length);
       setProfiles(formattedProfiles);
+      
+      if (formattedProfiles.length > 0) {
+        toast({
+          title: "Profiles Loaded!",
+          description: `Found ${formattedProfiles.length} profiles to explore`,
+        });
+      }
     } catch (error: any) {
-      console.error("Error fetching profiles:", error);
+      console.error("❌ Error fetching feed profiles:", error);
       toast({
         title: "Error",
-        description: "Failed to load profiles",
+        description: "Failed to load profiles. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -103,8 +135,10 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
     const currentProfile = profiles[currentIndex];
     const userId = getCurrentUserId();
 
+    console.log(`🎯 Processing ${direction} swipe:`, { userId, targetId: currentProfile.user_id });
+
     try {
-      // Record the swipe
+      // Use direct database operations for reliability
       const { error: swipeError } = await supabase
         .from("enhanced_swipes")
         .insert({
@@ -113,7 +147,12 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
           direction: direction
         });
 
-      if (swipeError) throw swipeError;
+      if (swipeError) {
+        console.error("❌ Swipe insert error:", swipeError);
+        throw swipeError;
+      }
+
+      console.log("✅ Swipe recorded successfully");
 
       if (direction === 'right') {
         // Check if other user already swiped right
@@ -125,13 +164,20 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
           .eq("direction", "right")
           .maybeSingle();
 
+        console.log("🔍 Checking for mutual like:", { otherSwipe });
+
         if (otherSwipe) {
-          // Create match and chat room
+          console.log("🎉 Mutual match found! Creating match record...");
+          
+          // Create match record
+          const user1_id = userId < currentProfile.user_id ? userId : currentProfile.user_id;
+          const user2_id = userId < currentProfile.user_id ? currentProfile.user_id : userId;
+
           const { data: match, error: matchError } = await supabase
             .from("enhanced_matches")
             .insert({
-              user1_id: userId < currentProfile.user_id ? userId : currentProfile.user_id,
-              user2_id: userId < currentProfile.user_id ? currentProfile.user_id : userId,
+              user1_id,
+              user2_id,
               status: 'matched',
               user1_swiped: true,
               user2_swiped: true
@@ -139,8 +185,14 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
             .select()
             .single();
 
-          if (matchError) throw matchError;
+          if (matchError) {
+            console.error("❌ Match creation error:", matchError);
+            throw matchError;
+          }
 
+          console.log("✅ Match created:", match);
+
+          // Create chat room
           const { data: chatRoom, error: chatError } = await supabase
             .from("chat_rooms")
             .insert({
@@ -151,7 +203,12 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
             .select()
             .single();
 
-          if (chatError) throw chatError;
+          if (chatError) {
+            console.error("❌ Chat room creation error:", chatError);
+            throw chatError;
+          }
+
+          console.log("✅ Chat room created:", chatRoom);
 
           toast({
             title: "🎉 It's a Match!",
@@ -160,20 +217,27 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
 
           setMatchedChatId(chatRoom.id);
         } else {
+          console.log("💝 Like sent, waiting for match");
           toast({
             title: "Liked!",
             description: `You liked ${currentProfile.first_name}`,
           });
         }
+      } else {
+        console.log("👋 Profile passed");
+        toast({
+          title: "Passed",
+          description: `You passed on ${currentProfile.first_name}`,
+        });
       }
 
       // Move to next profile
       setCurrentIndex(prev => prev + 1);
     } catch (error: any) {
-      console.error("Error handling swipe:", error);
+      console.error("❌ Error handling swipe:", error);
       toast({
         title: "Error",
-        description: "Failed to process swipe",
+        description: "Failed to process swipe. Please try again.",
         variant: "destructive",
       });
     }
