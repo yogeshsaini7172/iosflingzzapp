@@ -8,9 +8,10 @@ import { useToast } from "@/hooks/use-toast";
 interface IDVerificationStepProps {
   data: any;
   onChange: (data: any) => void;
+  onVerificationStatusChange?: (status: 'idle' | 'pending' | 'verified' | 'failed', details?: any) => void;
 }
 
-const IDVerificationStep = ({ data, onChange }: IDVerificationStepProps) => {
+const IDVerificationStep = ({ data, onChange, onVerificationStatusChange }: IDVerificationStepProps) => {
   const [collegeIdFile, setCollegeIdFile] = useState<File | null>(data.collegeIdFile);
   const [govtIdFile, setGovtIdFile] = useState<File | null>(data.govtIdFile);
   const [isUploading, setIsUploading] = useState(false);
@@ -56,28 +57,68 @@ const IDVerificationStep = ({ data, onChange }: IDVerificationStepProps) => {
     }
   };
 
-  const handleSubmitVerification = async () => {
-    if (!collegeIdFile && !govtIdFile) {
+const handleSubmitVerification = async () => {
+  if (!govtIdFile) {
+    toast({
+      title: "Government ID required",
+      description: "Please upload a government ID to verify.",
+      variant: "destructive"
+    });
+    return;
+  }
+
+  try {
+    setIsUploading(true);
+
+    const formData = new FormData();
+    formData.append('govt_id', govtIdFile);
+    if (collegeIdFile) formData.append('secondary_id', collegeIdFile);
+
+    const fullName = [data.firstName, data.lastName].filter(Boolean).join(' ').trim();
+    if (fullName) formData.append('signup_name', fullName);
+    if (data.dateOfBirth) formData.append('signup_dob', data.dateOfBirth);
+
+    const demoUserId = localStorage.getItem('demoUserId');
+    if (demoUserId) formData.append('user_id', demoUserId);
+
+    onVerificationStatusChange?.('pending');
+
+    const res = await fetch('https://cchvsqeqiavhanurnbeo.functions.supabase.co/id-verification', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjaHZzcWVxaWF2aGFudXJuYmVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1MjI4OTMsImV4cCI6MjA3MjA5ODg5M30.6EII7grfX9gCUx6haU2wIfoiMDPrFTQn2XMDi6cY5-U'
+      },
+      body: formData
+    });
+
+    const result = await res.json();
+
+    if (result.status === 'verified') {
       toast({
-        title: "No documents uploaded",
-        description: "Please upload at least one form of ID to proceed",
+        title: "Verified ✅",
+        description: "Your ID has been successfully verified."
+      });
+      onVerificationStatusChange?.('verified', result);
+    } else {
+      toast({
+        title: "Verification failed",
+        description: result.reason || "Please re-upload clear photos and try again.",
         variant: "destructive"
       });
-      return;
+      onVerificationStatusChange?.('failed', result);
     }
-
-    setIsUploading(true);
-    
-    // Simulate upload process
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
+  } catch (error: any) {
+    console.error('Verification error:', error);
     toast({
-      title: "Documents submitted! 📋",
-      description: "Your verification request has been submitted for review"
+      title: "Verification error",
+      description: error.message || "Something went wrong. Please try again.",
+      variant: "destructive"
     });
-    
+    onVerificationStatusChange?.('failed');
+  } finally {
     setIsUploading(false);
-  };
+  }
+};
 
   return (
     <div className="space-y-6 animate-fade-in">

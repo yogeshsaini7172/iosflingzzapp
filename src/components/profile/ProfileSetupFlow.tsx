@@ -9,6 +9,7 @@ import WhoYouWantStep from "./steps/WhoYouWantStep";
 import UploadPhotosStep from "./steps/UploadPhotosStep";
 import IDVerificationStep from "./steps/IDVerificationStep";
 import ProgressIndicator from "./steps/ProgressIndicator";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ProfileSetupFlowProps {
   onComplete: () => void;
@@ -17,6 +18,7 @@ interface ProfileSetupFlowProps {
 const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState<'idle' | 'pending' | 'verified' | 'failed'>('idle');
   const { toast } = useToast();
 
   // Profile Data State
