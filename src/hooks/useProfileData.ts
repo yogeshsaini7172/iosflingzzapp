@@ -63,7 +63,7 @@ export const useProfileData = () => {
         .from("profiles")
         .select("*")
         .eq("user_id", userId)
-        .single();
+        .maybeSingle();
 
       if (profileError) throw profileError;
       setProfile(profileData);
@@ -73,7 +73,7 @@ export const useProfileData = () => {
         .from("partner_preferences")
         .select("*")
         .eq("user_id", userId)
-        .single();
+        .maybeSingle();
 
       if (!prefError && prefData) {
         // Cast gender safely

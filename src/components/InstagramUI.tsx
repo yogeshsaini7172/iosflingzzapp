@@ -24,6 +24,7 @@ import QCSDisplay from "@/components/scoring/QCSDisplay";
 import UserSelector from "@/components/debug/UserSelector";
 import SwipeCards from "@/components/swipe/SwipeCards";
 import PairingMatches from "@/components/pairing/PairingMatches";
+import GhostBenchBar from "@/components/ui/ghost-bench-bar";
 
 interface InstagramUIProps {
   onNavigate: (view: string) => void;
@@ -137,7 +138,8 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
 
       case "pairing":
         return (
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <GhostBenchBar onChatSelected={() => onNavigate('chat')} />
             <PairingMatches />
           </div>
         );

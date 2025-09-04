@@ -1,11 +1,11 @@
-import ChatSystem from '@/components/chat/ChatSystem';
+import EnhancedChatSystem from '@/components/chat/EnhancedChatSystem';
 
 interface ChatPageProps {
   onNavigate: (view: string) => void;
 }
 
 const ChatPage = ({ onNavigate }: ChatPageProps) => {
-  return <ChatSystem onNavigate={onNavigate} />;
+  return <EnhancedChatSystem onNavigate={onNavigate} />;
 };
 
 export default ChatPage;
