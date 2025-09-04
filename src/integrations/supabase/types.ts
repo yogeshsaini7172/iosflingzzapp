@@ -867,15 +867,7 @@ export type Database = {
           profile_id?: string | null
           username?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "test_users_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       user_interactions: {
         Row: {
