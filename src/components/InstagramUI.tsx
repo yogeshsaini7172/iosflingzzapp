@@ -498,8 +498,8 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
       {renderContent()}
 
       {/* Bottom Navigation */}
-      <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t">
-        <div className="flex items-center justify-around py-2 backdrop-blur-xl bg-white/5 border-t border-white/10 shadow-lg">
+      <div className="sticky bottom-0 bg-white/80 backdrop-blur-md border-t border-gray-200/20 shadow-lg">
+        <div className="flex items-center justify-around py-3">
           {[
             { id: "home", icon: Home, label: "Home", color: "text-blue-500" },
             { id: "swipe", icon: Heart, label: "Swipe", color: "text-red-500" },
