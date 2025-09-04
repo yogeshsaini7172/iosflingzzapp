@@ -526,10 +526,10 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
               key={tab.id}
               variant="ghost"
               size="sm"
-              className={`flex-col space-y-1 h-auto py-3 px-3 relative rounded-full w-16 h-16 ${
+              className={`flex-col space-y-1 h-auto py-3 px-3 relative rounded-full w-16 h-16 hover:bg-transparent active:bg-transparent focus:bg-transparent ${
                 activeTab === tab.id 
-                  ? `${tab.color} bg-blue-500 border-2 border-black shadow-lg` 
-                  : "text-gray-600 bg-gray-200 border border-gray-400"
+                  ? `text-white bg-gradient-to-br from-purple-500 to-pink-500 border-2 border-black shadow-lg` 
+                  : "text-gray-600 bg-white/60 border border-gray-400"
               }`}
               onClick={() => setActiveTab(tab.id as any)}
             >
