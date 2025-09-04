@@ -378,20 +378,19 @@ const EnhancedProfileDisplay: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
 
-        {/* About Me - Mobile */}
-        {profileData.bio && (
-          <div className="genZ-glass-card p-3 rounded-2xl border border-white/20">
-            <h4 className="text-lg font-bold text-gradient-primary mb-2 flex items-center">
-              <Sparkles className="w-4 h-4 mr-2" />
-              About Me
-            </h4>
-            <p className="text-white/90 leading-relaxed italic text-sm">
-              "{profileData.bio}"
-            </p>
-          </div>
-        )}
+          {/* About Me - Mobile */}
+          {profileData.bio && (
+            <div className="genZ-glass-card p-3 rounded-2xl border border-white/20">
+              <h4 className="text-lg font-bold text-gradient-primary mb-2 flex items-center">
+                <Sparkles className="w-4 h-4 mr-2" />
+                About Me
+              </h4>
+              <p className="text-white/90 leading-relaxed italic text-sm">
+                "{profileData.bio}"
+              </p>
+            </div>
+          )}
 
           {/* Interests - Mobile */}
           {profileData.interests && profileData.interests.length > 0 && (
