@@ -1,219 +1,336 @@
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Heart, X, MoreHorizontal, MapPin, Cake, User, BookOpen } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import React from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent } from '@/components/ui/card';
+import { 
+  Heart, 
+  MessageCircle, 
+  MapPin, 
+  GraduationCap, 
+  Briefcase, 
+  Coffee,
+  Music,
+  Camera,
+  Gamepad2,
+  Plane,
+  Book,
+  Dumbbell,
+  Shield,
+  Brain,
+  Star,
+  X,
+  ChevronLeft,
+  ChevronRight
+} from 'lucide-react';
 
 interface DetailedProfileModalProps {
-  profile: any;
   isOpen: boolean;
   onClose: () => void;
-  onSwipe: (direction: 'left' | 'right') => void;
+  profile: {
+    user_id: string;
+    first_name: string;
+    last_name?: string;
+    university: string;
+    profile_images?: string[];
+    bio?: string;
+    total_qcs?: number;
+    compatibility_score?: number;
+    can_chat?: boolean;
+    age?: number;
+    location?: string;
+    occupation?: string;
+    interests?: string[];
+    education?: string;
+    height?: string | number;
+    relationship_goals?: string | string[];
+    smoking?: string;
+    drinking?: string;
+    exercise?: string;
+    pets?: string;
+  };
+  onChatRequest?: (userId: string, canChat: boolean) => void;
+  onSwipe?: (direction: "left" | "right") => Promise<void>;
 }
 
-const DetailedProfileModal = ({ profile, isOpen, onClose, onSwipe }: DetailedProfileModalProps) => {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
-  if (!profile) return null;
-
-  const handleSwipe = (direction: 'left' | 'right') => {
-    onSwipe(direction);
-    onClose();
+const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
+  isOpen,
+  onClose,
+  profile,
+  onChatRequest,
+  onSwipe
+}) => {
+  const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
+  
+  const mockProfileData = {
+    age: 23,
+    location: "Mumbai, India",
+    occupation: "Software Engineer",
+    interests: ["Photography", "Travel", "Music", "Coffee", "Fitness"],
+    education: `Computer Science, ${profile.university}`,
+    height: "5'8\"",
+    relationship_goals: "Long-term relationship",
+    smoking: "Never",
+    drinking: "Socially",
+    exercise: "Regular",
+    pets: "Love dogs"
   };
 
-  const getOrientationLabel = (gender: string, relationshipGoals: string[]) => {
-    // Simple logic - in real app this would be more sophisticated
-    if (relationshipGoals?.includes('serious relationship')) return 'Looking for serious';
-    if (relationshipGoals?.includes('casual dating')) return 'Casual';
-    return 'Straight'; // Default fallback
+  const images = profile.profile_images || [];
+  const totalImages = Math.max(images.length, 3); // Show at least 3 placeholder images
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % totalImages);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + totalImages) % totalImages);
+  };
+
+  const getInterestIcon = (interest: string) => {
+    const iconMap: Record<string, React.ComponentType<any>> = {
+      'Photography': Camera,
+      'Travel': Plane,
+      'Music': Music,
+      'Coffee': Coffee,
+      'Fitness': Dumbbell,
+      'Gaming': Gamepad2,
+      'Reading': Book,
+    };
+    return iconMap[interest] || Star;
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md h-[90vh] p-0 overflow-hidden">
-        <div className="relative h-full flex flex-col">
-          {/* Header */}
-          <DialogHeader className="absolute top-0 left-0 right-0 z-20 p-4 bg-transparent">
-            <div className="flex justify-between items-center">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClose}
-                className="text-white bg-black/20 backdrop-blur-sm rounded-full"
-              >
-                <X className="w-5 h-5" />
-              </Button>
-              <h2 className="text-white font-semibold bg-black/20 backdrop-blur-sm px-4 py-2 rounded-full">
-                {profile.first_name}
-              </h2>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-white bg-black/20 backdrop-blur-sm rounded-full"
-              >
-                <MoreHorizontal className="w-5 h-5" />
-              </Button>
-            </div>
-          </DialogHeader>
+      <DialogContent className="max-w-md mx-auto max-h-[90vh] overflow-y-auto p-0 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950">
+        {/* Header */}
+        <DialogHeader className="p-4 pb-0">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Profile Details
+            </DialogTitle>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
+        </DialogHeader>
 
-          <ScrollArea className="flex-1">
-            {/* Main Profile Image */}
-            <div className="relative h-80">
-              {profile.profile_images && profile.profile_images.length > 0 ? (
-                <img
-                  src={profile.profile_images[currentImageIndex] || profile.profile_images[0]}
-                  alt={profile.first_name}
-                  className="w-full h-full object-cover"
+        {/* Profile Images Carousel */}
+        <div className="relative">
+          <div className="h-96 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 flex items-center justify-center relative overflow-hidden">
+            {images.length > 0 ? (
+              <img 
+                src={images[currentImageIndex]} 
+                alt={`${profile.first_name}'s photo`}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="text-8xl animate-pulse-glow">
+                {currentImageIndex === 0 ? '🌸' : currentImageIndex === 1 ? '🌺' : '🌻'}
+              </div>
+            )}
+            
+            {/* Image Navigation */}
+            {totalImages > 1 && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={prevImage}
+                  className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white backdrop-blur-sm rounded-full"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={nextImage}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white backdrop-blur-sm rounded-full"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </Button>
+              </>
+            )}
+
+            {/* Image Indicators */}
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+              {Array.from({ length: totalImages }).map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentImageIndex(index)}
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    index === currentImageIndex 
+                      ? 'bg-white scale-125' 
+                      : 'bg-white/50 hover:bg-white/75'
+                  }`}
                 />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
-                  <div className="text-center text-muted-foreground">
-                    <div className="text-6xl mb-4">👤</div>
-                    <p>No Photo</p>
-                  </div>
-                </div>
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+              ))}
             </div>
 
-            {/* Profile Details */}
-            <div className="p-6 space-y-6 bg-white">
-              {/* Basic Info Icons */}
-              <div className="grid grid-cols-3 gap-4">
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-2">
-                    <Cake className="w-6 h-6 text-gray-600" />
-                  </div>
-                  <div className="text-lg font-semibold">{profile.age}</div>
-                </div>
-                
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-2">
-                    <User className="w-6 h-6 text-gray-600" />
-                  </div>
-                  <div className="text-sm font-medium capitalize">{profile.gender}</div>
-                </div>
-                
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-2">
-                    <BookOpen className="w-6 h-6 text-gray-600" />
-                  </div>
-                  <div className="text-sm font-medium">
-                    {getOrientationLabel(profile.gender, profile.relationship_goals)}
-                  </div>
-                </div>
+            {/* Verification Badge */}
+            <div className="absolute top-4 right-4 bg-blue-500 rounded-full p-2">
+              <Shield className="w-4 h-4 text-white" />
+            </div>
+          </div>
+        </div>
+
+        {/* Profile Content */}
+        <div className="p-6 space-y-6">
+          {/* Basic Info */}
+          <div className="text-center space-y-2">
+            <div className="flex items-center justify-center space-x-2">
+              <h2 className="text-3xl font-bold">{profile.first_name}</h2>
+              <span className="text-2xl text-muted-foreground">{mockProfileData.age}</span>
+            </div>
+            
+            <div className="flex items-center justify-center space-x-4 text-sm text-muted-foreground">
+              <div className="flex items-center space-x-1">
+                <MapPin className="w-4 h-4" />
+                <span>{mockProfileData.location}</span>
               </div>
-
-              {/* Religion/Beliefs */}
-              {profile.values && (
-                <div className="flex items-center gap-3">
-                  <BookOpen className="w-5 h-5 text-gray-600" />
-                  <span className="font-medium capitalize">{profile.values}</span>
-                </div>
-              )}
-
-              {/* Dating Goals */}
-              <div className="flex items-center gap-3">
-                <Heart className="w-5 h-5 text-gray-600" />
-                <span className="text-gray-700">
-                  {profile.relationship_goals?.[0] || "Figuring out my dating goals"}
-                </span>
+              <div className="flex items-center space-x-1">
+                <GraduationCap className="w-4 h-4" />
+                <span>{profile.university}</span>
               </div>
+            </div>
 
-              {/* Additional Photos */}
-              {profile.profile_images && profile.profile_images.length > 1 && (
-                <div className="space-y-3">
-                  <h3 className="font-semibold text-lg">More Photos</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    {profile.profile_images.slice(1, 3).map((image: string, index: number) => (
-                      <div 
-                        key={index} 
-                        className="aspect-square rounded-lg overflow-hidden cursor-pointer"
-                        onClick={() => setCurrentImageIndex(index + 1)}
-                      >
-                        <img
-                          src={image}
-                          alt={`${profile.first_name} ${index + 2}`}
-                          className="w-full h-full object-cover hover:scale-105 transition-transform"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
+            {/* Compatibility Score */}
+            <div className="flex justify-center space-x-3 mt-4">
+              <Badge className={`text-lg py-2 px-4 ${
+                (profile.compatibility_score || 0) >= 90 
+                  ? 'bg-green-100 text-green-700 border-green-200' 
+                  : (profile.compatibility_score || 0) >= 80
+                  ? 'bg-blue-100 text-blue-700 border-blue-200'
+                  : 'bg-purple-100 text-purple-700 border-purple-200'
+              }`}>
+                🔥 {profile.compatibility_score}% Match
+              </Badge>
+              
+              {profile.total_qcs && (
+                <Badge variant="outline" className="py-2 px-4">
+                  <Brain className="w-4 h-4 mr-1" />
+                  QCS: {profile.total_qcs}
+                </Badge>
               )}
+            </div>
+          </div>
 
-              {/* Bio/About */}
-              {profile.bio && (
-                <div className="space-y-3">
-                  <h3 className="font-semibold text-lg">About {profile.first_name}</h3>
-                  <p className="text-gray-700 leading-relaxed">{profile.bio}</p>
-                </div>
-              )}
+          {/* Bio */}
+          {profile.bio && (
+            <Card className="bg-white/50 dark:bg-white/5 backdrop-blur-sm">
+              <CardContent className="p-4">
+                <p className="text-center text-muted-foreground leading-relaxed">
+                  "{profile.bio}"
+                </p>
+              </CardContent>
+            </Card>
+          )}
 
-              {/* Interests */}
-              {profile.interests && profile.interests.length > 0 && (
-                <div className="space-y-3">
-                  <h3 className="font-semibold text-lg">Interests</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {profile.interests.map((interest: string, index: number) => (
-                      <Badge key={index} variant="secondary" className="text-sm">
-                        {interest}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* University Info */}
-              <div className="space-y-3">
-                <h3 className="font-semibold text-lg">Education</h3>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-gray-600" />
-                    <span>{profile.university}</span>
-                  </div>
-                  {profile.major && (
-                    <div className="text-gray-600">
-                      {profile.major} • Year {profile.year_of_study}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Personality */}
-              {profile.personality_type && (
-                <div className="space-y-3">
-                  <h3 className="font-semibold text-lg">Personality</h3>
-                  <Badge variant="outline" className="text-sm">
-                    {profile.personality_type}
+          {/* Interests */}
+          <div>
+            <h3 className="font-semibold mb-3 text-center">Interests</h3>
+            <div className="flex flex-wrap justify-center gap-2">
+              {mockProfileData.interests.map((interest, index) => {
+                const IconComponent = getInterestIcon(interest);
+                return (
+                  <Badge 
+                    key={index} 
+                    variant="outline" 
+                    className="py-2 px-3 bg-white/50 dark:bg-white/5 backdrop-blur-sm hover:scale-105 transition-transform"
+                  >
+                    <IconComponent className="w-4 h-4 mr-2" />
+                    {interest}
                   </Badge>
-                </div>
-              )}
+                );
+              })}
             </div>
-          </ScrollArea>
+          </div>
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-2 gap-4">
+            <Card className="bg-white/30 dark:bg-white/5 backdrop-blur-sm">
+              <CardContent className="p-4 text-center">
+                <Briefcase className="w-6 h-6 mx-auto mb-2 text-purple-600" />
+                <p className="font-semibold text-sm">{mockProfileData.occupation}</p>
+                <p className="text-xs text-muted-foreground">Profession</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-white/30 dark:bg-white/5 backdrop-blur-sm">
+              <CardContent className="p-4 text-center">
+                <GraduationCap className="w-6 h-6 mx-auto mb-2 text-blue-600" />
+                <p className="font-semibold text-sm">{mockProfileData.education}</p>
+                <p className="text-xs text-muted-foreground">Education</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Lifestyle Info */}
+          <div className="space-y-3">
+            <h3 className="font-semibold text-center">Lifestyle</h3>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Height:</span>
+                <span className="font-medium">{mockProfileData.height}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Exercise:</span>
+                <span className="font-medium">{mockProfileData.exercise}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Smoking:</span>
+                <span className="font-medium">{mockProfileData.smoking}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Drinking:</span>
+                <span className="font-medium">{mockProfileData.drinking}</span>
+              </div>
+            </div>
+          </div>
 
           {/* Action Buttons */}
-          <div className="absolute bottom-0 left-0 right-0 p-6 bg-white border-t">
-            <div className="flex justify-center gap-6">
-              <Button
-                onClick={() => handleSwipe('left')}
-                size="icon"
-                variant="outline"
-                className="w-14 h-14 rounded-full border-2 hover:bg-red-50 hover:border-red-300"
+          <div className="flex space-x-3 pt-4">
+            <Button 
+              variant="outline" 
+              className="flex-1 border-red-200 hover:bg-red-50 text-red-600"
+              onClick={async () => {
+                if (onSwipe) {
+                  await onSwipe("left");
+                }
+                onClose();
+              }}
+            >
+              ❌ Pass
+            </Button>
+            
+            {profile.can_chat && onChatRequest ? (
+              <Button 
+                onClick={() => {
+                  onChatRequest(profile.user_id, true);
+                  onClose();
+                }}
+                className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white"
               >
-                <X className="w-6 h-6 text-red-500" />
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Chat Now
               </Button>
-              
-              <Button
-                onClick={() => handleSwipe('right')}
-                size="icon"
-                className="w-14 h-14 rounded-full bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600"
+            ) : (
+              <Button 
+                onClick={async () => {
+                  if (onSwipe) {
+                    await onSwipe("right");
+                  } else if (onChatRequest) {
+                    onChatRequest(profile.user_id, false);
+                  }
+                  onClose();
+                }}
+                className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
               >
-                <Heart className="w-6 h-6" />
+                <Heart className="w-4 h-4 mr-2" />
+                {onSwipe ? "Like" : "Super Like"}
               </Button>
-            </div>
+            )}
           </div>
         </div>
       </DialogContent>
