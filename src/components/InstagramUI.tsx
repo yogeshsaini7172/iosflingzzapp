@@ -501,25 +501,25 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
       <div className="sticky bottom-0 bg-white/20 backdrop-blur-md border-t border-white/30">
         <div className="flex items-center justify-around py-4">
           {[
-            { id: "home", icon: Home, label: "Home", gradient: "from-purple-500 to-pink-500" },
-            { id: "swipe", icon: Heart, label: "Swipe", gradient: "from-pink-500 to-red-500" },
+            { id: "home", icon: Home, label: "Home", gradient: "from-gray-800 to-black" },
+            { id: "swipe", icon: Heart, label: "Swipe", gradient: "from-purple-900 to-black" },
             {
               id: "pairing",
               icon: Zap,
               label: "Pairing",
-              gradient: "from-blue-500 to-purple-500",
+              gradient: "from-indigo-900 to-gray-900",
             },
             {
               id: "blinddate",
               icon: Coffee,
               label: "Blind Date",
-              gradient: "from-orange-500 to-pink-500",
+              gradient: "from-pink-900 to-purple-900",
             },
             {
               id: "profile",
               icon: User,
               label: "Profile",
-              gradient: "from-green-500 to-blue-500",
+              gradient: "from-emerald-900 to-gray-900",
             },
           ].map((tab) => (
             <Button
