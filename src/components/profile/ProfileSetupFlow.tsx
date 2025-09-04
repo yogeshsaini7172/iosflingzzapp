@@ -153,49 +153,49 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       localStorage.setItem('demoPreferences', JSON.stringify(preferences));
       localStorage.setItem('demoUserId', mockUserId);
 
-      // Run ID verification (simulated)
-      toast({
-        title: "Running ID Verification... 🔍",
-        description: "Processing your documents with AI verification"
-      });
-      
-      // Simulate ID verification process
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Update verification status
+      // Guard: ensure verification was successful
+      if (verificationStatus !== 'verified') {
+        toast({
+          title: "Verification required",
+          description: "Please submit your IDs and verify before completing.",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Persist current verification status
       completeProfile.verification_status = 'verified';
       localStorage.setItem('demoProfile', JSON.stringify(completeProfile));
-      
-      toast({
-        title: "ID Verification Complete! ✅",
-        description: "Your identity has been successfully verified"
+
+      // Calculate QCS via Edge Function (uses profile data)
+      toast({ title: "Calculating QCS Score... 📊", description: "Analyzing your profile" });
+
+      const physical = `${profileData.bodyType || 'average'} ${Number(profileData.height) > 170 ? 'tall' : 'average'}`.trim();
+      const mental = `${profileData.personalityType || 'calm'} ${profileData.interests?.includes('fitness') ? 'ambitious' : 'logical'}`.trim();
+      const description = profileData.bio || 'No description available';
+
+      const { data: qcsResponse, error: qcsError } = await supabase.functions.invoke('qcs-scoring', {
+        body: { user_id: mockUserId, physical, mental, description }
       });
 
-      // Calculate QCS (simulated)
-      toast({
-        title: "Calculating QCS Score... 📊",
-        description: "Analyzing your profile quality and compatibility"
-      });
-      
-      // Simulate QCS calculation
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Calculate QCS based on profile data
+      if (qcsError) {
+        throw qcsError;
+      }
+
+      const totalScore = qcsResponse?.qcs_score ?? 0;
       const qcsScore = {
         user_id: mockUserId,
-        profile_score: 85,
-        college_tier: 75,
-        personality_depth: 90,
-        behavior_score: 100,
-        total_score: 87
+        profile_score: Math.floor(totalScore * 0.4),
+        college_tier: 85,
+        personality_depth: Math.floor(totalScore * 0.3),
+        behavior_score: Math.floor(totalScore * 0.3),
+        total_score: totalScore
       };
-      
+
       localStorage.setItem('demoQCS', JSON.stringify(qcsScore));
-      
-      toast({
-        title: "Profile Setup Complete! 🎉",
-        description: `Your QCS score: ${qcsScore.total_score}/100. Ready to start dating!`
-      });
+
+      toast({ title: "Profile Setup Complete! 🎉", description: `Your QCS score: ${totalScore}/100. Ready to start!` });
 
       onComplete();
     } catch (error: any) {
@@ -221,8 +221,8 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         return profileData.preferredGender.length > 0 && profileData.preferredRelationshipGoals.length > 0;
       case 4: // Upload Photos
         return profileData.profileImages.length >= 1;
-      case 5: // ID Verification - require at least one document
-        return profileData.collegeIdFile || profileData.govtIdFile;
+       case 5: // ID Verification - only proceed after verified
+        return verificationStatus === 'verified';
       default:
         return true;
     }
@@ -260,10 +260,11 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         );
       case 5:
         return (
-          <IDVerificationStep
-            data={profileData}
-            onChange={setProfileData}
-          />
+            <IDVerificationStep
+              data={profileData}
+              onChange={setProfileData}
+              onVerificationStatusChange={(s) => setVerificationStatus(s)}
+            />
         );
       default:
         return null;

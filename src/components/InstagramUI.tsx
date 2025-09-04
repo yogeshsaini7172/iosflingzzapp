@@ -120,8 +120,14 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
   const renderContent = () => {
     switch (activeTab) {
       case "home":
-        return (
+return (
           <div className="flex-1 overflow-y-auto bg-background min-h-screen scroll-smooth relative">
+            <header className="sticky top-0 z-20 backdrop-blur bg-background/70 border-b">
+              <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+                <h1 className="text-2xl font-elegant font-bold text-gradient-primary">DatingSigma</h1>
+                <span className="text-sm text-muted-foreground font-modern">Elite College Dating</span>
+              </div>
+            </header>
             {/* Revolutionary Hero Section - Dark/Light Split */}
             <div className="relative min-h-screen overflow-hidden">
               {/* Split Background Effect */}

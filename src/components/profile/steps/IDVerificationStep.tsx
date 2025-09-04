@@ -278,11 +278,11 @@ const handleSubmitVerification = async () => {
       {(collegeIdFile || govtIdFile) && (
         <Card className="border-primary/20 bg-gradient-card">
           <CardContent className="p-4 text-center">
-            <Button
-              onClick={handleSubmitVerification}
-              disabled={isUploading}
-              className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90"
-            >
+             <Button
+               onClick={handleSubmitVerification}
+               disabled={isUploading}
+               className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90"
+             >
               {isUploading ? (
                 <div className="flex items-center space-x-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
