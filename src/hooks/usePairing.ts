@@ -28,11 +28,26 @@ export const usePairing = () => {
       setPairedProfiles(data?.matches || []);
     } catch (error: any) {
       console.error("❌ Error fetching paired profiles:", error);
-      toast({
-        title: "Error loading matches",
-        description: error.message,
-        variant: "destructive",
-      });
+      // Friendly fallback: show suggested profiles if pairing limit reached or function fails
+      try {
+        const { data: fallback } = await supabase
+          .from("profiles")
+          .select("*")
+          .neq("user_id", userId)
+          .eq("is_active", true)
+          .limit(10);
+        setPairedProfiles(fallback as Profile[] || []);
+        toast({
+          title: "Showing suggested profiles",
+          description: "Pairing limit reached or temporarily unavailable.",
+        });
+      } catch (fallbackErr) {
+        toast({
+          title: "Error loading matches",
+          description: (error as any)?.message || "Please try again later.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }

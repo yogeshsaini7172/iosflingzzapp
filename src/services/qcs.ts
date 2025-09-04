@@ -52,8 +52,7 @@ export async function calculateQCS(userId: string): Promise<number> {
         profile_score: profileScore,
         college_tier: collegeTier,
         personality_depth: personalityDepth,
-        behavior_score: behaviorScore,
-        total_score: totalScore
+        behavior_score: behaviorScore
       });
 
     if (qcsError) {
@@ -83,7 +82,7 @@ export async function getQCSScore(userId: string): Promise<QCSScore | null> {
       .from("qcs")
       .select("*")
       .eq("user_id", userId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("Error fetching QCS:", error);

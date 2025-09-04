@@ -52,7 +52,7 @@ const QCSDisplay: React.FC<QCSDisplayProps> = ({
         .from('qcs')
         .select('*')
         .eq('user_id', currentUserId)
-        .single();
+        .maybeSingle();
 
       if (!error && data) {
         setQcsData(data);
