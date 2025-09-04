@@ -498,7 +498,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
       {renderContent()}
 
       {/* Bottom Navigation */}
-      <div className="sticky bottom-0 bg-transparent">
+      <div className="sticky bottom-0 bg-white/20 backdrop-blur-md border-t border-white/30">
         <div className="flex items-center justify-around py-4">
           {[
             { id: "home", icon: Home, label: "Home", color: "text-blue-500" },
@@ -526,7 +526,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
               key={tab.id}
               variant="ghost"
               size="sm"
-              className={`flex-col space-y-1 h-auto py-3 px-4 relative rounded-full border-2 border-black ${
+              className={`flex-col space-y-1 h-auto py-3 px-4 relative rounded-lg border-2 border-black ${
                 activeTab === tab.id ? `${tab.color} bg-white/20` : "text-gray-600"
               }`}
               onClick={() => setActiveTab(tab.id as any)}
