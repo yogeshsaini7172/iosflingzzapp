@@ -121,225 +121,133 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
     switch (activeTab) {
       case "home":
         return (
-          <div className="flex-1 overflow-y-auto bg-gradient-to-b from-background to-accent/5">
-            {/* Dynamic Hero Section */}
-            <div className="relative min-h-[40vh] bg-gradient-to-br from-primary via-secondary to-accent text-white overflow-hidden">
-              {/* Floating Background Elements */}
+          <div className="flex-1 overflow-y-auto bg-gradient-to-b from-violet-50/50 to-purple-50/30 dark:from-background dark:to-violet-950/10">
+            {/* Compelling Hero - HIGHEST Priority */}
+            <div className="relative min-h-[50vh] bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 text-white overflow-hidden">
+              {/* Monochromatic floating elements */}
               <div className="absolute inset-0">
-                <div className="absolute top-10 left-4 w-32 h-32 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-                <div className="absolute top-20 right-6 w-24 h-24 bg-white/15 rounded-full blur-2xl animate-pulse" style={{animationDelay: '1s'}}></div>
-                <div className="absolute bottom-10 left-1/2 w-40 h-40 bg-white/5 rounded-full blur-3xl animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                <div className="absolute top-8 left-6 w-40 h-40 bg-white/5 rounded-full blur-3xl animate-pulse"></div>
+                <div className="absolute top-16 right-4 w-28 h-28 bg-white/10 rounded-full blur-2xl animate-pulse" style={{animationDelay: '1.5s'}}></div>
+                <div className="absolute bottom-12 left-1/3 w-36 h-36 bg-white/3 rounded-full blur-3xl animate-pulse" style={{animationDelay: '0.8s'}}></div>
               </div>
               
-              {/* Hero Content */}
-              <div className="relative z-10 p-6 pt-16">
+              <div className="relative z-10 p-6 pt-20 pb-12">
                 <div className="text-center animate-fade-in">
-                  <div className="mb-4">
-                    <div className="text-6xl mb-2 animate-scale-in">👋</div>
-                    <h1 className="text-4xl font-black mb-2 leading-tight">
-                      Hey Beautiful!
+                  {/* Value prop first - most important */}
+                  <div className="mb-6">
+                    <h1 className="text-5xl font-black mb-4 leading-tight">
+                      Find Your<br/>
+                      <span className="bg-gradient-to-r from-white to-violet-200 bg-clip-text text-transparent">
+                        Perfect Match
+                      </span>
                     </h1>
-                    <p className="text-xl opacity-90 font-medium">Ready to find your vibe?</p>
+                    <p className="text-xl font-medium opacity-95 mb-6">
+                      No endless swiping. Just 10 perfect matches daily.
+                    </p>
+                  </div>
+                  
+                  {/* Primary CTA - CRITICAL */}
+                  <div className="animate-scale-in" style={{animationDelay: '0.4s'}}>
+                    <Button className="bg-white text-violet-600 hover:bg-violet-50 text-lg font-bold px-8 py-4 rounded-2xl shadow-2xl hover:shadow-white/20 transition-all duration-300 mb-6">
+                      Start Finding Love 💜
+                    </Button>
                   </div>
                 </div>
-                
-                {/* Floating Quote Card */}
-                <div className="mt-8 relative animate-scale-in" style={{animationDelay: '0.3s'}}>
-                  <div className="bg-white/20 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-white/30">
-                    <div className="text-center">
-                      <div className="text-3xl mb-3">✨</div>
-                      <p className="text-lg font-semibold italic">
-                        "Skip the endless swipes.<br/>Find your people, your way."
-                      </p>
-                    </div>
+              </div>
+              
+              {/* Social proof banner */}
+              <div className="absolute bottom-0 left-0 right-0 bg-white/10 backdrop-blur-sm border-t border-white/20 p-4">
+                <div className="flex justify-center items-center space-x-8 text-sm">
+                  <div className="text-center">
+                    <div className="font-bold text-lg">50K+</div>
+                    <div className="opacity-80">Active Users</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-bold text-lg">10K+</div>
+                    <div className="opacity-80">Matches Made</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-bold text-lg">4.9⭐</div>
+                    <div className="opacity-80">App Rating</div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="px-4 pb-6 space-y-8 -mt-6 relative z-20">
-              {/* Modes Section - Asymmetric Layout */}
-              <div className="space-y-6">
-                <div className="text-center mb-6">
-                  <h2 className="text-3xl font-bold mb-2">Your Vibe Check</h2>
-                  <p className="text-muted-foreground">How are you feeling today?</p>
+            <div className="px-4 pb-8 space-y-8 -mt-4 relative z-20">
+              {/* Subscription Plans - HIGH Priority (moved up) */}
+              <div className="space-y-6 animate-fade-in">
+                <div className="text-center mb-8">
+                  <h2 className="text-3xl font-black text-violet-900 dark:text-violet-100 mb-2">Choose Your Journey</h2>
+                  <p className="text-violet-600 dark:text-violet-300">Unlock your dating potential</p>
                 </div>
                 
-                {/* Creative Mode Layout */}
                 <div className="space-y-4">
-                  {/* Top Row - Large Card */}
-                  <div className="animate-scale-in">
-                    <div className="relative h-32 bg-gradient-to-br from-red-500/20 via-pink-500/20 to-rose-500/20 backdrop-blur-sm rounded-3xl border border-red-500/30 shadow-xl overflow-hidden hover:scale-105 transition-all duration-500 cursor-pointer">
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
-                      <div className="relative h-full flex items-center justify-between p-6">
-                        <div>
-                          <div className="text-4xl mb-1">❤️</div>
-                          <h3 className="text-xl font-bold text-red-500">Relationship</h3>
-                          <p className="text-sm text-red-400">Looking for the one</p>
-                        </div>
-                        <div className="text-6xl opacity-20">💕</div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Middle Row - Two Medium Cards */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="animate-scale-in" style={{animationDelay: '0.1s'}}>
-                      <div className="relative h-28 bg-gradient-to-br from-orange-500/20 to-red-500/20 backdrop-blur-sm rounded-2xl border border-orange-500/30 shadow-lg overflow-hidden hover:scale-105 transition-all duration-300 cursor-pointer">
-                        <div className="relative h-full flex flex-col justify-center items-center p-4">
-                          <div className="text-3xl mb-1">🔥</div>
-                          <h3 className="font-bold text-orange-500">Casual</h3>
-                          <p className="text-xs text-orange-400 text-center">Keep it fun</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="animate-scale-in" style={{animationDelay: '0.2s'}}>
-                      <div className="relative h-28 bg-gradient-to-br from-blue-500/20 to-purple-500/20 backdrop-blur-sm rounded-2xl border border-blue-500/30 shadow-lg overflow-hidden hover:scale-105 transition-all duration-300 cursor-pointer">
-                        <div className="relative h-full flex flex-col justify-center items-center p-4">
-                          <div className="text-3xl mb-1">🕒</div>
-                          <h3 className="font-bold text-blue-500">Benching</h3>
-                          <p className="text-xs text-blue-400 text-center">Take it slow</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Bottom Row - Unique Shape */}
-                  <div className="animate-scale-in" style={{animationDelay: '0.3s'}}>
-                    <div className="relative h-24 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-indigo-500/20 backdrop-blur-sm rounded-full border border-purple-500/30 shadow-xl overflow-hidden hover:scale-105 transition-all duration-500 cursor-pointer">
-                      <div className="relative h-full flex items-center justify-center">
-                        <div className="text-3xl mr-3">💫</div>
-                        <div>
-                          <h3 className="font-bold text-purple-500">Situationship</h3>
-                          <p className="text-xs text-purple-400">It's complicated</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Interactive Stats Dashboard */}
-              <div className="relative">
-                <div className="bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 backdrop-blur-xl rounded-3xl p-6 border border-primary/20 shadow-2xl animate-scale-in">
-                  <div className="text-center mb-6">
-                    <h3 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                      Today's Magic ✨
-                    </h3>
-                  </div>
-                  
-                  <div className="grid grid-cols-3 gap-6">
-                    {[
-                      { number: "10", label: "Potential Matches", icon: "💕", color: "from-red-500 to-pink-500", delay: "0s" },
-                      { number: "3", label: "Active Chats", icon: "💬", color: "from-blue-500 to-cyan-500", delay: "0.1s" },
-                      { number: "5", label: "Profile Views", icon: "👀", color: "from-purple-500 to-indigo-500", delay: "0.2s" }
-                    ].map((stat, index) => (
-                      <div 
-                        key={index} 
-                        className="text-center group cursor-pointer animate-scale-in hover:scale-110 transition-all duration-300"
-                        style={{animationDelay: stat.delay}}
-                      >
-                        <div className={`relative w-16 h-16 mx-auto mb-3 bg-gradient-to-br ${stat.color} rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300`}>
-                          <div className="text-xl group-hover:animate-pulse">{stat.icon}</div>
-                          <div className="absolute inset-0 bg-white/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        </div>
-                        <div className="text-3xl font-black text-primary group-hover:text-secondary transition-colors">
-                          {stat.number}
-                        </div>
-                        <div className="text-xs text-muted-foreground font-semibold">{stat.label}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Match Flow - Card Stack Design */}
-              <div className="space-y-4">
-                <h2 className="text-3xl font-bold text-center mb-6">How It Works</h2>
-                <div className="relative">
-                  {[
-                    { emoji: "🎯", text: "AI matches based on your preferences", color: "from-green-500/15 to-emerald-500/15", size: "h-20", offset: "ml-0" },
-                    { emoji: "💌", text: "10 curated matches daily", color: "from-pink-500/15 to-rose-500/15", size: "h-18", offset: "ml-4" },
-                    { emoji: "💬", text: "Instant chat for high compatibility", color: "from-blue-500/15 to-cyan-500/15", size: "h-16", offset: "ml-8" }
-                  ].map((item, index) => (
-                    <div 
-                      key={index}
-                      className={`relative ${item.offset} ${item.size} bg-gradient-to-r ${item.color} backdrop-blur-sm rounded-2xl p-4 border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 animate-scale-in mb-3`}
-                      style={{ animationDelay: `${index * 0.2}s` }}
-                    >
-                      <div className="flex items-center space-x-4 h-full">
-                        <div className="text-3xl animate-pulse">{item.emoji}</div>
-                        <p className="font-semibold">{item.text}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Premium Subscription Cards - Story Style */}
-              <div className="space-y-6">
-                <div className="text-center">
-                  <h2 className="text-3xl font-bold mb-2">Level Up Your Game</h2>
-                  <p className="text-muted-foreground">Choose your power level</p>
-                </div>
-                
-                <div className="space-y-6">
                   {plans.map((plan, index) => (
                     <div
                       key={plan.id}
-                      className={`relative overflow-hidden ${index === 1 ? 'scale-105 ring-2 ring-primary' : ''} animate-scale-in`}
-                      style={{ animationDelay: `${index * 0.15}s` }}
+                      className={`relative overflow-hidden ${
+                        index === 1 ? 'scale-105 ring-2 ring-violet-500 z-10' : ''
+                      } animate-scale-in`}
+                      style={{ animationDelay: `${index * 0.1}s` }}
                     >
-                      {/* Popular Badge for Premium */}
+                      {/* Most Popular Badge */}
                       {index === 1 && (
-                        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 z-10">
-                          <div className="bg-gradient-primary text-white px-4 py-1 rounded-full text-sm font-bold shadow-lg">
-                            ⭐ MOST POPULAR
+                        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-20">
+                          <div className="bg-gradient-to-r from-violet-500 to-purple-600 text-white px-6 py-2 rounded-full text-sm font-black shadow-xl">
+                            👑 MOST POPULAR
                           </div>
                         </div>
                       )}
                       
-                      <div className={`relative h-48 bg-gradient-to-br ${
-                        index === 0 ? 'from-blue-500/20 to-indigo-500/20' :
-                        index === 1 ? 'from-purple-500/20 to-pink-500/20' :
-                        'from-yellow-500/20 to-orange-500/20'
-                      } backdrop-blur-sm rounded-3xl border-2 ${plan.color} shadow-2xl overflow-hidden hover:scale-105 transition-all duration-500 cursor-pointer`}>
+                      <div className={`relative ${
+                        index === 0 ? 'h-44 bg-gradient-to-br from-violet-100/50 to-violet-200/50 dark:from-violet-900/20 dark:to-violet-800/20' :
+                        index === 1 ? 'h-52 bg-gradient-to-br from-violet-500/20 to-purple-500/20' :
+                        'h-48 bg-gradient-to-br from-violet-600/20 to-indigo-600/20'
+                      } backdrop-blur-sm rounded-3xl border-2 ${
+                        index === 0 ? 'border-violet-300 dark:border-violet-700' :
+                        index === 1 ? 'border-violet-500' :
+                        'border-violet-600'
+                      } shadow-xl overflow-hidden hover:scale-105 transition-all duration-500 cursor-pointer`}>
                         
-                        {/* Background Pattern */}
+                        {/* Monochromatic patterns */}
                         <div className="absolute inset-0">
-                          <div className="absolute top-4 right-4 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
-                          <div className="absolute bottom-4 left-4 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+                          <div className="absolute top-4 right-4 w-24 h-24 bg-violet-500/10 rounded-full blur-xl"></div>
+                          <div className="absolute bottom-4 left-4 w-32 h-32 bg-violet-400/5 rounded-full blur-2xl"></div>
                         </div>
                         
                         <div className="relative h-full p-6 flex flex-col">
                           <div className="flex justify-between items-start mb-4">
                             <div>
-                              <h3 className="text-2xl font-black">{plan.name}</h3>
-                              <p className="text-3xl font-black text-primary">{plan.price}</p>
+                              <h3 className="text-2xl font-black text-violet-900 dark:text-violet-100">{plan.name}</h3>
+                              <p className="text-3xl font-black text-violet-600">{plan.price}</p>
                             </div>
-                            <div className="text-5xl">
-                              {plan.id === 1 && "🌟"}
-                              {plan.id === 2 && "💎"}
-                              {plan.id === 3 && "👑"}
+                            <div className="text-4xl">
+                              {plan.id === 1 && "💜"}
+                              {plan.id === 2 && "👑"}
+                              {plan.id === 3 && "💎"}
                             </div>
                           </div>
 
                           <div className="flex-1 mb-4">
-                            <div className="grid grid-cols-2 gap-2">
-                              {plan.features.slice(0, 4).map((feature, idx) => (
-                                <div key={idx} className="flex items-center space-x-1">
-                                  <span className="text-green-500 text-sm">✅</span>
-                                  <span className="text-xs font-medium">{feature}</span>
+                            <div className="space-y-1">
+                              {plan.features.slice(0, 3).map((feature, idx) => (
+                                <div key={idx} className="flex items-center space-x-2">
+                                  <span className="text-violet-500 text-sm">✓</span>
+                                  <span className="text-sm font-medium text-violet-800 dark:text-violet-200">{feature}</span>
                                 </div>
                               ))}
                             </div>
                           </div>
 
                           <Button
-                            className={`w-full font-bold ${plan.buttonColor} shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl h-12 text-lg`}
-                            onClick={() => alert(`Welcome to ${plan.name}! 🎉`)}
+                            className={`w-full font-bold ${
+                              index === 1 ? 'bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700' :
+                              'bg-violet-600 hover:bg-violet-700'
+                            } text-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl h-12 text-lg`}
+                            onClick={() => alert(`Welcome to ${plan.name}! 💜`)}
                           >
-                            Get {plan.name} ✨
+                            {index === 1 ? '🚀 Get Premium' : `Choose ${plan.name}`}
                           </Button>
                         </div>
                       </div>
@@ -348,12 +256,126 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                 </div>
               </div>
 
-              {/* Bottom CTA */}
-              <div className="text-center py-8 animate-fade-in">
-                <div className="bg-gradient-primary/10 backdrop-blur-sm rounded-full p-4 inline-block">
-                  <p className="text-lg font-semibold bg-gradient-primary bg-clip-text text-transparent">
-                    Ready to find your perfect match? 💕
+              {/* Mode Selection - HIGH Priority */}
+              <div className="space-y-6 animate-fade-in">
+                <div className="text-center mb-6">
+                  <h2 className="text-3xl font-black text-violet-900 dark:text-violet-100 mb-2">What's Your Vibe?</h2>
+                  <p className="text-violet-600 dark:text-violet-300">Tell us what you're looking for</p>
+                </div>
+                
+                {/* Asymmetric layout prioritizing Relationship */}
+                <div className="space-y-4">
+                  {/* Relationship - BIGGEST (most important) */}
+                  <div className="animate-scale-in">
+                    <div className="relative h-36 bg-gradient-to-br from-violet-200/30 to-violet-300/30 dark:from-violet-800/20 dark:to-violet-700/20 backdrop-blur-sm rounded-3xl border-2 border-violet-400/50 shadow-xl overflow-hidden hover:scale-105 transition-all duration-500 cursor-pointer">
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+                      <div className="relative h-full flex items-center justify-between p-8">
+                        <div>
+                          <div className="text-5xl mb-2">💜</div>
+                          <h3 className="text-2xl font-black text-violet-800 dark:text-violet-200">Serious Relationship</h3>
+                          <p className="text-violet-600 dark:text-violet-400 font-medium">Ready for something real</p>
+                        </div>
+                        <div className="text-7xl opacity-20 text-violet-500">💕</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Other modes - smaller */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="animate-scale-in" style={{animationDelay: '0.1s'}}>
+                      <div className="relative h-24 bg-gradient-to-br from-violet-150/20 to-violet-200/20 backdrop-blur-sm rounded-2xl border border-violet-300/40 shadow-lg overflow-hidden hover:scale-105 transition-all duration-300 cursor-pointer">
+                        <div className="relative h-full flex flex-col justify-center items-center p-3">
+                          <div className="text-2xl mb-1">🔥</div>
+                          <h3 className="text-sm font-bold text-violet-700 dark:text-violet-300">Casual</h3>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="animate-scale-in" style={{animationDelay: '0.2s'}}>
+                      <div className="relative h-24 bg-gradient-to-br from-violet-150/20 to-violet-200/20 backdrop-blur-sm rounded-2xl border border-violet-300/40 shadow-lg overflow-hidden hover:scale-105 transition-all duration-300 cursor-pointer">
+                        <div className="relative h-full flex flex-col justify-center items-center p-3">
+                          <div className="text-2xl mb-1">⏳</div>
+                          <h3 className="text-sm font-bold text-violet-700 dark:text-violet-300">Taking It Slow</h3>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="animate-scale-in" style={{animationDelay: '0.3s'}}>
+                      <div className="relative h-24 bg-gradient-to-br from-violet-150/20 to-violet-200/20 backdrop-blur-sm rounded-2xl border border-violet-300/40 shadow-lg overflow-hidden hover:scale-105 transition-all duration-300 cursor-pointer">
+                        <div className="relative h-full flex flex-col justify-center items-center p-3">
+                          <div className="text-2xl mb-1">✨</div>
+                          <h3 className="text-sm font-bold text-violet-700 dark:text-violet-300">It's Complex</h3>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stats - MEDIUM Priority (social proof) */}
+              <div className="relative animate-scale-in">
+                <div className="bg-gradient-to-br from-violet-100/50 to-violet-200/50 dark:from-violet-900/20 dark:to-violet-800/20 backdrop-blur-xl rounded-3xl p-6 border border-violet-300/30 shadow-xl">
+                  <div className="text-center mb-6">
+                    <h3 className="text-2xl font-black text-violet-900 dark:text-violet-100">
+                      Your Daily Potential 💜
+                    </h3>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-6">
+                    {[
+                      { number: "10", label: "Perfect Matches", icon: "💜", delay: "0s" },
+                      { number: "3", label: "Quality Chats", icon: "💬", delay: "0.1s" },
+                      { number: "1", label: "Real Connection", icon: "⚡", delay: "0.2s" }
+                    ].map((stat, index) => (
+                      <div 
+                        key={index} 
+                        className="text-center group cursor-pointer animate-scale-in hover:scale-110 transition-all duration-300"
+                        style={{animationDelay: stat.delay}}
+                      >
+                        <div className="relative w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-violet-400 to-violet-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                          <div className="text-xl group-hover:animate-pulse">{stat.icon}</div>
+                          <div className="absolute inset-0 bg-white/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        </div>
+                        <div className="text-3xl font-black text-violet-600 group-hover:text-violet-500 transition-colors">
+                          {stat.number}
+                        </div>
+                        <div className="text-xs text-violet-700 dark:text-violet-300 font-semibold">{stat.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* How it works - LOWER Priority (simplified) */}
+              <div className="space-y-4 animate-fade-in">
+                <h2 className="text-2xl font-bold text-center text-violet-900 dark:text-violet-100 mb-4">Simple. Smart. Effective.</h2>
+                <div className="space-y-3">
+                  {[
+                    { emoji: "🎯", text: "AI finds your perfect matches", size: "h-16" },
+                    { emoji: "💜", text: "10 quality profiles daily", size: "h-16" },
+                    { emoji: "⚡", text: "Instant chat for high compatibility", size: "h-16" }
+                  ].map((item, index) => (
+                    <div 
+                      key={index}
+                      className={`relative ${item.size} bg-gradient-to-r from-violet-100/40 to-violet-200/40 dark:from-violet-900/10 dark:to-violet-800/10 backdrop-blur-sm rounded-2xl p-4 border border-violet-300/20 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] animate-scale-in`}
+                      style={{ animationDelay: `${index * 0.15}s` }}
+                    >
+                      <div className="flex items-center space-x-4 h-full">
+                        <div className="text-2xl">{item.emoji}</div>
+                        <p className="font-semibold text-violet-800 dark:text-violet-200">{item.text}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Final CTA */}
+              <div className="text-center py-6 animate-fade-in">
+                <div className="bg-gradient-to-r from-violet-500/10 to-purple-500/10 backdrop-blur-sm rounded-full p-6 inline-block border border-violet-300/30">
+                  <p className="text-lg font-bold text-violet-700 dark:text-violet-300 mb-4">
+                    Ready to find your person? 💜
                   </p>
+                  <Button className="bg-gradient-to-r from-violet-500 to-purple-600 text-white font-bold px-8 py-3 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300">
+                    Let's Go! ✨
+                  </Button>
                 </div>
               </div>
             </div>
