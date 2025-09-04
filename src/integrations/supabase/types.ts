@@ -914,6 +914,10 @@ export type Database = {
         Args: { profile_data: Json }
         Returns: number
       }
+      cleanup_expired_ghosts: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       increment_reports_count: {
         Args: { user_id: string }
         Returns: undefined
