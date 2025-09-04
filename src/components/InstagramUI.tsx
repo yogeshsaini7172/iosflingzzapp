@@ -8,10 +8,20 @@ import {
   User,
   Zap,
   Coffee,
+  Shield,
+  Brain,
+  Star,
+  MapPin,
+  Send,
+  Bookmark,
 } from "lucide-react";
-
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { useProfilesFeed } from "@/hooks/useProfilesFeed";
 import { usePairing } from "@/hooks/usePairing";
+import IDVerificationUpload from "@/components/verification/IDVerificationUpload";
+import QCSDisplay from "@/components/scoring/QCSDisplay";
+import UserSelector from "@/components/debug/UserSelector";
 
 interface InstagramUIProps {
   onNavigate: (view: string) => void;
@@ -228,8 +238,22 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
 
       case "profile":
         return (
-          <div className="flex-1 flex items-center justify-center p-6">
-            <h3 className="text-xl font-bold">Profile Page Placeholder</h3>
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="max-w-2xl mx-auto space-y-6">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold mb-2">Profile & Testing</h2>
+                <p className="text-muted-foreground">Manage your profile and test app features</p>
+              </div>
+              
+              {/* User Selector for Testing */}
+              <UserSelector />
+              
+              {/* QCS Score Display */}
+              <QCSDisplay showCalculateButton={true} />
+              
+              {/* ID Verification */}
+              <IDVerificationUpload />
+            </div>
           </div>
         );
 
