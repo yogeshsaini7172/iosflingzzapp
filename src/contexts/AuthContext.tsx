@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { parsePhoneNumberFromString } from 'libphonenumber-js';
 
 interface AuthContextType {
   user: User | null;
@@ -42,6 +43,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Normalize phone number to E.164
+  const toE164 = (input: string) => {
+    try {
+      const p = parsePhoneNumberFromString(input || '');
+      if (p && p.isValid()) return p.number; // already E.164
+    } catch {}
+    return null;
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -306,8 +316,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Phone OTP signup
   const signUpWithPhoneOTP = async (phone: string) => {
     try {
+      const e164 = toE164(phone);
+      if (!e164) {
+        const msg = 'Invalid phone number. Use full international format like +1 555 123 4567';
+        toast.error(msg);
+        return { error: { message: msg } } as any;
+      }
+
       const { error } = await supabase.auth.signInWithOtp({
-        phone,
+        phone: e164,
         options: { shouldCreateUser: true }
       });
       
@@ -328,8 +345,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const verifyPhoneOTP = async (phone: string, otp: string) => {
     try {
+      const e164 = toE164(phone);
+      if (!e164) {
+        const msg = 'Invalid phone number. Use full international format like +1 555 123 4567';
+        toast.error(msg);
+        return { error: { message: msg } } as any;
+      }
+
       const { data, error } = await supabase.auth.verifyOtp({
-        phone,
+        phone: e164,
         token: otp,
         type: 'sms'
       });
@@ -355,8 +379,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const resendPhoneOTP = async (phone: string) => {
     try {
+      const e164 = toE164(phone);
+      if (!e164) {
+        const msg = 'Invalid phone number. Use full international format like +1 555 123 4567';
+        toast.error(msg);
+        return { error: { message: msg } } as any;
+      }
+
       const { error } = await supabase.auth.signInWithOtp({ 
-        phone, 
+        phone: e164, 
         options: { shouldCreateUser: true } 
       });
       
