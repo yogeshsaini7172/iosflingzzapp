@@ -12,7 +12,8 @@ type View = 'instagram' | 'swipe' | 'pairing' | 'matches' | 'chat' | 'profile' |
 const DatingAppContainer = () => {
   const [currentView, setCurrentView] = useState<View>('instagram');
 
-  const handleNavigate = (view: string) => {
+  const handleNavigate = (view: string, data?: any) => {
+    console.log('Navigation:', view, data);
     setCurrentView(view as View);
   };
 

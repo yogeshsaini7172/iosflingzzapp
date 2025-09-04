@@ -7,12 +7,16 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
-  // Email OTP (kept for backward-compat)
-  signUpWithEmail: (email: string) => Promise<{ error?: any }>;
-  verifyOTP: (email: string, otp: string) => Promise<{ error?: any }>;
-  resendOTP: (email: string) => Promise<{ error?: any }>;
+  isAuthenticated: boolean;
+  // Email/Password
+  signUpWithEmail: (email: string, password: string) => Promise<{ error?: any }>;
+  signInWithEmail: (email: string, password: string) => Promise<{ error?: any }>;
+  // Email OTP
+  signUpWithEmailOTP: (email: string) => Promise<{ error?: any }>;
+  verifyEmailOTP: (email: string, otp: string) => Promise<{ error?: any }>;
+  resendEmailOTP: (email: string) => Promise<{ error?: any }>;
   // Phone OTP
-  signInWithPhone: (phone: string) => Promise<{ error?: any }>;
+  signUpWithPhoneOTP: (phone: string) => Promise<{ error?: any }>;
   verifyPhoneOTP: (phone: string, otp: string) => Promise<{ error?: any }>;
   resendPhoneOTP: (phone: string) => Promise<{ error?: any }>;
   // OAuth
@@ -40,44 +44,121 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener
+    let mounted = true;
+
+    // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
+        if (!mounted) return;
+
         console.log('Auth state changed:', event, session?.user?.email);
+        
         setSession(session);
         setUser(session?.user ?? null);
         setIsLoading(false);
 
-        // Handle successful sign in
+        // Handle auth events
         if (event === 'SIGNED_IN' && session?.user) {
           toast.success('Successfully signed in!');
+          
+          // Auto-create profile if it doesn't exist
+          setTimeout(async () => {
+            await ensureUserProfile(session.user);
+          }, 0);
         }
 
-        // Handle sign out
         if (event === 'SIGNED_OUT') {
           toast.success('Successfully signed out');
+          // Clear any cached data
+          localStorage.removeItem('demoUserId');
+          localStorage.removeItem('demoProfile');
         }
       }
     );
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    });
+    // Then check for existing session
+    const getInitialSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (!mounted) return;
+        
+        if (error) {
+          console.error('Error getting session:', error);
+        }
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        setIsLoading(false);
 
-    return () => subscription.unsubscribe();
+        // Ensure profile exists for existing session
+        if (session?.user) {
+          setTimeout(async () => {
+            await ensureUserProfile(session.user);
+          }, 0);
+        }
+      } catch (error) {
+        console.error('Error in getInitialSession:', error);
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    getInitialSession();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const signUpWithEmail = async (email: string) => {
+  // Ensure user profile exists
+  const ensureUserProfile = async (user: User) => {
     try {
-      const { error } = await supabase.auth.signInWithOtp({
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!existingProfile) {
+        // Create profile from user metadata or defaults
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: user.id,
+            first_name: user.user_metadata?.first_name || user.email?.split('@')[0] || 'User',
+            last_name: user.user_metadata?.last_name || '',
+            email: user.email || '',
+            date_of_birth: new Date().toISOString().split('T')[0], // Default to today
+            gender: 'prefer_not_to_say',
+            university: user.user_metadata?.university || '',
+            verification_status: 'pending',
+            is_active: true,
+            is_profile_public: false,
+            show_profile: true
+          });
+
+        if (insertError) {
+          console.error('Error creating profile:', insertError);
+        } else {
+          console.log('Profile created successfully');
+        }
+      }
+    } catch (error) {
+      console.error('Error ensuring profile:', error);
+    }
+  };
+
+  // Email/Password signup
+  const signUpWithEmail = async (email: string, password: string) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
         email,
+        password,
         options: {
-          shouldCreateUser: true,
-          // Remove emailRedirectTo to force OTP codes instead of magic links
-        },
+          emailRedirectTo: `${window.location.origin}/`
+        }
       });
 
       if (error) {
@@ -86,7 +167,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         return { error };
       }
 
-      toast.success('Check your email for the 6-digit OTP code!');
+      if (data.user && !data.session) {
+        toast.success('Please check your email to confirm your account!');
+      } else if (data.session) {
+        toast.success('Account created successfully!');
+      }
+      
       return {};
     } catch (error: any) {
       console.error('Sign up error:', error);
@@ -95,12 +181,59 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const verifyOTP = async (email: string, otp: string) => {
+  // Email/Password signin
+  const signInWithEmail = async (email: string, password: string) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        console.error('Sign in error:', error);
+        toast.error(error.message);
+        return { error };
+      }
+
+      return {};
+    } catch (error: any) {
+      console.error('Sign in error:', error);
+      toast.error('An unexpected error occurred');
+      return { error };
+    }
+  };
+
+  // Email OTP signup
+  const signUpWithEmailOTP = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: true
+        }
+      });
+
+      if (error) {
+        console.error('OTP signup error:', error);
+        toast.error(error.message);
+        return { error };
+      }
+
+      toast.success('Check your email for the 6-digit OTP code!');
+      return {};
+    } catch (error: any) {
+      console.error('OTP signup error:', error);
+      toast.error('An unexpected error occurred');
+      return { error };
+    }
+  };
+
+  const verifyEmailOTP = async (email: string, otp: string) => {
     try {
       const { data, error } = await supabase.auth.verifyOtp({
         email,
         token: otp,
-        type: 'email',
+        type: 'email'
       });
 
       if (error) {
@@ -127,8 +260,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/`,
-        },
+          redirectTo: `${window.location.origin}/`
+        }
       });
 
       if (error) {
@@ -145,13 +278,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const resendOTP = async (email: string) => {
+  const resendEmailOTP = async (email: string) => {
     try {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          shouldCreateUser: true,
-        },
+          shouldCreateUser: true
+        }
       });
 
       if (error) {
@@ -169,22 +302,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  // Phone-based OTP
-  const signInWithPhone = async (phone: string) => {
+  // Phone OTP signup
+  const signUpWithPhoneOTP = async (phone: string) => {
     try {
       const { error } = await supabase.auth.signInWithOtp({
         phone,
-        options: { shouldCreateUser: true },
+        options: { shouldCreateUser: true }
       });
+      
       if (error) {
-        console.error('Phone sign-in error:', error);
+        console.error('Phone signup error:', error);
         toast.error(error.message);
         return { error };
       }
+      
       toast.success('OTP sent via SMS!');
       return {};
     } catch (error: any) {
-      console.error('Phone sign-in error:', error);
+      console.error('Phone signup error:', error);
       toast.error('An unexpected error occurred');
       return { error };
     }
@@ -195,17 +330,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const { data, error } = await supabase.auth.verifyOtp({
         phone,
         token: otp,
-        type: 'sms',
+        type: 'sms'
       });
+      
       if (error) {
         console.error('SMS verification error:', error);
         toast.error(error.message);
         return { error };
       }
+      
       if (data.user) {
         toast.success('Phone verified successfully!');
         return {};
       }
+      
       return { error: { message: 'Verification failed' } };
     } catch (error: any) {
       console.error('SMS verification error:', error);
@@ -216,12 +354,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const resendPhoneOTP = async (phone: string) => {
     try {
-      const { error } = await supabase.auth.signInWithOtp({ phone, options: { shouldCreateUser: true } });
+      const { error } = await supabase.auth.signInWithOtp({ 
+        phone, 
+        options: { shouldCreateUser: true } 
+      });
+      
       if (error) {
         console.error('Resend SMS OTP error:', error);
         toast.error(error.message);
         return { error };
       }
+      
       toast.success('OTP resent via SMS!');
       return {};
     } catch (error: any) {
@@ -241,6 +384,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         return { error };
       }
 
+      // Clear any local storage
+      localStorage.removeItem('demoUserId');
+      localStorage.removeItem('demoProfile');
+
       return {};
     } catch (error: any) {
       console.error('Sign out error:', error);
@@ -253,15 +400,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     user,
     session,
     isLoading,
-    // email OTP (legacy)
+    isAuthenticated: !!user,
+    // Email/Password
     signUpWithEmail,
-    verifyOTP,
-    resendOTP,
-    // phone OTP (primary)
-    signInWithPhone,
+    signInWithEmail,
+    // Email OTP
+    signUpWithEmailOTP,
+    verifyEmailOTP,
+    resendEmailOTP,
+    // Phone OTP
+    signUpWithPhoneOTP,
     verifyPhoneOTP,
     resendPhoneOTP,
-    // oauth
+    // OAuth
     signInWithGoogle,
     signOut,
   };

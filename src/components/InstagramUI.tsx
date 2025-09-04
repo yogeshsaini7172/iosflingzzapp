@@ -398,6 +398,83 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                     </div>
                     <div className="text-center bg-white/10 rounded-2xl p-4 backdrop-blur-sm">
                       <div className="text-2xl font-bold text-white">3</div>
+                      <div className="text-white/70 text-sm">Chats Active</div>
+                    </div>
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div className="mt-8 grid grid-cols-2 gap-4">
+                    <Button
+                      onClick={() => onNavigate('swipe')}
+                      className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white h-16 rounded-2xl shadow-lg hover:shadow-pink-500/25 transition-all duration-300"
+                    >
+                      <Heart className="mr-2 h-6 w-6" />
+                      Start Swiping
+                    </Button>
+                    <Button
+                      onClick={() => onNavigate('pairing')}
+                      className="bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white h-16 rounded-2xl shadow-lg hover:shadow-blue-500/25 transition-all duration-300"
+                    >
+                      <Sparkles className="mr-2 h-6 w-6" />
+                      Smart Pairing
+                    </Button>
+                  </div>
+
+                  {/* Recent Activity */}
+                  <div className="mt-8 bg-white/10 rounded-2xl p-6 backdrop-blur-sm">
+                    <h3 className="text-white font-semibold mb-4 flex items-center">
+                      <Star className="mr-2 h-5 w-5" />
+                      Recent Activity
+                    </h3>
+                    <div className="space-y-3">
+                      {[
+                        { action: "New match with Alex", time: "2 minutes ago", icon: "💕" },
+                        { action: "Message from Sam", time: "15 minutes ago", icon: "💬" },
+                        { action: "Profile view from Jordan", time: "1 hour ago", icon: "👀" }
+                      ].map((activity, index) => (
+                        <div key={index} className="flex items-center justify-between text-sm">
+                          <div className="flex items-center space-x-3">
+                            <span className="text-lg">{activity.icon}</span>
+                            <span className="text-white/90">{activity.action}</span>
+                          </div>
+                          <span className="text-white/60">{activity.time}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "pairing":
+          <div className="flex-1 overflow-y-auto">
+            <PairingMatches profiles={pairedProfiles} loading={pairingLoading} onNavigateToChat={() => onNavigate('chat')} />
+          </div>
+
+      case "blinddate":
+        return renderPlans();
+
+      case "profile":
+        return (
+          <div className="flex-1 overflow-y-auto">
+            <div className="max-w-2xl mx-auto p-4">
+              <EnhancedProfileDisplay onLogout={handleLogout} />
+            </div>
+          </div>
+        );
+
+      default:
+        return (
+          <div className="flex-1 overflow-y-auto bg-black min-h-screen scroll-smooth relative">
+            {/* Same as home case content */}
+            <header className="sticky top-0 z-20 backdrop-blur-xl bg-black/40 border-b border-white/10 safe-area-top">
+                      <div className="text-2xl font-bold text-white">12</div>
+                      <div className="text-white/70 text-sm">Matches</div>
+                    </div>
+                    <div className="text-center bg-white/10 rounded-2xl p-4 backdrop-blur-sm">
+                      <div className="text-2xl font-bold text-white">3</div>
                       <div className="text-white/70 text-sm">Super Likes</div>
                     </div>
                   </div>
