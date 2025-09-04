@@ -204,78 +204,78 @@ const EnhancedProfileDisplay: React.FC = () => {
   const age = calculateAge(profileData.date_of_birth);
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      {/* Header Section */}
-      <div className="genZ-glass-card p-6 rounded-3xl border border-white/20">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-3">
+    <div className="space-y-3 w-full">
+      {/* Header Section - Mobile */}
+      <div className="genZ-glass-card p-3 rounded-2xl border border-white/20">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center space-x-2">
             <div className="relative">
-              <h2 className="text-3xl font-elegant font-bold text-gradient-royal">
+              <h2 className="text-lg font-elegant font-bold text-gradient-royal">
                 Your Profile
               </h2>
-              <div className="absolute -top-1 -right-3 text-lg animate-bounce-slow">✨</div>
+              <div className="absolute -top-0.5 -right-2 text-sm animate-bounce-slow">✨</div>
             </div>
           </div>
           
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2">
             <Button
               onClick={toggleProfileVisibility}
               variant="outline"
               size="sm"
-              className={`border-white/20 ${
+              className={`border-white/20 text-xs px-2 py-1 h-7 ${
                 profileData.is_profile_public 
                   ? 'bg-green-500/20 text-green-300 hover:bg-green-500/30' 
                   : 'bg-red-500/20 text-red-300 hover:bg-red-500/30'
               }`}
             >
-              {profileData.is_profile_public ? <Eye className="w-4 h-4 mr-2" /> : <EyeOff className="w-4 h-4 mr-2" />}
+              {profileData.is_profile_public ? <Eye className="w-3 h-3 mr-1" /> : <EyeOff className="w-3 h-3 mr-1" />}
               {profileData.is_profile_public ? 'Public' : 'Private'}
             </Button>
             
-            <Button variant="outline" size="sm" className="border-white/20 bg-purple-500/20 text-purple-300 hover:bg-purple-500/30">
-              <Edit3 className="w-4 h-4 mr-2" />
-              Edit Profile
+            <Button variant="outline" size="sm" className="border-white/20 bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 text-xs px-2 py-1 h-7">
+              <Edit3 className="w-3 h-3 mr-1" />
+              Edit
             </Button>
           </div>
         </div>
 
-        {/* Verification & QCS Status */}
-        <div className="flex items-center space-x-3 mb-4">
-          <Badge className={`${
+        {/* Verification & QCS Status - Mobile */}
+        <div className="flex flex-wrap items-center gap-1.5 mb-3">
+          <Badge className={`text-xs px-2 py-0.5 ${
             profileData.verification_status === 'verified' 
               ? 'bg-green-500/20 text-green-300 border-green-400/30' 
               : 'bg-yellow-500/20 text-yellow-300 border-yellow-400/30'
           }`}>
-            <Shield className="w-3 h-3 mr-1" />
-            {profileData.verification_status === 'verified' ? 'Verified' : 'Pending Verification'}
+            <Shield className="w-2 h-2 mr-1" />
+            {profileData.verification_status === 'verified' ? 'Verified' : 'Pending'}
           </Badge>
           
           {profileData.total_qcs && (
-            <Badge className="bg-purple-500/20 text-purple-300 border-purple-400/30">
-              <Brain className="w-3 h-3 mr-1" />
+            <Badge className="bg-purple-500/20 text-purple-300 border-purple-400/30 text-xs px-2 py-0.5">
+              <Brain className="w-2 h-2 mr-1" />
               QCS: {profileData.total_qcs}
             </Badge>
           )}
           
-          <Badge className={`${
+          <Badge className={`text-xs px-2 py-0.5 ${
             profileData.subscription_tier === 'premium' 
               ? 'bg-gradient-to-r from-gold-400 to-gold-500 text-black' 
               : 'bg-blue-500/20 text-blue-300 border-blue-400/30'
           }`}>
-            <Star className="w-3 h-3 mr-1" />
-            {profileData.subscription_tier || 'Free'} Member
+            <Star className="w-2 h-2 mr-1" />
+            {profileData.subscription_tier || 'Free'}
           </Badge>
         </div>
       </div>
 
-      {/* Main Profile Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Profile Photo & Basic Info */}
-        <div className="lg:col-span-1 space-y-4">
-          {/* Profile Photo */}
-          <div className="genZ-glass-card p-6 rounded-3xl border border-white/20">
+      {/* Main Profile Content - Mobile Layout */}
+      <div className="space-y-3">
+        {/* Profile Photo & Basic Info - Mobile */}
+        <div className="space-y-3">
+          {/* Profile Photo - Mobile */}
+          <div className="genZ-glass-card p-3 rounded-2xl border border-white/20">
             <div className="relative">
-              <div className="aspect-[3/4] bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl overflow-hidden border border-white/10">
+              <div className="aspect-[3/4] bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl overflow-hidden border border-white/10 max-w-xs mx-auto">
                 {profileImage ? (
                   <img 
                     src={profileImage} 
@@ -284,22 +284,22 @@ const EnhancedProfileDisplay: React.FC = () => {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <div className="text-center space-y-3">
-                      <Camera className="w-12 h-12 text-white/50 mx-auto" />
-                      <p className="text-white/60 text-sm">No photo uploaded</p>
+                    <div className="text-center space-y-2">
+                      <Camera className="w-8 h-8 text-white/50 mx-auto" />
+                      <p className="text-white/60 text-xs">No photo</p>
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Photo Navigation */}
+              {/* Photo Navigation - Mobile */}
               {profileData.profile_images && profileData.profile_images.length > 1 && (
-                <div className="absolute inset-0 flex items-center justify-between px-2">
+                <div className="absolute inset-0 flex items-center justify-between px-1">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={prevImage}
-                    className="bg-black/20 hover:bg-black/40 text-white backdrop-blur-sm rounded-full w-8 h-8 p-0"
+                    className="bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm rounded-full w-6 h-6 p-0 text-sm"
                   >
                     ‹
                   </Button>
@@ -307,21 +307,21 @@ const EnhancedProfileDisplay: React.FC = () => {
                     variant="ghost"
                     size="sm"
                     onClick={nextImage}
-                    className="bg-black/20 hover:bg-black/40 text-white backdrop-blur-sm rounded-full w-8 h-8 p-0"
+                    className="bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm rounded-full w-6 h-6 p-0 text-sm"
                   >
                     ›
                   </Button>
                 </div>
               )}
 
-              {/* Photo Indicators */}
+              {/* Photo Indicators - Mobile */}
               {profileData.profile_images && profileData.profile_images.length > 1 && (
-                <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
                   {profileData.profile_images.map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentImageIndex(index)}
-                      className={`w-2 h-2 rounded-full transition-all ${
+                      className={`w-1.5 h-1.5 rounded-full transition-all ${
                         index === currentImageIndex 
                           ? 'bg-white scale-125' 
                           : 'bg-white/50 hover:bg-white/75'
@@ -332,22 +332,22 @@ const EnhancedProfileDisplay: React.FC = () => {
               )}
             </div>
 
-            {/* Basic Info */}
-            <div className="mt-6 space-y-4">
+            {/* Basic Info - Mobile */}
+            <div className="mt-3 space-y-3">
               <div className="text-center">
-                <h3 className="text-2xl font-bold text-white">
+                <h3 className="text-xl font-bold text-white">
                   {profileData.first_name} {profileData.last_name}
                 </h3>
-                <p className="text-white/70 text-lg">{age} years old</p>
+                <p className="text-white/70 text-sm">{age} years old</p>
               </div>
 
-                <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <GraduationCap className="w-5 h-5 text-purple-400" />
-                  <div>
-                    <p className="text-white font-medium">{profileData.university}</p>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <GraduationCap className="w-4 h-4 text-purple-400" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-white font-medium text-sm truncate">{profileData.university}</p>
                     {profileData.field_of_study && (
-                      <p className="text-white/60 text-sm">{profileData.field_of_study}</p>
+                      <p className="text-white/60 text-xs truncate">{profileData.field_of_study}</p>
                     )}
                     {profileData.year_of_study && (
                       <p className="text-white/60 text-xs">Year {profileData.year_of_study}</p>
@@ -356,23 +356,23 @@ const EnhancedProfileDisplay: React.FC = () => {
                 </div>
 
                 {profileData.location && (
-                  <div className="flex items-center space-x-3">
-                    <MapPin className="w-5 h-5 text-pink-400" />
-                    <p className="text-white">{profileData.location}</p>
+                  <div className="flex items-center space-x-2">
+                    <MapPin className="w-4 h-4 text-pink-400" />
+                    <p className="text-white text-sm truncate">{profileData.location}</p>
                   </div>
                 )}
 
-                <div className="flex items-center space-x-3">
-                  <Heart className="w-5 h-5 text-red-400" />
-                  <p className="text-white capitalize">{profileData.gender}</p>
+                <div className="flex items-center space-x-2">
+                  <Heart className="w-4 h-4 text-red-400" />
+                  <p className="text-white capitalize text-sm">{profileData.gender}</p>
                 </div>
 
                 {profileData.height && (
-                  <div className="flex items-center space-x-3">
-                    <div className="w-5 h-5 flex items-center justify-center">
-                      <span className="text-green-400 text-sm">📏</span>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 flex items-center justify-center">
+                      <span className="text-green-400 text-xs">📏</span>
                     </div>
-                    <p className="text-white">{profileData.height} cm</p>
+                    <p className="text-white text-sm">{profileData.height} cm</p>
                   </div>
                 )}
               </div>
@@ -380,32 +380,30 @@ const EnhancedProfileDisplay: React.FC = () => {
           </div>
         </div>
 
-        {/* Detailed Information */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* About Me */}
-          {profileData.bio && (
-            <div className="genZ-glass-card p-6 rounded-3xl border border-white/20">
-              <h4 className="text-xl font-bold text-gradient-primary mb-4 flex items-center">
-                <Sparkles className="w-5 h-5 mr-2" />
-                About Me
-              </h4>
-              <p className="text-white/90 leading-relaxed italic">
-                "{profileData.bio}"
-              </p>
-            </div>
-          )}
+        {/* About Me - Mobile */}
+        {profileData.bio && (
+          <div className="genZ-glass-card p-3 rounded-2xl border border-white/20">
+            <h4 className="text-lg font-bold text-gradient-primary mb-2 flex items-center">
+              <Sparkles className="w-4 h-4 mr-2" />
+              About Me
+            </h4>
+            <p className="text-white/90 leading-relaxed italic text-sm">
+              "{profileData.bio}"
+            </p>
+          </div>
+        )}
 
-          {/* Interests */}
+          {/* Interests - Mobile */}
           {profileData.interests && profileData.interests.length > 0 && (
-            <div className="genZ-glass-card p-6 rounded-3xl border border-white/20">
-              <h4 className="text-xl font-bold text-gradient-primary mb-4">
+            <div className="genZ-glass-card p-3 rounded-2xl border border-white/20">
+              <h4 className="text-lg font-bold text-gradient-primary mb-2">
                 My Interests ✨
               </h4>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {profileData.interests.map((interest, index) => (
                   <Badge 
                     key={index} 
-                    className="bg-purple-500/20 text-purple-300 border-purple-400/30 py-1 px-3 hover:scale-105 transition-transform"
+                    className="bg-purple-500/20 text-purple-300 border-purple-400/30 py-0.5 px-2 text-xs hover:scale-105 transition-transform"
                   >
                     {interest}
                   </Badge>
@@ -414,18 +412,18 @@ const EnhancedProfileDisplay: React.FC = () => {
             </div>
           )}
 
-          {/* Relationship Goals */}
+          {/* Relationship Goals - Mobile */}
           {profileData.relationship_goals && profileData.relationship_goals.length > 0 && (
-            <div className="genZ-glass-card p-6 rounded-3xl border border-white/20">
-              <h4 className="text-xl font-bold text-gradient-secondary mb-4 flex items-center">
-                <Target className="w-5 h-5 mr-2" />
+            <div className="genZ-glass-card p-3 rounded-2xl border border-white/20">
+              <h4 className="text-lg font-bold text-gradient-secondary mb-2 flex items-center">
+                <Target className="w-4 h-4 mr-2" />
                 Relationship Goals
               </h4>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {profileData.relationship_goals.map((goal, index) => (
                   <Badge 
                     key={index} 
-                    className="bg-pink-500/20 text-pink-300 border-pink-400/30 py-1 px-3"
+                    className="bg-pink-500/20 text-pink-300 border-pink-400/30 py-0.5 px-2 text-xs"
                   >
                     {goal}
                   </Badge>
@@ -434,99 +432,99 @@ const EnhancedProfileDisplay: React.FC = () => {
             </div>
           )}
 
-          {/* Physical Attributes & Traits */}
-          <div className="genZ-glass-card p-6 rounded-3xl border border-white/20">
-            <h4 className="text-xl font-bold text-gradient-secondary mb-4 flex items-center">
-              <User className="w-5 h-5 mr-2" />
+          {/* Physical Attributes & Traits - Mobile */}
+          <div className="genZ-glass-card p-3 rounded-2xl border border-white/20">
+            <h4 className="text-lg font-bold text-gradient-secondary mb-2 flex items-center">
+              <User className="w-4 h-4 mr-2" />
               About Me Details
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-2">
               {profileData.personality_type && (
-                <div className="genZ-glass-card p-4 rounded-2xl border border-white/20">
-                  <h5 className="font-semibold text-white mb-2 flex items-center">
-                    <Brain className="w-4 h-4 mr-2 text-purple-400" />
+                <div className="genZ-glass-card p-2 rounded-xl border border-white/20">
+                  <h5 className="font-semibold text-white mb-1 flex items-center text-sm">
+                    <Brain className="w-3 h-3 mr-1 text-purple-400" />
                     Personality
                   </h5>
-                  <p className="text-white/80 capitalize">{profileData.personality_type.replace(/_/g, ' ')}</p>
+                  <p className="text-white/80 capitalize text-xs">{profileData.personality_type.replace(/_/g, ' ')}</p>
                 </div>
               )}
 
               {profileData.values && (
-                <div className="genZ-glass-card p-4 rounded-2xl border border-white/20">
-                  <h5 className="font-semibold text-white mb-2 flex items-center">
-                    <Heart className="w-4 h-4 mr-2 text-pink-400" />
+                <div className="genZ-glass-card p-2 rounded-xl border border-white/20">
+                  <h5 className="font-semibold text-white mb-1 flex items-center text-sm">
+                    <Heart className="w-3 h-3 mr-1 text-pink-400" />
                     Values
                   </h5>
-                  <p className="text-white/80 capitalize">{profileData.values.replace(/_/g, ' ')}</p>
+                  <p className="text-white/80 capitalize text-xs">{profileData.values.replace(/_/g, ' ')}</p>
                 </div>
               )}
 
               {profileData.mindset && (
-                <div className="genZ-glass-card p-4 rounded-2xl border border-white/20">
-                  <h5 className="font-semibold text-white mb-2 flex items-center">
-                    <Sparkles className="w-4 h-4 mr-2 text-blue-400" />
+                <div className="genZ-glass-card p-2 rounded-xl border border-white/20">
+                  <h5 className="font-semibold text-white mb-1 flex items-center text-sm">
+                    <Sparkles className="w-3 h-3 mr-1 text-blue-400" />
                     Mindset
                   </h5>
-                  <p className="text-white/80 capitalize">{profileData.mindset.replace(/_/g, ' ')}</p>
+                  <p className="text-white/80 capitalize text-xs">{profileData.mindset.replace(/_/g, ' ')}</p>
                 </div>
               )}
 
               {profileData.body_type && (
-                <div className="genZ-glass-card p-4 rounded-2xl border border-white/20">
-                  <h5 className="font-semibold text-white mb-2 flex items-center">
-                    <User className="w-4 h-4 mr-2 text-green-400" />
+                <div className="genZ-glass-card p-2 rounded-xl border border-white/20">
+                  <h5 className="font-semibold text-white mb-1 flex items-center text-sm">
+                    <User className="w-3 h-3 mr-1 text-green-400" />
                     Body Type
                   </h5>
-                  <p className="text-white/80 capitalize">{profileData.body_type.replace(/_/g, ' ')}</p>
+                  <p className="text-white/80 capitalize text-xs">{profileData.body_type.replace(/_/g, ' ')}</p>
                 </div>
               )}
 
               {profileData.skin_tone && (
-                <div className="genZ-glass-card p-4 rounded-2xl border border-white/20">
-                  <h5 className="font-semibold text-white mb-2 flex items-center">
-                    <div className="w-4 h-4 mr-2 rounded-full bg-gradient-to-br from-amber-300 to-amber-600"></div>
+                <div className="genZ-glass-card p-2 rounded-xl border border-white/20">
+                  <h5 className="font-semibold text-white mb-1 flex items-center text-sm">
+                    <div className="w-3 h-3 mr-1 rounded-full bg-gradient-to-br from-amber-300 to-amber-600"></div>
                     Skin Tone
                   </h5>
-                  <p className="text-white/80 capitalize">{profileData.skin_tone.replace(/_/g, ' ')}</p>
+                  <p className="text-white/80 capitalize text-xs">{profileData.skin_tone.replace(/_/g, ' ')}</p>
                 </div>
               )}
 
               {profileData.humor_type && (
-                <div className="genZ-glass-card p-4 rounded-2xl border border-white/20">
-                  <h5 className="font-semibold text-white mb-2 flex items-center">
-                    <Coffee className="w-4 h-4 mr-2 text-yellow-400" />
+                <div className="genZ-glass-card p-2 rounded-xl border border-white/20">
+                  <h5 className="font-semibold text-white mb-1 flex items-center text-sm">
+                    <Coffee className="w-3 h-3 mr-1 text-yellow-400" />
                     Humor Style
                   </h5>
-                  <p className="text-white/80">{profileData.humor_type}</p>
+                  <p className="text-white/80 text-xs">{profileData.humor_type}</p>
                 </div>
               )}
 
               {profileData.love_language && (
-                <div className="genZ-glass-card p-4 rounded-2xl border border-white/20">
-                  <h5 className="font-semibold text-white mb-2 flex items-center">
-                    <Heart className="w-4 h-4 mr-2 text-red-400" />
+                <div className="genZ-glass-card p-2 rounded-xl border border-white/20">
+                  <h5 className="font-semibold text-white mb-1 flex items-center text-sm">
+                    <Heart className="w-3 h-3 mr-1 text-red-400" />
                     Love Language
                   </h5>
-                  <p className="text-white/80">{profileData.love_language}</p>
+                  <p className="text-white/80 text-xs">{profileData.love_language}</p>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Partner Preferences */}
+          {/* Partner Preferences - Mobile */}
           {preferences && (
-            <div className="genZ-glass-card p-6 rounded-3xl border border-white/20">
-              <h4 className="text-xl font-bold text-gradient-royal mb-4 flex items-center">
-                <Coffee className="w-5 h-5 mr-2" />
+            <div className="genZ-glass-card p-3 rounded-2xl border border-white/20">
+              <h4 className="text-lg font-bold text-gradient-royal mb-2 flex items-center">
+                <Coffee className="w-4 h-4 mr-2" />
                 Looking For
               </h4>
-              <div className="space-y-4">
+              <div className="space-y-2">
                 {preferences.preferred_gender && preferences.preferred_gender.length > 0 && (
                   <div>
-                    <p className="text-white/70 text-sm mb-2">Gender:</p>
-                    <div className="flex flex-wrap gap-2">
+                    <p className="text-white/70 text-xs mb-1">Gender:</p>
+                    <div className="flex flex-wrap gap-1">
                       {preferences.preferred_gender.map((gender, index) => (
-                        <Badge key={index} className="bg-blue-500/20 text-blue-300 border-blue-400/30">
+                        <Badge key={index} className="bg-blue-500/20 text-blue-300 border-blue-400/30 text-xs py-0.5 px-2">
                           {gender}
                         </Badge>
                       ))}
@@ -536,8 +534,8 @@ const EnhancedProfileDisplay: React.FC = () => {
 
                 {(preferences.age_range_min || preferences.age_range_max) && (
                   <div>
-                    <p className="text-white/70 text-sm mb-2">Age Range:</p>
-                    <Badge className="bg-green-500/20 text-green-300 border-green-400/30">
+                    <p className="text-white/70 text-xs mb-1">Age Range:</p>
+                    <Badge className="bg-green-500/20 text-green-300 border-green-400/30 text-xs py-0.5 px-2">
                       {preferences.age_range_min || 18} - {preferences.age_range_max || 30} years
                     </Badge>
                   </div>
@@ -545,8 +543,8 @@ const EnhancedProfileDisplay: React.FC = () => {
 
                 {(preferences.height_range_min || preferences.height_range_max) && (
                   <div>
-                    <p className="text-white/70 text-sm mb-2">Height Range:</p>
-                    <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-400/30">
+                    <p className="text-white/70 text-xs mb-1">Height Range:</p>
+                    <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-400/30 text-xs py-0.5 px-2">
                       {preferences.height_range_min || 150} - {preferences.height_range_max || 200} cm
                     </Badge>
                   </div>
@@ -554,10 +552,10 @@ const EnhancedProfileDisplay: React.FC = () => {
 
                 {preferences.preferred_body_types && preferences.preferred_body_types.length > 0 && (
                   <div>
-                    <p className="text-white/70 text-sm mb-2">Preferred Body Types:</p>
-                    <div className="flex flex-wrap gap-2">
+                    <p className="text-white/70 text-xs mb-1">Preferred Body Types:</p>
+                    <div className="flex flex-wrap gap-1">
                       {preferences.preferred_body_types.map((type, index) => (
-                        <Badge key={index} className="bg-orange-500/20 text-orange-300 border-orange-400/30">
+                        <Badge key={index} className="bg-orange-500/20 text-orange-300 border-orange-400/30 text-xs py-0.5 px-2">
                           {type}
                         </Badge>
                       ))}
@@ -567,10 +565,10 @@ const EnhancedProfileDisplay: React.FC = () => {
 
                 {preferences.preferred_values && preferences.preferred_values.length > 0 && (
                   <div>
-                    <p className="text-white/70 text-sm mb-2">Preferred Values:</p>
-                    <div className="flex flex-wrap gap-2">
+                    <p className="text-white/70 text-xs mb-1">Preferred Values:</p>
+                    <div className="flex flex-wrap gap-1">
                       {preferences.preferred_values.map((value, index) => (
-                        <Badge key={index} className="bg-purple-500/20 text-purple-300 border-purple-400/30">
+                        <Badge key={index} className="bg-purple-500/20 text-purple-300 border-purple-400/30 text-xs py-0.5 px-2">
                           {value}
                         </Badge>
                       ))}
@@ -580,10 +578,10 @@ const EnhancedProfileDisplay: React.FC = () => {
 
                 {preferences.preferred_mindset && preferences.preferred_mindset.length > 0 && (
                   <div>
-                    <p className="text-white/70 text-sm mb-2">Preferred Mindset:</p>
-                    <div className="flex flex-wrap gap-2">
+                    <p className="text-white/70 text-xs mb-1">Preferred Mindset:</p>
+                    <div className="flex flex-wrap gap-1">
                       {preferences.preferred_mindset.map((mindset, index) => (
-                        <Badge key={index} className="bg-teal-500/20 text-teal-300 border-teal-400/30">
+                        <Badge key={index} className="bg-teal-500/20 text-teal-300 border-teal-400/30 text-xs py-0.5 px-2">
                           {mindset}
                         </Badge>
                       ))}
@@ -593,10 +591,10 @@ const EnhancedProfileDisplay: React.FC = () => {
 
                 {preferences.preferred_personality && preferences.preferred_personality.length > 0 && (
                   <div>
-                    <p className="text-white/70 text-sm mb-2">Preferred Personality:</p>
-                    <div className="flex flex-wrap gap-2">
+                    <p className="text-white/70 text-xs mb-1">Preferred Personality:</p>
+                    <div className="flex flex-wrap gap-1">
                       {preferences.preferred_personality.map((personality, index) => (
-                        <Badge key={index} className="bg-indigo-500/20 text-indigo-300 border-indigo-400/30">
+                        <Badge key={index} className="bg-indigo-500/20 text-indigo-300 border-indigo-400/30 text-xs py-0.5 px-2">
                           {personality}
                         </Badge>
                       ))}
@@ -606,10 +604,10 @@ const EnhancedProfileDisplay: React.FC = () => {
 
                 {preferences.preferred_relationship_goal && preferences.preferred_relationship_goal.length > 0 && (
                   <div>
-                    <p className="text-white/70 text-sm mb-2">Seeking:</p>
-                    <div className="flex flex-wrap gap-2">
+                    <p className="text-white/70 text-xs mb-1">Seeking:</p>
+                    <div className="flex flex-wrap gap-1">
                       {preferences.preferred_relationship_goal.map((goal, index) => (
-                        <Badge key={index} className="bg-pink-500/20 text-pink-300 border-pink-400/30">
+                        <Badge key={index} className="bg-pink-500/20 text-pink-300 border-pink-400/30 text-xs py-0.5 px-2">
                           {goal}
                         </Badge>
                       ))}
