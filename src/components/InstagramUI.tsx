@@ -121,151 +121,223 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
     switch (activeTab) {
       case "home":
         return (
-          <div className="flex-1 overflow-y-auto bg-gradient-royal text-white min-h-screen scroll-smooth relative">
-            {/* Premium Background Effects */}
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10 animate-shimmer"></div>
-            <div className="absolute top-0 left-0 w-full h-full">
-              <div className="absolute top-10 left-10 w-40 h-40 bg-primary/20 rounded-full blur-2xl animate-float"></div>
-              <div className="absolute top-1/3 right-20 w-32 h-32 bg-accent/20 rounded-full blur-xl animate-pulse-glow delay-1000"></div>
-              <div className="absolute bottom-20 left-1/4 w-28 h-28 bg-secondary/20 rounded-full blur-lg animate-float delay-2000"></div>
-              <div className="absolute top-1/2 left-1/2 w-24 h-24 bg-primary-glow/20 rounded-full blur-md animate-pulse-glow delay-500"></div>
-            </div>
-            
-            {/* Premium Hero Section */}
-            <div className="relative min-h-screen bg-gradient-elegant flex flex-col justify-center items-center px-4 overflow-hidden">
-              {/* Luxury Animated Background Elements */}
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10 animate-shimmer"></div>
-              <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-gradient-primary rounded-full blur-xl animate-float opacity-30"></div>
-              <div className="absolute bottom-1/4 right-1/4 w-24 h-24 bg-gradient-gold rounded-full blur-xl animate-pulse-glow delay-300 opacity-40"></div>
-              <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-rose rounded-full blur-lg animate-float delay-500 opacity-50"></div>
+          <div className="flex-1 overflow-y-auto bg-background min-h-screen scroll-smooth relative">
+            {/* Revolutionary Hero Section - Dark/Light Split */}
+            <div className="relative min-h-screen overflow-hidden">
+              {/* Split Background Effect */}
+              <div className="absolute inset-0">
+                <div className="absolute left-0 top-0 w-1/2 h-full bg-gradient-to-br from-background to-muted"></div>
+                <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-bl from-primary/90 via-primary to-primary-dark"></div>
+                <div className="absolute left-1/2 top-0 w-px h-full bg-gradient-to-b from-transparent via-border to-transparent transform -translate-x-1/2"></div>
+              </div>
               
-              {/* Elegant Card Effects */}
+              {/* Floating Orbs Animation */}
               <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute top-1/4 left-1/2 transform -translate-x-1/2 w-80 h-96 glass-luxury rounded-3xl opacity-20 rotate-12 shadow-premium"></div>
-                <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 w-72 h-96 glass-dark-luxury rounded-3xl opacity-30 -rotate-6 shadow-royal"></div>
+                <div className="absolute top-20 left-16 w-32 h-32 bg-primary/20 rounded-full blur-2xl animate-float"></div>
+                <div className="absolute top-40 right-20 w-24 h-24 bg-accent/30 rounded-full blur-xl animate-pulse-glow delay-1000"></div>
+                <div className="absolute bottom-32 left-1/3 w-20 h-20 bg-secondary/25 rounded-full blur-lg animate-float delay-2000"></div>
+                <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-primary-glow/30 rounded-full blur-md animate-pulse-glow delay-500"></div>
               </div>
-              
-              <div className="relative z-10 text-center max-w-sm mx-auto">
-                <div className="mb-8 animate-elegant-entrance">
-                  <h1 className="text-6xl font-elegant font-black leading-tight mb-6 tracking-tight">
-                    Find Your<br/>
-                    <span className="text-gradient-royal animate-shimmer">
-                      Perfect Match
-                    </span>
-                  </h1>
-                  <p className="text-foreground/80 text-lg font-light leading-relaxed font-modern">
-                    Elite connections.<br/>Verified authenticity.
+
+              {/* Main Content Container */}
+              <div className="relative z-10 flex items-center justify-center min-h-screen px-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-6xl w-full items-center">
+                  
+                  {/* Left Side - Light Theme */}
+                  <div className="text-center md:text-left animate-elegant-entrance">
+                    <div className="mb-8">
+                      <span className="inline-block px-4 py-2 bg-accent/10 text-accent rounded-full text-sm font-medium mb-6 animate-bounce-in">
+                        ✨ Premium Dating Experience
+                      </span>
+                      <h1 className="text-5xl md:text-7xl font-elegant font-black leading-none mb-6 tracking-tight">
+                        Find Your
+                        <br/>
+                        <span className="text-gradient-primary animate-shimmer">
+                          Soulmate
+                        </span>
+                      </h1>
+                      <p className="text-lg text-muted-foreground font-modern leading-relaxed max-w-lg">
+                        Where authentic connections meet intelligent matching. Join the most exclusive dating platform designed for meaningful relationships.
+                      </p>
+                    </div>
+                    
+                    <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                      <button className="px-8 py-4 bg-gradient-primary text-white font-bold rounded-full text-lg shadow-premium hover-luxury transition-luxury font-modern">
+                        Start Matching
+                      </button>
+                      <button className="px-8 py-4 border-2 border-primary text-primary font-bold rounded-full text-lg hover:bg-primary hover:text-white transition-luxury font-modern">
+                        Learn More
+                      </button>
+                    </div>
+
+                    {/* Stats */}
+                    <div className="flex justify-center md:justify-start gap-8 text-sm">
+                      <div className="text-center animate-bounce-in" style={{ animationDelay: '0.2s' }}>
+                        <div className="font-bold text-primary text-2xl">50K+</div>
+                        <div className="text-muted-foreground font-modern">Active Users</div>
+                      </div>
+                      <div className="text-center animate-bounce-in" style={{ animationDelay: '0.4s' }}>
+                        <div className="font-bold text-accent text-2xl">15K+</div>
+                        <div className="text-muted-foreground font-modern">Success Stories</div>
+                      </div>
+                      <div className="text-center animate-bounce-in" style={{ animationDelay: '0.6s' }}>
+                        <div className="font-bold text-secondary text-2xl">4.9⭐</div>
+                        <div className="text-muted-foreground font-modern">App Rating</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Side - Dark Theme with Cards */}
+                  <div className="relative animate-slide-up">
+                    <div className="relative">
+                      {/* Floating Cards Stack */}
+                      <div className="relative w-80 h-96 mx-auto">
+                        <div className="absolute inset-0 glass-luxury rounded-3xl shadow-premium rotate-6 animate-float opacity-90"></div>
+                        <div className="absolute inset-0 glass-dark-luxury rounded-3xl shadow-royal -rotate-3 animate-pulse-glow delay-300"></div>
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-3xl shadow-elegant border border-white/20 p-8 flex flex-col items-center justify-center text-white">
+                          <div className="w-20 h-20 bg-gradient-secondary rounded-full mb-6 flex items-center justify-center animate-pulse-glow">
+                            <Heart className="w-10 h-10 text-white" fill="currentColor" />
+                          </div>
+                          <h3 className="text-2xl font-elegant font-bold mb-4">Perfect Match Awaits</h3>
+                          <p className="text-white/80 text-center text-sm font-modern leading-relaxed">
+                            Our AI analyzes 200+ compatibility factors to find your ideal partner
+                          </p>
+                          <div className="flex space-x-2 mt-6">
+                            <div className="w-3 h-3 bg-white/60 rounded-full animate-pulse"></div>
+                            <div className="w-3 h-3 bg-white/40 rounded-full animate-pulse delay-200"></div>
+                            <div className="w-3 h-3 bg-white/20 rounded-full animate-pulse delay-400"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Revolutionary Features Section */}
+            <div className="relative py-24 bg-gradient-to-br from-muted/50 to-background overflow-hidden">
+              {/* Background Effects */}
+              <div className="absolute inset-0">
+                <div className="absolute top-20 left-1/4 w-40 h-40 bg-primary/10 rounded-full blur-3xl animate-float"></div>
+                <div className="absolute bottom-20 right-1/4 w-32 h-32 bg-accent/10 rounded-full blur-2xl animate-pulse-glow delay-1000"></div>
+              </div>
+
+              <div className="relative z-10 max-w-6xl mx-auto px-4">
+                <div className="text-center mb-16 animate-elegant-entrance">
+                  <span className="inline-block px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium mb-6">
+                    🚀 Next Generation Features
+                  </span>
+                  <h2 className="text-4xl md:text-6xl font-elegant font-black mb-6 tracking-tight">
+                    Why We're
+                    <span className="text-gradient-gold animate-shimmer"> Different</span>
+                  </h2>
+                  <p className="text-xl text-muted-foreground font-modern max-w-2xl mx-auto">
+                    Revolutionary technology meets human connection
                   </p>
                 </div>
-                
-                <div className="space-y-6 animate-slide-up">
-                  <button className="w-full bg-gradient-primary text-white font-bold py-4 px-8 rounded-full text-lg shadow-premium hover-luxury transition-luxury font-modern">
-                    Start Your Journey
+
+                {/* Features Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  {[
+                    {
+                      icon: "🧠",
+                      title: "AI-Powered Matching",
+                      description: "Advanced neural networks analyze personality, values, and lifestyle for perfect compatibility",
+                      gradient: "from-primary to-primary-glow",
+                      delay: "0s"
+                    },
+                    {
+                      icon: "🔐",
+                      title: "Verified Profiles",
+                      description: "Multi-layer verification ensures authentic connections with real people",
+                      gradient: "from-accent to-accent-glow", 
+                      delay: "0.2s"
+                    },
+                    {
+                      icon: "💎",
+                      title: "Premium Experience",
+                      description: "Curated matches, priority support, and exclusive events for members",
+                      gradient: "from-secondary to-secondary-glow",
+                      delay: "0.4s"
+                    }
+                  ].map((feature, index) => (
+                    <div 
+                      key={index} 
+                      className="group relative animate-bounce-in" 
+                      style={{ animationDelay: feature.delay }}
+                    >
+                      <div className="relative glass-luxury rounded-3xl p-8 border-gradient shadow-premium hover-elegant transition-luxury h-full">
+                        <div className={`w-16 h-16 bg-gradient-to-r ${feature.gradient} rounded-2xl mb-6 flex items-center justify-center text-2xl animate-pulse-glow group-hover:scale-110 transition-luxury`}>
+                          {feature.icon}
+                        </div>
+                        <h3 className="text-xl font-elegant font-bold mb-4 text-foreground group-hover:text-gradient-primary transition-colors">
+                          {feature.title}
+                        </h3>
+                        <p className="text-muted-foreground font-modern leading-relaxed">
+                          {feature.description}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Interactive Preferences Section */}
+            <div className="relative py-24 bg-gradient-to-br from-primary/5 to-accent/5 overflow-hidden">
+              {/* Background Pattern */}
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,hsl(var(--primary))_1px,transparent_1px)] bg-[length:50px_50px]"></div>
+              </div>
+
+              <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
+                <div className="mb-16 animate-elegant-entrance">
+                  <span className="inline-block px-4 py-2 bg-accent/10 text-accent rounded-full text-sm font-medium mb-6">
+                    💫 Personalize Your Journey  
+                  </span>
+                  <h2 className="text-4xl md:text-6xl font-elegant font-black mb-6 tracking-tight">
+                    What Are You
+                    <span className="text-gradient-royal animate-shimmer"> Looking For?</span>
+                  </h2>
+                  <p className="text-xl text-muted-foreground font-modern max-w-2xl mx-auto">
+                    Choose your path to meaningful connections
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+                  {[
+                    { emoji: "💕", text: "Serious Relationship", desc: "Ready for something meaningful and long-term", primary: true },
+                    { emoji: "✨", text: "Casual Dating", desc: "Exploring connections with an open mind" },
+                    { emoji: "🌙", text: "Take It Slow", desc: "Building friendships that could grow into more" },
+                    { emoji: "🎭", text: "It's Complicated", desc: "Open to various types of connections" }
+                  ].map((option, index) => (
+                    <div 
+                      key={index}
+                      className={`group cursor-pointer animate-bounce-in ${
+                        option.primary 
+                          ? 'glass-luxury border-gradient shadow-premium' 
+                          : 'glass-dark-luxury border border-border/50 hover:border-primary/30'
+                      } rounded-2xl p-6 hover-elegant transition-luxury`}
+                      style={{ animationDelay: `${index * 0.1}s` }}
+                    >
+                      <div className="text-3xl mb-3 animate-pulse-glow">{option.emoji}</div>
+                      <h3 className={`text-lg font-elegant font-bold mb-2 ${
+                        option.primary ? 'text-gradient-primary' : 'text-foreground group-hover:text-primary'
+                      } transition-colors`}>
+                        {option.text}
+                      </h3>
+                      <p className="text-sm text-muted-foreground font-modern">
+                        {option.desc}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-12 animate-slide-up">
+                  <button className="px-12 py-4 bg-gradient-primary text-white font-bold rounded-full text-lg shadow-premium hover-luxury transition-luxury font-modern">
+                    Start Your Journey Now
                   </button>
-                  <div className="flex justify-center space-x-8 text-sm text-foreground/60">
-                    <div className="text-center animate-bounce-in" style={{ animationDelay: '0.2s' }}>
-                      <div className="font-bold text-gradient-gold text-lg">50K+</div>
-                      <div className="font-modern">Elite Members</div>
-                    </div>
-                    <div className="text-center animate-bounce-in" style={{ animationDelay: '0.4s' }}>
-                      <div className="font-bold text-gradient-primary text-lg">15K+</div>
-                      <div className="font-modern">Perfect Matches</div>
-                    </div>
-                    <div className="text-center animate-bounce-in" style={{ animationDelay: '0.6s' }}>
-                      <div className="font-bold text-gradient-rose text-lg">4.9⭐</div>
-                      <div className="font-modern">Premium Rating</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Why Choose Us - Premium Experience */}
-            <div className="relative min-h-screen bg-gradient-royal flex flex-col justify-center items-center px-4 overflow-hidden">
-              {/* Luxury Background Effects */}
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/15 via-accent/15 to-secondary/15 animate-shimmer"></div>
-              <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-gradient-secondary rounded-full blur-xl animate-float opacity-30"></div>
-              <div className="absolute bottom-1/4 right-1/4 w-24 h-24 bg-gradient-rose rounded-full blur-xl animate-pulse-glow delay-300 opacity-40"></div>
-              <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-primary rounded-full blur-lg animate-float delay-500 opacity-50"></div>
-              
-              <div className="relative z-10 text-center max-w-sm mx-auto">
-                <div className="mb-8 animate-elegant-entrance">
-                  <h1 className="text-6xl font-elegant font-black leading-tight mb-6 tracking-tight">
-                    ✨ Why Choose<br/>
-                    <span className="text-gradient-gold animate-shimmer">
-                      Excellence?
-                    </span>
-                  </h1>
-                  <p className="text-foreground/80 text-lg font-light leading-relaxed font-modern">
-                    Experience luxury dating 💎
-                  </p>
-                </div>
-                
-                <div className="space-y-6 animate-slide-up">
-                  <div className="text-center space-y-4">
-                    <div className="glass-luxury rounded-2xl p-6 border-gradient shadow-royal hover-elegant">
-                      <div className="text-4xl mb-3 animate-pulse-glow">🧠</div>
-                      <h3 className="text-xl font-bold text-gradient-primary mb-2 font-elegant">Smart AI Matching</h3>
-                      <p className="text-foreground/70 text-sm leading-relaxed font-modern">
-                        Advanced algorithms find your perfect compatibility
-                      </p>
-                    </div>
-                    <div className="glass-luxury rounded-2xl p-6 border-gradient shadow-gold hover-elegant">
-                      <div className="text-4xl mb-3 animate-pulse-glow">✨</div>
-                      <h3 className="text-xl font-bold text-gradient-gold mb-2 font-elegant">Elite Quality</h3>
-                      <p className="text-foreground/70 text-sm leading-relaxed font-modern">
-                        Curated matches daily, verified authenticity
-                      </p>
-                    </div>
-                    <div className="glass-luxury rounded-2xl p-6 border-gradient shadow-premium hover-elegant">
-                      <div className="text-4xl mb-3 animate-pulse-glow">🔐</div>
-                      <h3 className="text-xl font-bold text-gradient-royal mb-2 font-elegant">Verified Excellence</h3>
-                      <p className="text-foreground/70 text-sm leading-relaxed font-modern">
-                        Real people, premium connections only
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Your Style - Premium Selection */}
-            <div className="relative min-h-screen bg-gradient-elegant flex flex-col justify-center items-center px-4 overflow-hidden">
-              {/* Luxury Background Effects */}
-              <div className="absolute inset-0 bg-gradient-to-r from-accent/15 via-primary/15 to-secondary/15 animate-shimmer"></div>
-              <div className="absolute top-1/4 right-1/4 w-28 h-28 bg-gradient-rose rounded-full blur-xl animate-float delay-200 opacity-40"></div>
-              <div className="absolute bottom-1/3 left-1/4 w-20 h-20 bg-gradient-gold rounded-full blur-xl animate-pulse-glow delay-700 opacity-50"></div>
-              
-              <div className="relative z-10 text-center max-w-sm mx-auto">
-                <div className="mb-8 animate-elegant-entrance">
-                  <h1 className="text-6xl font-elegant font-black leading-tight mb-6 tracking-tight">
-                    Your<br/>
-                    <span className="text-gradient-royal animate-shimmer">
-                      Preference
-                    </span>
-                  </h1>
-                  <p className="text-foreground/80 text-lg font-light leading-relaxed font-modern">
-                    Define your perfect connection
-                  </p>
-                </div>
-                
-                <div className="space-y-4 animate-slide-up">
-                  <div className="glass-luxury rounded-2xl p-6 border-gradient shadow-premium hover-elegant">
-                    <p className="text-xl font-bold text-gradient-primary font-elegant mb-2">💜 Serious Relationship</p>
-                    <p className="text-foreground/70 text-sm font-modern">Ready for something meaningful</p>
-                  </div>
-                  <div className="glass-dark-luxury rounded-2xl p-4 border border-border/50 hover-luxury transition-elegant">
-                    <p className="text-base text-foreground/80 font-modern">✨ Casual - Keep it elegant</p>
-                  </div>
-                  <div className="glass-dark-luxury rounded-2xl p-4 border border-border/50 hover-luxury transition-elegant">
-                    <p className="text-base text-foreground/80 font-modern">🌙 Slow Burn - Take your time</p>
-                  </div>
-                  <div className="glass-dark-luxury rounded-2xl p-4 border border-border/50 hover-luxury transition-elegant">
-                    <p className="text-base text-foreground/80 font-modern">🎭 Complex - It's sophisticated</p>
-                  </div>
-                  <div className="glass-dark-luxury rounded-2xl p-4 border border-border/50 hover-luxury transition-elegant">
-                    <p className="text-base text-foreground/80 font-modern">🎯 Selective - Premium quality</p>
-                  </div>
                 </div>
               </div>
             </div>
