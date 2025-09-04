@@ -501,25 +501,25 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
       <div className="sticky bottom-0 bg-white/20 backdrop-blur-md border-t border-white/30">
         <div className="flex items-center justify-around py-4">
           {[
-            { id: "home", icon: Home, label: "Home", gradient: "from-gray-800 to-black" },
-            { id: "swipe", icon: Heart, label: "Swipe", gradient: "from-purple-900 to-black" },
+            { id: "home", icon: Home, label: "Home", gradient: "from-gray-600 to-gray-800" },
+            { id: "swipe", icon: Heart, label: "Swipe", gradient: "from-purple-600 to-purple-800" },
             {
               id: "pairing",
               icon: Zap,
               label: "Pairing",
-              gradient: "from-indigo-900 to-gray-900",
+              gradient: "from-indigo-600 to-indigo-800",
             },
             {
               id: "blinddate",
               icon: Coffee,
               label: "Blind Date",
-              gradient: "from-pink-900 to-purple-900",
+              gradient: "from-pink-600 to-purple-700",
             },
             {
               id: "profile",
               icon: User,
               label: "Profile",
-              gradient: "from-emerald-900 to-gray-900",
+              gradient: "from-emerald-600 to-gray-700",
             },
           ].map((tab) => (
             <Button
@@ -528,8 +528,8 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
               size="sm"
               className={`flex-col space-y-1 h-auto py-3 px-4 relative rounded-2xl transition-all duration-300 hover:bg-transparent active:bg-transparent focus:bg-transparent text-white bg-gradient-to-br ${tab.gradient} ${
                 activeTab === tab.id 
-                  ? "border-2 border-white shadow-2xl shadow-purple-500/50 scale-105 -translate-y-2 before:absolute before:inset-0 before:rounded-2xl before:bg-white/20 before:backdrop-blur-sm" 
-                  : "border border-white/20 shadow-lg shadow-black/20 opacity-80 hover:opacity-100 hover:scale-102 hover:-translate-y-1 hover:shadow-xl hover:shadow-purple-300/30"
+                  ? "shadow-2xl shadow-purple-500/50 scale-105 -translate-y-2 before:absolute before:inset-0 before:rounded-2xl before:bg-white/20 before:backdrop-blur-sm" 
+                  : "shadow-lg shadow-black/20 opacity-80 hover:opacity-100 hover:scale-102 hover:-translate-y-1 hover:shadow-xl hover:shadow-purple-300/30"
               }`}
               onClick={() => setActiveTab(tab.id as any)}
             >
