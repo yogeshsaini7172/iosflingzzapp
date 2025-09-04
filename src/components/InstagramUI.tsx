@@ -170,11 +170,18 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
               </div>
             </div>
 
-            {/* Enhanced Mobile Card Stack - Better Spacing */}
-            <div className="px-6 py-12 space-y-8 max-w-md mx-auto">
-              <div className="text-center mb-12">
-                <h2 className="text-2xl font-bold mb-3 bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent">Why Choose Us?</h2>
-                <p className="text-gray-400 text-sm">Experience the future of dating</p>
+            {/* Enhanced Mobile Card Stack - Gen Z Pink Vibes */}
+            <div className="px-6 py-12 space-y-8 max-w-md mx-auto relative">
+              {/* Gen Z Background Effects */}
+              <div className="absolute inset-0 bg-gradient-to-r from-pink-500/5 via-purple-500/5 to-pink-500/5 rounded-3xl blur-xl"></div>
+              <div className="absolute top-4 right-4 w-20 h-20 bg-pink-400/10 rounded-full blur-md animate-pulse"></div>
+              <div className="absolute bottom-8 left-8 w-16 h-16 bg-purple-400/10 rounded-full blur-lg animate-bounce delay-1000"></div>
+              
+              <div className="text-center mb-12 relative z-10">
+                <h2 className="text-3xl font-black mb-4 bg-gradient-to-r from-pink-300 via-purple-300 to-pink-200 bg-clip-text text-transparent">
+                  ✨ Why Choose Us? ✨
+                </h2>
+                <p className="text-gray-300 text-lg font-medium">Experience the future of dating 💕</p>
               </div>
               
               {[
@@ -182,33 +189,48 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                   title: "Smart AI Matching", 
                   desc: "Advanced algorithms find your perfect compatibility",
                   icon: "🧠",
-                  gradient: "from-pink-600/20 to-purple-600/20"
+                  gradient: "from-pink-600/30 to-purple-600/30",
+                  borderGradient: "from-pink-500/50 to-purple-500/50"
                 },
                 { 
                   title: "Quality Over Quantity", 
                   desc: "10 curated matches daily, no endless scrolling",
                   icon: "✨",
-                  gradient: "from-pink-500/20 to-purple-500/20"
+                  gradient: "from-purple-600/30 to-pink-600/30",
+                  borderGradient: "from-purple-500/50 to-pink-500/50"
                 },
                 { 
                   title: "Verified Profiles", 
                   desc: "Real people, authentic connections only",
                   icon: "🔐",
-                  gradient: "from-purple-600/20 to-pink-600/20"
+                  gradient: "from-pink-500/30 to-purple-500/30",
+                  borderGradient: "from-pink-400/50 to-purple-400/50"
                 }
               ].map((feature, index) => (
                 <div 
                   key={feature.title}
-                  className={`bg-gradient-to-br ${feature.gradient} backdrop-blur-sm rounded-3xl p-6 border border-white/10 animate-scale-in`}
-                  style={{ animationDelay: `${index * 0.2}s` }}
+                  className={`relative bg-gradient-to-br ${feature.gradient} backdrop-blur-md rounded-3xl p-6 border border-transparent bg-clip-padding animate-scale-in hover:scale-105 transition-all duration-300`}
+                  style={{ 
+                    animationDelay: `${index * 0.2}s`,
+                    background: `linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(147, 51, 234, 0.1)), linear-gradient(135deg, ${feature.gradient.replace('from-', '').replace('to-', '').replace('/', ', ')})`
+                  }}
                 >
-                  <div className="flex items-start space-x-4">
-                    <div className="text-3xl">{feature.icon}</div>
+                  {/* Pink glow border effect */}
+                  <div className={`absolute inset-0 bg-gradient-to-r ${feature.borderGradient} rounded-3xl opacity-20 blur-sm`}></div>
+                  
+                  <div className="flex items-start space-x-4 relative z-10">
+                    <div className="text-4xl animate-bounce delay-300">{feature.icon}</div>
                     <div>
-                      <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
-                      <p className="text-gray-300 text-sm leading-relaxed">{feature.desc}</p>
+                      <h3 className="text-xl font-black text-white mb-2 bg-gradient-to-r from-pink-200 to-purple-200 bg-clip-text text-transparent">
+                        {feature.title}
+                      </h3>
+                      <p className="text-gray-200 text-sm leading-relaxed font-medium">{feature.desc}</p>
                     </div>
                   </div>
+                  
+                  {/* Floating particles */}
+                  <div className="absolute top-2 right-2 w-2 h-2 bg-pink-400/50 rounded-full animate-ping"></div>
+                  <div className="absolute bottom-3 right-6 w-1 h-1 bg-purple-400/60 rounded-full animate-pulse delay-700"></div>
                 </div>
               ))}
             </div>
