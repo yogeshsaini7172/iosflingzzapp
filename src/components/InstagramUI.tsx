@@ -35,7 +35,7 @@ interface InstagramUIProps {
 
 const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
   const [activeTab, setActiveTab] = useState<
-    "home" | "swipe" | "pairing" | "blinddate" | "profile"
+    "home" | "pairing" | "blinddate" | "profile"
   >("home");
   const { toast } = useToast();
 
@@ -404,13 +404,6 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
           </div>
         );
 
-      case "swipe":
-        return (
-          <div className="flex-1 overflow-y-auto">
-            <SwipeCards />
-          </div>
-        );
-
       case "pairing":
         return (
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -504,7 +497,6 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
         <div className="flex items-center justify-around py-6 px-4">
           {[
             { id: "home", icon: Home, label: "Home", gradient: "from-primary to-primary-glow" },
-            { id: "swipe", icon: Heart, label: "Swipe", gradient: "from-accent to-accent-glow" },
             {
               id: "pairing",
               icon: Heart,
