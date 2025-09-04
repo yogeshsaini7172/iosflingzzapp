@@ -121,155 +121,241 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
     switch (activeTab) {
       case "home":
         return (
-          <div className="flex-1 overflow-y-auto">
-            {/* Hero Section with Gradient */}
-            <div className="bg-gradient-primary text-white relative overflow-hidden">
-              <div className="absolute inset-0 bg-black/10"></div>
-              <div className="relative p-6 text-center">
-                <div className="animate-fade-in">
-                  <h1 className="text-3xl font-bold mb-2">👋 Hey there! Welcome</h1>
-                  <p className="text-sm opacity-90">Never settle for less than what your heart desires</p>
+          <div className="flex-1 overflow-y-auto bg-gradient-to-b from-background to-accent/5">
+            {/* Dynamic Hero Section */}
+            <div className="relative min-h-[40vh] bg-gradient-to-br from-primary via-secondary to-accent text-white overflow-hidden">
+              {/* Floating Background Elements */}
+              <div className="absolute inset-0">
+                <div className="absolute top-10 left-4 w-32 h-32 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
+                <div className="absolute top-20 right-6 w-24 h-24 bg-white/15 rounded-full blur-2xl animate-pulse" style={{animationDelay: '1s'}}></div>
+                <div className="absolute bottom-10 left-1/2 w-40 h-40 bg-white/5 rounded-full blur-3xl animate-pulse" style={{animationDelay: '0.5s'}}></div>
+              </div>
+              
+              {/* Hero Content */}
+              <div className="relative z-10 p-6 pt-16">
+                <div className="text-center animate-fade-in">
+                  <div className="mb-4">
+                    <div className="text-6xl mb-2 animate-scale-in">👋</div>
+                    <h1 className="text-4xl font-black mb-2 leading-tight">
+                      Hey Beautiful!
+                    </h1>
+                    <p className="text-xl opacity-90 font-medium">Ready to find your vibe?</p>
+                  </div>
                 </div>
-                <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
-                <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-white/5 rounded-full blur-xl"></div>
+                
+                {/* Floating Quote Card */}
+                <div className="mt-8 relative animate-scale-in" style={{animationDelay: '0.3s'}}>
+                  <div className="bg-white/20 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-white/30">
+                    <div className="text-center">
+                      <div className="text-3xl mb-3">✨</div>
+                      <p className="text-lg font-semibold italic">
+                        "Skip the endless swipes.<br/>Find your people, your way."
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="p-4 space-y-6">
-              {/* Highlight Banner with Glass Effect */}
-              <div className="relative bg-gradient-subtle backdrop-blur-sm rounded-2xl p-6 text-center border border-primary/20 shadow-xl animate-scale-in">
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-2xl"></div>
-                <div className="relative">
-                  <div className="text-2xl mb-2">✨</div>
-                  <p className="text-lg font-semibold bg-gradient-primary bg-clip-text text-transparent">
-                    "Skip the endless swipes. Find your people, your way."
-                  </p>
+            <div className="px-4 pb-6 space-y-8 -mt-6 relative z-20">
+              {/* Modes Section - Asymmetric Layout */}
+              <div className="space-y-6">
+                <div className="text-center mb-6">
+                  <h2 className="text-3xl font-bold mb-2">Your Vibe Check</h2>
+                  <p className="text-muted-foreground">How are you feeling today?</p>
                 </div>
-              </div>
-
-              {/* Your Modes - Premium Cards */}
-              <div className="space-y-4 animate-fade-in">
-                <div className="text-center">
-                  <h2 className="text-2xl font-bold mb-1">Your Modes</h2>
-                  <p className="text-muted-foreground">Choose how you vibe:</p>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  {[
-                    { emoji: "❤️", title: "Relationship", gradient: "from-red-500/20 to-pink-500/20", color: "text-red-500" },
-                    { emoji: "🔥", title: "Casual", gradient: "from-orange-500/20 to-red-500/20", color: "text-orange-500" },
-                    { emoji: "🕒", title: "Benching", gradient: "from-blue-500/20 to-purple-500/20", color: "text-blue-500" },
-                    { emoji: "💫", title: "Situationship", gradient: "from-purple-500/20 to-pink-500/20", color: "text-purple-500" }
-                  ].map((mode, index) => (
-                    <div 
-                      key={mode.title}
-                      className={`relative bg-gradient-to-br ${mode.gradient} backdrop-blur-sm border border-white/20 rounded-xl p-4 text-center hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl animate-scale-in hover-scale`}
-                      style={{ animationDelay: `${index * 0.1}s` }}
-                    >
-                      <div className="text-3xl mb-2">{mode.emoji}</div>
-                      <div className={`font-semibold ${mode.color}`}>{mode.title}</div>
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-xl"></div>
+                
+                {/* Creative Mode Layout */}
+                <div className="space-y-4">
+                  {/* Top Row - Large Card */}
+                  <div className="animate-scale-in">
+                    <div className="relative h-32 bg-gradient-to-br from-red-500/20 via-pink-500/20 to-rose-500/20 backdrop-blur-sm rounded-3xl border border-red-500/30 shadow-xl overflow-hidden hover:scale-105 transition-all duration-500 cursor-pointer">
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+                      <div className="relative h-full flex items-center justify-between p-6">
+                        <div>
+                          <div className="text-4xl mb-1">❤️</div>
+                          <h3 className="text-xl font-bold text-red-500">Relationship</h3>
+                          <p className="text-sm text-red-400">Looking for the one</p>
+                        </div>
+                        <div className="text-6xl opacity-20">💕</div>
+                      </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Match Flow - Interactive Cards */}
-              <div className="space-y-4 animate-fade-in">
-                <h2 className="text-2xl font-bold text-center">Match Flow</h2>
-                <div className="space-y-3">
-                  {[
-                    { emoji: "🎯", text: "Based on your physical & mental preferences", color: "from-green-500/10 to-emerald-500/10" },
-                    { emoji: "💌", text: "Only 10 pairs shown per day", color: "from-pink-500/10 to-rose-500/10" },
-                    { emoji: "💬", text: "Send a chat request — or get instant chat if your match score is high", color: "from-blue-500/10 to-cyan-500/10" }
-                  ].map((item, index) => (
-                    <div 
-                      key={index}
-                      className={`flex items-center space-x-4 bg-gradient-to-r ${item.color} backdrop-blur-sm rounded-xl p-4 border border-white/10 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] animate-scale-in`}
-                      style={{ animationDelay: `${index * 0.15}s` }}
-                    >
-                      <div className="text-2xl flex-shrink-0 animate-pulse">{item.emoji}</div>
-                      <p className="text-sm font-medium">{item.text}</p>
+                  </div>
+                  
+                  {/* Middle Row - Two Medium Cards */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="animate-scale-in" style={{animationDelay: '0.1s'}}>
+                      <div className="relative h-28 bg-gradient-to-br from-orange-500/20 to-red-500/20 backdrop-blur-sm rounded-2xl border border-orange-500/30 shadow-lg overflow-hidden hover:scale-105 transition-all duration-300 cursor-pointer">
+                        <div className="relative h-full flex flex-col justify-center items-center p-4">
+                          <div className="text-3xl mb-1">🔥</div>
+                          <h3 className="font-bold text-orange-500">Casual</h3>
+                          <p className="text-xs text-orange-400 text-center">Keep it fun</p>
+                        </div>
+                      </div>
                     </div>
-                  ))}
+                    <div className="animate-scale-in" style={{animationDelay: '0.2s'}}>
+                      <div className="relative h-28 bg-gradient-to-br from-blue-500/20 to-purple-500/20 backdrop-blur-sm rounded-2xl border border-blue-500/30 shadow-lg overflow-hidden hover:scale-105 transition-all duration-300 cursor-pointer">
+                        <div className="relative h-full flex flex-col justify-center items-center p-4">
+                          <div className="text-3xl mb-1">🕒</div>
+                          <h3 className="font-bold text-blue-500">Benching</h3>
+                          <p className="text-xs text-blue-400 text-center">Take it slow</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Bottom Row - Unique Shape */}
+                  <div className="animate-scale-in" style={{animationDelay: '0.3s'}}>
+                    <div className="relative h-24 bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-indigo-500/20 backdrop-blur-sm rounded-full border border-purple-500/30 shadow-xl overflow-hidden hover:scale-105 transition-all duration-500 cursor-pointer">
+                      <div className="relative h-full flex items-center justify-center">
+                        <div className="text-3xl mr-3">💫</div>
+                        <div>
+                          <h3 className="font-bold text-purple-500">Situationship</h3>
+                          <p className="text-xs text-purple-400">It's complicated</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Daily Stats - Glassmorphism */}
-              <div className="relative bg-gradient-secondary/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-xl animate-scale-in">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 rounded-2xl"></div>
-                <div className="relative">
-                  <h3 className="font-bold text-lg mb-4 text-center bg-gradient-primary bg-clip-text text-transparent">
-                    Today's Opportunities ✨
-                  </h3>
+              {/* Interactive Stats Dashboard */}
+              <div className="relative">
+                <div className="bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 backdrop-blur-xl rounded-3xl p-6 border border-primary/20 shadow-2xl animate-scale-in">
+                  <div className="text-center mb-6">
+                    <h3 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                      Today's Magic ✨
+                    </h3>
+                  </div>
+                  
                   <div className="grid grid-cols-3 gap-6">
                     {[
-                      { number: "10", label: "New Matches", color: "text-primary", icon: "💕" },
-                      { number: "3", label: "Chat Requests", color: "text-secondary", icon: "💬" },
-                      { number: "5", label: "Profile Views", color: "text-accent", icon: "👀" }
+                      { number: "10", label: "Potential Matches", icon: "💕", color: "from-red-500 to-pink-500", delay: "0s" },
+                      { number: "3", label: "Active Chats", icon: "💬", color: "from-blue-500 to-cyan-500", delay: "0.1s" },
+                      { number: "5", label: "Profile Views", icon: "👀", color: "from-purple-500 to-indigo-500", delay: "0.2s" }
                     ].map((stat, index) => (
-                      <div key={index} className="text-center group hover:scale-110 transition-transform duration-300">
-                        <div className="text-lg mb-1 group-hover:animate-pulse">{stat.icon}</div>
-                        <div className={`text-3xl font-bold ${stat.color} group-hover:text-primary transition-colors`}>
+                      <div 
+                        key={index} 
+                        className="text-center group cursor-pointer animate-scale-in hover:scale-110 transition-all duration-300"
+                        style={{animationDelay: stat.delay}}
+                      >
+                        <div className={`relative w-16 h-16 mx-auto mb-3 bg-gradient-to-br ${stat.color} rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300`}>
+                          <div className="text-xl group-hover:animate-pulse">{stat.icon}</div>
+                          <div className="absolute inset-0 bg-white/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        </div>
+                        <div className="text-3xl font-black text-primary group-hover:text-secondary transition-colors">
                           {stat.number}
                         </div>
-                        <div className="text-xs text-muted-foreground font-medium">{stat.label}</div>
+                        <div className="text-xs text-muted-foreground font-semibold">{stat.label}</div>
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
 
-              {/* Subscription Plans - Premium Design */}
-              <div className="space-y-4 animate-fade-in">
-                <div className="text-center">
-                  <h2 className="text-2xl font-bold mb-1">Choose Your Plan</h2>
-                  <p className="text-muted-foreground">Unlock your dating potential</p>
-                </div>
-                <div className="grid gap-4">
-                  {plans.map((plan, index) => (
-                    <div
-                      key={plan.id}
-                      className={`relative overflow-hidden bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-sm border-2 ${plan.color} shadow-xl rounded-2xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] animate-scale-in hover-scale`}
-                      style={{ animationDelay: `${index * 0.1}s` }}
+              {/* Match Flow - Card Stack Design */}
+              <div className="space-y-4">
+                <h2 className="text-3xl font-bold text-center mb-6">How It Works</h2>
+                <div className="relative">
+                  {[
+                    { emoji: "🎯", text: "AI matches based on your preferences", color: "from-green-500/15 to-emerald-500/15", size: "h-20", offset: "ml-0" },
+                    { emoji: "💌", text: "10 curated matches daily", color: "from-pink-500/15 to-rose-500/15", size: "h-18", offset: "ml-4" },
+                    { emoji: "💬", text: "Instant chat for high compatibility", color: "from-blue-500/15 to-cyan-500/15", size: "h-16", offset: "ml-8" }
+                  ].map((item, index) => (
+                    <div 
+                      key={index}
+                      className={`relative ${item.offset} ${item.size} bg-gradient-to-r ${item.color} backdrop-blur-sm rounded-2xl p-4 border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 animate-scale-in mb-3`}
+                      style={{ animationDelay: `${index * 0.2}s` }}
                     >
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent"></div>
-                      <div className="relative p-6">
-                        <div className="flex justify-between items-start mb-4">
-                          <div>
-                            <h3 className="text-xl font-bold">{plan.name}</h3>
-                            <p className="text-2xl font-bold text-primary">{plan.price}</p>
-                          </div>
-                          <div className="text-2xl">
-                            {plan.id === 1 && "🌟"}
-                            {plan.id === 2 && "💎"}
-                            {plan.id === 3 && "👑"}
-                          </div>
-                        </div>
-
-                        <ul className="space-y-2 mb-6">
-                          {plan.features.map((feature, idx) => (
-                            <li key={idx} className="flex items-center space-x-2 text-sm">
-                              <span className="text-green-500">✅</span>
-                              <span>{feature}</span>
-                            </li>
-                          ))}
-                        </ul>
-
-                        <Button
-                          className={`w-full text-white font-semibold ${plan.buttonColor} shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl`}
-                          onClick={() => alert(`Subscribed to ${plan.name}`)}
-                        >
-                          Get {plan.name} ✨
-                        </Button>
+                      <div className="flex items-center space-x-4 h-full">
+                        <div className="text-3xl animate-pulse">{item.emoji}</div>
+                        <p className="font-semibold">{item.text}</p>
                       </div>
-                      <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/10 to-transparent rounded-full -translate-y-10 translate-x-10"></div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Bottom Spacer */}
-              <div className="h-4"></div>
+              {/* Premium Subscription Cards - Story Style */}
+              <div className="space-y-6">
+                <div className="text-center">
+                  <h2 className="text-3xl font-bold mb-2">Level Up Your Game</h2>
+                  <p className="text-muted-foreground">Choose your power level</p>
+                </div>
+                
+                <div className="space-y-6">
+                  {plans.map((plan, index) => (
+                    <div
+                      key={plan.id}
+                      className={`relative overflow-hidden ${index === 1 ? 'scale-105 ring-2 ring-primary' : ''} animate-scale-in`}
+                      style={{ animationDelay: `${index * 0.15}s` }}
+                    >
+                      {/* Popular Badge for Premium */}
+                      {index === 1 && (
+                        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 z-10">
+                          <div className="bg-gradient-primary text-white px-4 py-1 rounded-full text-sm font-bold shadow-lg">
+                            ⭐ MOST POPULAR
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className={`relative h-48 bg-gradient-to-br ${
+                        index === 0 ? 'from-blue-500/20 to-indigo-500/20' :
+                        index === 1 ? 'from-purple-500/20 to-pink-500/20' :
+                        'from-yellow-500/20 to-orange-500/20'
+                      } backdrop-blur-sm rounded-3xl border-2 ${plan.color} shadow-2xl overflow-hidden hover:scale-105 transition-all duration-500 cursor-pointer`}>
+                        
+                        {/* Background Pattern */}
+                        <div className="absolute inset-0">
+                          <div className="absolute top-4 right-4 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
+                          <div className="absolute bottom-4 left-4 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+                        </div>
+                        
+                        <div className="relative h-full p-6 flex flex-col">
+                          <div className="flex justify-between items-start mb-4">
+                            <div>
+                              <h3 className="text-2xl font-black">{plan.name}</h3>
+                              <p className="text-3xl font-black text-primary">{plan.price}</p>
+                            </div>
+                            <div className="text-5xl">
+                              {plan.id === 1 && "🌟"}
+                              {plan.id === 2 && "💎"}
+                              {plan.id === 3 && "👑"}
+                            </div>
+                          </div>
+
+                          <div className="flex-1 mb-4">
+                            <div className="grid grid-cols-2 gap-2">
+                              {plan.features.slice(0, 4).map((feature, idx) => (
+                                <div key={idx} className="flex items-center space-x-1">
+                                  <span className="text-green-500 text-sm">✅</span>
+                                  <span className="text-xs font-medium">{feature}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          <Button
+                            className={`w-full font-bold ${plan.buttonColor} shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl h-12 text-lg`}
+                            onClick={() => alert(`Welcome to ${plan.name}! 🎉`)}
+                          >
+                            Get {plan.name} ✨
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Bottom CTA */}
+              <div className="text-center py-8 animate-fade-in">
+                <div className="bg-gradient-primary/10 backdrop-blur-sm rounded-full p-4 inline-block">
+                  <p className="text-lg font-semibold bg-gradient-primary bg-clip-text text-transparent">
+                    Ready to find your perfect match? 💕
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         );
