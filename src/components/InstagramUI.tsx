@@ -121,11 +121,87 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
     switch (activeTab) {
       case "home":
         return (
-          <div className="flex-1 overflow-y-auto p-4">
-            <h2 className="text-2xl font-bold mb-6 text-center">
-              Choose Your Plan
-            </h2>
-            {renderPlans()}
+          <div className="flex-1 overflow-y-auto">
+            {/* Hero Section */}
+            <div className="bg-gradient-primary text-white p-6 text-center">
+              <h1 className="text-2xl font-bold mb-2">👋 Hey there! Welcome</h1>
+              <p className="text-sm opacity-90">Never settle for less than what your heart desires</p>
+            </div>
+
+            <div className="p-4 space-y-6">
+              {/* Highlight Banner */}
+              <div className="bg-gradient-subtle rounded-xl p-4 text-center border border-primary/20">
+                <p className="text-lg font-semibold text-primary">"Skip the endless swipes. Find your people, your way."</p>
+              </div>
+
+              {/* Your Modes */}
+              <div className="space-y-4">
+                <h2 className="text-xl font-bold text-center">Your Modes</h2>
+                <p className="text-center text-muted-foreground">Choose how you vibe:</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-card border rounded-lg p-3 text-center hover:bg-accent transition-colors">
+                    <div className="text-2xl mb-1">❤️</div>
+                    <div className="font-medium">Relationship</div>
+                  </div>
+                  <div className="bg-card border rounded-lg p-3 text-center hover:bg-accent transition-colors">
+                    <div className="text-2xl mb-1">🔥</div>
+                    <div className="font-medium">Casual</div>
+                  </div>
+                  <div className="bg-card border rounded-lg p-3 text-center hover:bg-accent transition-colors">
+                    <div className="text-2xl mb-1">🕒</div>
+                    <div className="font-medium">Benching</div>
+                  </div>
+                  <div className="bg-card border rounded-lg p-3 text-center hover:bg-accent transition-colors">
+                    <div className="text-2xl mb-1">💫</div>
+                    <div className="font-medium">Situationship</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Match Flow */}
+              <div className="space-y-4">
+                <h2 className="text-xl font-bold text-center">Match Flow</h2>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3 bg-card/50 rounded-lg p-3">
+                    <div className="text-xl">🎯</div>
+                    <p className="text-sm">Based on your physical & mental preferences</p>
+                  </div>
+                  <div className="flex items-center space-x-3 bg-card/50 rounded-lg p-3">
+                    <div className="text-xl">💌</div>
+                    <p className="text-sm">Only 10 pairs shown per day</p>
+                  </div>
+                  <div className="flex items-center space-x-3 bg-card/50 rounded-lg p-3">
+                    <div className="text-xl">💬</div>
+                    <p className="text-sm">Send a chat request — or get instant chat if your match score is high</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Daily Stats - Creative Addition */}
+              <div className="bg-gradient-secondary/10 rounded-xl p-4">
+                <h3 className="font-semibold mb-3 text-center">Today's Opportunities</h3>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <div className="text-2xl font-bold text-primary">10</div>
+                    <div className="text-xs text-muted-foreground">New Matches</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-secondary">3</div>
+                    <div className="text-xs text-muted-foreground">Chat Requests</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-accent">5</div>
+                    <div className="text-xs text-muted-foreground">Profile Views</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Subscription Plans */}
+              <div className="space-y-4">
+                <h2 className="text-xl font-bold text-center">Choose Your Plan</h2>
+                {renderPlans()}
+              </div>
+            </div>
           </div>
         );
 
