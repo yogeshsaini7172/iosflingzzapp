@@ -530,7 +530,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
               className="flex-col space-y-1 h-auto py-3 px-4 relative text-foreground bg-transparent border-0 outline-none focus:outline-none hover:outline-none active:outline-none"
               onClick={() => setActiveTab(tab.id as any)}
             >
-              <tab.icon className="w-6 h-6" />
+              <tab.icon className="w-6 h-6" fill="currentColor" />
               <span className="text-xs">{tab.label}</span>
               {activeTab === tab.id && (
                 <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-current rounded-full"></div>
