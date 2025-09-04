@@ -12,6 +12,7 @@ import NotFound from "./pages/NotFound";
 import AuthScreen from "./components/auth/AuthScreen";
 import ProfileSetupFlow from "./components/profile/ProfileSetupFlow";
 import GenZBackground from "./components/ui/genZ-background";
+import AuthCallback from "./pages/AuthCallback";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -95,16 +96,21 @@ function AppContent() {
     );
   }
 
-  // Not authenticated - show auth screen
+  // Not authenticated - show auth routes (Auth and OAuth callback)
   if (!user && currentView === 'auth') {
     return (
-      <TooltipProvider>
-        <GenZBackground variant="auth">
-          <Toaster />
-          <Sonner />
-          <AuthScreen />
-        </GenZBackground>
-      </TooltipProvider>
+      <BrowserRouter>
+        <TooltipProvider>
+          <GenZBackground variant="auth">
+            <Toaster />
+            <Sonner />
+            <Routes>
+              <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="*" element={<AuthScreen />} />
+            </Routes>
+          </GenZBackground>
+        </TooltipProvider>
+      </BrowserRouter>
     );
   }
 

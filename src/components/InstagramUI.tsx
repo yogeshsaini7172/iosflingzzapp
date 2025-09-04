@@ -297,11 +297,20 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                   <div className="absolute top-1/2 right-10 w-4 h-16 bg-blue-400/20 rotate-12 animate-bounce delay-800"></div>
                 </div>
 
-                <div className="max-w-lg mx-auto space-y-6 relative z-10">
-                  {/* Enhanced Swipe Interface */}
-                  <SwipeCards />
+                  <div className="max-w-lg mx-auto space-y-6 relative z-10">
+                    {/* Enhanced Swipe Interface */}
+                    <SwipeCards />
 
-                  {/* Quick Stats */}
+                    <div className="flex justify-end">
+                      <Button
+                        onClick={handleNavigateToChat}
+                        className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white mt-2"
+                      >
+                        Open Chat
+                      </Button>
+                    </div>
+
+                    {/* Quick Stats */}
                   <div className="grid grid-cols-3 gap-4 mt-8">
                     <div className="text-center bg-white/10 rounded-2xl p-4 backdrop-blur-sm">
                       <div className="text-2xl font-bold text-white">47</div>
