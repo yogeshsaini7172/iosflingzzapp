@@ -258,7 +258,22 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
               </div>
 
               <div className="relative z-10 px-4 py-8">
-                <div className="max-w-lg mx-auto space-y-6">
+                {/* GenZ Background Elements */}
+                <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                  <div className="absolute top-10 left-10 text-6xl opacity-20 animate-float">💜</div>
+                  <div className="absolute top-40 right-20 text-4xl opacity-30 animate-pulse delay-1000">✨</div>
+                  <div className="absolute bottom-60 left-20 text-5xl opacity-25 animate-bounce delay-500">🔥</div>
+                  <div className="absolute top-80 left-1/2 text-3xl opacity-20 animate-spin">💫</div>
+                  <div className="absolute bottom-40 right-10 text-4xl opacity-30 animate-pulse delay-2000">🌙</div>
+                  <div className="absolute top-60 right-1/4 text-2xl opacity-25 animate-bounce delay-1500">💕</div>
+                  
+                  {/* Floating geometric shapes */}
+                  <div className="absolute top-20 right-1/3 w-8 h-8 bg-pink-400/20 rotate-45 animate-float delay-700"></div>
+                  <div className="absolute bottom-80 left-1/3 w-6 h-6 bg-purple-400/20 rounded-full animate-pulse delay-1200"></div>
+                  <div className="absolute top-1/2 right-10 w-4 h-16 bg-blue-400/20 rotate-12 animate-bounce delay-800"></div>
+                </div>
+
+                <div className="max-w-lg mx-auto space-y-6 relative z-10">
                   {/* Swipe Cards Container */}
                   <div className="relative h-[600px] perspective-1000">
                     {/* Profile Cards Stack */}
@@ -370,33 +385,48 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                       <div className="text-white/70 text-sm">Super Likes</div>
                     </div>
                   </div>
-                  {/* Subscription Plans */}
-                  <div className="grid gap-6">
-                    {plans.map((plan) => (
-                      <div
-                        key={plan.id}
-                        className={`border-2 ${plan.color} shadow-md rounded-xl bg-black/50 backdrop-blur-sm animate-fade-in`}
-                        style={{ animationDelay: `${plan.id * 0.1}s` }}
-                      >
-                        <div className="p-6">
-                          <h3 className="text-xl font-bold mb-2 text-white">{plan.name}</h3>
-                          <p className="text-2xl font-semibold mb-4 text-white">{plan.price}</p>
+                  {/* Compact Horizontal Subscription Plans */}
+                  <div className="mt-8">
+                    <div className="text-center mb-4">
+                      <h3 className="text-lg font-bold text-white mb-2">Upgrade Your Experience ✨</h3>
+                      <p className="text-white/70 text-sm">Choose your dating superpower</p>
+                    </div>
+                    
+                    <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+                      {plans.map((plan) => (
+                        <div
+                          key={plan.id}
+                          className={`flex-shrink-0 w-48 border-2 ${plan.color} shadow-lg rounded-2xl bg-black/60 backdrop-blur-sm animate-fade-in hover:scale-105 transition-all duration-300`}
+                          style={{ animationDelay: `${plan.id * 0.1}s` }}
+                        >
+                          <div className="p-4">
+                            <div className="text-center mb-3">
+                              <h4 className="text-lg font-bold text-white">{plan.name}</h4>
+                              <p className="text-xl font-semibold text-white">{plan.price}</p>
+                            </div>
 
-                          <ul className="space-y-2 mb-4 text-sm text-gray-300">
-                            {plan.features.map((f, idx) => (
-                              <li key={idx}>✅ {f}</li>
-                            ))}
-                          </ul>
+                            <ul className="space-y-1 mb-3 text-xs text-gray-300">
+                              {plan.features.slice(0, 3).map((f, idx) => (
+                                <li key={idx} className="flex items-center">
+                                  <span className="text-green-400 mr-1">✓</span>
+                                  {f}
+                                </li>
+                              ))}
+                              {plan.features.length > 3 && (
+                                <li className="text-gray-400 text-xs">+{plan.features.length - 3} more</li>
+                              )}
+                            </ul>
 
-                          <button
-                            className={`w-full text-white ${plan.buttonColor} py-3 rounded-xl font-semibold hover:scale-105 transition-all duration-300`}
-                            onClick={() => alert(`Subscribed to ${plan.name}`)}
-                          >
-                            Subscribe
-                          </button>
+                            <button
+                              className={`w-full text-white ${plan.buttonColor} py-2 rounded-xl text-sm font-semibold hover:scale-105 transition-all duration-300 shadow-md`}
+                              onClick={() => alert(`Subscribed to ${plan.name}`)}
+                            >
+                              Choose Plan
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
