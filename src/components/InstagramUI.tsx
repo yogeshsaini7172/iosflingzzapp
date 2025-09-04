@@ -28,6 +28,7 @@ import SwipeCards from "@/components/swipe/SwipeCards";
 import PairingMatches from "@/components/pairing/PairingMatches";
 import GhostBenchBar from "@/components/ui/ghost-bench-bar";
 import { useToast } from "@/hooks/use-toast";
+import EnhancedProfileDisplay from "@/components/profile/EnhancedProfileDisplay";
 
 interface InstagramUIProps {
   onNavigate: (view: string) => void;
@@ -587,6 +588,9 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                     </div>
                   </div>
                 </div>
+                
+                {/* Enhanced Profile Display */}
+                <EnhancedProfileDisplay />
                 
                 {/* User Selector for Testing - Enhanced */}
                 <div className="genZ-glass-card p-6 rounded-3xl border border-white/20">
