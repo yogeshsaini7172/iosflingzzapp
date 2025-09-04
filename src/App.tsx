@@ -44,7 +44,7 @@ function App() {
     setCurrentView('setup');
   };
 
-  const handleProfileSetupComplete = (userId: string) => {
+  const handleProfileSetupComplete = () => {
     setIsLoggedIn(true);
     setCurrentView('app');
   };

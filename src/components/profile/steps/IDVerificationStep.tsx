@@ -11,8 +11,8 @@ interface IDVerificationStepProps {
 }
 
 const IDVerificationStep = ({ data, onChange }: IDVerificationStepProps) => {
-  const [collegeIdFile, setCollegeIdFile] = useState<File | null>(null);
-  const [govtIdFile, setGovtIdFile] = useState<File | null>(null);
+  const [collegeIdFile, setCollegeIdFile] = useState<File | null>(data.collegeIdFile);
+  const [govtIdFile, setGovtIdFile] = useState<File | null>(data.govtIdFile);
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
 
@@ -28,6 +28,7 @@ const IDVerificationStep = ({ data, onChange }: IDVerificationStepProps) => {
         return;
       }
       setCollegeIdFile(file);
+      onChange({ ...data, collegeIdFile: file });
       toast({
         title: "College ID uploaded!",
         description: "Your college ID has been uploaded successfully"
@@ -47,6 +48,7 @@ const IDVerificationStep = ({ data, onChange }: IDVerificationStepProps) => {
         return;
       }
       setGovtIdFile(file);
+      onChange({ ...data, govtIdFile: file });
       toast({
         title: "Government ID uploaded!",
         description: "Your government ID has been uploaded successfully"
@@ -121,11 +123,14 @@ const IDVerificationStep = ({ data, onChange }: IDVerificationStepProps) => {
                 <p className="text-sm text-success font-medium">
                   ✓ {collegeIdFile.name}
                 </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCollegeIdFile(null)}
-                >
+                 <Button
+                   variant="outline"
+                   size="sm"
+                   onClick={() => {
+                     setCollegeIdFile(null);
+                     onChange({ ...data, collegeIdFile: null });
+                   }}
+                 >
                   Replace File
                 </Button>
               </div>
@@ -174,11 +179,14 @@ const IDVerificationStep = ({ data, onChange }: IDVerificationStepProps) => {
                 <p className="text-sm text-success font-medium">
                   ✓ {govtIdFile.name}
                 </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setGovtIdFile(null)}
-                >
+                 <Button
+                   variant="outline"
+                   size="sm"
+                   onClick={() => {
+                     setGovtIdFile(null);
+                     onChange({ ...data, govtIdFile: null });
+                   }}
+                 >
                   Replace File
                 </Button>
               </div>

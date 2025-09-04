@@ -11,7 +11,7 @@ import IDVerificationStep from "./steps/IDVerificationStep";
 import ProgressIndicator from "./steps/ProgressIndicator";
 
 interface ProfileSetupFlowProps {
-  onComplete: (userId: string) => void;
+  onComplete: () => void;
 }
 
 const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
@@ -57,7 +57,11 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
     profileImages: [] as File[],
     
     // Settings
-    isProfilePublic: true
+    isProfilePublic: true,
+    
+    // ID Verification
+    collegeIdFile: null as File | null,
+    govtIdFile: null as File | null
   });
 
   const totalSteps = 5;
@@ -147,12 +151,51 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       localStorage.setItem('demoPreferences', JSON.stringify(preferences));
       localStorage.setItem('demoUserId', mockUserId);
 
+      // Run ID verification (simulated)
       toast({
-        title: "Profile created successfully! ✨",
-        description: "Your profile is ready for the next step"
+        title: "Running ID Verification... 🔍",
+        description: "Processing your documents with AI verification"
+      });
+      
+      // Simulate ID verification process
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Update verification status
+      completeProfile.verification_status = 'verified';
+      localStorage.setItem('demoProfile', JSON.stringify(completeProfile));
+      
+      toast({
+        title: "ID Verification Complete! ✅",
+        description: "Your identity has been successfully verified"
       });
 
-      onComplete(mockUserId);
+      // Calculate QCS (simulated)
+      toast({
+        title: "Calculating QCS Score... 📊",
+        description: "Analyzing your profile quality and compatibility"
+      });
+      
+      // Simulate QCS calculation
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Calculate QCS based on profile data
+      const qcsScore = {
+        user_id: mockUserId,
+        profile_score: 85,
+        college_tier: 75,
+        personality_depth: 90,
+        behavior_score: 100,
+        total_score: 87
+      };
+      
+      localStorage.setItem('demoQCS', JSON.stringify(qcsScore));
+      
+      toast({
+        title: "Profile Setup Complete! 🎉",
+        description: `Your QCS score: ${qcsScore.total_score}/100. Ready to start dating!`
+      });
+
+      onComplete();
     } catch (error: any) {
       console.error('Profile creation error:', error);
       toast({
@@ -176,8 +219,8 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         return profileData.preferredGender.length > 0 && profileData.preferredRelationshipGoals.length > 0;
       case 4: // Upload Photos
         return profileData.profileImages.length >= 1;
-      case 5: // ID Verification
-        return true; // Can always proceed from verification
+      case 5: // ID Verification - require at least one document
+        return profileData.collegeIdFile || profileData.govtIdFile;
       default:
         return true;
     }

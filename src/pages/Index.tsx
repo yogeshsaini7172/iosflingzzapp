@@ -1,12 +1,10 @@
 import DatingApp from "@/components/DatingApp";
 import SplashScreen from "@/components/onboarding/SplashScreen";
 import ProfileSetupFlow from "@/components/profile/ProfileSetupFlow";
-import SubscriptionSelector from "@/components/onboarding/SubscriptionSelector";
-import IDVerificationFlow from "@/components/verification/IDVerificationFlow";
 import { useState } from "react";
 
 const Index = () => {
-  const [currentStep, setCurrentStep] = useState<'splash' | 'profile' | 'subscription' | 'verification' | 'app'>('splash');
+  const [currentStep, setCurrentStep] = useState<'splash' | 'profile' | 'app'>('splash');
 
   // Handle different steps
   switch (currentStep) {
@@ -20,25 +18,7 @@ const Index = () => {
     case 'profile':
       return (
         <ProfileSetupFlow 
-          onComplete={(userId) => setCurrentStep('subscription')}
-        />
-      );
-
-    case 'subscription':
-      return (
-        <SubscriptionSelector 
-          onBack={() => setCurrentStep('profile')}
-          onComplete={() => setCurrentStep('verification')}
-          onSkip={() => setCurrentStep('app')}
-        />
-      );
-
-    case 'verification':
-      return (
-        <IDVerificationFlow 
-          onBack={() => setCurrentStep('subscription')}
           onComplete={() => setCurrentStep('app')}
-          onSkip={() => setCurrentStep('app')}
         />
       );
 
