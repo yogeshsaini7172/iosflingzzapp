@@ -43,7 +43,24 @@ export const usePairing = () => {
           .neq("user_id", userId)
           .eq("is_active", true)
           .limit(10);
-        setPairedProfiles(fallback as Profile[] || []);
+        setPairedProfiles((fallback as any[])?.map(profile => ({
+          ...profile,
+          personality_traits: Array.isArray(profile.personality_traits) 
+            ? profile.personality_traits 
+            : profile.personality_type 
+              ? [profile.personality_type] 
+              : [],
+          values: Array.isArray(profile.values) 
+            ? profile.values 
+            : profile.values 
+              ? [profile.values] 
+              : [],
+          mindset: Array.isArray(profile.mindset) 
+            ? profile.mindset 
+            : profile.mindset 
+              ? [profile.mindset] 
+              : [],
+        })) as Profile[] || []);
         toast({
           title: "Showing suggested profiles",
           description: "Pairing limit reached or temporarily unavailable.",

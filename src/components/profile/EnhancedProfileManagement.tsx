@@ -39,14 +39,20 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
     firstName: profile?.first_name || '',
     lastName: profile?.last_name || '',
     bio: profile?.bio || '',
+    educationLevel: profile?.education_level || '',
+    profession: profile?.profession || '',
     
-    // What You Are data
+    // Physical Attributes
     height: profile?.height?.toString() || '',
     bodyType: profile?.body_type || '',
     skinTone: profile?.skin_tone || '',
-    personalityType: profile?.personality_type || '',
-    values: profile?.values || '',
-    mindset: profile?.mindset || '',
+    
+    // Personality & Values (arrays)
+    personalityTraits: profile?.personality_traits || [],
+    values: profile?.values || [],
+    mindset: profile?.mindset || [],
+    
+    // Goals & Interests
     relationshipGoals: profile?.relationship_goals || [],
     interests: profile?.interests || [],
     
@@ -54,6 +60,12 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
     preferredGender: preferences?.preferred_gender || [],
     ageRangeMin: preferences?.age_range_min || 18,
     ageRangeMax: preferences?.age_range_max || 30,
+    heightRangeMin: preferences?.height_range_min || 150,
+    heightRangeMax: preferences?.height_range_max || 200,
+    preferredBodyTypes: preferences?.preferred_body_types || [],
+    preferredValues: preferences?.preferred_values || [],
+    preferredMindset: preferences?.preferred_mindset || [],
+    preferredPersonalityTraits: preferences?.preferred_personality_traits || [],
     preferredRelationshipGoal: preferences?.preferred_relationship_goal || [],
     
     // Settings
@@ -67,10 +79,12 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       first_name: formData.firstName,
       last_name: formData.lastName,
       bio: formData.bio,
+      education_level: formData.educationLevel,
+      profession: formData.profession,
       height: formData.height ? parseInt(formData.height) : undefined,
       body_type: formData.bodyType,
       skin_tone: formData.skinTone,
-      personality_type: formData.personalityType,
+      personality_traits: formData.personalityTraits,
       values: formData.values,
       mindset: formData.mindset,
       relationship_goals: formData.relationshipGoals,
@@ -83,6 +97,12 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       preferred_gender: formData.preferredGender,
       age_range_min: formData.ageRangeMin,
       age_range_max: formData.ageRangeMax,
+      height_range_min: formData.heightRangeMin,
+      height_range_max: formData.heightRangeMax,
+      preferred_body_types: formData.preferredBodyTypes,
+      preferred_values: formData.preferredValues,
+      preferred_mindset: formData.preferredMindset,
+      preferred_personality_traits: formData.preferredPersonalityTraits,
       preferred_relationship_goal: formData.preferredRelationshipGoal
     });
   };
@@ -109,33 +129,54 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
     );
   }
 
-  const personalityTypes = [
+  const personalityTraitOptions = [
     "Adventurous", "Analytical", "Creative", "Outgoing", "Introverted", 
-    "Empathetic", "Ambitious", "Laid-back", "Intellectual", "Spontaneous"
+    "Empathetic", "Ambitious", "Laid-back", "Intellectual", "Spontaneous",
+    "Humorous", "Practical", "Responsible", "Emotional"
   ];
 
   const valueOptions = [
-    "Family-oriented", "Career-focused", "Adventure-seeking", "Spiritual", 
-    "Health-conscious", "Creative", "Intellectual", "Social justice", 
-    "Environmental", "Traditional"
+    "Family-oriented", "Career-focused", "Health-conscious", "Spiritual", 
+    "Traditional", "Social justice", "Environmental", "Creative", 
+    "Intellectual", "Open-minded", "Adventure-seeking", "Financially responsible"
+  ];
+
+  const mindsetOptions = [
+    "Growth Mindset", "Positive Thinking", "Pragmatic", "Optimistic", 
+    "Realistic", "Ambitious", "Balanced"
   ];
 
   const relationshipGoalOptions = [
     "Serious relationship", "Casual dating", "Marriage", "Friendship first", 
-    "Open to anything", "Long-term commitment"
+    "Long-term commitment", "Short-term fun", "Open to anything"
   ];
 
   const interestOptions = [
     "Travel", "Reading", "Music", "Movies", "Sports", "Cooking", "Art", 
     "Technology", "Nature", "Photography", "Dancing", "Gaming", "Fitness", 
-    "Writing", "Volunteering", "Fashion", "Food", "History", "Science", "Politics"
+    "Writing", "Volunteering", "Fashion", "Food", "History", "Science", 
+    "Politics", "Spirituality", "Adventure activities"
+  ];
+
+  const educationOptions = [
+    "High School", "Undergraduate", "Postgraduate", "PhD / Doctorate", 
+    "Working Professional", "Entrepreneur", "Other"
   ];
 
   const genderOptions = [
     { label: "Male", value: "male" as const },
     { label: "Female", value: "female" as const }, 
     { label: "Non-binary", value: "non_binary" as const },
+    { label: "Other", value: "prefer_not_to_say" as const },
     { label: "All", value: "prefer_not_to_say" as const }
+  ];
+
+  const bodyTypeOptions = [
+    "Slim", "Athletic", "Average", "Curvy", "Plus size", "Prefer not to say"
+  ];
+
+  const skinToneOptions = [
+    "Very fair", "Fair", "Medium", "Olive", "Brown", "Dark"
   ];
 
   const renderBasicInfo = () => (
@@ -184,6 +225,32 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
         />
       </div>
 
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>Education Level</Label>
+          <Select value={formData.educationLevel} onValueChange={(value) => setFormData(prev => ({...prev, educationLevel: value}))}>
+            <SelectTrigger className="border-primary/20 focus:border-primary">
+              <SelectValue placeholder="Select education level" />
+            </SelectTrigger>
+            <SelectContent>
+              {educationOptions.map((edu) => (
+                <SelectItem key={edu} value={edu.toLowerCase().replace(/[^a-z0-9]/g, '_')}>{edu}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <Label>Profession (Optional)</Label>
+          <Input
+            value={formData.profession}
+            onChange={(e) => setFormData(prev => ({...prev, profession: e.target.value}))}
+            placeholder="Your profession or field"
+            className="border-primary/20 focus:border-primary"
+          />
+        </div>
+      </div>
+
       <div className="space-y-2">
         <Label>Email</Label>
         <Input
@@ -227,11 +294,9 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
                   <SelectValue placeholder="Select body type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="slim">Slim</SelectItem>
-                  <SelectItem value="athletic">Athletic</SelectItem>
-                  <SelectItem value="average">Average</SelectItem>
-                  <SelectItem value="curvy">Curvy</SelectItem>
-                  <SelectItem value="plus_size">Plus Size</SelectItem>
+                  {bodyTypeOptions.map((type) => (
+                    <SelectItem key={type} value={type.toLowerCase().replace(/[^a-z0-9]/g, '_')}>{type}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -244,12 +309,9 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
                 <SelectValue placeholder="Select skin tone" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="very_fair">Very Fair</SelectItem>
-                <SelectItem value="fair">Fair</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="olive">Olive</SelectItem>
-                <SelectItem value="brown">Brown</SelectItem>
-                <SelectItem value="dark">Dark</SelectItem>
+                {skinToneOptions.map((tone) => (
+                  <SelectItem key={tone} value={tone.toLowerCase().replace(/[^a-z0-9]/g, '_')}>{tone}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -262,39 +324,93 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
           <CardTitle className="text-base">Personality & Values</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>Personality Type</Label>
-            <Select value={formData.personalityType} onValueChange={(value) => setFormData(prev => ({...prev, personalityType: value}))}>
-              <SelectTrigger className="border-primary/20 focus:border-primary">
-                <SelectValue placeholder="Select personality type" />
-              </SelectTrigger>
-              <SelectContent>
-                {personalityTypes.map((type) => (
-                  <SelectItem key={type} value={type.toLowerCase()}>{type}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Core Values</Label>
-            <Select value={formData.values} onValueChange={(value) => setFormData(prev => ({...prev, values: value}))}>
-              <SelectTrigger className="border-primary/20 focus:border-primary">
-                <SelectValue placeholder="Select your core values" />
-              </SelectTrigger>
-              <SelectContent>
-                {valueOptions.map((value) => (
-                  <SelectItem key={value} value={value.toLowerCase().replace(/[^a-z0-9]/g, '_')}>{value}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="space-y-3">
+            <Label>Personality Traits (Pick up to 3)</Label>
+            <div className="flex flex-wrap gap-2">
+              {personalityTraitOptions.map((trait) => {
+                const traitKey = trait.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                const isSelected = formData.personalityTraits.includes(traitKey);
+                return (
+                  <Badge
+                    key={trait}
+                    variant={isSelected ? "default" : "outline"}
+                    className={`cursor-pointer ${
+                      isSelected 
+                        ? 'bg-gradient-primary text-white hover:opacity-90' 
+                        : 'border-primary/20 hover:border-primary'
+                    }`}
+                    onClick={() => toggleArrayItem('personalityTraits', traitKey, 3)}
+                  >
+                    {trait}
+                  </Badge>
+                );
+              })}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {formData.personalityTraits.length}/3 selected
+            </div>
           </div>
 
           <div className="space-y-3">
-            <Label>Relationship Goals</Label>
+            <Label>Core Values (Pick up to 3)</Label>
+            <div className="flex flex-wrap gap-2">
+              {valueOptions.map((value) => {
+                const valueKey = value.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                const isSelected = formData.values.includes(valueKey);
+                return (
+                  <Badge
+                    key={value}
+                    variant={isSelected ? "default" : "outline"}
+                    className={`cursor-pointer ${
+                      isSelected 
+                        ? 'bg-gradient-primary text-white hover:opacity-90' 
+                        : 'border-primary/20 hover:border-primary'
+                    }`}
+                    onClick={() => toggleArrayItem('values', valueKey, 3)}
+                  >
+                    {value}
+                  </Badge>
+                );
+              })}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {formData.values.length}/3 selected
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <Label>Mindset (Pick 1-2)</Label>
+            <div className="flex flex-wrap gap-2">
+              {mindsetOptions.map((mindset) => {
+                const mindsetKey = mindset.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                const isSelected = formData.mindset.includes(mindsetKey);
+                return (
+                  <Badge
+                    key={mindset}
+                    variant={isSelected ? "default" : "outline"}
+                    className={`cursor-pointer ${
+                      isSelected 
+                        ? 'bg-gradient-primary text-white hover:opacity-90' 
+                        : 'border-primary/20 hover:border-primary'
+                    }`}
+                    onClick={() => toggleArrayItem('mindset', mindsetKey, 2)}
+                  >
+                    {mindset}
+                  </Badge>
+                );
+              })}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {formData.mindset.length}/2 selected
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <Label>Relationship Goals (Max 3)</Label>
             <div className="flex flex-wrap gap-2">
               {relationshipGoalOptions.map((goal) => {
-                const isSelected = formData.relationshipGoals.includes(goal.toLowerCase().replace(/[^a-z0-9]/g, '_'));
+                const goalKey = goal.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                const isSelected = formData.relationshipGoals.includes(goalKey);
                 return (
                   <Badge
                     key={goal}
@@ -304,20 +420,24 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
                         ? 'bg-gradient-primary text-white hover:opacity-90' 
                         : 'border-primary/20 hover:border-primary'
                     }`}
-                    onClick={() => toggleArrayItem('relationshipGoals', goal.toLowerCase().replace(/[^a-z0-9]/g, '_'), 3)}
+                    onClick={() => toggleArrayItem('relationshipGoals', goalKey, 3)}
                   >
                     {goal}
                   </Badge>
                 );
               })}
             </div>
+            <div className="text-xs text-muted-foreground">
+              {formData.relationshipGoals.length}/3 selected
+            </div>
           </div>
 
           <div className="space-y-3">
-            <Label>Interests</Label>
+            <Label>Interests (Pick up to 10)</Label>
             <div className="flex flex-wrap gap-2">
               {interestOptions.map((interest) => {
-                const isSelected = formData.interests.includes(interest.toLowerCase());
+                const interestKey = interest.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                const isSelected = formData.interests.includes(interestKey);
                 return (
                   <Badge
                     key={interest}
@@ -327,12 +447,15 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
                         ? 'bg-gradient-primary text-white hover:opacity-90' 
                         : 'border-primary/20 hover:border-primary'
                     }`}
-                    onClick={() => toggleArrayItem('interests', interest.toLowerCase(), 10)}
+                    onClick={() => toggleArrayItem('interests', interestKey, 10)}
                   >
                     {interest}
                   </Badge>
                 );
               })}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {formData.interests.length}/10 selected
             </div>
           </div>
         </CardContent>
@@ -393,6 +516,118 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
                 step={1}
                 className="w-full"
               />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <Label>Height Range: {formData.heightRangeMin} - {formData.heightRangeMax} cm</Label>
+            <div className="px-2">
+              <Slider
+                value={[formData.heightRangeMin, formData.heightRangeMax]}
+                onValueChange={([min, max]) => {
+                  setFormData(prev => ({...prev, heightRangeMin: min, heightRangeMax: max}));
+                }}
+                min={140}
+                max={220}
+                step={1}
+                className="w-full"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <Label>Preferred Body Types</Label>
+            <div className="flex flex-wrap gap-2">
+              {bodyTypeOptions.map((type) => {
+                const typeKey = type.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                const isSelected = formData.preferredBodyTypes.includes(typeKey);
+                return (
+                  <Badge
+                    key={type}
+                    variant={isSelected ? "default" : "outline"}
+                    className={`cursor-pointer ${
+                      isSelected 
+                        ? 'bg-gradient-primary text-white hover:opacity-90' 
+                        : 'border-primary/20 hover:border-primary'
+                    }`}
+                    onClick={() => toggleArrayItem('preferredBodyTypes', typeKey, 6)}
+                  >
+                    {type}
+                  </Badge>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <Label>Preferred Values</Label>
+            <div className="flex flex-wrap gap-2">
+              {valueOptions.map((value) => {
+                const valueKey = value.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                const isSelected = formData.preferredValues.includes(valueKey);
+                return (
+                  <Badge
+                    key={value}
+                    variant={isSelected ? "default" : "outline"}
+                    className={`cursor-pointer ${
+                      isSelected 
+                        ? 'bg-gradient-primary text-white hover:opacity-90' 
+                        : 'border-primary/20 hover:border-primary'
+                    }`}
+                    onClick={() => toggleArrayItem('preferredValues', valueKey, 12)}
+                  >
+                    {value}
+                  </Badge>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <Label>Preferred Mindset</Label>
+            <div className="flex flex-wrap gap-2">
+              {mindsetOptions.map((mindset) => {
+                const mindsetKey = mindset.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                const isSelected = formData.preferredMindset.includes(mindsetKey);
+                return (
+                  <Badge
+                    key={mindset}
+                    variant={isSelected ? "default" : "outline"}
+                    className={`cursor-pointer ${
+                      isSelected 
+                        ? 'bg-gradient-primary text-white hover:opacity-90' 
+                        : 'border-primary/20 hover:border-primary'
+                    }`}
+                    onClick={() => toggleArrayItem('preferredMindset', mindsetKey, 7)}
+                  >
+                    {mindset}
+                  </Badge>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <Label>Preferred Personality Traits</Label>
+            <div className="flex flex-wrap gap-2">
+              {personalityTraitOptions.map((trait) => {
+                const traitKey = trait.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                const isSelected = formData.preferredPersonalityTraits.includes(traitKey);
+                return (
+                  <Badge
+                    key={trait}
+                    variant={isSelected ? "default" : "outline"}
+                    className={`cursor-pointer ${
+                      isSelected 
+                        ? 'bg-gradient-primary text-white hover:opacity-90' 
+                        : 'border-primary/20 hover:border-primary'
+                    }`}
+                    onClick={() => toggleArrayItem('preferredPersonalityTraits', traitKey, 14)}
+                  >
+                    {trait}
+                  </Badge>
+                );
+              })}
             </div>
           </div>
 

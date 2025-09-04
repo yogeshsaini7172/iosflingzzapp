@@ -23,22 +23,41 @@ export interface Profile {
   is_profile_public: boolean;
   verification_status: string;
   total_qcs?: number;
+  
+  // Physical Attributes
   height?: number;
   body_type?: string;
   skin_tone?: string;
+  
+  // Personality & Values (arrays to support multiple selections)
+  personality_traits?: string[]; // up to 3
+  values?: string[]; // up to 3
+  mindset?: string[]; // 1-2 selections
+  
+  // Education/Profession
+  education_level?: string;
+  profession?: string;
+  
+  // Goals & Interests
+  relationship_goals?: string[]; // max 3
+  
+  // Legacy fields for compatibility
   personality_type?: string;
-  values?: string;
-  mindset?: string;
-  relationship_goals?: string[];
   show_profile?: boolean;
 }
 
 export interface PartnerPreferences {
   id?: string;
   user_id: string;
-  preferred_gender: Gender[];   // ✅ specific string literals
+  preferred_gender: Gender[];
   age_range_min: number;
   age_range_max: number;
+  height_range_min?: number;
+  height_range_max?: number;
+  preferred_body_types?: string[];
+  preferred_values?: string[];
+  preferred_mindset?: string[];
+  preferred_personality_traits?: string[];
   preferred_relationship_goal: string[];
 }
 
@@ -66,7 +85,31 @@ export const useProfileData = () => {
         .maybeSingle();
 
       if (profileError) throw profileError;
-      setProfile(profileData);
+      
+      // Transform legacy single values to arrays for backward compatibility
+      if (profileData) {
+        const transformedProfile = {
+          ...profileData,
+          personality_traits: Array.isArray((profileData as any).personality_traits) 
+            ? (profileData as any).personality_traits 
+            : (profileData as any).personality_type 
+              ? [(profileData as any).personality_type] 
+              : [],
+          values: Array.isArray((profileData as any).values) 
+            ? (profileData as any).values 
+            : (profileData as any).values 
+              ? [(profileData as any).values] 
+              : [],
+          mindset: Array.isArray((profileData as any).mindset) 
+            ? (profileData as any).mindset 
+            : (profileData as any).mindset 
+              ? [(profileData as any).mindset] 
+              : [],
+        };
+        setProfile(transformedProfile as Profile);
+      } else {
+        setProfile(null);
+      }
 
       // Fetch preferences
       const { data: prefData, error: prefError } = await supabase
@@ -99,9 +142,23 @@ export const useProfileData = () => {
     const userId = getCurrentUserId();
     
     try {
+      // Transform array fields back to database format for backward compatibility
+      const dbUpdates = {
+        ...updates,
+        // Convert arrays back to single values for database storage if needed
+        personality_type: updates.personality_traits?.[0] || undefined,
+        values: Array.isArray(updates.values) ? updates.values?.[0] : updates.values,
+        mindset: Array.isArray(updates.mindset) ? updates.mindset?.[0] : updates.mindset,
+      };
+      
+      // Remove the array versions to avoid conflicts
+      delete (dbUpdates as any).personality_traits;
+      if (Array.isArray(updates.values)) delete (dbUpdates as any).values;
+      if (Array.isArray(updates.mindset)) delete (dbUpdates as any).mindset;
+      
       const { error } = await supabase
         .from("profiles")
-        .update(updates)
+        .update(dbUpdates)
         .eq("user_id", userId);
 
       if (error) throw error;
