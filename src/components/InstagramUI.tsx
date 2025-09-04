@@ -173,34 +173,77 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
 
             {/* Stories Section - GenZ Dark Theme */}
             <div className="px-4 py-6 border-b border-white/10 bg-black">
-              <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
-                {/* Add Story */}
-                <div className="flex-shrink-0 text-center">
-                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-2 border-dashed border-white/30 rounded-full flex items-center justify-center mb-2">
-                    <Plus className="w-6 h-6 text-white/70" />
-                  </div>
-                  <span className="text-xs text-white/60 font-medium">Your Story</span>
-                </div>
-                
-                {/* Story Items */}
+              <div className="space-y-4">
+                {/* Static Posts */}
                 {[
-                  { name: "Alex", gradient: "from-purple-500 to-pink-500", emoji: "💜" },
-                  { name: "Sam", gradient: "from-blue-500 to-cyan-500", emoji: "💙" },
-                  { name: "Jordan", gradient: "from-pink-500 to-red-500", emoji: "❤️" },
-                  { name: "Taylor", gradient: "from-green-500 to-teal-500", emoji: "💚" },
-                  { name: "Casey", gradient: "from-yellow-500 to-orange-500", emoji: "🧡" },
-                  { name: "Riley", gradient: "from-indigo-500 to-purple-500", emoji: "💜" },
-                ].map((story, index) => (
-                  <div key={story.name} className="flex-shrink-0 text-center">
-                    <div 
-                      className={`w-16 h-16 bg-gradient-to-br ${story.gradient} p-0.5 rounded-full mb-2 animate-pulse-glow`}
-                      style={{ animationDelay: `${index * 0.1}s` }}
-                    >
-                      <div className="w-full h-full bg-black rounded-full flex items-center justify-center text-2xl">
-                        {story.emoji}
+                  {
+                    user: "midnight_vibes",
+                    time: "2h",
+                    content: "late night thoughts hit different when you're single ngl 🌙✨",
+                    likes: "247",
+                    comments: "32",
+                    gradient: "from-purple-600/20 to-black"
+                  },
+                  {
+                    user: "coffee_addict_22", 
+                    time: "4h",
+                    content: "looking for someone who gets my 3am energy and doesn't judge my spotify wrapped 😅☕",
+                    likes: "189",
+                    comments: "28",
+                    gradient: "from-pink-600/20 to-black"
+                  },
+                  {
+                    user: "aesthetic_soul",
+                    time: "6h", 
+                    content: "manifesting a connection that feels like home 🏠💫 no fake energy pls",
+                    likes: "312",
+                    comments: "45",
+                    gradient: "from-blue-600/20 to-black"
+                  }
+                ].map((post, index) => (
+                  <div 
+                    key={post.user}
+                    className={`bg-gradient-to-br ${post.gradient} border border-white/10 rounded-2xl p-4 animate-fade-in backdrop-blur-sm`}
+                    style={{ animationDelay: `${index * 0.2}s` }}
+                  >
+                    {/* Post Header */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                          <User className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-white font-semibold text-sm">@{post.user}</p>
+                          <p className="text-white/60 text-xs">{post.time} ago</p>
+                        </div>
                       </div>
+                      <MoreHorizontal className="w-5 h-5 text-white/60" />
                     </div>
-                    <span className="text-xs text-white/80 font-medium">{story.name}</span>
+                    
+                    {/* Post Content */}
+                    <p className="text-white/90 text-sm leading-relaxed mb-4">
+                      {post.content}
+                    </p>
+                    
+                    {/* Post Actions */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <button className="flex items-center space-x-2 text-white/60 hover:text-pink-400 transition-colors">
+                          <Heart className="w-5 h-5" />
+                          <span className="text-xs">{post.likes}</span>
+                        </button>
+                        <button className="flex items-center space-x-2 text-white/60 hover:text-blue-400 transition-colors">
+                          <MessageCircle className="w-5 h-5" />
+                          <span className="text-xs">{post.comments}</span>
+                        </button>
+                        <button className="text-white/60 hover:text-green-400 transition-colors">
+                          <Send className="w-5 h-5" />
+                        </button>
+                      </div>
+                      <button className="text-white/60 hover:text-white transition-colors">
+                        <Bookmark className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
