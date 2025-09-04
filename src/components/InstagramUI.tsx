@@ -454,43 +454,6 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                 <p className="text-muted-foreground">View and manage your profile information</p>
               </div>
               
-              {/* User Account Section */}
-              <Card className="glass-luxury border-gradient shadow-premium">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gradient-primary">Account Settings</h3>
-                      <p className="text-sm text-muted-foreground">Manage your account preferences</p>
-                    </div>
-                    <User className="w-8 h-8 text-primary" />
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-primary rounded-full flex items-center justify-center">
-                          <User className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                          <p className="font-medium">Demo User</p>
-                          <p className="text-sm text-muted-foreground">demo@example.com</p>
-                        </div>
-                      </div>
-                      <Badge className="bg-success text-success-foreground">Active</Badge>
-                    </div>
-                    
-                    <Button 
-                      onClick={handleLogout}
-                      variant="outline" 
-                      className="w-full border-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-colors"
-                    >
-                      <User className="w-4 h-4 mr-2" />
-                      Sign Out
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-              
               {/* User Selector for Testing */}
               <UserSelector />
             </div>
