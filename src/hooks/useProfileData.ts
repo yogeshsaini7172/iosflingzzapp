@@ -49,7 +49,7 @@ export const useProfileData = () => {
   const { toast } = useToast();
 
   const getCurrentUserId = () => {
-    return localStorage.getItem("demoUserId") || "alice-johnson-123";
+    return localStorage.getItem("demoUserId") || "11111111-1111-1111-1111-111111111001";
   };
 
   const fetchProfileData = async () => {
