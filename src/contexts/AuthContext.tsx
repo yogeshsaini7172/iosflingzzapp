@@ -69,6 +69,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
         // Handle auth events
         if (event === 'SIGNED_IN' && session?.user) {
+          console.log('User signed in, ensuring profile exists...');
           toast.success('Successfully signed in!');
           
           // Auto-create profile if it doesn't exist
@@ -125,35 +126,67 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Ensure user profile exists
   const ensureUserProfile = async (user: User) => {
     try {
-      const { data: existingProfile } = await supabase
+      console.log('Ensuring profile for user:', user.email);
+      
+      const { data: existingProfile, error: selectError } = await supabase
         .from('profiles')
-        .select('id')
+        .select('id, first_name')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
+
+      console.log('Profile check result:', { 
+        exists: !!existingProfile, 
+        hasName: !!existingProfile?.first_name,
+        selectError: selectError?.message 
+      });
+
+      if (selectError && selectError.code !== 'PGRST116') {
+        console.error('Error checking profile:', selectError);
+        return;
+      }
 
       if (!existingProfile) {
-        // Create profile from user metadata or defaults
+        console.log('Creating new profile...');
+        
+        // Extract name from Google metadata or email
+        const firstName = user.user_metadata?.full_name?.split(' ')[0] 
+          || user.user_metadata?.first_name 
+          || user.user_metadata?.name?.split(' ')[0]
+          || user.email?.split('@')[0] 
+          || 'User';
+          
+        const lastName = user.user_metadata?.full_name?.split(' ').slice(1).join(' ')
+          || user.user_metadata?.last_name 
+          || user.user_metadata?.name?.split(' ').slice(1).join(' ')
+          || '';
+
+        const profileData = {
+          user_id: user.id,
+          first_name: firstName,
+          last_name: lastName,
+          email: user.email || '',
+          date_of_birth: '2000-01-01', // Default birth date
+          gender: 'prefer_not_to_say' as const,
+          university: '',
+          verification_status: 'pending',
+          is_active: true,
+          is_profile_public: false,
+          show_profile: true
+        };
+
+        console.log('Inserting profile data:', profileData);
+
         const { error: insertError } = await supabase
           .from('profiles')
-          .insert({
-            user_id: user.id,
-            first_name: user.user_metadata?.first_name || user.email?.split('@')[0] || 'User',
-            last_name: user.user_metadata?.last_name || '',
-            email: user.email || '',
-            date_of_birth: new Date().toISOString().split('T')[0], // Default to today
-            gender: 'prefer_not_to_say',
-            university: user.user_metadata?.university || '',
-            verification_status: 'pending',
-            is_active: true,
-            is_profile_public: false,
-            show_profile: true
-          });
+          .insert(profileData);
 
         if (insertError) {
           console.error('Error creating profile:', insertError);
         } else {
-          console.log('Profile created successfully');
+          console.log('Profile created successfully for:', user.email);
         }
+      } else {
+        console.log('Profile already exists for:', user.email);
       }
     } catch (error) {
       console.error('Error ensuring profile:', error);

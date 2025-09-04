@@ -9,30 +9,66 @@ export default function AuthCallback() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        const hashOrSearch = window.location.hash || window.location.search;
+        console.log('AuthCallback: Starting OAuth callback handling');
+        
+        // First, let Supabase handle the OAuth callback automatically
+        const { data, error } = await supabase.auth.getSession();
+        
+        console.log('AuthCallback: Session check result:', { 
+          hasSession: !!data.session, 
+          user: data.session?.user?.email,
+          error: error?.message 
+        });
 
-        // Handle OAuth/OTP code exchange when "code" or tokens are present
-        if (hashOrSearch.includes('access_token') || hashOrSearch.includes('code')) {
-          const { data, error } = await supabase.auth.exchangeCodeForSession(window.location.href);
-          if (error) {
-            setStatus(`Login failed: ${error.message}`);
-            return;
+        if (error) {
+          console.error('AuthCallback: Session error:', error);
+          setStatus(`Login failed: ${error.message}`);
+          return;
+        }
+
+        if (data.session?.user) {
+          console.log('AuthCallback: Valid session found, checking profile...');
+          
+          // Check if user has a profile
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('id, first_name')
+            .eq('user_id', data.session.user.id)
+            .maybeSingle();
+
+          console.log('AuthCallback: Profile check result:', { 
+            hasProfile: !!profile, 
+            hasName: !!profile?.first_name,
+            profileError: profileError?.message 
+          });
+
+          if (profileError) {
+            console.error('AuthCallback: Profile check error:', profileError);
           }
-          if (data.session) {
+
+          // Always redirect to /app - let the main app decide the route
+          console.log('AuthCallback: Redirecting to /app');
+          setStatus('Login successful! Redirecting...');
+          
+          // Use setTimeout to ensure state updates are processed
+          setTimeout(() => {
             navigate('/app', { replace: true });
-            return;
-          }
+          }, 100);
+          
+          return;
         }
 
-        // Fallback: just check for an existing session
-        const { data } = await supabase.auth.getSession();
-        if (data.session) {
-          navigate('/app', { replace: true });
-        } else {
-          setStatus('Login failed or session not found');
-        }
-      } catch (e) {
-        setStatus('Error completing sign-in');
+        console.log('AuthCallback: No valid session found');
+        setStatus('Login failed - no session found');
+        
+        // Redirect to login after 3 seconds
+        setTimeout(() => {
+          navigate('/', { replace: true });
+        }, 3000);
+        
+      } catch (e: any) {
+        console.error('AuthCallback: Unexpected error:', e);
+        setStatus(`Error completing sign-in: ${e.message}`);
       }
     };
 
