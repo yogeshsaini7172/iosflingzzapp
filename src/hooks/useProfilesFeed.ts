@@ -39,7 +39,6 @@ export function useProfilesFeed() {
           .select("*")
           .neq("user_id", currentUserId)
           .eq("is_active", true)
-          .not("profile_images", "is", null)
           .limit(20);
 
         if (error) throw error;
