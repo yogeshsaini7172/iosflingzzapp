@@ -35,10 +35,10 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
     "home" | "swipe" | "pairing" | "blinddate" | "profile"
   >("home");
 
-  // ✅ Profiles feed from Supabase (for Swipe tab)
+  // ✅ Profiles feed from Supabase (only for Swipe tab)
   const { profiles = [], loading, setProfiles } = useProfilesFeed();
 
-  // ✅ Paired profiles (for Pairing tab)
+  // ✅ Paired profiles (only for Pairing tab)
   const { pairedProfiles = [], loading: pairingLoading } = usePairing();
 
   // ✅ Swipe handler
