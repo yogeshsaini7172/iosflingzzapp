@@ -217,76 +217,117 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
 
               <div className="relative z-10 px-4 py-8">
                 <div className="max-w-lg mx-auto space-y-6">
-                  {/* Post Cards */}
-                  {[
-                    {
-                      user: "midnight_vibes",
-                      time: "2h",
-                      content: "late night thoughts hit different when you're single ngl 🌙✨",
-                      likes: "247",
-                      gradient: "from-purple-600/20 to-black"
-                    },
-                    {
-                      user: "coffee_addict_22",
-                      time: "4h", 
-                      content: "looking for someone who gets my 3am energy and doesn't judge my spotify wrapped 😅☕",
-                      likes: "189",
-                      gradient: "from-pink-600/20 to-black"
-                    },
-                    {
-                      user: "aesthetic_soul",
-                      time: "6h",
-                      content: "manifesting a connection that feels like home 🏠💫 no fake energy pls",
-                      likes: "312",
-                      gradient: "from-blue-600/20 to-black"
-                    }
-                  ].map((post, index) => (
-                    <div 
-                      key={post.user}
-                      className={`bg-gradient-to-br ${post.gradient} border border-white/10 rounded-2xl p-4 animate-fade-in backdrop-blur-sm`}
-                      style={{ animationDelay: `${index * 0.2}s` }}
-                    >
-                      {/* Post Header */}
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                            <User className="w-5 h-5 text-white" />
+                  {/* Swipe Cards Container */}
+                  <div className="relative h-[600px] perspective-1000">
+                    {/* Profile Cards Stack */}
+                    {[
+                      {
+                        id: 1,
+                        name: "Alex",
+                        age: 22,
+                        distance: "2 km away",
+                        bio: "Coffee enthusiast ☕ | Night owl 🌙 | Looking for genuine connections",
+                        image: "🌸",
+                        interests: ["Photography", "Music", "Travel"],
+                        gradient: "from-purple-500/80 to-pink-500/80",
+                        zIndex: 3
+                      },
+                      {
+                        id: 2,
+                        name: "Sam",
+                        age: 24,
+                        distance: "5 km away", 
+                        bio: "Adventure seeker 🏔️ | Dog lover 🐕 | Weekend hiker",
+                        image: "🌺",
+                        interests: ["Hiking", "Dogs", "Cooking"],
+                        gradient: "from-blue-500/80 to-cyan-500/80",
+                        zIndex: 2
+                      },
+                      {
+                        id: 3,
+                        name: "Jordan",
+                        age: 23,
+                        distance: "3 km away",
+                        bio: "Artist at heart 🎨 | Vinyl collector 📼 | Seeking creativity",
+                        image: "🌻",
+                        interests: ["Art", "Music", "Books"],
+                        gradient: "from-pink-500/80 to-red-500/80",
+                        zIndex: 1
+                      }
+                    ].map((profile, index) => (
+                      <div
+                        key={profile.id}
+                        className={`absolute inset-0 cursor-grab active:cursor-grabbing transform-gpu transition-all duration-300 hover:scale-[1.02]`}
+                        style={{ 
+                          zIndex: profile.zIndex,
+                          transform: `translateY(${index * 4}px) scale(${1 - index * 0.02})`
+                        }}
+                      >
+                        <div className={`w-full h-full bg-gradient-to-br ${profile.gradient} rounded-3xl overflow-hidden shadow-2xl border border-white/20 backdrop-blur-sm animate-fade-in`}>
+                          {/* Profile Image Area */}
+                          <div className="h-2/3 relative bg-black/20 flex items-center justify-center">
+                            <div className="text-8xl animate-pulse-glow">{profile.image}</div>
+                            
+                            {/* Distance Badge */}
+                            <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1">
+                              <span className="text-white text-xs font-medium">📍 {profile.distance}</span>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-white font-semibold text-sm">@{post.user}</p>
-                            <p className="text-white/60 text-xs">{post.time} ago</p>
-                          </div>
-                        </div>
-                        <MoreHorizontal className="w-5 h-5 text-white/60" />
-                      </div>
-                      
-                      {/* Post Content */}
-                      <p className="text-white/90 text-sm leading-relaxed mb-4">
-                        {post.content}
-                      </p>
-                      
-                      {/* Post Actions */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <button className="flex items-center space-x-2 text-white/60 hover:text-pink-400 transition-colors">
-                            <Heart className="w-5 h-5" />
-                            <span className="text-xs">{post.likes}</span>
-                          </button>
-                          <button className="flex items-center space-x-2 text-white/60 hover:text-blue-400 transition-colors">
-                            <MessageCircle className="w-5 h-5" />
-                            <span className="text-xs">{Math.floor(Math.random() * 50 + 10)}</span>
-                          </button>
-                          <button className="text-white/60 hover:text-green-400 transition-colors">
-                            <Send className="w-5 h-5" />
-                          </button>
-                        </div>
-                        <button className="text-white/60 hover:text-white transition-colors">
-                          <Bookmark className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
 
+                          {/* Profile Info */}
+                          <div className="h-1/3 p-6 bg-black/30 backdrop-blur-sm">
+                            <div className="flex items-center justify-between mb-2">
+                              <div>
+                                <h3 className="text-2xl font-bold text-white">{profile.name}, {profile.age}</h3>
+                              </div>
+                              <div className="w-6 h-6 bg-green-500 rounded-full animate-pulse-glow"></div>
+                            </div>
+                            
+                            <p className="text-white/90 text-sm mb-3 line-clamp-2">{profile.bio}</p>
+                            
+                            <div className="flex gap-2 flex-wrap">
+                              {profile.interests.map((interest, idx) => (
+                                <span key={idx} className="px-3 py-1 bg-white/20 rounded-full text-white text-xs font-medium">
+                                  {interest}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Swipe Actions */}
+                  <div className="flex justify-center items-center space-x-6 mt-8">
+                    <button className="w-16 h-16 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all duration-300 hover:shadow-red-500/30">
+                      <span className="text-white text-2xl">❌</span>
+                    </button>
+                    
+                    <button className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all duration-300 hover:shadow-blue-500/30">
+                      <Star className="w-6 h-6 text-white" />
+                    </button>
+                    
+                    <button className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all duration-300 hover:shadow-green-500/30">
+                      <Heart className="w-8 h-8 text-white" fill="currentColor" />
+                    </button>
+                  </div>
+
+                  {/* Quick Stats */}
+                  <div className="grid grid-cols-3 gap-4 mt-8">
+                    <div className="text-center bg-white/10 rounded-2xl p-4 backdrop-blur-sm">
+                      <div className="text-2xl font-bold text-white">47</div>
+                      <div className="text-white/70 text-sm">Likes Today</div>
+                    </div>
+                    <div className="text-center bg-white/10 rounded-2xl p-4 backdrop-blur-sm">
+                      <div className="text-2xl font-bold text-white">12</div>
+                      <div className="text-white/70 text-sm">Matches</div>
+                    </div>
+                    <div className="text-center bg-white/10 rounded-2xl p-4 backdrop-blur-sm">
+                      <div className="text-2xl font-bold text-white">3</div>
+                      <div className="text-white/70 text-sm">Super Likes</div>
+                    </div>
+                  </div>
                   {/* Subscription Plans */}
                   <div className="grid gap-6">
                     {plans.map((plan) => (
@@ -317,20 +358,6 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                   </div>
                 </div>
               </div>
-            </div>
-
-            {/* Revolutionary Features Section */}
-            <div className="relative py-24 bg-gradient-to-br from-muted/50 to-background overflow-hidden">
-
-            </div>
-
-            {/* Interactive Preferences Section */}
-            <div className="relative py-24 bg-gradient-to-br from-primary/5 to-accent/5 overflow-hidden">
-              {/* Background Pattern */}
-              <div className="absolute inset-0 opacity-10">
-                <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,hsl(var(--primary))_1px,transparent_1px)] bg-[length:50px_50px]"></div>
-              </div>
-
             </div>
           </div>
         );
