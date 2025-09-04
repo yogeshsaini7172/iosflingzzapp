@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfileData } from "@/hooks/useProfileData";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface FeedProfile {
   id: string;
@@ -19,25 +20,25 @@ export interface FeedProfile {
 
 export function useProfilesFeed() {
   const { profile, preferences } = useProfileData();
+  const { user } = useAuth();
   const [profiles, setProfiles] = useState<FeedProfile[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const getCurrentUserId = () => {
-    return localStorage.getItem("demoUserId") || "6e6a510a-d406-4a01-91ab-64efdbca98f2";
-  };
-
   useEffect(() => {
     const fetchFeed = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
 
       try {
-        const currentUserId = getCurrentUserId();
-        
         // Fetch profiles excluding current user
         const { data, error } = await supabase
           .from("profiles")
           .select("*")
-          .neq("user_id", currentUserId)
+          .neq("user_id", user.id)
           .eq("is_active", true)
           .limit(20);
 
@@ -52,8 +53,10 @@ export function useProfilesFeed() {
       }
     };
 
-    fetchFeed();
-  }, []); // Remove dependency on profile/preferences for now
+    if (user) {
+      fetchFeed();
+    }
+  }, [user]);
 
   return { profiles, loading, setProfiles };
 }

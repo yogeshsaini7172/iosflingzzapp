@@ -4,11 +4,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-// REMOVED AUTH: import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
-// REMOVED AUTH: import LoginPage from "./pages/LoginPage";
 import DatingAppContainer from "./components/DatingAppContainer";
-// REMOVED AUTH: import WelcomePage from "./components/WelcomePage";
 import NotFound from "./pages/NotFound";
 import LoginSignup from "./pages/LoginSignup";
 import ProfileSetupFlow from "./components/profile/ProfileSetupFlow";
@@ -23,83 +21,97 @@ const queryClient = new QueryClient({
   },
 });
 
-function App() {
+function AppContent() {
+  const { user, session, isLoading } = useAuth();
   const [currentView, setCurrentView] = useState<'auth' | 'setup' | 'app'>('auth');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [hasProfile, setHasProfile] = useState(false);
 
   useEffect(() => {
-    // Check if user is already logged in
-    const userId = localStorage.getItem("demoUserId");
-    if (userId) {
-      setIsLoggedIn(true);
-      setCurrentView('app');
+    const checkProfile = async () => {
+      if (user) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        if (data) {
+          setHasProfile(true);
+          setCurrentView('app');
+        } else {
+          setCurrentView('setup');
+        }
+      } else {
+        setCurrentView('auth');
+      }
+    };
+
+    if (!isLoading) {
+      checkProfile();
     }
-  }, []);
-
-  const handleLoginSuccess = (userId: string) => {
-    setIsLoggedIn(true);
-    setCurrentView('app');
-  };
-
-  const handleSignupSuccess = () => {
-    setCurrentView('setup');
-  };
+  }, [user, isLoading]);
 
   const handleProfileSetupComplete = () => {
-    setIsLoggedIn(true);
+    setHasProfile(true);
     setCurrentView('app');
   };
 
-  if (!isLoggedIn && currentView === 'auth') {
+  if (isLoading) {
     return (
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <GenZBackground variant="auth">
-            <Toaster />
-            <Sonner />
-            <LoginSignup 
-              onLoginSuccess={handleLoginSuccess}
-              onSignupSuccess={handleSignupSuccess}
-            />
-          </GenZBackground>
-        </TooltipProvider>
-      </QueryClientProvider>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
     );
   }
 
-  if (!isLoggedIn && currentView === 'setup') {
+  if (!user && currentView === 'auth') {
     return (
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <GenZBackground variant="setup">
-            <Toaster />
-            <Sonner />
-            <ProfileSetupFlow onComplete={handleProfileSetupComplete} />
-          </GenZBackground>
-        </TooltipProvider>
-      </QueryClientProvider>
+      <TooltipProvider>
+        <GenZBackground variant="auth">
+          <Toaster />
+          <Sonner />
+          <LoginSignup />
+        </GenZBackground>
+      </TooltipProvider>
+    );
+  }
+
+  if (user && !hasProfile && currentView === 'setup') {
+    return (
+      <TooltipProvider>
+        <GenZBackground variant="setup">
+          <Toaster />
+          <Sonner />
+          <ProfileSetupFlow onComplete={handleProfileSetupComplete} />
+        </GenZBackground>
+      </TooltipProvider>
     );
   }
 
   return (
     <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        {/* REMOVED AUTH: <AuthProvider> */}
-          <TooltipProvider>
-            <GenZBackground variant="app">
-              <Toaster />
-              <Sonner />
-              <Routes>
-                <Route path="/" element={<DatingAppContainer />} />
-                {/* REMOVED AUTH: <Route path="/login" element={<LoginPage />} /> */}
-                <Route path="/app" element={<DatingAppContainer />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </GenZBackground>
-          </TooltipProvider>
-        {/* REMOVED AUTH: </AuthProvider> */}
-      </QueryClientProvider>
+      <TooltipProvider>
+        <GenZBackground variant="app">
+          <Toaster />
+          <Sonner />
+          <Routes>
+            <Route path="/" element={<DatingAppContainer />} />
+            <Route path="/app" element={<DatingAppContainer />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </GenZBackground>
+      </TooltipProvider>
     </BrowserRouter>
+  );
+}
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
 

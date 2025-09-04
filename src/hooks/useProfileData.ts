@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 export type Gender = "male" | "female" | "non_binary" | "prefer_not_to_say";
 
@@ -66,13 +67,15 @@ export const useProfileData = () => {
   const [preferences, setPreferences] = useState<PartnerPreferences | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-
-  const getCurrentUserId = () => {
-    return localStorage.getItem("demoUserId") || "6e6a510a-d406-4a01-91ab-64efdbca98f2";
-  };
+  const { user } = useAuth();
 
   const fetchProfileData = async () => {
-    const userId = getCurrentUserId();
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
+    
+    const userId = user.id;
 
     try {
       setIsLoading(true);
@@ -139,7 +142,8 @@ export const useProfileData = () => {
   };
 
   const updateProfile = async (updates: Partial<Profile>) => {
-    const userId = getCurrentUserId();
+    if (!user) return;
+    const userId = user.id;
     
     try {
       // Transform array fields back to database format for backward compatibility
@@ -180,7 +184,8 @@ export const useProfileData = () => {
   };
 
   const updatePreferences = async (updates: Partial<PartnerPreferences>) => {
-    const userId = getCurrentUserId();
+    if (!user) return;
+    const userId = user.id;
     
     try {
       const { error } = await supabase
@@ -209,8 +214,10 @@ export const useProfileData = () => {
   };
 
   useEffect(() => {
-    fetchProfileData();
-  }, []);
+    if (user) {
+      fetchProfileData();
+    }
+  }, [user]);
 
   return {
     profile,
