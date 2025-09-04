@@ -327,8 +327,8 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
                 }}
                 className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
               >
-                <Heart className="w-4 h-4 mr-2" />
-                {onSwipe ? "Like" : "Super Like"}
+                <MessageCircle className="w-4 h-4 mr-2" />
+                {onSwipe ? "Like" : "Chat Request"}
               </Button>
             )}
           </div>

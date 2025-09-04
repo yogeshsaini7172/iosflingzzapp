@@ -117,100 +117,101 @@ const PairingMatches: React.FC = () => {
       </div>
 
       {/* Matches List */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         {matches.map((match, index) => (
           <Card 
             key={match.user_id} 
-            className={`overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.02] cursor-pointer group ${
+            className={`overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.01] cursor-pointer group ${
               index === 0 ? 'ring-2 ring-purple-200 shadow-lg bg-gradient-to-br from-purple-50/50 to-pink-50/50' : 'hover:bg-gradient-to-br hover:from-purple-50/30 hover:to-pink-50/30'
             }`}
           >
             <CardContent className="p-0">
               <div 
-                className="flex items-center p-6 space-x-4"
+                className="flex items-center p-4 space-x-3"
                 onClick={() => openProfileModal(match)}
               >
                 {/* Profile Image & Status */}
-                <div className="relative">
-                  <Avatar className="w-20 h-20 border-3 border-purple-200 shadow-md transition-transform group-hover:scale-110">
+                <div className="relative flex-shrink-0">
+                  <Avatar className="w-16 h-16 md:w-20 md:h-20 border-3 border-purple-200 shadow-md transition-transform group-hover:scale-110">
                     <AvatarImage src={match.profile_images?.[0]} />
-                    <AvatarFallback className="bg-gradient-to-br from-purple-100 to-pink-100 text-xl font-bold">
+                    <AvatarFallback className="bg-gradient-to-br from-purple-100 to-pink-100 text-lg md:text-xl font-bold">
                       {match.first_name[0]}
                     </AvatarFallback>
                   </Avatar>
                   {index === 0 && (
-                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg animate-pulse-glow">
-                      <span className="text-sm text-white font-bold">1</span>
+                    <div className="absolute -top-1 -right-1 w-6 h-6 md:w-8 md:h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg animate-pulse-glow">
+                      <span className="text-xs md:text-sm text-white font-bold">1</span>
                     </div>
                   )}
                   {/* Online Status */}
-                  <div className="absolute bottom-1 right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
+                  <div className="absolute bottom-0 right-0 w-4 h-4 md:w-5 md:h-5 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
                 </div>
 
                 {/* Profile Info */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <h3 className="font-bold text-xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <h3 className="font-bold text-lg md:text-xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent truncate">
                       {match.first_name}
                     </h3>
-                    <Shield className="w-5 h-5 text-blue-500" />
-                    <Sparkles className="w-4 h-4 text-yellow-500" />
+                    <Shield className="w-4 h-4 md:w-5 md:h-5 text-blue-500 flex-shrink-0" />
+                    <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-yellow-500 flex-shrink-0" />
                   </div>
                   
-                  <div className="flex items-center space-x-2 mb-3">
-                    <GraduationCap className="w-4 h-4 text-purple-500" />
-                    <p className="text-sm text-muted-foreground font-medium">{match.university}</p>
+                  <div className="flex items-center space-x-1 mb-2">
+                    <GraduationCap className="w-3 h-3 md:w-4 md:h-4 text-purple-500 flex-shrink-0" />
+                    <p className="text-xs md:text-sm text-muted-foreground font-medium truncate">{match.university}</p>
                   </div>
                   
                   {/* Enhanced Compatibility Score */}
-                  <div className="flex items-center space-x-3 mb-3">
-                    <Badge className={`text-base py-1 px-3 font-bold animate-fade-in ${
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Badge className={`text-xs md:text-sm py-1 px-2 font-bold animate-fade-in ${
                       (match.compatibility_score || 0) >= 90 
                         ? 'bg-gradient-to-r from-green-400 to-green-600 text-white shadow-lg' 
                         : (match.compatibility_score || 0) >= 80
                         ? 'bg-gradient-to-r from-blue-400 to-blue-600 text-white shadow-lg'
                         : 'bg-gradient-to-r from-purple-400 to-purple-600 text-white shadow-lg'
                     }`}>
-                      🔥 {match.compatibility_score}% Match
+                      🔥 {match.compatibility_score}%
                     </Badge>
                     
                     {match.total_qcs && (
-                      <Badge variant="outline" className="text-xs border-purple-200 bg-purple-50">
+                      <Badge variant="outline" className="text-xs border-purple-200 bg-purple-50 hidden sm:inline-flex">
                         <Brain className="w-3 h-3 mr-1" />
                         QCS: {match.total_qcs}
                       </Badge>
                     )}
                   </div>
 
-                  {/* Quick Info Tags */}
-                  <div className="flex gap-2 flex-wrap">
-                    <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
-                      📍 2km away
+                  {/* Quick Info Tags - Mobile Optimized */}
+                  <div className="flex gap-1 flex-wrap">
+                    <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5">
+                      📍 2km
                     </Badge>
-                    <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
-                      🟢 Active now
+                    <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 px-2 py-0.5">
+                      🟢 Active
                     </Badge>
                     {index < 3 && (
-                      <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700">
-                        ⭐ Top Match
+                      <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 hidden sm:inline-flex">
+                        ⭐ Top
                       </Badge>
                     )}
                   </div>
                 </div>
 
-                {/* Enhanced Action Buttons */}
-                <div className="flex flex-col space-y-2">
+                {/* Enhanced Action Buttons - Mobile Optimized */}
+                <div className="flex flex-col space-y-2 flex-shrink-0">
                   {match.can_chat ? (
                     <Button 
                       onClick={(e) => {
                         e.stopPropagation();
                         handleChatRequest(match.user_id, true);
                       }}
-                      className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                      className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-xs md:text-sm px-3 py-2"
                       size="sm"
                     >
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      Chat Now
+                      <MessageCircle className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                      <span className="hidden sm:inline">Chat Now</span>
+                      <span className="sm:hidden">Chat</span>
                     </Button>
                   ) : (
                     <Button 
@@ -218,29 +219,30 @@ const PairingMatches: React.FC = () => {
                         e.stopPropagation();
                         handleChatRequest(match.user_id, false);
                       }}
-                      className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                      className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-xs md:text-sm px-3 py-2"
                       size="sm"
                     >
-                      <Heart className="w-4 h-4 mr-2" />
-                      Super Like
+                      <MessageCircle className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                      <span className="hidden sm:inline">Chat Request</span>
+                      <span className="sm:hidden">Request</span>
                     </Button>
                   )}
                 </div>
               </div>
 
-              {/* Enhanced Bio Preview */}
+              {/* Enhanced Bio Preview - Mobile Optimized */}
               {match.bio && (
-                <div className="px-6 pb-4">
-                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100">
-                    <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed italic">
+                <div className="px-4 pb-3">
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-3 border border-purple-100">
+                    <p className="text-xs md:text-sm text-muted-foreground line-clamp-2 leading-relaxed italic">
                       "{match.bio}"
                     </p>
                   </div>
                 </div>
               )}
 
-              {/* Enhanced Quick Actions Footer */}
-              <div className="border-t bg-gradient-to-r from-purple-50/50 to-pink-50/50 px-6 py-4">
+              {/* Enhanced Quick Actions Footer - Mobile Optimized */}
+              <div className="border-t bg-gradient-to-r from-purple-50/50 to-pink-50/50 px-4 py-3">
                 <div className="flex justify-between items-center">
                   <div className="flex space-x-2">
                     <Button 
@@ -250,9 +252,9 @@ const PairingMatches: React.FC = () => {
                         e.stopPropagation();
                         handleAction(match.user_id, 'ghost');
                       }}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200 text-xs px-2 py-1"
                     >
-                      👻 Ghost
+                      👻 <span className="hidden sm:inline ml-1">Ghost</span>
                     </Button>
                     <Button 
                       variant="ghost" 
@@ -261,9 +263,9 @@ const PairingMatches: React.FC = () => {
                         e.stopPropagation();
                         handleAction(match.user_id, 'bench');
                       }}
-                      className="text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 transition-all duration-200"
+                      className="text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 transition-all duration-200 text-xs px-2 py-1"
                     >
-                      ⏸️ Bench
+                      ⏸️ <span className="hidden sm:inline ml-1">Bench</span>
                     </Button>
                   </div>
                   
@@ -271,10 +273,11 @@ const PairingMatches: React.FC = () => {
                     variant="ghost" 
                     size="sm"
                     onClick={() => openProfileModal(match)}
-                    className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 font-semibold transition-all duration-200"
+                    className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 font-semibold transition-all duration-200 text-xs px-2 py-1"
                   >
-                    View Full Profile
-                    <ChevronRight className="w-4 h-4 ml-1" />
+                    <span className="hidden sm:inline">View Full Profile</span>
+                    <span className="sm:hidden">View Profile</span>
+                    <ChevronRight className="w-3 h-3 md:w-4 md:h-4 ml-1" />
                   </Button>
                 </div>
               </div>
