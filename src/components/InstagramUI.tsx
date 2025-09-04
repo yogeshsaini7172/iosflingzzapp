@@ -436,48 +436,163 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
 
       case "pairing":
         return (
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            <GhostBenchBar onChatSelected={() => onNavigate('chat')} />
-            <PairingMatches />
+          <div className="flex-1 overflow-y-auto min-h-screen scroll-smooth relative">
+            {/* GenZ Header for Pairing */}
+            <header className="sticky top-0 z-20 backdrop-blur-md bg-black/30 border-b border-white/10">
+              <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-pink-500 to-blue-500 bg-clip-text text-transparent">
+                  Smart Pairing ✨
+                </h1>
+                <span className="text-sm text-white/80 font-medium">AI Matches 🧠</span>
+              </div>
+            </header>
+
+            {/* GenZ Background Elements for Pairing */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <div className="absolute top-20 left-1/4 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl animate-float"></div>
+              <div className="absolute bottom-20 right-1/4 w-48 h-48 bg-pink-500/10 rounded-full blur-2xl animate-pulse-glow delay-1000"></div>
+              <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-blue-500/10 rounded-full blur-xl animate-bounce-slow delay-500"></div>
+              
+              {/* Floating emojis */}
+              <div className="absolute top-10 left-10 text-4xl opacity-20 animate-float">💜</div>
+              <div className="absolute top-40 right-20 text-3xl opacity-30 animate-pulse delay-1000">✨</div>
+              <div className="absolute bottom-60 left-20 text-4xl opacity-25 animate-bounce delay-500">🔥</div>
+              <div className="absolute top-80 right-1/4 text-2xl opacity-20 animate-spin-slow">💫</div>
+            </div>
+
+            <div className="relative z-10 p-4 space-y-4">
+              <GhostBenchBar onChatSelected={() => onNavigate('chat')} />
+              <PairingMatches />
+            </div>
           </div>
         );
 
       case "blinddate":
         return (
-          <div className="flex-1 overflow-y-auto">
-            <div className="min-h-full bg-gradient-soft flex items-center justify-center p-4">
-              <Card className="text-center p-8 shadow-medium border-0">
-                <CardContent>
-                  <div className="w-16 h-16 bg-gradient-secondary rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Coffee className="w-8 h-8 text-white" />
+          <div className="flex-1 overflow-y-auto min-h-screen scroll-smooth relative">
+            {/* GenZ Header for Blind Date */}
+            <header className="sticky top-0 z-20 backdrop-blur-md bg-black/30 border-b border-white/10">
+              <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-400 via-red-500 to-pink-500 bg-clip-text text-transparent">
+                  Blind Date Magic 🎭
+                </h1>
+                <span className="text-sm text-white/80 font-medium">Mystery Dating ❤️</span>
+              </div>
+            </header>
+
+            {/* GenZ Background Elements for Blind Date */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <div className="absolute top-20 left-1/4 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl animate-float"></div>
+              <div className="absolute bottom-20 right-1/4 w-64 h-64 bg-red-500/10 rounded-full blur-2xl animate-pulse-glow delay-1000"></div>
+              <div className="absolute top-1/2 left-1/2 w-48 h-48 bg-pink-500/10 rounded-full blur-xl animate-bounce-slow delay-500"></div>
+              
+              {/* Floating emojis */}
+              <div className="absolute top-10 left-10 text-5xl opacity-20 animate-float">🎭</div>
+              <div className="absolute top-40 right-20 text-4xl opacity-30 animate-pulse delay-1000">💘</div>
+              <div className="absolute bottom-60 left-20 text-3xl opacity-25 animate-bounce delay-500">🌹</div>
+              <div className="absolute top-80 right-1/4 text-4xl opacity-20 animate-wiggle">❤️</div>
+              <div className="absolute bottom-40 left-1/3 text-3xl opacity-25 animate-float delay-2000">✨</div>
+            </div>
+
+            <div className="relative z-10 min-h-full flex items-center justify-center p-4">
+              <div className="genZ-glass-card genZ-hover-lift text-center p-10 shadow-premium border border-white/20 rounded-3xl max-w-lg">
+                <div className="space-y-6">
+                  <div className="relative">
+                    <div className="w-20 h-20 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse-glow">
+                      <Coffee className="w-10 h-10 text-white" />
+                    </div>
+                    <div className="absolute -top-2 -right-2 text-2xl animate-bounce-slow">🎭</div>
                   </div>
-                  <h2 className="text-2xl font-bold mb-4">Blind Date Experience</h2>
-                  <p className="text-muted-foreground mb-6">
+                  
+                  <h2 className="text-4xl font-elegant font-bold text-gradient-royal animate-fade-in">
+                    Blind Date Experience
+                  </h2>
+                  
+                  <p className="text-white/80 font-modern text-lg leading-relaxed">
                     Connect with someone special without seeing their profile first. 
+                    Let chemistry lead the way! ✨
                   </p>
-                  <p className="text-lg font-semibold text-orange-500 mb-6">
-                    Coming Soon! 🎭
+                  
+                  <div className="flex justify-center space-x-2 text-2xl animate-pulse-glow delay-500">
+                    <span>💕</span>
+                    <span>🌟</span>
+                    <span>💫</span>
+                  </div>
+                  
+                  <p className="text-2xl font-bold text-gradient-secondary mb-6 animate-bounce-slow">
+                    Coming Soon! 🚀
                   </p>
-                  <Button onClick={() => setActiveTab('home')} className="bg-gradient-primary">
-                    Back to Home
+                  
+                  <Button 
+                    onClick={() => setActiveTab('home')} 
+                    className="bg-gradient-primary hover:shadow-royal transition-luxury font-modern font-bold text-lg h-12 rounded-2xl px-8"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <span>Back to Home</span>
+                      <span>🏠</span>
+                    </div>
                   </Button>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </div>
           </div>
         );
 
       case "profile":
         return (
-          <div className="flex-1 overflow-y-auto p-4">
-            <div className="max-w-2xl mx-auto space-y-6">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold mb-2">Profile Management</h2>
-                <p className="text-muted-foreground">View and manage your profile information</p>
+          <div className="flex-1 overflow-y-auto min-h-screen scroll-smooth relative">
+            {/* GenZ Header for Profile */}
+            <header className="sticky top-0 z-20 backdrop-blur-md bg-black/30 border-b border-white/10">
+              <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">
+                  Your Profile ✨
+                </h1>
+                <span className="text-sm text-white/80 font-medium">Manage & Edit 🛠️</span>
               </div>
+            </header>
+
+            {/* GenZ Background Elements for Profile */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <div className="absolute top-20 left-1/4 w-72 h-72 bg-green-500/10 rounded-full blur-3xl animate-float"></div>
+              <div className="absolute bottom-20 right-1/4 w-56 h-56 bg-blue-500/10 rounded-full blur-2xl animate-pulse-glow delay-1000"></div>
+              <div className="absolute top-1/2 left-1/2 w-40 h-40 bg-purple-500/10 rounded-full blur-xl animate-bounce-slow delay-500"></div>
               
-              {/* User Selector for Testing */}
-              <UserSelector />
+              {/* Floating emojis */}
+              <div className="absolute top-10 left-10 text-4xl opacity-20 animate-float">👤</div>
+              <div className="absolute top-40 right-20 text-3xl opacity-30 animate-pulse delay-1000">⚙️</div>
+              <div className="absolute bottom-60 left-20 text-4xl opacity-25 animate-bounce delay-500">✨</div>
+              <div className="absolute top-80 right-1/4 text-3xl opacity-20 animate-wiggle">🎯</div>
+              <div className="absolute bottom-40 left-1/3 text-2xl opacity-25 animate-float delay-2000">💫</div>
+            </div>
+
+            <div className="relative z-10 p-4">
+              <div className="max-w-2xl mx-auto space-y-6">
+                <div className="genZ-glass-card genZ-hover-lift p-8 rounded-3xl border border-white/20 text-center">
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <h2 className="text-3xl font-elegant font-bold text-gradient-royal animate-fade-in">
+                        Profile Management
+                      </h2>
+                      <div className="absolute -top-2 -right-4 text-2xl animate-bounce-slow">👤</div>
+                    </div>
+                    
+                    <p className="text-white/80 font-modern text-lg">
+                      View and manage your profile information ✨
+                    </p>
+                    
+                    <div className="flex justify-center space-x-2 text-xl animate-pulse-glow delay-500">
+                      <span>⚙️</span>
+                      <span>📸</span>
+                      <span>✏️</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* User Selector for Testing - Enhanced */}
+                <div className="genZ-glass-card p-6 rounded-3xl border border-white/20">
+                  <UserSelector />
+                </div>
+              </div>
             </div>
           </div>
         );
@@ -492,28 +607,40 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Premium Header */}
-      <div className="sticky top-0 z-40 glass-luxury border-b border-border/30 shadow-elegant">
+    <div className="min-h-screen flex flex-col">
+      {/* Enhanced GenZ Header */}
+      <div className="sticky top-0 z-40 genZ-glass-card border-b border-white/20 shadow-premium">
         <div className="flex items-center justify-between px-6 py-4 backdrop-blur-xl">
-          <h1 className="text-2xl font-elegant font-bold text-gradient-royal tracking-tight">
-            DatingSigma
-          </h1>
-          <div className="flex space-x-3">
+          <div className="relative">
+            <h1 className="text-2xl font-elegant font-bold text-gradient-royal tracking-tight">
+              datingSigma
+            </h1>
+            <div className="absolute -top-1 -right-2 text-sm animate-bounce-slow">✨</div>
+          </div>
+          
+          <div className="flex items-center space-x-3">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => onNavigate("chat")}
-              className="hover:bg-primary/10 transition-luxury rounded-full shadow-soft"
+              className="bg-black/20 hover:bg-primary/20 text-white/80 hover:text-primary transition-luxury rounded-full shadow-soft border border-white/20"
             >
-              <MessageCircle className="w-6 h-6 text-primary" />
+              <MessageCircle className="w-6 h-6" />
             </Button>
             <Button 
               variant="ghost" 
               size="icon" 
-              className="hover:bg-accent/10 transition-luxury rounded-full shadow-soft"
+              className="bg-black/20 hover:bg-accent/20 text-white/80 hover:text-accent transition-luxury rounded-full shadow-soft border border-white/20"
             >
-              <Heart className="w-6 h-6 text-accent" />
+              <Heart className="w-6 h-6" />
+            </Button>
+            <Button 
+              onClick={handleLogout}
+              variant="ghost"
+              className="bg-black/20 hover:bg-red-500/20 text-white/80 hover:text-red-400 transition-luxury border border-white/20 rounded-xl px-4 py-2"
+            >
+              <span className="text-sm font-medium">Logout</span>
+              <span className="ml-1">👋</span>
             </Button>
           </div>
         </div>
@@ -522,52 +649,58 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
       {/* Main Content */}
       {renderContent()}
 
-      {/* Premium Bottom Navigation */}
-      <div className="sticky bottom-0 glass-luxury border-t border-border/30 shadow-premium">
+      {/* Premium Bottom Navigation - Enhanced GenZ */}
+      <div className="sticky bottom-0 genZ-glass-card border-t border-white/20 shadow-premium">
         <div className="flex items-center justify-around py-6 px-4">
           {[
-            { id: "home", icon: Home, label: "Home", gradient: "from-primary to-primary-glow" },
+            { id: "home", icon: Home, label: "Home", gradient: "from-primary to-primary-glow", emoji: "🏠" },
             {
               id: "pairing",
               icon: Heart,
               label: "Pairing",
               gradient: "from-secondary to-secondary-glow",
+              emoji: "💕"
             },
             {
               id: "blinddate",
               icon: Coffee,
               label: "Blind Date",
               gradient: "from-orange-500 to-orange-400",
+              emoji: "🎭"
             },
             {
               id: "profile",
               icon: User,
               label: "Profile",
               gradient: "from-primary-variant to-primary",
+              emoji: "👤"
             },
           ].map((tab) => (
             <Button
               key={tab.id}
               size="sm"
-              className={`flex-col space-y-2 h-auto py-3 px-4 relative bg-transparent border-0 transition-luxury group ${
+              className={`flex-col space-y-2 h-auto py-4 px-4 relative bg-transparent border-0 transition-luxury group ${
                 activeTab === tab.id 
                   ? "scale-110 -translate-y-3 shadow-glow" 
                   : "hover:scale-105 hover:-translate-y-1 hover:shadow-soft"
               }`}
               onClick={() => setActiveTab(tab.id as any)}
             >
-              <div className={`p-2 rounded-full bg-gradient-to-r ${tab.gradient} ${
+              <div className={`p-3 rounded-full bg-gradient-to-r ${tab.gradient} ${
                 activeTab === tab.id ? 'shadow-premium animate-pulse-glow' : 'group-hover:shadow-royal'
               }`}>
                 <tab.icon className="w-5 h-5 text-white" fill="currentColor" />
               </div>
-              <span className={`text-xs font-modern font-medium ${
-                activeTab === tab.id 
-                  ? `bg-gradient-to-r ${tab.gradient} bg-clip-text text-transparent font-semibold` 
-                  : 'text-foreground/70 group-hover:text-foreground'
-              }`}>
-                {tab.label}
-              </span>
+              <div className="flex flex-col items-center space-y-1">
+                <span className={`text-xs font-modern font-medium ${
+                  activeTab === tab.id 
+                    ? `bg-gradient-to-r ${tab.gradient} bg-clip-text text-transparent font-semibold` 
+                    : 'text-white/70 group-hover:text-white'
+                }`}>
+                  {tab.label}
+                </span>
+                <span className="text-xs">{tab.emoji}</span>
+              </div>
               {activeTab === tab.id && (
                 <div className={`absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gradient-to-r ${tab.gradient} rounded-full animate-pulse-glow`}></div>
               )}
