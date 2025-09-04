@@ -13,48 +13,66 @@ const openaiApiKey = Deno.env.get('OPENAI_API_KEY')!;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+// Robust, chunk-safe base64 encoder for Uint8Array
+function toBase64(bytes: Uint8Array): string {
+  let binary = '';
+  const chunkSize = 0x8000; // 32k
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, i + chunkSize);
+    let chunkStr = '';
+    for (let j = 0; j < chunk.length; j++) chunkStr += String.fromCharCode(chunk[j]);
+    binary += chunkStr;
+  }
+  return btoa(binary);
+}
+
 // OCR function to extract ID details using OpenAI Vision
 async function extractIdDetails(imageBytes: Uint8Array) {
   try {
-    const b64Img = btoa(String.fromCharCode(...imageBytes));
-    
+    const b64Img = toBase64(imageBytes);
+
+    const payload = {
+      model: 'gpt-4o-mini',
+      response_format: { type: 'json_object' },
+      messages: [
+        { role: 'system', content: 'You are an OCR engine. Always return valid JSON only.' },
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: 'Extract the following fields from this ID card: 1. name (full name on ID), 2. dob (date of birth in YYYY-MM-DD), 3. expiry (expiry date if available, else null). Return ONLY JSON, nothing else.' },
+            { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${b64Img}` } },
+          ],
+        },
+      ],
+    };
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openaiApiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        response_format: { type: 'json_object' },
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an OCR engine. Always return valid JSON only.',
-          },
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: 'Extract the following fields from this ID card: 1. name (full name on ID), 2. dob (date of birth in YYYY-MM-DD), 3. expiry (expiry date if available, else null). Return ONLY JSON, nothing else.',
-              },
-              {
-                type: 'image_url',
-                image_url: { url: `data:image/jpeg;base64,${b64Img}` },
-              },
-            ],
-          },
-        ],
-      }),
+      body: JSON.stringify(payload),
     });
 
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error('OpenAI API error:', response.status, errText);
+      return { name: null, dob: null, expiry: null };
+    }
+
     const data = await response.json();
-    const content = data.choices[0].message.content;
-    
+    const content = data?.choices?.[0]?.message?.content;
+
+    if (!content || typeof content !== 'string') {
+      console.warn('OpenAI unexpected response structure:', JSON.stringify(data).slice(0, 500));
+      return { name: null, dob: null, expiry: null };
+    }
+
     try {
       return JSON.parse(content);
-    } catch {
+    } catch (e) {
+      console.warn('Failed to parse OpenAI JSON content:', content);
       return { name: null, dob: null, expiry: null };
     }
   } catch (error) {
@@ -68,23 +86,36 @@ function normalize(val: string | null): string {
   return val ? val.toLowerCase().trim() : '';
 }
 
-// Fuzzy match for names using simple similarity
+// Fuzzy match for names using Levenshtein similarity (percentage)
 function namesMatch(name1: string | null, name2: string | null, threshold = 80): boolean {
   if (!name1 || !name2) return false;
-  
+
   const n1 = normalize(name1);
   const n2 = normalize(name2);
-  
-  // Simple similarity calculation
+
   const maxLen = Math.max(n1.length, n2.length);
   if (maxLen === 0) return true;
-  
-  let matches = 0;
-  for (let i = 0; i < Math.min(n1.length, n2.length); i++) {
-    if (n1[i] === n2[i]) matches++;
+
+  // Levenshtein distance
+  const rows = n1.length + 1;
+  const cols = n2.length + 1;
+  const dp: number[][] = Array.from({ length: rows }, (_, i) =>
+    Array.from({ length: cols }, (_, j) => (i === 0 ? j : j === 0 ? i : 0))
+  );
+
+  for (let i = 1; i < rows; i++) {
+    for (let j = 1; j < cols; j++) {
+      const cost = n1[i - 1] === n2[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1,       // deletion
+        dp[i][j - 1] + 1,       // insertion
+        dp[i - 1][j - 1] + cost // substitution
+      );
+    }
   }
-  
-  const similarity = (matches / maxLen) * 100;
+
+  const distance = dp[rows - 1][cols - 1];
+  const similarity = (1 - distance / maxLen) * 100; // percentage
   return similarity >= threshold;
 }
 
