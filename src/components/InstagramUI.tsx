@@ -501,25 +501,25 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
       <div className="sticky bottom-0 bg-white/20 backdrop-blur-md border-t border-white/30">
         <div className="flex items-center justify-around py-4">
           {[
-            { id: "home", icon: Home, label: "Home", color: "text-blue-500" },
-            { id: "swipe", icon: Heart, label: "Swipe", color: "text-red-500" },
+            { id: "home", icon: Home, label: "Home", gradient: "from-purple-500 to-pink-500" },
+            { id: "swipe", icon: Heart, label: "Swipe", gradient: "from-pink-500 to-red-500" },
             {
               id: "pairing",
               icon: Zap,
               label: "Pairing",
-              color: "text-purple-500",
+              gradient: "from-blue-500 to-purple-500",
             },
             {
               id: "blinddate",
               icon: Coffee,
               label: "Blind Date",
-              color: "text-orange-500",
+              gradient: "from-orange-500 to-pink-500",
             },
             {
               id: "profile",
               icon: User,
               label: "Profile",
-              color: "text-green-500",
+              gradient: "from-green-500 to-blue-500",
             },
           ].map((tab) => (
             <Button
@@ -528,7 +528,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
               size="sm"
               className={`flex-col space-y-1 h-auto py-3 px-3 relative rounded-full w-16 h-16 hover:bg-transparent active:bg-transparent focus:bg-transparent ${
                 activeTab === tab.id 
-                  ? `text-white bg-gradient-to-br from-purple-500 to-pink-500 border-2 border-black shadow-lg` 
+                  ? `text-white bg-gradient-to-br ${tab.gradient} border-2 border-black shadow-lg` 
                   : "text-gray-600 bg-white/60 border border-gray-400"
               }`}
               onClick={() => setActiveTab(tab.id as any)}
