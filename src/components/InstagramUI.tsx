@@ -161,18 +161,18 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
       case "home":
         return (
           <div className="flex-1 overflow-y-auto bg-black min-h-screen scroll-smooth relative">
-            {/* GenZ Dark Header */}
-            <header className="sticky top-0 z-20 backdrop-blur bg-black/80 border-b border-white/10">
+            {/* GenZ Header - Updated for transparent background */}
+            <header className="sticky top-0 z-20 backdrop-blur-md bg-black/30 border-b border-white/10">
               <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-pink-500 to-blue-500 bg-clip-text text-transparent">
-                  DatingSigma
+                  datingSigma
                 </h1>
-                <span className="text-sm text-white/60 font-medium">Gen Z Dating 🔥</span>
+                <span className="text-sm text-white/80 font-medium">GenZ Dating 🔥</span>
               </div>
             </header>
 
-            {/* Stories Section - GenZ Dark Theme */}
-            <div className="px-4 py-6 border-b border-white/10 bg-black">
+            {/* Stories Section - Enhanced GenZ Theme */}
+            <div className="px-4 py-6 border-b border-white/10 bg-transparent">
               <div className="flex space-x-4 overflow-x-auto scrollbar-hide pb-4">
                 {/* Horizontal Small Cards */}
                 {[
@@ -248,8 +248,8 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
               </div>
             </div>
 
-            {/* Main Feed - GenZ Dark Theme */}
-            <div className="relative min-h-screen bg-black">
+            {/* Main Feed - Enhanced GenZ Theme */}
+            <div className="relative min-h-screen bg-transparent">
               {/* Neon Glow Effects */}
               <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute top-20 left-1/4 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl animate-float"></div>

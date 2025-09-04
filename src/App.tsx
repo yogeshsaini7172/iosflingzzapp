@@ -12,6 +12,7 @@ import DatingAppContainer from "./components/DatingAppContainer";
 import NotFound from "./pages/NotFound";
 import LoginSignup from "./pages/LoginSignup";
 import ProfileSetupFlow from "./components/profile/ProfileSetupFlow";
+import GenZBackground from "./components/ui/genZ-background";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -53,12 +54,14 @@ function App() {
     return (
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <LoginSignup 
-            onLoginSuccess={handleLoginSuccess}
-            onSignupSuccess={handleSignupSuccess}
-          />
+          <GenZBackground variant="auth">
+            <Toaster />
+            <Sonner />
+            <LoginSignup 
+              onLoginSuccess={handleLoginSuccess}
+              onSignupSuccess={handleSignupSuccess}
+            />
+          </GenZBackground>
         </TooltipProvider>
       </QueryClientProvider>
     );
@@ -68,9 +71,11 @@ function App() {
     return (
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <ProfileSetupFlow onComplete={handleProfileSetupComplete} />
+          <GenZBackground variant="setup">
+            <Toaster />
+            <Sonner />
+            <ProfileSetupFlow onComplete={handleProfileSetupComplete} />
+          </GenZBackground>
         </TooltipProvider>
       </QueryClientProvider>
     );
@@ -81,14 +86,16 @@ function App() {
       <QueryClientProvider client={queryClient}>
         {/* REMOVED AUTH: <AuthProvider> */}
           <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <Routes>
-              <Route path="/" element={<DatingAppContainer />} />
-              {/* REMOVED AUTH: <Route path="/login" element={<LoginPage />} /> */}
-              <Route path="/app" element={<DatingAppContainer />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <GenZBackground variant="app">
+              <Toaster />
+              <Sonner />
+              <Routes>
+                <Route path="/" element={<DatingAppContainer />} />
+                {/* REMOVED AUTH: <Route path="/login" element={<LoginPage />} /> */}
+                <Route path="/app" element={<DatingAppContainer />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </GenZBackground>
           </TooltipProvider>
         {/* REMOVED AUTH: </AuthProvider> */}
       </QueryClientProvider>
