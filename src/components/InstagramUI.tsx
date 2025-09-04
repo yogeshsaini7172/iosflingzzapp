@@ -19,8 +19,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useProfilesFeed } from "@/hooks/useProfilesFeed";
 import { usePairing } from "@/hooks/usePairing";
-import IDVerificationUpload from "@/components/verification/IDVerificationUpload";
-import QCSDisplay from "@/components/scoring/QCSDisplay";
 import UserSelector from "@/components/debug/UserSelector";
 import SwipeCards from "@/components/swipe/SwipeCards";
 import PairingMatches from "@/components/pairing/PairingMatches";
@@ -395,18 +393,12 @@ return (
           <div className="flex-1 overflow-y-auto p-4">
             <div className="max-w-2xl mx-auto space-y-6">
               <div className="text-center">
-                <h2 className="text-2xl font-bold mb-2">Profile & Testing</h2>
-                <p className="text-muted-foreground">Manage your profile and test app features</p>
+                <h2 className="text-2xl font-bold mb-2">Profile Management</h2>
+                <p className="text-muted-foreground">View and manage your profile information</p>
               </div>
               
               {/* User Selector for Testing */}
               <UserSelector />
-              
-              {/* QCS Score Display */}
-              <QCSDisplay showCalculateButton={true} />
-              
-              {/* ID Verification */}
-              <IDVerificationUpload />
             </div>
           </div>
         );
