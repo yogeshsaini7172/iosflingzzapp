@@ -4,9 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Heart, Brain, Star, MapPin, GraduationCap, Sparkles, Users, RefreshCw } from 'lucide-react';
+import { Heart, Brain, Star, MapPin, GraduationCap, Sparkles, Users, RefreshCw, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import ProfileModal from '@/components/profile/ProfileModal';
+import GhostBenchBar from '@/components/ui/ghost-bench-bar';
+import EnhancedChatSystem from '@/components/chat/EnhancedChatSystem';
 
 interface Match {
   user_id: string;
@@ -31,6 +34,8 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [selectedProfile, setSelectedProfile] = useState<Match | null>(null);
+  const [selectedChatId, setSelectedChatId] = useState<string>("");
 
   const getCurrentUserId = () => {
     return localStorage.getItem("demoUserId") || "6e6a510a-d406-4a01-91ab-64efdbca98f2";
@@ -92,7 +97,7 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
             mental_score:    Math.round(Math.random() * 40) + 60,
           }));
           setMatches(formattedMatches);
-          toast.success('Pairing limit reached — showing suggested profiles');
+          toast.success('Showing suggested profiles');
           return;
         }
 
@@ -132,6 +137,58 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
     }
   };
 
+  const handleChatClick = async (match: Match) => {
+    const userId = getCurrentUserId();
+    
+    try {
+      // Check if chat room already exists
+      const { data: existingRoom } = await supabase
+        .from("chat_rooms")
+        .select("id")
+        .or(`and(user1_id.eq.${userId},user2_id.eq.${match.user_id}),and(user1_id.eq.${match.user_id},user2_id.eq.${userId})`)
+        .single();
+
+      let chatRoomId = existingRoom?.id;
+
+      if (!chatRoomId) {
+        // Create new chat room
+        const { data: newRoom, error: roomError } = await supabase
+          .from("chat_rooms")
+          .insert({
+            user1_id: userId,
+            user2_id: match.user_id
+          })
+          .select()
+          .single();
+
+        if (roomError) throw roomError;
+        chatRoomId = newRoom.id;
+      }
+
+      setSelectedChatId(chatRoomId);
+      toast.success("Chat opened!");
+    } catch (error: any) {
+      console.error("Error opening chat:", error);
+      toast.error("Failed to open chat");
+    }
+  };
+
+  // If chat is selected, show chat interface
+  if (selectedChatId) {
+    return (
+      <div className="space-y-4">
+        <Button
+          variant="outline"
+          onClick={() => setSelectedChatId("")}
+          className="mb-4"
+        >
+          ← Back to Pairing
+        </Button>
+        <EnhancedChatSystem onNavigate={onNavigate} selectedChatId={selectedChatId} />
+      </div>
+    );
+  }
+
   const handleRefresh = () => {
     const userId = getCurrentUserId();
     loadMatches(userId);
@@ -154,6 +211,11 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
   return (
     <div className="h-full overflow-auto bg-gradient-subtle">
       <div className="max-w-7xl mx-auto p-6">
+        {/* Ghost/Bench Bar */}
+        <div className="mb-6">
+          <GhostBenchBar onChatSelected={setSelectedChatId} />
+        </div>
+
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
@@ -212,8 +274,8 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                     <Sparkles className="h-5 w-5 text-accent" />
                   </div>
                   <div>
-                           <p className="text-sm text-muted-foreground">Your QCS</p>
-                           <p className="text-2xl font-bold">{currentUser?.profile?.total_qcs || '850'}</p>
+                    <p className="text-sm text-muted-foreground">Your QCS</p>
+                    <p className="text-2xl font-bold">{currentUser?.profile?.total_qcs || '850'}</p>
                   </div>
                 </div>
               </CardContent>
@@ -340,17 +402,17 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                         variant="outline" 
                         size="sm" 
                         className="flex-1 hover:bg-muted/80"
-                        onClick={() => toast.info('Profile view coming soon!')}
+                        onClick={() => setSelectedProfile(match)}
                       >
                         View Profile
                       </Button>
                       <Button 
                         size="sm" 
                         className="flex-1 bg-gradient-primary shadow-royal hover:opacity-90"
-                        onClick={() => toast.success(`Liked ${match.first_name}!`)}
+                        onClick={() => handleChatClick(match)}
                       >
-                        <Heart className="h-4 w-4 mr-1" />
-                        Like
+                        <MessageCircle className="h-4 w-4 mr-1" />
+                        Chat Now
                       </Button>
                     </div>
                   </div>
@@ -376,6 +438,14 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
             </Button>
           </div>
         )}
+
+        {/* Profile Modal */}
+        <ProfileModal
+          profile={selectedProfile}
+          isOpen={!!selectedProfile}
+          onClose={() => setSelectedProfile(null)}
+          onChat={setSelectedChatId}
+        />
       </div>
     </div>
   );

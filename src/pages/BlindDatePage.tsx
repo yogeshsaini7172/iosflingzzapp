@@ -16,7 +16,10 @@ const BlindDatePage = ({ onNavigate }: BlindDatePageProps) => {
           </div>
           <h2 className="text-2xl font-bold mb-4">Blind Date Experience</h2>
           <p className="text-muted-foreground mb-6">
-            Connect with someone special without seeing their profile first. Coming soon! 🎭
+            Connect with someone special without seeing their profile first. 
+          </p>
+          <p className="text-lg font-semibold text-orange-500 mb-6">
+            Coming Soon! 🎭
           </p>
           <Button onClick={() => onNavigate('home')} className="bg-gradient-primary">
             Back to Home
