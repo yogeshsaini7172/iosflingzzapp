@@ -123,7 +123,12 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
         return (
           <div className="flex-1 overflow-y-auto bg-black text-white min-h-screen">
             {/* Mobile-First Hero - Full Screen Impact */}
-            <div className="relative min-h-screen bg-gradient-to-b from-gray-900 via-black to-gray-800 flex flex-col justify-center items-center px-4">
+            <div className="relative min-h-screen bg-gradient-to-br from-purple-900 via-pink-900 to-blue-900 flex flex-col justify-center items-center px-4 overflow-hidden">
+              {/* Gen Z Animated Background Elements */}
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-purple-500/10 to-pink-500/10 animate-pulse"></div>
+              <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-xl animate-bounce"></div>
+              <div className="absolute bottom-1/4 right-1/4 w-24 h-24 bg-gradient-to-r from-cyan-400/20 to-blue-400/20 rounded-full blur-xl animate-pulse delay-300"></div>
+              <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-to-r from-yellow-400/20 to-orange-400/20 rounded-full blur-lg animate-bounce delay-500"></div>
               {/* Background Card Effect */}
               <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute top-1/4 left-1/2 transform -translate-x-1/2 w-80 h-96 bg-gradient-to-b from-gray-800 to-gray-900 rounded-3xl opacity-20 rotate-12"></div>
