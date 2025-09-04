@@ -179,85 +179,86 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
               </div>
             </div>
 
-            {/* Enhanced Mobile Card Stack - Gen Z Pink Vibes */}
-            <div className="px-6 py-12 space-y-8 max-w-md mx-auto relative">
-              {/* Gen Z Background Effects */}
-              <div className="absolute inset-0 bg-gradient-to-r from-pink-500/5 via-purple-500/5 to-pink-500/5 rounded-3xl blur-xl"></div>
-              <div className="absolute top-4 right-4 w-20 h-20 bg-pink-400/10 rounded-full blur-md animate-pulse"></div>
-              <div className="absolute bottom-8 left-8 w-16 h-16 bg-purple-400/10 rounded-full blur-lg animate-bounce delay-1000"></div>
+            {/* Why Choose Us - Matching Hero Style */}
+            <div className="relative min-h-screen bg-gradient-to-br from-pink-900 via-purple-900 to-pink-800 flex flex-col justify-center items-center px-4 overflow-hidden">
+              {/* Gen Z Animated Background Elements */}
+              <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-pink-500/10 animate-pulse"></div>
+              <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-gradient-to-r from-pink-400/20 to-purple-400/20 rounded-full blur-xl animate-bounce"></div>
+              <div className="absolute bottom-1/4 right-1/4 w-24 h-24 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-xl animate-pulse delay-300"></div>
+              <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-to-r from-pink-300/20 to-purple-300/20 rounded-full blur-lg animate-bounce delay-500"></div>
               
-              <div className="text-center mb-12 relative z-10">
-                <h2 className="text-3xl font-black mb-4 bg-gradient-to-r from-pink-300 via-purple-300 to-pink-200 bg-clip-text text-transparent">
-                  ✨ Why Choose Us? ✨
-                </h2>
-                <p className="text-gray-300 text-lg font-medium">Experience the future of dating 💕</p>
-              </div>
-              
-              {[
-                { 
-                  title: "Smart AI Matching", 
-                  desc: "Advanced algorithms find your perfect compatibility",
-                  icon: "🧠",
-                  gradient: "from-pink-600/30 to-purple-600/30",
-                  borderGradient: "from-pink-500/50 to-purple-500/50"
-                },
-                { 
-                  title: "Quality Over Quantity", 
-                  desc: "10 curated matches daily, no endless scrolling",
-                  icon: "✨",
-                  gradient: "from-purple-600/30 to-pink-600/30",
-                  borderGradient: "from-purple-500/50 to-pink-500/50"
-                },
-                { 
-                  title: "Verified Profiles", 
-                  desc: "Real people, authentic connections only",
-                  icon: "🔐",
-                  gradient: "from-pink-500/30 to-purple-500/30",
-                  borderGradient: "from-pink-400/50 to-purple-400/50"
-                }
-              ].map((feature, index) => (
-                <div 
-                  key={feature.title}
-                  className={`relative bg-gradient-to-br ${feature.gradient} backdrop-blur-md rounded-3xl p-6 border border-transparent bg-clip-padding animate-scale-in hover:scale-105 transition-all duration-300`}
-                  style={{ 
-                    animationDelay: `${index * 0.2}s`,
-                    background: `linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(147, 51, 234, 0.1)), linear-gradient(135deg, ${feature.gradient.replace('from-', '').replace('to-', '').replace('/', ', ')})`
-                  }}
-                >
-                  {/* Pink glow border effect */}
-                  <div className={`absolute inset-0 bg-gradient-to-r ${feature.borderGradient} rounded-3xl opacity-20 blur-sm`}></div>
-                  
-                  <div className="flex items-start space-x-4 relative z-10">
-                    <div className="text-4xl animate-bounce delay-300">{feature.icon}</div>
-                    <div>
-                      <h3 className="text-xl font-black text-white mb-2 bg-gradient-to-r from-pink-200 to-purple-200 bg-clip-text text-transparent">
-                        {feature.title}
-                      </h3>
-                      <p className="text-gray-200 text-sm leading-relaxed font-medium">{feature.desc}</p>
+              <div className="relative z-10 text-center max-w-sm mx-auto">
+                <div className="mb-8">
+                  <h1 className="text-6xl font-black leading-tight mb-6">
+                    ✨ Why Choose<br/>
+                    <span className="bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent">
+                      Us?
+                    </span>
+                  </h1>
+                  <p className="text-gray-300 text-lg font-light leading-relaxed">
+                    Experience the future of dating 💕
+                  </p>
+                </div>
+                
+                <div className="space-y-6">
+                  <div className="text-center space-y-4">
+                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
+                      <div className="text-3xl mb-2">🧠</div>
+                      <h3 className="text-lg font-bold text-white mb-1">Smart AI Matching</h3>
+                      <p className="text-gray-300 text-sm">Advanced algorithms find your perfect compatibility</p>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
+                      <div className="text-3xl mb-2">✨</div>
+                      <h3 className="text-lg font-bold text-white mb-1">Quality Over Quantity</h3>
+                      <p className="text-gray-300 text-sm">10 curated matches daily, no endless scrolling</p>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
+                      <div className="text-3xl mb-2">🔐</div>
+                      <h3 className="text-lg font-bold text-white mb-1">Verified Profiles</h3>
+                      <p className="text-gray-300 text-sm">Real people, authentic connections only</p>
                     </div>
                   </div>
-                  
-                  {/* Floating particles */}
-                  <div className="absolute top-2 right-2 w-2 h-2 bg-pink-400/50 rounded-full animate-ping"></div>
-                  <div className="absolute bottom-3 right-6 w-1 h-1 bg-purple-400/60 rounded-full animate-pulse delay-700"></div>
                 </div>
-              ))}
+              </div>
             </div>
 
-            {/* Enhanced Dating Preferences - Text Version */}
-            <div className="px-6 py-16 max-w-md mx-auto">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl font-black mb-4 bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent">Your Style</h2>
-                <p className="text-gray-400 text-lg">What are you looking for?</p>
-              </div>
+            {/* Your Style - Matching Hero Style */}
+            <div className="relative min-h-screen bg-gradient-to-br from-pink-900 via-purple-900 to-pink-800 flex flex-col justify-center items-center px-4 overflow-hidden">
+              {/* Gen Z Animated Background Elements */}
+              <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-pink-500/10 animate-pulse"></div>
+              <div className="absolute top-1/4 right-1/4 w-28 h-28 bg-gradient-to-r from-pink-400/20 to-purple-400/20 rounded-full blur-xl animate-bounce delay-200"></div>
+              <div className="absolute bottom-1/3 left-1/4 w-20 h-20 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-xl animate-pulse delay-700"></div>
               
-              <div className="space-y-6 text-center">
+              <div className="relative z-10 text-center max-w-sm mx-auto">
+                <div className="mb-8">
+                  <h1 className="text-6xl font-black leading-tight mb-6">
+                    Your<br/>
+                    <span className="bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent">
+                      Style
+                    </span>
+                  </h1>
+                  <p className="text-gray-300 text-lg font-light leading-relaxed">
+                    What are you looking for?
+                  </p>
+                </div>
+                
                 <div className="space-y-4">
-                  <p className="text-xl font-bold text-white">💜 Serious Relationship - Ready for something real</p>
-                  <p className="text-lg text-gray-300">✨ Casual - Keep it light</p>
-                  <p className="text-lg text-gray-300">🌙 Slow Burn - Take your time</p>
-                  <p className="text-lg text-gray-300">🎭 Complex - It's complicated</p>
-                  <p className="text-lg text-gray-300">🎯 Selective - Quality first</p>
+                  <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
+                    <p className="text-lg font-bold text-white">💜 Serious Relationship</p>
+                    <p className="text-gray-300 text-sm">Ready for something real</p>
+                  </div>
+                  <div className="bg-white/5 backdrop-blur-md rounded-2xl p-3 border border-white/10">
+                    <p className="text-base text-gray-300">✨ Casual - Keep it light</p>
+                  </div>
+                  <div className="bg-white/5 backdrop-blur-md rounded-2xl p-3 border border-white/10">
+                    <p className="text-base text-gray-300">🌙 Slow Burn - Take your time</p>
+                  </div>
+                  <div className="bg-white/5 backdrop-blur-md rounded-2xl p-3 border border-white/10">
+                    <p className="text-base text-gray-300">🎭 Complex - It's complicated</p>
+                  </div>
+                  <div className="bg-white/5 backdrop-blur-md rounded-2xl p-3 border border-white/10">
+                    <p className="text-base text-gray-300">🎯 Selective - Quality first</p>
+                  </div>
                 </div>
               </div>
             </div>
