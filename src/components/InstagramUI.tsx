@@ -173,75 +173,74 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
 
             {/* Stories Section - GenZ Dark Theme */}
             <div className="px-4 py-6 border-b border-white/10 bg-black">
-              <div className="space-y-4">
-                {/* Static Posts */}
+              <div className="flex space-x-4 overflow-x-auto scrollbar-hide pb-4">
+                {/* Horizontal Small Cards */}
                 {[
                   {
                     user: "midnight_vibes",
                     time: "2h",
-                    content: "late night thoughts hit different when you're single ngl 🌙✨",
+                    content: "late night thoughts hit different...",
                     likes: "247",
-                    comments: "32",
-                    gradient: "from-purple-600/20 to-black"
+                    avatar: "🌙",
+                    gradient: "from-purple-600/30 to-pink-600/30"
                   },
                   {
                     user: "coffee_addict_22", 
                     time: "4h",
-                    content: "looking for someone who gets my 3am energy and doesn't judge my spotify wrapped 😅☕",
+                    content: "looking for someone who gets my 3am energy...",
                     likes: "189",
-                    comments: "28",
-                    gradient: "from-pink-600/20 to-black"
+                    avatar: "☕",
+                    gradient: "from-pink-600/30 to-red-600/30"
                   },
                   {
                     user: "aesthetic_soul",
                     time: "6h", 
-                    content: "manifesting a connection that feels like home 🏠💫 no fake energy pls",
+                    content: "manifesting a connection that feels like home...",
                     likes: "312",
-                    comments: "45",
-                    gradient: "from-blue-600/20 to-black"
+                    avatar: "✨",
+                    gradient: "from-blue-600/30 to-cyan-600/30"
+                  },
+                  {
+                    user: "vibe_check",
+                    time: "8h", 
+                    content: "anyone else obsessed with late night drives...",
+                    likes: "156",
+                    avatar: "🚗",
+                    gradient: "from-green-600/30 to-teal-600/30"
                   }
                 ].map((post, index) => (
                   <div 
                     key={post.user}
-                    className={`bg-gradient-to-br ${post.gradient} border border-white/10 rounded-2xl p-4 animate-fade-in backdrop-blur-sm`}
-                    style={{ animationDelay: `${index * 0.2}s` }}
+                    className={`flex-shrink-0 w-72 bg-gradient-to-br ${post.gradient} border border-white/10 rounded-2xl p-4 backdrop-blur-sm animate-fade-in`}
+                    style={{ animationDelay: `${index * 0.1}s` }}
                   >
-                    {/* Post Header */}
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                          <User className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                          <p className="text-white font-semibold text-sm">@{post.user}</p>
-                          <p className="text-white/60 text-xs">{post.time} ago</p>
-                        </div>
+                    {/* Card Header */}
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-lg">
+                        {post.avatar}
                       </div>
-                      <MoreHorizontal className="w-5 h-5 text-white/60" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white font-semibold text-xs truncate">@{post.user}</p>
+                        <p className="text-white/60 text-xs">{post.time} ago</p>
+                      </div>
                     </div>
                     
-                    {/* Post Content */}
-                    <p className="text-white/90 text-sm leading-relaxed mb-4">
+                    {/* Card Content */}
+                    <p className="text-white/90 text-xs leading-relaxed mb-3 line-clamp-2">
                       {post.content}
                     </p>
                     
-                    {/* Post Actions */}
+                    {/* Card Actions */}
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <button className="flex items-center space-x-2 text-white/60 hover:text-pink-400 transition-colors">
-                          <Heart className="w-5 h-5" />
-                          <span className="text-xs">{post.likes}</span>
-                        </button>
-                        <button className="flex items-center space-x-2 text-white/60 hover:text-blue-400 transition-colors">
-                          <MessageCircle className="w-5 h-5" />
-                          <span className="text-xs">{post.comments}</span>
-                        </button>
-                        <button className="text-white/60 hover:text-green-400 transition-colors">
-                          <Send className="w-5 h-5" />
-                        </button>
-                      </div>
-                      <button className="text-white/60 hover:text-white transition-colors">
-                        <Bookmark className="w-5 h-5" />
+                      <button className="flex items-center space-x-1 text-white/60 hover:text-pink-400 transition-colors">
+                        <Heart className="w-3 h-3" />
+                        <span className="text-xs">{post.likes}</span>
+                      </button>
+                      <button className="text-white/60 hover:text-blue-400 transition-colors">
+                        <MessageCircle className="w-3 h-3" />
+                      </button>
+                      <button className="text-white/60 hover:text-green-400 transition-colors">
+                        <Send className="w-3 h-3" />
                       </button>
                     </div>
                   </div>
