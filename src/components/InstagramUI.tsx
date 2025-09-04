@@ -122,85 +122,154 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
       case "home":
         return (
           <div className="flex-1 overflow-y-auto">
-            {/* Hero Section */}
-            <div className="bg-gradient-primary text-white p-6 text-center">
-              <h1 className="text-2xl font-bold mb-2">👋 Hey there! Welcome</h1>
-              <p className="text-sm opacity-90">Never settle for less than what your heart desires</p>
+            {/* Hero Section with Gradient */}
+            <div className="bg-gradient-primary text-white relative overflow-hidden">
+              <div className="absolute inset-0 bg-black/10"></div>
+              <div className="relative p-6 text-center">
+                <div className="animate-fade-in">
+                  <h1 className="text-3xl font-bold mb-2">👋 Hey there! Welcome</h1>
+                  <p className="text-sm opacity-90">Never settle for less than what your heart desires</p>
+                </div>
+                <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
+                <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-white/5 rounded-full blur-xl"></div>
+              </div>
             </div>
 
             <div className="p-4 space-y-6">
-              {/* Highlight Banner */}
-              <div className="bg-gradient-subtle rounded-xl p-4 text-center border border-primary/20">
-                <p className="text-lg font-semibold text-primary">"Skip the endless swipes. Find your people, your way."</p>
-              </div>
-
-              {/* Your Modes */}
-              <div className="space-y-4">
-                <h2 className="text-xl font-bold text-center">Your Modes</h2>
-                <p className="text-center text-muted-foreground">Choose how you vibe:</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-card border rounded-lg p-3 text-center hover:bg-accent transition-colors">
-                    <div className="text-2xl mb-1">❤️</div>
-                    <div className="font-medium">Relationship</div>
-                  </div>
-                  <div className="bg-card border rounded-lg p-3 text-center hover:bg-accent transition-colors">
-                    <div className="text-2xl mb-1">🔥</div>
-                    <div className="font-medium">Casual</div>
-                  </div>
-                  <div className="bg-card border rounded-lg p-3 text-center hover:bg-accent transition-colors">
-                    <div className="text-2xl mb-1">🕒</div>
-                    <div className="font-medium">Benching</div>
-                  </div>
-                  <div className="bg-card border rounded-lg p-3 text-center hover:bg-accent transition-colors">
-                    <div className="text-2xl mb-1">💫</div>
-                    <div className="font-medium">Situationship</div>
-                  </div>
+              {/* Highlight Banner with Glass Effect */}
+              <div className="relative bg-gradient-subtle backdrop-blur-sm rounded-2xl p-6 text-center border border-primary/20 shadow-xl animate-scale-in">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-2xl"></div>
+                <div className="relative">
+                  <div className="text-2xl mb-2">✨</div>
+                  <p className="text-lg font-semibold bg-gradient-primary bg-clip-text text-transparent">
+                    "Skip the endless swipes. Find your people, your way."
+                  </p>
                 </div>
               </div>
 
-              {/* Match Flow */}
-              <div className="space-y-4">
-                <h2 className="text-xl font-bold text-center">Match Flow</h2>
+              {/* Your Modes - Premium Cards */}
+              <div className="space-y-4 animate-fade-in">
+                <div className="text-center">
+                  <h2 className="text-2xl font-bold mb-1">Your Modes</h2>
+                  <p className="text-muted-foreground">Choose how you vibe:</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  {[
+                    { emoji: "❤️", title: "Relationship", gradient: "from-red-500/20 to-pink-500/20", color: "text-red-500" },
+                    { emoji: "🔥", title: "Casual", gradient: "from-orange-500/20 to-red-500/20", color: "text-orange-500" },
+                    { emoji: "🕒", title: "Benching", gradient: "from-blue-500/20 to-purple-500/20", color: "text-blue-500" },
+                    { emoji: "💫", title: "Situationship", gradient: "from-purple-500/20 to-pink-500/20", color: "text-purple-500" }
+                  ].map((mode, index) => (
+                    <div 
+                      key={mode.title}
+                      className={`relative bg-gradient-to-br ${mode.gradient} backdrop-blur-sm border border-white/20 rounded-xl p-4 text-center hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl animate-scale-in hover-scale`}
+                      style={{ animationDelay: `${index * 0.1}s` }}
+                    >
+                      <div className="text-3xl mb-2">{mode.emoji}</div>
+                      <div className={`font-semibold ${mode.color}`}>{mode.title}</div>
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-xl"></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Match Flow - Interactive Cards */}
+              <div className="space-y-4 animate-fade-in">
+                <h2 className="text-2xl font-bold text-center">Match Flow</h2>
                 <div className="space-y-3">
-                  <div className="flex items-center space-x-3 bg-card/50 rounded-lg p-3">
-                    <div className="text-xl">🎯</div>
-                    <p className="text-sm">Based on your physical & mental preferences</p>
-                  </div>
-                  <div className="flex items-center space-x-3 bg-card/50 rounded-lg p-3">
-                    <div className="text-xl">💌</div>
-                    <p className="text-sm">Only 10 pairs shown per day</p>
-                  </div>
-                  <div className="flex items-center space-x-3 bg-card/50 rounded-lg p-3">
-                    <div className="text-xl">💬</div>
-                    <p className="text-sm">Send a chat request — or get instant chat if your match score is high</p>
+                  {[
+                    { emoji: "🎯", text: "Based on your physical & mental preferences", color: "from-green-500/10 to-emerald-500/10" },
+                    { emoji: "💌", text: "Only 10 pairs shown per day", color: "from-pink-500/10 to-rose-500/10" },
+                    { emoji: "💬", text: "Send a chat request — or get instant chat if your match score is high", color: "from-blue-500/10 to-cyan-500/10" }
+                  ].map((item, index) => (
+                    <div 
+                      key={index}
+                      className={`flex items-center space-x-4 bg-gradient-to-r ${item.color} backdrop-blur-sm rounded-xl p-4 border border-white/10 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] animate-scale-in`}
+                      style={{ animationDelay: `${index * 0.15}s` }}
+                    >
+                      <div className="text-2xl flex-shrink-0 animate-pulse">{item.emoji}</div>
+                      <p className="text-sm font-medium">{item.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Daily Stats - Glassmorphism */}
+              <div className="relative bg-gradient-secondary/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-xl animate-scale-in">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 rounded-2xl"></div>
+                <div className="relative">
+                  <h3 className="font-bold text-lg mb-4 text-center bg-gradient-primary bg-clip-text text-transparent">
+                    Today's Opportunities ✨
+                  </h3>
+                  <div className="grid grid-cols-3 gap-6">
+                    {[
+                      { number: "10", label: "New Matches", color: "text-primary", icon: "💕" },
+                      { number: "3", label: "Chat Requests", color: "text-secondary", icon: "💬" },
+                      { number: "5", label: "Profile Views", color: "text-accent", icon: "👀" }
+                    ].map((stat, index) => (
+                      <div key={index} className="text-center group hover:scale-110 transition-transform duration-300">
+                        <div className="text-lg mb-1 group-hover:animate-pulse">{stat.icon}</div>
+                        <div className={`text-3xl font-bold ${stat.color} group-hover:text-primary transition-colors`}>
+                          {stat.number}
+                        </div>
+                        <div className="text-xs text-muted-foreground font-medium">{stat.label}</div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
 
-              {/* Daily Stats - Creative Addition */}
-              <div className="bg-gradient-secondary/10 rounded-xl p-4">
-                <h3 className="font-semibold mb-3 text-center">Today's Opportunities</h3>
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <div className="text-2xl font-bold text-primary">10</div>
-                    <div className="text-xs text-muted-foreground">New Matches</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-secondary">3</div>
-                    <div className="text-xs text-muted-foreground">Chat Requests</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-accent">5</div>
-                    <div className="text-xs text-muted-foreground">Profile Views</div>
-                  </div>
+              {/* Subscription Plans - Premium Design */}
+              <div className="space-y-4 animate-fade-in">
+                <div className="text-center">
+                  <h2 className="text-2xl font-bold mb-1">Choose Your Plan</h2>
+                  <p className="text-muted-foreground">Unlock your dating potential</p>
+                </div>
+                <div className="grid gap-4">
+                  {plans.map((plan, index) => (
+                    <div
+                      key={plan.id}
+                      className={`relative overflow-hidden bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-sm border-2 ${plan.color} shadow-xl rounded-2xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] animate-scale-in hover-scale`}
+                      style={{ animationDelay: `${index * 0.1}s` }}
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent"></div>
+                      <div className="relative p-6">
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <h3 className="text-xl font-bold">{plan.name}</h3>
+                            <p className="text-2xl font-bold text-primary">{plan.price}</p>
+                          </div>
+                          <div className="text-2xl">
+                            {plan.id === 1 && "🌟"}
+                            {plan.id === 2 && "💎"}
+                            {plan.id === 3 && "👑"}
+                          </div>
+                        </div>
+
+                        <ul className="space-y-2 mb-6">
+                          {plan.features.map((feature, idx) => (
+                            <li key={idx} className="flex items-center space-x-2 text-sm">
+                              <span className="text-green-500">✅</span>
+                              <span>{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
+
+                        <Button
+                          className={`w-full text-white font-semibold ${plan.buttonColor} shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl`}
+                          onClick={() => alert(`Subscribed to ${plan.name}`)}
+                        >
+                          Get {plan.name} ✨
+                        </Button>
+                      </div>
+                      <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/10 to-transparent rounded-full -translate-y-10 translate-x-10"></div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              {/* Subscription Plans */}
-              <div className="space-y-4">
-                <h2 className="text-xl font-bold text-center">Choose Your Plan</h2>
-                {renderPlans()}
-              </div>
+              {/* Bottom Spacer */}
+              <div className="h-4"></div>
             </div>
           </div>
         );
