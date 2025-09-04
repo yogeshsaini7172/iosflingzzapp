@@ -1,46 +1,19 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function AuthCallback() {
-  const [status, setStatus] = useState('Finalizing sign-in…');
+  const [status, setStatus] = useState("Finishing login...");
   const navigate = useNavigate();
 
   useEffect(() => {
-    let cancelled = false;
-
-    const finalize = async () => {
-      try {
-        const { data } = await supabase.auth.getSession();
-        if (cancelled) return;
-
-        if (data.session) {
-          setStatus('Signed in — redirecting');
-          navigate('/app', { replace: true });
-          return;
-        }
-
-        const hash = window.location.hash || window.location.search;
-        if (!hash) {
-          setStatus('No auth data in callback URL');
-          return;
-        }
-
-        const t = setTimeout(async () => {
-          const { data: again } = await supabase.auth.getSession();
-          if (again.session) navigate('/app', { replace: true });
-          else setStatus('Could not complete sign-in');
-        }, 500);
-        return () => clearTimeout(t);
-      } catch (e) {
-        setStatus('Error completing sign-in');
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        navigate("/app", { replace: true });
+      } else {
+        setStatus("Login failed or session not found");
       }
-    };
-
-    finalize();
-    return () => {
-      cancelled = true;
-    };
+    });
   }, [navigate]);
 
   useEffect(() => {
