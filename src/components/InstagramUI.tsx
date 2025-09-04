@@ -524,9 +524,8 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
           ].map((tab) => (
             <Button
               key={tab.id}
-              variant="ghost"
               size="sm"
-              className={`flex-col space-y-1 h-auto py-3 px-4 relative rounded-2xl transition-all duration-300 hover:bg-transparent active:bg-transparent focus:bg-transparent text-white bg-gradient-to-br ${tab.gradient} ${
+              className={`flex-col space-y-1 h-auto py-3 px-4 relative rounded-2xl transition-all duration-300 text-white bg-gradient-to-br ${tab.gradient} border-0 outline-none focus:outline-none hover:outline-none active:outline-none ${
                 activeTab === tab.id 
                   ? "shadow-2xl shadow-purple-500/50 scale-105 -translate-y-2" 
                   : "shadow-lg shadow-black/20 hover:scale-102 hover:-translate-y-1 hover:shadow-xl"
