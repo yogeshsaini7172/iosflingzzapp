@@ -22,6 +22,8 @@ import { usePairing } from "@/hooks/usePairing";
 import IDVerificationUpload from "@/components/verification/IDVerificationUpload";
 import QCSDisplay from "@/components/scoring/QCSDisplay";
 import UserSelector from "@/components/debug/UserSelector";
+import SwipeCards from "@/components/swipe/SwipeCards";
+import PairingMatches from "@/components/pairing/PairingMatches";
 
 interface InstagramUIProps {
   onNavigate: (view: string) => void;
@@ -128,104 +130,15 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
 
       case "swipe":
         return (
-          <div className="flex-1 flex flex-col items-center justify-center p-6">
-            {loading ? (
-              <h3 className="text-lg font-semibold text-gray-500">
-                Loading profiles...
-              </h3>
-            ) : profiles.length > 0 ? (
-              <div className="relative w-full max-w-sm h-[500px]">
-                {profiles.map((profile, index) => (
-                  <Card
-                    key={profile.id}
-                    className="absolute w-full h-full rounded-2xl shadow-xl overflow-hidden transition-all duration-300"
-                    style={{ zIndex: profiles.length - index }}
-                  >
-                    <img
-                      src={
-                        profile.profile_images?.[0] ||
-                        "https://via.placeholder.com/400"
-                      }
-                      alt={`${profile.first_name} ${profile.last_name}`}
-                      className="w-full h-3/4 object-cover"
-                    />
-                    <div className="p-4">
-                      <h3 className="text-xl font-bold">
-                        {profile.first_name} {profile.last_name},{" "}
-                        {profile.date_of_birth
-                          ? new Date().getFullYear() -
-                            new Date(profile.date_of_birth).getFullYear()
-                          : "?"}
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        {profile.university}
-                      </p>
-                    </div>
-
-                    {/* Swipe Buttons */}
-                    <div className="absolute bottom-6 left-0 right-0 flex justify-center space-x-6">
-                      <Button
-                        size="lg"
-                        className="bg-red-500 hover:bg-red-600 text-white rounded-full w-16 h-16"
-                        onClick={() => handleSwipe(profile.id, "left")}
-                      >
-                        ❌
-                      </Button>
-                      <Button
-                        size="lg"
-                        className="bg-green-500 hover:bg-green-600 text-white rounded-full w-16 h-16"
-                        onClick={() => handleSwipe(profile.id, "right")}
-                      >
-                        ❤️
-                      </Button>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <h3 className="text-lg font-semibold text-gray-500">
-                No more profiles to swipe 👏
-              </h3>
-            )}
+          <div className="flex-1 overflow-y-auto">
+            <SwipeCards />
           </div>
         );
 
       case "pairing":
         return (
           <div className="flex-1 overflow-y-auto p-4">
-            <h2 className="text-2xl font-bold mb-4 text-center">✨ Smart Pairing</h2>
-
-            {pairingLoading ? (
-              <p className="text-center text-gray-500">
-                Finding your perfect matches...
-              </p>
-            ) : pairedProfiles.length === 0 ? (
-              <p className="text-center text-gray-500">
-                No pairings yet. Try again later 💡
-              </p>
-            ) : (
-              <div className="grid gap-4">
-                {pairedProfiles.map((p) => (
-                  <Card
-                    key={p.id}
-                    className="p-4 flex items-center space-x-4 shadow-md"
-                  >
-                    <img
-                      src={p.profile_images?.[0] || "https://via.placeholder.com/150"}
-                      alt={`${p.first_name} ${p.last_name}`}
-                      className="w-16 h-16 rounded-full object-cover"
-                    />
-                    <div>
-                      <h3 className="font-semibold text-lg">
-                        {p.first_name} {p.last_name}
-                      </h3>
-                      <p className="text-sm text-gray-500">{p.university}</p>
-                      <p className="text-sm">QCS Score: {p.total_qcs || "N/A"}</p>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            )}
+            <PairingMatches />
           </div>
         );
 

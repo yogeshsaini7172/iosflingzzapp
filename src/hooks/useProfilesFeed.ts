@@ -13,6 +13,8 @@ export interface FeedProfile {
   bio?: string;
   total_qcs?: number;
   gender?: string;
+  interests?: string[];
+  relationship_goals?: string[];
 }
 
 export function useProfilesFeed() {
