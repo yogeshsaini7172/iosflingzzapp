@@ -123,12 +123,12 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
         return (
           <div className="flex-1 overflow-y-auto bg-black text-white min-h-screen">
             {/* Mobile-First Hero - Full Screen Impact */}
-            <div className="relative min-h-screen bg-gradient-to-br from-purple-900 via-pink-900 to-blue-900 flex flex-col justify-center items-center px-4 overflow-hidden">
+            <div className="relative min-h-screen bg-gradient-to-br from-pink-900 via-purple-900 to-pink-800 flex flex-col justify-center items-center px-4 overflow-hidden">
               {/* Gen Z Animated Background Elements */}
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-purple-500/10 to-pink-500/10 animate-pulse"></div>
-              <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-xl animate-bounce"></div>
-              <div className="absolute bottom-1/4 right-1/4 w-24 h-24 bg-gradient-to-r from-cyan-400/20 to-blue-400/20 rounded-full blur-xl animate-pulse delay-300"></div>
-              <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-to-r from-yellow-400/20 to-orange-400/20 rounded-full blur-lg animate-bounce delay-500"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-pink-500/10 animate-pulse"></div>
+              <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-gradient-to-r from-pink-400/20 to-purple-400/20 rounded-full blur-xl animate-bounce"></div>
+              <div className="absolute bottom-1/4 right-1/4 w-24 h-24 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-xl animate-pulse delay-300"></div>
+              <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-to-r from-pink-300/20 to-purple-300/20 rounded-full blur-lg animate-bounce delay-500"></div>
               {/* Background Card Effect */}
               <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute top-1/4 left-1/2 transform -translate-x-1/2 w-80 h-96 bg-gradient-to-b from-gray-800 to-gray-900 rounded-3xl opacity-20 rotate-12"></div>
@@ -139,7 +139,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                 <div className="mb-8">
                   <h1 className="text-6xl font-black leading-tight mb-6">
                     Find Your<br/>
-                    <span className="bg-gradient-to-r from-violet-400 to-pink-400 bg-clip-text text-transparent">
+                    <span className="bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent">
                       Match
                     </span>
                   </h1>
@@ -177,19 +177,19 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                   title: "Smart AI Matching", 
                   desc: "Advanced algorithms find your perfect compatibility",
                   icon: "🧠",
-                  gradient: "from-violet-600/20 to-purple-600/20"
+                  gradient: "from-pink-600/20 to-purple-600/20"
                 },
                 { 
                   title: "Quality Over Quantity", 
                   desc: "10 curated matches daily, no endless scrolling",
                   icon: "✨",
-                  gradient: "from-purple-600/20 to-pink-600/20"
+                  gradient: "from-pink-500/20 to-purple-500/20"
                 },
                 { 
                   title: "Verified Profiles", 
                   desc: "Real people, authentic connections only",
                   icon: "🔐",
-                  gradient: "from-pink-600/20 to-violet-600/20"
+                  gradient: "from-purple-600/20 to-pink-600/20"
                 }
               ].map((feature, index) => (
                 <div 
@@ -219,14 +219,14 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                 <div
                   key={plan.id}
                   className={`relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl p-6 border border-gray-700 animate-scale-in ${
-                    index === 1 ? 'ring-2 ring-violet-500 scale-105' : ''
+                    index === 1 ? 'ring-2 ring-pink-500 scale-105' : ''
                   }`}
                   style={{ animationDelay: `${index * 0.15}s` }}
                 >
                   {/* Popular Badge */}
                   {index === 1 && (
                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                      <div className="bg-gradient-to-r from-violet-500 to-purple-600 text-white px-4 py-1 rounded-full text-xs font-bold">
+                      <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-1 rounded-full text-xs font-bold">
                         MOST POPULAR
                       </div>
                     </div>
@@ -235,7 +235,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h3 className="text-2xl font-black text-white">{plan.name}</h3>
-                      <div className="text-2xl font-bold text-violet-400">{plan.price}</div>
+                      <div className="text-2xl font-bold text-pink-400">{plan.price}</div>
                     </div>
                     <div className="text-3xl">
                       {plan.id === 1 && "💜"}
@@ -247,7 +247,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                   <div className="space-y-2 mb-6">
                     {plan.features.slice(0, 3).map((feature, idx) => (
                       <div key={idx} className="flex items-center space-x-3">
-                        <div className="w-4 h-4 bg-violet-500 rounded-full flex items-center justify-center">
+                        <div className="w-4 h-4 bg-pink-500 rounded-full flex items-center justify-center">
                           <span className="text-white text-xs">✓</span>
                         </div>
                         <span className="text-gray-300 text-sm">{feature}</span>
@@ -258,7 +258,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                   <button
                     className={`w-full py-3 font-bold rounded-2xl transition-all duration-300 ${
                       index === 1 
-                        ? 'bg-gradient-to-r from-violet-600 to-purple-700 text-white' 
+                        ? 'bg-gradient-to-r from-pink-600 to-purple-700 text-white' 
                         : 'bg-gray-700 text-white hover:bg-gray-600'
                     }`}
                     onClick={() => alert(`Welcome to ${plan.name}! ✨`)}
@@ -302,7 +302,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                     <p className="text-gray-200 italic mb-4">"{story.quote}"</p>
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-white">{story.author}</span>
-                      <span className="bg-violet-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+                      <span className="bg-pink-500 text-white px-3 py-1 rounded-full text-xs font-bold">
                         {story.match} match
                       </span>
                     </div>
@@ -320,7 +320,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
               
               {/* Featured - Serious Relationship */}
               <div className="mb-6">
-                <div className="bg-gradient-to-r from-violet-600/30 to-purple-600/30 backdrop-blur-sm rounded-3xl p-8 border-2 border-violet-500/50 text-center hover:scale-105 transition-all duration-300 cursor-pointer">
+                <div className="bg-gradient-to-r from-pink-600/30 to-purple-600/30 backdrop-blur-sm rounded-3xl p-8 border-2 border-pink-500/50 text-center hover:scale-105 transition-all duration-300 cursor-pointer">
                   <div className="text-5xl mb-4">💜</div>
                   <h3 className="text-2xl font-black text-white mb-2">Serious Relationship</h3>
                   <p className="text-gray-300">Ready for something real</p>
@@ -355,7 +355,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                 <p className="text-gray-300 mb-8 leading-relaxed">
                   Join thousands finding meaningful connections through intelligent matching.
                 </p>
-                <button className="w-full bg-gradient-to-r from-violet-600 to-purple-700 text-white font-bold py-4 rounded-full text-lg hover:from-violet-700 hover:to-purple-800 transition-all duration-300">
+                <button className="w-full bg-gradient-to-r from-pink-600 to-purple-700 text-white font-bold py-4 rounded-full text-lg hover:from-pink-700 hover:to-purple-800 transition-all duration-300">
                   Begin Your Journey ✨
                 </button>
               </div>
