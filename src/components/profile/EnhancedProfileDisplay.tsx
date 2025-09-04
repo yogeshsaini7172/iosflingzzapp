@@ -58,6 +58,12 @@ interface PartnerPreferences {
   preferred_gender?: string[];
   age_range_min?: number;
   age_range_max?: number;
+  height_range_min?: number;
+  height_range_max?: number;
+  preferred_body_types?: string[];
+  preferred_values?: string[];
+  preferred_mindset?: string[];
+  preferred_personality?: string[];
   preferred_relationship_goal?: string[];
 }
 
@@ -335,13 +341,16 @@ const EnhancedProfileDisplay: React.FC = () => {
                 <p className="text-white/70 text-lg">{age} years old</p>
               </div>
 
-              <div className="space-y-3">
+                <div className="space-y-3">
                 <div className="flex items-center space-x-3">
                   <GraduationCap className="w-5 h-5 text-purple-400" />
                   <div>
                     <p className="text-white font-medium">{profileData.university}</p>
                     {profileData.field_of_study && (
                       <p className="text-white/60 text-sm">{profileData.field_of_study}</p>
+                    )}
+                    {profileData.year_of_study && (
+                      <p className="text-white/60 text-xs">Year {profileData.year_of_study}</p>
                     )}
                   </div>
                 </div>
@@ -357,6 +366,15 @@ const EnhancedProfileDisplay: React.FC = () => {
                   <Heart className="w-5 h-5 text-red-400" />
                   <p className="text-white capitalize">{profileData.gender}</p>
                 </div>
+
+                {profileData.height && (
+                  <div className="flex items-center space-x-3">
+                    <div className="w-5 h-5 flex items-center justify-center">
+                      <span className="text-green-400 text-sm">📏</span>
+                    </div>
+                    <p className="text-white">{profileData.height} cm</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -416,35 +434,83 @@ const EnhancedProfileDisplay: React.FC = () => {
             </div>
           )}
 
-          {/* Personality & Traits */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {profileData.personality_type && (
-              <div className="genZ-glass-card p-4 rounded-2xl border border-white/20">
-                <h5 className="font-semibold text-white mb-2">Personality</h5>
-                <p className="text-white/80">{profileData.personality_type}</p>
-              </div>
-            )}
+          {/* Physical Attributes & Traits */}
+          <div className="genZ-glass-card p-6 rounded-3xl border border-white/20">
+            <h4 className="text-xl font-bold text-gradient-secondary mb-4 flex items-center">
+              <User className="w-5 h-5 mr-2" />
+              About Me Details
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {profileData.personality_type && (
+                <div className="genZ-glass-card p-4 rounded-2xl border border-white/20">
+                  <h5 className="font-semibold text-white mb-2 flex items-center">
+                    <Brain className="w-4 h-4 mr-2 text-purple-400" />
+                    Personality
+                  </h5>
+                  <p className="text-white/80 capitalize">{profileData.personality_type.replace(/_/g, ' ')}</p>
+                </div>
+              )}
 
-            {profileData.values && (
-              <div className="genZ-glass-card p-4 rounded-2xl border border-white/20">
-                <h5 className="font-semibold text-white mb-2">Values</h5>
-                <p className="text-white/80">{profileData.values}</p>
-              </div>
-            )}
+              {profileData.values && (
+                <div className="genZ-glass-card p-4 rounded-2xl border border-white/20">
+                  <h5 className="font-semibold text-white mb-2 flex items-center">
+                    <Heart className="w-4 h-4 mr-2 text-pink-400" />
+                    Values
+                  </h5>
+                  <p className="text-white/80 capitalize">{profileData.values.replace(/_/g, ' ')}</p>
+                </div>
+              )}
 
-            {profileData.humor_type && (
-              <div className="genZ-glass-card p-4 rounded-2xl border border-white/20">
-                <h5 className="font-semibold text-white mb-2">Humor Style</h5>
-                <p className="text-white/80">{profileData.humor_type}</p>
-              </div>
-            )}
+              {profileData.mindset && (
+                <div className="genZ-glass-card p-4 rounded-2xl border border-white/20">
+                  <h5 className="font-semibold text-white mb-2 flex items-center">
+                    <Sparkles className="w-4 h-4 mr-2 text-blue-400" />
+                    Mindset
+                  </h5>
+                  <p className="text-white/80 capitalize">{profileData.mindset.replace(/_/g, ' ')}</p>
+                </div>
+              )}
 
-            {profileData.love_language && (
-              <div className="genZ-glass-card p-4 rounded-2xl border border-white/20">
-                <h5 className="font-semibold text-white mb-2">Love Language</h5>
-                <p className="text-white/80">{profileData.love_language}</p>
-              </div>
-            )}
+              {profileData.body_type && (
+                <div className="genZ-glass-card p-4 rounded-2xl border border-white/20">
+                  <h5 className="font-semibold text-white mb-2 flex items-center">
+                    <User className="w-4 h-4 mr-2 text-green-400" />
+                    Body Type
+                  </h5>
+                  <p className="text-white/80 capitalize">{profileData.body_type.replace(/_/g, ' ')}</p>
+                </div>
+              )}
+
+              {profileData.skin_tone && (
+                <div className="genZ-glass-card p-4 rounded-2xl border border-white/20">
+                  <h5 className="font-semibold text-white mb-2 flex items-center">
+                    <div className="w-4 h-4 mr-2 rounded-full bg-gradient-to-br from-amber-300 to-amber-600"></div>
+                    Skin Tone
+                  </h5>
+                  <p className="text-white/80 capitalize">{profileData.skin_tone.replace(/_/g, ' ')}</p>
+                </div>
+              )}
+
+              {profileData.humor_type && (
+                <div className="genZ-glass-card p-4 rounded-2xl border border-white/20">
+                  <h5 className="font-semibold text-white mb-2 flex items-center">
+                    <Coffee className="w-4 h-4 mr-2 text-yellow-400" />
+                    Humor Style
+                  </h5>
+                  <p className="text-white/80">{profileData.humor_type}</p>
+                </div>
+              )}
+
+              {profileData.love_language && (
+                <div className="genZ-glass-card p-4 rounded-2xl border border-white/20">
+                  <h5 className="font-semibold text-white mb-2 flex items-center">
+                    <Heart className="w-4 h-4 mr-2 text-red-400" />
+                    Love Language
+                  </h5>
+                  <p className="text-white/80">{profileData.love_language}</p>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Partner Preferences */}
@@ -474,6 +540,67 @@ const EnhancedProfileDisplay: React.FC = () => {
                     <Badge className="bg-green-500/20 text-green-300 border-green-400/30">
                       {preferences.age_range_min || 18} - {preferences.age_range_max || 30} years
                     </Badge>
+                  </div>
+                )}
+
+                {(preferences.height_range_min || preferences.height_range_max) && (
+                  <div>
+                    <p className="text-white/70 text-sm mb-2">Height Range:</p>
+                    <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-400/30">
+                      {preferences.height_range_min || 150} - {preferences.height_range_max || 200} cm
+                    </Badge>
+                  </div>
+                )}
+
+                {preferences.preferred_body_types && preferences.preferred_body_types.length > 0 && (
+                  <div>
+                    <p className="text-white/70 text-sm mb-2">Preferred Body Types:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {preferences.preferred_body_types.map((type, index) => (
+                        <Badge key={index} className="bg-orange-500/20 text-orange-300 border-orange-400/30">
+                          {type}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {preferences.preferred_values && preferences.preferred_values.length > 0 && (
+                  <div>
+                    <p className="text-white/70 text-sm mb-2">Preferred Values:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {preferences.preferred_values.map((value, index) => (
+                        <Badge key={index} className="bg-purple-500/20 text-purple-300 border-purple-400/30">
+                          {value}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {preferences.preferred_mindset && preferences.preferred_mindset.length > 0 && (
+                  <div>
+                    <p className="text-white/70 text-sm mb-2">Preferred Mindset:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {preferences.preferred_mindset.map((mindset, index) => (
+                        <Badge key={index} className="bg-teal-500/20 text-teal-300 border-teal-400/30">
+                          {mindset}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {preferences.preferred_personality && preferences.preferred_personality.length > 0 && (
+                  <div>
+                    <p className="text-white/70 text-sm mb-2">Preferred Personality:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {preferences.preferred_personality.map((personality, index) => (
+                        <Badge key={index} className="bg-indigo-500/20 text-indigo-300 border-indigo-400/30">
+                          {personality}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                 )}
 
