@@ -316,55 +316,6 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                 <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,hsl(var(--primary))_1px,transparent_1px)] bg-[length:50px_50px]"></div>
               </div>
 
-              <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
-                <div className="mb-16 animate-elegant-entrance">
-                  <span className="inline-block px-4 py-2 bg-accent/10 text-accent rounded-full text-sm font-medium mb-6">
-                    💫 Personalize Your Journey  
-                  </span>
-                  <h2 className="text-4xl md:text-6xl font-elegant font-black mb-6 tracking-tight">
-                    What Are You
-                    <span className="text-gradient-royal animate-shimmer"> Looking For?</span>
-                  </h2>
-                  <p className="text-xl text-muted-foreground font-modern max-w-2xl mx-auto">
-                    Choose your path to meaningful connections
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-                  {[
-                    { emoji: "💕", text: "Serious Relationship", desc: "Ready for something meaningful and long-term", primary: true },
-                    { emoji: "✨", text: "Casual Dating", desc: "Exploring connections with an open mind" },
-                    { emoji: "🌙", text: "Take It Slow", desc: "Building friendships that could grow into more" },
-                    { emoji: "🎭", text: "It's Complicated", desc: "Open to various types of connections" }
-                  ].map((option, index) => (
-                    <div 
-                      key={index}
-                      className={`group cursor-pointer animate-bounce-in ${
-                        option.primary 
-                          ? 'glass-luxury border-gradient shadow-premium' 
-                          : 'glass-dark-luxury border border-border/50 hover:border-primary/30'
-                      } rounded-2xl p-6 hover-elegant transition-luxury`}
-                      style={{ animationDelay: `${index * 0.1}s` }}
-                    >
-                      <div className="text-3xl mb-3 animate-pulse-glow">{option.emoji}</div>
-                      <h3 className={`text-lg font-elegant font-bold mb-2 ${
-                        option.primary ? 'text-gradient-primary' : 'text-foreground group-hover:text-primary'
-                      } transition-colors`}>
-                        {option.text}
-                      </h3>
-                      <p className="text-sm text-muted-foreground font-modern">
-                        {option.desc}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-12 animate-slide-up">
-                  <button className="px-12 py-4 bg-gradient-primary text-white font-bold rounded-full text-lg shadow-premium hover-luxury transition-luxury font-modern">
-                    Start Your Journey Now
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         );
