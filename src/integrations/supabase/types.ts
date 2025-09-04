@@ -502,6 +502,7 @@ export type Database = {
           interests: string[] | null
           is_active: boolean | null
           is_profile_public: boolean | null
+          last_active: string | null
           last_name: string
           last_reset: string | null
           last_swipe_reset: string | null
@@ -560,6 +561,7 @@ export type Database = {
           interests?: string[] | null
           is_active?: boolean | null
           is_profile_public?: boolean | null
+          last_active?: string | null
           last_name: string
           last_reset?: string | null
           last_swipe_reset?: string | null
@@ -618,6 +620,7 @@ export type Database = {
           interests?: string[] | null
           is_active?: boolean | null
           is_profile_public?: boolean | null
+          last_active?: string | null
           last_name?: string
           last_reset?: string | null
           last_swipe_reset?: string | null
