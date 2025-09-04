@@ -23,6 +23,14 @@ export interface Profile {
   is_profile_public: boolean;
   verification_status: string;
   total_qcs?: number;
+  height?: number;
+  body_type?: string;
+  skin_tone?: string;
+  personality_type?: string;
+  values?: string;
+  mindset?: string;
+  relationship_goals?: string[];
+  show_profile?: boolean;
 }
 
 export interface PartnerPreferences {
@@ -91,10 +99,68 @@ export const useProfileData = () => {
     fetchProfileData();
   }, []);
 
+  const updateProfile = async (updates: Partial<Profile>) => {
+    const userId = getCurrentUserId();
+    
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update(updates)
+        .eq("user_id", userId);
+
+      if (error) throw error;
+      
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been updated successfully.",
+      });
+      
+      await fetchProfileData();
+    } catch (error: any) {
+      console.error("❌ Error updating profile:", error);
+      toast({
+        title: "Error updating profile",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const updatePreferences = async (updates: Partial<PartnerPreferences>) => {
+    const userId = getCurrentUserId();
+    
+    try {
+      const { error } = await supabase
+        .from("partner_preferences")
+        .upsert({
+          user_id: userId,
+          ...updates,
+        });
+
+      if (error) throw error;
+      
+      toast({
+        title: "Preferences updated",
+        description: "Your preferences have been updated successfully.",
+      });
+      
+      await fetchProfileData();
+    } catch (error: any) {
+      console.error("❌ Error updating preferences:", error);
+      toast({
+        title: "Error updating preferences", 
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   return {
     profile,
     preferences,
     isLoading,
     refetch: fetchProfileData,
+    updateProfile,
+    updatePreferences,
   };
 };

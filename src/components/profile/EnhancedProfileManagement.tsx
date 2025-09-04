@@ -131,7 +131,12 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
     "Writing", "Volunteering", "Fashion", "Food", "History", "Science", "Politics"
   ];
 
-  const genderOptions = ["Male", "Female", "Non-binary", "All"];
+  const genderOptions = [
+    { label: "Male", value: "male" as const },
+    { label: "Female", value: "female" as const }, 
+    { label: "Non-binary", value: "non_binary" as const },
+    { label: "All", value: "prefer_not_to_say" as const }
+  ];
 
   const renderBasicInfo = () => (
     <div className="space-y-6">
@@ -354,22 +359,22 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
           <div className="space-y-3">
             <Label>Interested in</Label>
             <div className="flex flex-wrap gap-2">
-              {genderOptions.map((gender) => {
-                const isSelected = formData.preferredGender.includes(gender.toLowerCase());
-                return (
-                  <Button
-                    key={gender}
-                    variant={isSelected ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => toggleArrayItem('preferredGender', gender.toLowerCase(), 4)}
-                    className={`rounded-full ${
-                      isSelected 
-                        ? 'bg-gradient-primary' 
-                        : 'border-primary/20 hover:border-primary'
-                    }`}
-                  >
-                    {gender}
-                  </Button>
+               {genderOptions.map((gender) => {
+                 const isSelected = formData.preferredGender.includes(gender.value);
+                 return (
+                   <Button
+                     key={gender.label}
+                     variant={isSelected ? "default" : "outline"}
+                     size="sm"
+                     onClick={() => toggleArrayItem('preferredGender', gender.value, 4)}
+                     className={`rounded-full ${
+                       isSelected 
+                         ? 'bg-gradient-primary' 
+                         : 'border-primary/20 hover:border-primary'
+                     }`}
+                   >
+                     {gender.label}
+                   </Button>
                 );
               })}
             </div>
