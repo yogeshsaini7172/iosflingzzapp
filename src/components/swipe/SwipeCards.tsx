@@ -78,10 +78,15 @@ const SwipeCards: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center space-y-4">
-          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-muted-foreground">Loading profiles...</p>
+      <div className="flex items-center justify-center min-h-[60vh] bg-gradient-subtle">
+        <div className="text-center space-y-6 animate-fade-in">
+          <div className="w-20 h-20 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto shadow-glow"></div>
+          <p className="text-foreground/70 font-modern text-lg">Loading premium profiles...</p>
+          <div className="flex justify-center space-x-2">
+            <div className="w-3 h-3 bg-primary rounded-full animate-bounce"></div>
+            <div className="w-3 h-3 bg-accent rounded-full animate-bounce delay-100"></div>
+            <div className="w-3 h-3 bg-secondary rounded-full animate-bounce delay-200"></div>
+          </div>
         </div>
       </div>
     );
@@ -89,29 +94,31 @@ const SwipeCards: React.FC = () => {
 
   if (currentIndex >= profiles.length) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh] p-6">
-        <div className="text-center space-y-6 max-w-md">
-          <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center mx-auto">
-            <Heart className="w-10 h-10 text-purple-500" />
+      <div className="flex items-center justify-center min-h-[60vh] p-6 bg-gradient-subtle">
+        <div className="text-center space-y-8 max-w-md animate-elegant-entrance">
+          <div className="w-32 h-32 bg-gradient-royal rounded-full flex items-center justify-center mx-auto shadow-premium animate-float">
+            <Heart className="w-16 h-16 text-white animate-pulse-glow" />
           </div>
-          <div>
-            <h3 className="text-2xl font-bold mb-2">No More Profiles!</h3>
-            <p className="text-muted-foreground">You've seen all available profiles. Check back later for new matches!</p>
+          <div className="space-y-4">
+            <h3 className="text-3xl font-elegant font-bold text-gradient-primary">All Premium Profiles Explored!</h3>
+            <p className="text-foreground/70 font-modern leading-relaxed">
+              You've discovered all available elite matches. New exclusive profiles are curated daily.
+            </p>
           </div>
-          <div className="space-y-2">
-            <Badge className="bg-green-100 text-green-700">
-              {swipeCount} profiles swiped today
+          <div className="space-y-4">
+            <Badge className="bg-gradient-secondary text-black border-0 shadow-gold font-modern font-semibold px-4 py-2">
+              {swipeCount} premium profiles explored today
             </Badge>
+            <Button 
+              onClick={() => {
+                setCurrentIndex(0);
+                setSwipeCount(0);
+              }}
+              className="bg-gradient-primary shadow-premium hover:shadow-glow transition-luxury font-modern font-semibold px-8 py-3"
+            >
+              Explore Again
+            </Button>
           </div>
-          <Button 
-            onClick={() => {
-              setCurrentIndex(0);
-              setSwipeCount(0);
-            }}
-            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-          >
-            Start Over
-          </Button>
         </div>
       </div>
     );
@@ -120,20 +127,20 @@ const SwipeCards: React.FC = () => {
   const currentProfile = profiles[currentIndex];
 
   return (
-    <div className="max-w-md mx-auto p-4 space-y-6">
-      {/* Stats Header */}
-      <div className="flex justify-between items-center">
-        <Badge variant="outline" className="flex items-center space-x-1">
-          <Zap className="w-3 h-3" />
-          <span>{currentIndex + 1} of {profiles.length}</span>
+    <div className="max-w-md mx-auto p-4 space-y-6 bg-gradient-subtle min-h-screen">
+      {/* Premium Stats Header */}
+      <div className="flex justify-between items-center p-4 glass-luxury rounded-xl border-gradient shadow-soft">
+        <Badge variant="outline" className="flex items-center space-x-2 border-primary/30 text-primary bg-primary/5">
+          <Zap className="w-4 h-4 animate-pulse-glow" />
+          <span className="font-modern font-semibold">{currentIndex + 1} of {profiles.length}</span>
         </Badge>
-        <Badge className="bg-red-100 text-red-700">
-          {20 - swipeCount} swipes left
+        <Badge className="bg-gradient-rose text-white border-0 shadow-royal font-modern font-semibold">
+          {20 - swipeCount} premium swipes left
         </Badge>
       </div>
 
-      {/* Profile Card */}
-      <Card className="overflow-hidden shadow-xl">
+      {/* Premium Profile Card */}
+      <Card className="overflow-hidden shadow-premium border-gradient bg-gradient-card hover-elegant">
         <div className="relative">
           {/* Profile Image */}
           <div className="aspect-[3/4] relative">
@@ -143,25 +150,25 @@ const SwipeCards: React.FC = () => {
               className="w-full h-full object-cover"
             />
             
-            {/* Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+            {/* Premium Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
             
-            {/* Profile Info Overlay */}
-            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-              <div className="flex items-center space-x-3 mb-3">
+            {/* Premium Profile Info Overlay */}
+            <div className="absolute bottom-0 left-0 right-0 p-6 text-white animate-slide-up">
+              <div className="flex items-center space-x-3 mb-4">
                 <div>
-                  <h3 className="text-2xl font-bold">
+                  <h3 className="text-3xl font-elegant font-bold tracking-tight">
                     {currentProfile.first_name}, {calculateAge(currentProfile.date_of_birth)}
                   </h3>
-                  <div className="flex items-center space-x-1 text-white/90">
+                  <div className="flex items-center space-x-2 text-white/90 mt-1">
                     <MapPin className="w-4 h-4" />
-                    <span>{currentProfile.university}</span>
+                    <span className="font-modern">{currentProfile.university}</span>
                   </div>
                 </div>
-                <div className="flex items-center space-x-1">
-                  <Shield className="w-4 h-4 text-blue-400" />
+                <div className="flex items-center space-x-2">
+                  <Shield className="w-5 h-5 text-accent animate-pulse-glow" />
                   {currentProfile.total_qcs && (
-                    <Badge className="bg-white/20 text-white border-white/30">
+                    <Badge className="bg-gradient-gold text-black border-0 shadow-gold font-modern font-bold">
                       QCS: {currentProfile.total_qcs}
                     </Badge>
                   )}
@@ -171,24 +178,28 @@ const SwipeCards: React.FC = () => {
           </div>
         </div>
 
-        <CardContent className="p-6 space-y-4">
-          {/* Bio */}
+        <CardContent className="p-6 space-y-6 bg-gradient-card">
+          {/* Premium Bio */}
           {currentProfile.bio && (
-            <div>
-              <h4 className="font-semibold mb-2">About</h4>
-              <p className="text-muted-foreground text-sm leading-relaxed">
+            <div className="glass-dark-luxury p-4 rounded-xl border border-border/50">
+              <h4 className="font-elegant font-semibold mb-3 text-gradient-primary">About</h4>
+              <p className="text-foreground/80 text-sm leading-relaxed font-modern">
                 {currentProfile.bio}
               </p>
             </div>
           )}
 
-          {/* Interests */}
+          {/* Premium Interests */}
           {currentProfile.interests && currentProfile.interests.length > 0 && (
             <div>
-              <h4 className="font-semibold mb-2">Interests</h4>
+              <h4 className="font-elegant font-semibold mb-3 text-gradient-gold">Interests</h4>
               <div className="flex flex-wrap gap-2">
                 {currentProfile.interests.slice(0, 6).map((interest, index) => (
-                  <Badge key={index} variant="secondary" className="text-xs">
+                  <Badge 
+                    key={index} 
+                    variant="secondary" 
+                    className="text-xs border-primary/20 bg-primary/5 hover:bg-primary/10 transition-luxury font-modern"
+                  >
                     {interest}
                   </Badge>
                 ))}
@@ -198,29 +209,29 @@ const SwipeCards: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Action Buttons */}
-      <div className="flex justify-center space-x-4">
+      {/* Premium Action Buttons */}
+      <div className="flex justify-center space-x-6">
         <Button
           onClick={() => handleSwipe('left')}
           variant="outline"
           size="lg"
-          className="flex-1 h-14 border-red-200 hover:bg-red-50 hover:border-red-300"
+          className="flex-1 h-16 glass-luxury border-red-300/50 hover:bg-red-50 hover:border-red-400 hover:shadow-soft transition-luxury group"
         >
-          <X className="w-6 h-6 text-red-500" />
+          <X className="w-7 h-7 text-red-500 group-hover:scale-110 transition-all" />
         </Button>
         
         <Button
           onClick={() => handleSwipe('right')}
           size="lg"
-          className="flex-1 h-14 bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600"
+          className="flex-1 h-16 bg-gradient-rose shadow-premium hover:shadow-glow transition-luxury group animate-pulse-glow"
         >
-          <Heart className="w-6 h-6 text-white" />
+          <Heart className="w-7 h-7 text-white group-hover:scale-110 transition-all" />
         </Button>
       </div>
 
-      {/* Tips */}
-      <div className="text-center text-xs text-muted-foreground">
-        Swipe left to pass • Swipe right to like
+      {/* Premium Tips */}
+      <div className="text-center text-sm text-foreground/60 font-modern">
+        Swipe left to pass • Swipe right for premium matches
       </div>
     </div>
   );

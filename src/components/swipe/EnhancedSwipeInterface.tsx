@@ -260,10 +260,15 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-[600px]">
-        <div className="text-center">
-          <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Finding profiles for you...</p>
+      <div className="flex items-center justify-center h-[600px] bg-gradient-subtle">
+        <div className="text-center animate-fade-in">
+          <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-6 text-primary animate-pulse-glow" />
+          <p className="text-foreground/70 font-modern text-lg">Finding your perfect matches...</p>
+          <div className="mt-4 flex justify-center space-x-2">
+            <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-accent rounded-full animate-bounce delay-100"></div>
+            <div className="w-2 h-2 bg-secondary rounded-full animate-bounce delay-200"></div>
+          </div>
         </div>
       </div>
     );
@@ -271,13 +276,25 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
 
   if (currentIndex >= profiles.length) {
     return (
-      <div className="text-center py-20">
-        <h2 className="text-2xl font-bold mb-4">No more profiles!</h2>
-        <p className="text-muted-foreground mb-6">You've seen everyone for now. Check back later for new profiles.</p>
-        <Button onClick={fetchProfiles} className="bg-gradient-primary">
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Refresh
-        </Button>
+      <div className="text-center py-20 bg-gradient-subtle min-h-screen flex items-center justify-center">
+        <div className="max-w-md mx-auto space-y-8 animate-elegant-entrance">
+          <div className="w-32 h-32 bg-gradient-royal rounded-full flex items-center justify-center mx-auto shadow-premium animate-float">
+            <Heart className="w-16 h-16 text-white animate-pulse-glow" />
+          </div>
+          <div className="space-y-4">
+            <h2 className="text-3xl font-elegant font-bold text-gradient-primary">No More Elite Profiles!</h2>
+            <p className="text-foreground/70 font-modern text-lg leading-relaxed">
+              You've explored all premium matches. New exclusive profiles are added daily.
+            </p>
+          </div>
+          <Button 
+            onClick={fetchProfiles} 
+            className="bg-gradient-primary shadow-premium hover:shadow-glow transition-luxury font-modern font-semibold px-8 py-3 text-lg"
+          >
+            <RefreshCw className="w-5 h-5 mr-2" />
+            Discover More
+          </Button>
+        </div>
       </div>
     );
   }
@@ -285,114 +302,116 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
   const currentProfile = profiles[currentIndex];
 
   return (
-    <div className="max-w-md mx-auto space-y-4">
-      <GhostBenchBar onChatSelected={setMatchedChatId} />
-      
-      {/* Filters Bar */}
-      <div className="flex gap-2 p-2">
-        <Button variant="outline" size="sm" className="rounded-full">
-          <Filter className="w-4 h-4 mr-2" />
-          Age ▼
-        </Button>
-        <Button variant="outline" size="sm" className="rounded-full">
-          Height ▼
-        </Button>
-        <Button variant="outline" size="sm" className="rounded-full">
-          Dating Intentions ▼
-        </Button>
-      </div>
-
-      {/* Profile Card */}
-      <Card className="relative overflow-hidden h-[600px] shadow-xl">
-        <div className="relative h-full">
-          {/* Profile Image */}
-          <div className="absolute inset-0">
-            {currentProfile.profile_images && currentProfile.profile_images.length > 0 ? (
-              <img
-                src={currentProfile.profile_images[0]}
-                alt={currentProfile.first_name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
-                <div className="text-center text-muted-foreground">
-                  <div className="text-6xl mb-4">👤</div>
-                  <p>No Photo</p>
-                </div>
-              </div>
-            )}
-            
-            {/* Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-          </div>
-
-          {/* Top Controls */}
-          <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-10">
-            <Button variant="ghost" size="icon" className="text-white bg-black/20 backdrop-blur-sm">
-              <Settings className="w-5 h-5" />
-            </Button>
-            <Button variant="ghost" size="icon" className="text-white bg-black/20 backdrop-blur-sm">
-              <MoreHorizontal className="w-5 h-5" />
-            </Button>
-          </div>
-
-          {/* Profile Info */}
-          <div className="absolute bottom-20 left-6 right-6 text-white z-10">
-            <div className="flex items-center gap-3 mb-3">
-              <h2 className="text-3xl font-bold">
-                {currentProfile.first_name}
-              </h2>
-              {currentProfile.age <= 20 && (
-                <Badge className="bg-purple-600 hover:bg-purple-700">
-                  New here
-                </Badge>
-              )}
-            </div>
-            
-            <p className="text-lg opacity-90 mb-4">
-              she/her
-            </p>
-
-            <div 
-              className="cursor-pointer"
-              onClick={() => setShowDetailedProfile(true)}
-            >
-              <p className="text-lg mb-2">Together, we could</p>
-              <p className="text-xl font-medium opacity-90">
-                {currentProfile.bio || "explore new adventures together..."}
-              </p>
-            </div>
-          </div>
-
-          {/* Heart Button */}
-          <Button
-            onClick={() => setShowDetailedProfile(true)}
-            size="icon"
-            className="absolute bottom-6 right-6 w-14 h-14 rounded-full bg-white hover:bg-gray-100 z-10"
-          >
-            <Heart className="w-6 h-6 text-gray-600" />
+    <div className="min-h-screen bg-gradient-elegant">
+      <div className="max-w-md mx-auto space-y-6 p-4">
+        <GhostBenchBar onChatSelected={setMatchedChatId} />
+        
+        {/* Premium Filters Bar */}
+        <div className="flex gap-3 p-2">
+          <Button variant="outline" size="sm" className="rounded-full glass-luxury border-primary/30 hover:bg-primary/10 transition-luxury">
+            <Filter className="w-4 h-4 mr-2 text-primary" />
+            <span className="font-modern">Age ▼</span>
+          </Button>
+          <Button variant="outline" size="sm" className="rounded-full glass-luxury border-accent/30 hover:bg-accent/10 transition-luxury">
+            <span className="font-modern">Height ▼</span>
+          </Button>
+          <Button variant="outline" size="sm" className="rounded-full glass-luxury border-secondary/30 hover:bg-secondary/10 transition-luxury">
+            <span className="font-modern">Dating ▼</span>
           </Button>
         </div>
-      </Card>
 
-      {/* Action Buttons */}
-      <div className="flex justify-center gap-6 pt-4">
-        <Button
-          onClick={() => handleSwipe('left')}
-          size="icon"
-          variant="outline"
-          className="w-14 h-14 rounded-full border-2 hover:bg-red-50 hover:border-red-300"
-        >
-          <X className="w-6 h-6 text-red-500" />
-        </Button>
-        
-        <Button
-          onClick={() => handleSwipe('right')}
-          size="icon"
-          className="w-14 h-14 rounded-full bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600"
-        >
-          <Heart className="w-6 h-6" />
-        </Button>
+        {/* Premium Profile Card */}
+        <Card className="relative overflow-hidden h-[600px] shadow-premium border-gradient bg-gradient-card hover-elegant">
+          <div className="relative h-full">
+            {/* Profile Image */}
+            <div className="absolute inset-0">
+              {currentProfile.profile_images && currentProfile.profile_images.length > 0 ? (
+                <img
+                  src={currentProfile.profile_images[0]}
+                  alt={currentProfile.first_name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-royal flex items-center justify-center">
+                  <div className="text-center text-white animate-fade-in">
+                    <div className="text-6xl mb-4 animate-pulse-glow">✨</div>
+                    <p className="font-elegant text-lg">Premium Profile</p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Premium Gradient Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+            </div>
+
+            {/* Premium Top Controls */}
+            <div className="absolute top-6 left-6 right-6 flex justify-between items-center z-10">
+              <Button variant="ghost" size="icon" className="glass-luxury text-white hover:bg-white/20 transition-luxury shadow-soft">
+                <Settings className="w-5 h-5" />
+              </Button>
+              <Button variant="ghost" size="icon" className="glass-luxury text-white hover:bg-white/20 transition-luxury shadow-soft">
+                <MoreHorizontal className="w-5 h-5" />
+              </Button>
+            </div>
+
+            {/* Premium Profile Info */}
+            <div className="absolute bottom-24 left-6 right-6 text-white z-10 animate-slide-up">
+              <div className="flex items-center gap-3 mb-4">
+                <h2 className="text-4xl font-elegant font-bold tracking-tight">
+                  {currentProfile.first_name}
+                </h2>
+                {currentProfile.age <= 20 && (
+                  <Badge className="bg-gradient-secondary text-black border-0 shadow-gold animate-shimmer">
+                    <span className="font-modern font-semibold">New Elite</span>
+                  </Badge>
+                )}
+              </div>
+              
+              <p className="text-lg opacity-90 mb-4 font-modern">
+                she/her • {currentProfile.age} years
+              </p>
+
+              <div 
+                className="cursor-pointer hover-luxury glass-dark-luxury p-4 rounded-xl border border-white/20 transition-luxury"
+                onClick={() => setShowDetailedProfile(true)}
+              >
+                <p className="text-lg mb-2 font-elegant text-gradient-gold">Together, we could</p>
+                <p className="text-xl font-medium opacity-90 font-modern">
+                  {currentProfile.bio || "explore new adventures together..."}
+                </p>
+              </div>
+            </div>
+
+            {/* Premium Heart Button */}
+            <Button
+              onClick={() => setShowDetailedProfile(true)}
+              size="icon"
+              className="absolute bottom-6 right-6 w-16 h-16 rounded-full bg-gradient-primary shadow-premium hover:shadow-glow transition-luxury animate-pulse-glow z-10"
+            >
+              <Heart className="w-7 h-7 text-white" />
+            </Button>
+          </div>
+        </Card>
+
+        {/* Premium Action Buttons */}
+        <div className="flex justify-center gap-8 pt-6">
+          <Button
+            onClick={() => handleSwipe('left')}
+            size="icon"
+            variant="outline"
+            className="w-16 h-16 rounded-full border-2 glass-luxury border-red-300/50 hover:bg-red-50 hover:border-red-400 hover:shadow-soft transition-luxury group"
+          >
+            <X className="w-7 h-7 text-red-500 group-hover:scale-110 transition-all" />
+          </Button>
+          
+          <Button
+            onClick={() => handleSwipe('right')}
+            size="icon"
+            className="w-16 h-16 rounded-full bg-gradient-rose shadow-premium hover:shadow-glow transition-luxury group animate-pulse-glow"
+          >
+            <Heart className="w-7 h-7 text-white group-hover:scale-110 transition-all" />
+          </Button>
+        </div>
       </div>
 
       {/* Detailed Profile Modal */}

@@ -121,143 +121,150 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
     switch (activeTab) {
       case "home":
         return (
-          <div className="flex-1 overflow-y-auto bg-gradient-to-br from-pink-900 via-black to-purple-900 text-white min-h-screen scroll-smooth relative">
-            {/* Gen Z Pink Background Effects */}
-            <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-pink-500/10 animate-pulse"></div>
+          <div className="flex-1 overflow-y-auto bg-gradient-royal text-white min-h-screen scroll-smooth relative">
+            {/* Premium Background Effects */}
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10 animate-shimmer"></div>
             <div className="absolute top-0 left-0 w-full h-full">
-              <div className="absolute top-10 left-10 w-40 h-40 bg-pink-400/20 rounded-full blur-2xl animate-bounce"></div>
-              <div className="absolute top-1/3 right-20 w-32 h-32 bg-purple-400/20 rounded-full blur-xl animate-pulse delay-1000"></div>
-              <div className="absolute bottom-20 left-1/4 w-28 h-28 bg-pink-300/20 rounded-full blur-lg animate-bounce delay-2000"></div>
-              <div className="absolute top-1/2 left-1/2 w-24 h-24 bg-purple-300/20 rounded-full blur-md animate-pulse delay-500"></div>
+              <div className="absolute top-10 left-10 w-40 h-40 bg-primary/20 rounded-full blur-2xl animate-float"></div>
+              <div className="absolute top-1/3 right-20 w-32 h-32 bg-accent/20 rounded-full blur-xl animate-pulse-glow delay-1000"></div>
+              <div className="absolute bottom-20 left-1/4 w-28 h-28 bg-secondary/20 rounded-full blur-lg animate-float delay-2000"></div>
+              <div className="absolute top-1/2 left-1/2 w-24 h-24 bg-primary-glow/20 rounded-full blur-md animate-pulse-glow delay-500"></div>
             </div>
             
-            {/* Enhanced Mobile-First Hero with Better Layout */}
-            <div className="relative min-h-screen bg-gradient-to-br from-pink-900 via-purple-900 to-pink-800 flex flex-col justify-center items-center px-4 overflow-hidden">
-              {/* Gen Z Animated Background Elements */}
-              <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-pink-500/10 animate-pulse"></div>
-              <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-gradient-to-r from-pink-400/20 to-purple-400/20 rounded-full blur-xl animate-bounce"></div>
-              <div className="absolute bottom-1/4 right-1/4 w-24 h-24 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-xl animate-pulse delay-300"></div>
-              <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-to-r from-pink-300/20 to-purple-300/20 rounded-full blur-lg animate-bounce delay-500"></div>
-              {/* Background Card Effect */}
+            {/* Premium Hero Section */}
+            <div className="relative min-h-screen bg-gradient-elegant flex flex-col justify-center items-center px-4 overflow-hidden">
+              {/* Luxury Animated Background Elements */}
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10 animate-shimmer"></div>
+              <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-gradient-primary rounded-full blur-xl animate-float opacity-30"></div>
+              <div className="absolute bottom-1/4 right-1/4 w-24 h-24 bg-gradient-gold rounded-full blur-xl animate-pulse-glow delay-300 opacity-40"></div>
+              <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-rose rounded-full blur-lg animate-float delay-500 opacity-50"></div>
+              
+              {/* Elegant Card Effects */}
               <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute top-1/4 left-1/2 transform -translate-x-1/2 w-80 h-96 bg-gradient-to-b from-gray-800 to-gray-900 rounded-3xl opacity-20 rotate-12"></div>
-                <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 w-72 h-96 bg-gradient-to-b from-gray-700 to-gray-900 rounded-3xl opacity-30 -rotate-6"></div>
+                <div className="absolute top-1/4 left-1/2 transform -translate-x-1/2 w-80 h-96 glass-luxury rounded-3xl opacity-20 rotate-12 shadow-premium"></div>
+                <div className="absolute top-1/3 left-1/2 transform -translate-x-1/2 w-72 h-96 glass-dark-luxury rounded-3xl opacity-30 -rotate-6 shadow-royal"></div>
               </div>
               
               <div className="relative z-10 text-center max-w-sm mx-auto">
-                <div className="mb-8">
-                  <h1 className="text-6xl font-black leading-tight mb-6">
+                <div className="mb-8 animate-elegant-entrance">
+                  <h1 className="text-6xl font-elegant font-black leading-tight mb-6 tracking-tight">
                     Find Your<br/>
-                    <span className="bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent">
-                      Match
+                    <span className="text-gradient-royal animate-shimmer">
+                      Perfect Match
                     </span>
                   </h1>
-                  <p className="text-gray-300 text-lg font-light leading-relaxed">
-                    Quality connections.<br/>Zero endless swiping.
+                  <p className="text-foreground/80 text-lg font-light leading-relaxed font-modern">
+                    Elite connections.<br/>Verified authenticity.
                   </p>
                 </div>
                 
-                <div className="space-y-4">
-                  <button className="w-full bg-white text-black font-bold py-4 px-8 rounded-full text-lg hover:bg-gray-100 transition-all duration-300">
-                    Start Matching
+                <div className="space-y-6 animate-slide-up">
+                  <button className="w-full bg-gradient-primary text-white font-bold py-4 px-8 rounded-full text-lg shadow-premium hover-luxury transition-luxury font-modern">
+                    Start Your Journey
                   </button>
-                  <div className="flex justify-center space-x-8 text-sm text-gray-400">
-                    <div className="text-center">
-                      <div className="font-bold text-white">50K+</div>
-                      <div>Members</div>
+                  <div className="flex justify-center space-x-8 text-sm text-foreground/60">
+                    <div className="text-center animate-bounce-in" style={{ animationDelay: '0.2s' }}>
+                      <div className="font-bold text-gradient-gold text-lg">50K+</div>
+                      <div className="font-modern">Elite Members</div>
                     </div>
-                    <div className="text-center">
-                      <div className="font-bold text-white">15K+</div>
-                      <div>Matches</div>
+                    <div className="text-center animate-bounce-in" style={{ animationDelay: '0.4s' }}>
+                      <div className="font-bold text-gradient-primary text-lg">15K+</div>
+                      <div className="font-modern">Perfect Matches</div>
                     </div>
-                    <div className="text-center">
-                      <div className="font-bold text-white">4.9⭐</div>
-                      <div>Rating</div>
+                    <div className="text-center animate-bounce-in" style={{ animationDelay: '0.6s' }}>
+                      <div className="font-bold text-gradient-rose text-lg">4.9⭐</div>
+                      <div className="font-modern">Premium Rating</div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Why Choose Us - Matching Hero Style */}
-            <div className="relative min-h-screen bg-gradient-to-br from-pink-900 via-purple-900 to-pink-800 flex flex-col justify-center items-center px-4 overflow-hidden">
-              {/* Gen Z Animated Background Elements */}
-              <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-pink-500/10 animate-pulse"></div>
-              <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-gradient-to-r from-pink-400/20 to-purple-400/20 rounded-full blur-xl animate-bounce"></div>
-              <div className="absolute bottom-1/4 right-1/4 w-24 h-24 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-xl animate-pulse delay-300"></div>
-              <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-to-r from-pink-300/20 to-purple-300/20 rounded-full blur-lg animate-bounce delay-500"></div>
+            {/* Why Choose Us - Premium Experience */}
+            <div className="relative min-h-screen bg-gradient-royal flex flex-col justify-center items-center px-4 overflow-hidden">
+              {/* Luxury Background Effects */}
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/15 via-accent/15 to-secondary/15 animate-shimmer"></div>
+              <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-gradient-secondary rounded-full blur-xl animate-float opacity-30"></div>
+              <div className="absolute bottom-1/4 right-1/4 w-24 h-24 bg-gradient-rose rounded-full blur-xl animate-pulse-glow delay-300 opacity-40"></div>
+              <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-gradient-primary rounded-full blur-lg animate-float delay-500 opacity-50"></div>
               
               <div className="relative z-10 text-center max-w-sm mx-auto">
-                <div className="mb-8">
-                  <h1 className="text-6xl font-black leading-tight mb-6">
+                <div className="mb-8 animate-elegant-entrance">
+                  <h1 className="text-6xl font-elegant font-black leading-tight mb-6 tracking-tight">
                     ✨ Why Choose<br/>
-                    <span className="bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent">
-                      Us?
+                    <span className="text-gradient-gold animate-shimmer">
+                      Excellence?
                     </span>
                   </h1>
-                  <p className="text-gray-300 text-lg font-light leading-relaxed">
-                    Experience the future of dating 💕
+                  <p className="text-foreground/80 text-lg font-light leading-relaxed font-modern">
+                    Experience luxury dating 💎
                   </p>
                 </div>
                 
-                <div className="space-y-6">
+                <div className="space-y-6 animate-slide-up">
                   <div className="text-center space-y-4">
-                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
-                      <div className="text-3xl mb-2">🧠</div>
-                      <h3 className="text-lg font-bold text-white mb-1">Smart AI Matching</h3>
-                      <p className="text-gray-300 text-sm">Advanced algorithms find your perfect compatibility</p>
+                    <div className="glass-luxury rounded-2xl p-6 border-gradient shadow-royal hover-elegant">
+                      <div className="text-4xl mb-3 animate-pulse-glow">🧠</div>
+                      <h3 className="text-xl font-bold text-gradient-primary mb-2 font-elegant">Smart AI Matching</h3>
+                      <p className="text-foreground/70 text-sm leading-relaxed font-modern">
+                        Advanced algorithms find your perfect compatibility
+                      </p>
                     </div>
-                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
-                      <div className="text-3xl mb-2">✨</div>
-                      <h3 className="text-lg font-bold text-white mb-1">Quality Over Quantity</h3>
-                      <p className="text-gray-300 text-sm">10 curated matches daily, no endless scrolling</p>
+                    <div className="glass-luxury rounded-2xl p-6 border-gradient shadow-gold hover-elegant">
+                      <div className="text-4xl mb-3 animate-pulse-glow">✨</div>
+                      <h3 className="text-xl font-bold text-gradient-gold mb-2 font-elegant">Elite Quality</h3>
+                      <p className="text-foreground/70 text-sm leading-relaxed font-modern">
+                        Curated matches daily, verified authenticity
+                      </p>
                     </div>
-                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
-                      <div className="text-3xl mb-2">🔐</div>
-                      <h3 className="text-lg font-bold text-white mb-1">Verified Profiles</h3>
-                      <p className="text-gray-300 text-sm">Real people, authentic connections only</p>
+                    <div className="glass-luxury rounded-2xl p-6 border-gradient shadow-premium hover-elegant">
+                      <div className="text-4xl mb-3 animate-pulse-glow">🔐</div>
+                      <h3 className="text-xl font-bold text-gradient-royal mb-2 font-elegant">Verified Excellence</h3>
+                      <p className="text-foreground/70 text-sm leading-relaxed font-modern">
+                        Real people, premium connections only
+                      </p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Your Style - Matching Hero Style */}
-            <div className="relative min-h-screen bg-gradient-to-br from-pink-900 via-purple-900 to-pink-800 flex flex-col justify-center items-center px-4 overflow-hidden">
-              {/* Gen Z Animated Background Elements */}
-              <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-pink-500/10 animate-pulse"></div>
-              <div className="absolute top-1/4 right-1/4 w-28 h-28 bg-gradient-to-r from-pink-400/20 to-purple-400/20 rounded-full blur-xl animate-bounce delay-200"></div>
-              <div className="absolute bottom-1/3 left-1/4 w-20 h-20 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-xl animate-pulse delay-700"></div>
+            {/* Your Style - Premium Selection */}
+            <div className="relative min-h-screen bg-gradient-elegant flex flex-col justify-center items-center px-4 overflow-hidden">
+              {/* Luxury Background Effects */}
+              <div className="absolute inset-0 bg-gradient-to-r from-accent/15 via-primary/15 to-secondary/15 animate-shimmer"></div>
+              <div className="absolute top-1/4 right-1/4 w-28 h-28 bg-gradient-rose rounded-full blur-xl animate-float delay-200 opacity-40"></div>
+              <div className="absolute bottom-1/3 left-1/4 w-20 h-20 bg-gradient-gold rounded-full blur-xl animate-pulse-glow delay-700 opacity-50"></div>
               
               <div className="relative z-10 text-center max-w-sm mx-auto">
-                <div className="mb-8">
-                  <h1 className="text-6xl font-black leading-tight mb-6">
+                <div className="mb-8 animate-elegant-entrance">
+                  <h1 className="text-6xl font-elegant font-black leading-tight mb-6 tracking-tight">
                     Your<br/>
-                    <span className="bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent">
-                      Style
+                    <span className="text-gradient-royal animate-shimmer">
+                      Preference
                     </span>
                   </h1>
-                  <p className="text-gray-300 text-lg font-light leading-relaxed">
-                    What are you looking for?
+                  <p className="text-foreground/80 text-lg font-light leading-relaxed font-modern">
+                    Define your perfect connection
                   </p>
                 </div>
                 
-                <div className="space-y-4">
-                  <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
-                    <p className="text-lg font-bold text-white">💜 Serious Relationship</p>
-                    <p className="text-gray-300 text-sm">Ready for something real</p>
+                <div className="space-y-4 animate-slide-up">
+                  <div className="glass-luxury rounded-2xl p-6 border-gradient shadow-premium hover-elegant">
+                    <p className="text-xl font-bold text-gradient-primary font-elegant mb-2">💜 Serious Relationship</p>
+                    <p className="text-foreground/70 text-sm font-modern">Ready for something meaningful</p>
                   </div>
-                  <div className="bg-white/5 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-                    <p className="text-base text-gray-300">✨ Casual - Keep it light</p>
+                  <div className="glass-dark-luxury rounded-2xl p-4 border border-border/50 hover-luxury transition-elegant">
+                    <p className="text-base text-foreground/80 font-modern">✨ Casual - Keep it elegant</p>
                   </div>
-                  <div className="bg-white/5 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-                    <p className="text-base text-gray-300">🌙 Slow Burn - Take your time</p>
+                  <div className="glass-dark-luxury rounded-2xl p-4 border border-border/50 hover-luxury transition-elegant">
+                    <p className="text-base text-foreground/80 font-modern">🌙 Slow Burn - Take your time</p>
                   </div>
-                  <div className="bg-white/5 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-                    <p className="text-base text-gray-300">🎭 Complex - It's complicated</p>
+                  <div className="glass-dark-luxury rounded-2xl p-4 border border-border/50 hover-luxury transition-elegant">
+                    <p className="text-base text-foreground/80 font-modern">🎭 Complex - It's sophisticated</p>
                   </div>
-                  <div className="bg-white/5 backdrop-blur-md rounded-2xl p-3 border border-white/10">
-                    <p className="text-base text-gray-300">🎯 Selective - Quality first</p>
+                  <div className="glass-dark-luxury rounded-2xl p-4 border border-border/50 hover-luxury transition-elegant">
+                    <p className="text-base text-foreground/80 font-modern">🎯 Selective - Premium quality</p>
                   </div>
                 </div>
               </div>
@@ -337,22 +344,27 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b">
-        <div className="flex items-center justify-between px-4 py-3 backdrop-blur-xl bg-white/5 border-b border-white/10 shadow-lg">
-          <h1 className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+      {/* Premium Header */}
+      <div className="sticky top-0 z-40 glass-luxury border-b border-border/30 shadow-elegant">
+        <div className="flex items-center justify-between px-6 py-4 backdrop-blur-xl">
+          <h1 className="text-2xl font-elegant font-bold text-gradient-royal tracking-tight">
             DatingSigma
           </h1>
-          <div className="flex space-x-2">
+          <div className="flex space-x-3">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => onNavigate("chat")}
+              className="hover:bg-primary/10 transition-luxury rounded-full shadow-soft"
             >
-              <MessageCircle className="w-6 h-6" />
+              <MessageCircle className="w-6 h-6 text-primary" />
             </Button>
-            <Button variant="ghost" size="icon">
-              <Heart className="w-6 h-6" />
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="hover:bg-accent/10 transition-luxury rounded-full shadow-soft"
+            >
+              <Heart className="w-6 h-6 text-accent" />
             </Button>
           </div>
         </div>
@@ -361,47 +373,55 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
       {/* Main Content */}
       {renderContent()}
 
-      {/* Bottom Navigation */}
-      <div className="sticky bottom-0 bg-white/20 backdrop-blur-md border-t border-white/30">
-        <div className="flex items-center justify-around py-4 relative" style={{
-          clipPath: 'polygon(5% 0%, 95% 0%, 100% 15%, 100% 85%, 95% 100%, 5% 100%, 0% 85%, 0% 15%)'
-        }}>
+      {/* Premium Bottom Navigation */}
+      <div className="sticky bottom-0 glass-luxury border-t border-border/30 shadow-premium">
+        <div className="flex items-center justify-around py-6 px-4">
           {[
-            { id: "home", icon: Home, label: "Home", color: "text-pink-600" },
-            { id: "swipe", icon: Heart, label: "Swipe", color: "text-red-600" },
+            { id: "home", icon: Home, label: "Home", gradient: "from-primary to-primary-glow" },
+            { id: "swipe", icon: Heart, label: "Swipe", gradient: "from-accent to-accent-glow" },
             {
               id: "pairing",
               icon: Heart,
               label: "Pairing",
-              color: "text-yellow-500",
+              gradient: "from-secondary to-secondary-glow",
             },
             {
               id: "blinddate",
               icon: Coffee,
               label: "Blind Date",
-              color: "text-orange-600",
+              gradient: "from-orange-500 to-orange-400",
             },
             {
               id: "profile",
               icon: User,
               label: "Profile",
-              color: "text-purple-600",
+              gradient: "from-primary-variant to-primary",
             },
           ].map((tab) => (
             <Button
               key={tab.id}
               size="sm"
-              className={`flex-col space-y-1 h-auto py-3 px-4 relative bg-transparent border-0 outline-none focus:outline-none hover:outline-none active:outline-none transition-all duration-300 ${tab.color} ${
+              className={`flex-col space-y-2 h-auto py-3 px-4 relative bg-transparent border-0 transition-luxury group ${
                 activeTab === tab.id 
-                  ? "scale-110 -translate-y-2 drop-shadow-2xl" 
-                  : "hover:scale-105 hover:-translate-y-1 hover:drop-shadow-lg"
+                  ? "scale-110 -translate-y-3 shadow-glow" 
+                  : "hover:scale-105 hover:-translate-y-1 hover:shadow-soft"
               }`}
               onClick={() => setActiveTab(tab.id as any)}
             >
-              <tab.icon className="w-6 h-6" fill="currentColor" />
-              <span className="text-xs">{tab.label}</span>
+              <div className={`p-2 rounded-full bg-gradient-to-r ${tab.gradient} ${
+                activeTab === tab.id ? 'shadow-premium animate-pulse-glow' : 'group-hover:shadow-royal'
+              }`}>
+                <tab.icon className="w-5 h-5 text-white" fill="currentColor" />
+              </div>
+              <span className={`text-xs font-modern font-medium ${
+                activeTab === tab.id 
+                  ? `bg-gradient-to-r ${tab.gradient} bg-clip-text text-transparent font-semibold` 
+                  : 'text-foreground/70 group-hover:text-foreground'
+              }`}>
+                {tab.label}
+              </span>
               {activeTab === tab.id && (
-                <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-current rounded-full"></div>
+                <div className={`absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gradient-to-r ${tab.gradient} rounded-full animate-pulse-glow`}></div>
               )}
             </Button>
           ))}
