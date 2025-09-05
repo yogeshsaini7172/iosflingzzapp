@@ -26,7 +26,6 @@ import { usePairing } from "@/hooks/usePairing";
 import UserSelector from "@/components/debug/UserSelector";
 import SwipeCards from "@/components/swipe/SwipeCards";
 import PairingMatches from "@/components/pairing/PairingMatches";
-import GhostBenchBar from "@/components/ui/ghost-bench-bar";
 import { useToast } from "@/hooks/use-toast";
 import EnhancedProfileDisplay from "@/components/profile/EnhancedProfileDisplay";
 
@@ -398,12 +397,49 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
       </div>
 
       {/* Bottom Navigation */}
-      <GhostBenchBar 
-        onChatSelected={(chatId) => {
-          console.log('Chat selected:', chatId);
-          onNavigate('chat');
-        }}
-      />
+      <div className="sticky bottom-0 z-20 backdrop-blur-xl bg-black/80 border-t border-white/10 safe-area-bottom">
+        <div className="flex items-center justify-around px-4 py-3">
+          <button
+            onClick={() => setActiveTab("home")}
+            className={`flex flex-col items-center space-y-1 p-2 rounded-xl transition-colors ${
+              activeTab === "home" ? "text-pink-400" : "text-white/60"
+            }`}
+          >
+            <Home className="w-6 h-6" />
+            <span className="text-xs">Home</span>
+          </button>
+          
+          <button
+            onClick={() => setActiveTab("pairing")}
+            className={`flex flex-col items-center space-y-1 p-2 rounded-xl transition-colors ${
+              activeTab === "pairing" ? "text-pink-400" : "text-white/60"
+            }`}
+          >
+            <Zap className="w-6 h-6" />
+            <span className="text-xs">Pairing</span>
+          </button>
+          
+          <button
+            onClick={() => setActiveTab("blinddate")}
+            className={`flex flex-col items-center space-y-1 p-2 rounded-xl transition-colors ${
+              activeTab === "blinddate" ? "text-pink-400" : "text-white/60"
+            }`}
+          >
+            <Coffee className="w-6 h-6" />
+            <span className="text-xs">Blind Date</span>
+          </button>
+          
+          <button
+            onClick={() => setActiveTab("profile")}
+            className={`flex flex-col items-center space-y-1 p-2 rounded-xl transition-colors ${
+              activeTab === "profile" ? "text-pink-400" : "text-white/60"
+            }`}
+          >
+            <User className="w-6 h-6" />
+            <span className="text-xs">Profile</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
