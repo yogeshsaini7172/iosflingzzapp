@@ -26,6 +26,7 @@ import { usePairing } from "@/hooks/usePairing";
 import UserSelector from "@/components/debug/UserSelector";
 import SwipeCards from "@/components/swipe/SwipeCards";
 import PairingMatches from "@/components/pairing/PairingMatches";
+import GhostBenchBar from "@/components/ui/ghost-bench-bar";
 import { useToast } from "@/hooks/use-toast";
 import EnhancedProfileDisplay from "@/components/profile/EnhancedProfileDisplay";
 
@@ -88,6 +89,10 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
     // TODO: Save swipe action to Supabase if required
   };
 
+  // Navigation to chat
+  const handleNavigateToChat = () => {
+    onNavigate('chat');
+  };
 
   // Subscription Plans
   const plans = [
@@ -252,7 +257,10 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                         <Heart className="w-3 h-3" />
                         <span className="text-xs">{post.likes}</span>
                       </button>
-                      <button className="text-white/60 hover:text-blue-400 transition-colors">
+                      <button 
+                        className="text-white/60 hover:text-blue-400 transition-colors"
+                        onClick={handleNavigateToChat}
+                      >
                         <MessageCircle className="w-3 h-3" />
                       </button>
                       <button className="text-white/60 hover:text-green-400 transition-colors">
@@ -289,12 +297,11 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                   <div className="absolute top-1/2 right-10 w-4 h-16 bg-blue-400/20 rotate-12 animate-bounce delay-800"></div>
                 </div>
 
-                  <div className="max-w-lg mx-auto space-y-6 relative z-10">
-                    {/* Enhanced Swipe Interface */}
-                    <SwipeCards />
+                <div className="max-w-lg mx-auto space-y-6 relative z-10">
+                  {/* Enhanced Swipe Interface */}
+                  <SwipeCards />
 
-
-                    {/* Quick Stats */}
+                  {/* Quick Stats */}
                   <div className="grid grid-cols-3 gap-4 mt-8">
                     <div className="text-center bg-white/10 rounded-2xl p-4 backdrop-blur-sm">
                       <div className="text-2xl font-bold text-white">47</div>
@@ -324,6 +331,14 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                 <p className="text-white/70">Smart matches based on compatibility</p>
               </div>
               <PairingMatches />
+              <div className="mt-6 text-center">
+                <Button 
+                  onClick={handleNavigateToChat}
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                >
+                  View All Chats
+                </Button>
+              </div>
             </div>
           </div>
         );
@@ -397,49 +412,12 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="sticky bottom-0 z-20 backdrop-blur-xl bg-black/80 border-t border-white/10 safe-area-bottom">
-        <div className="flex items-center justify-around px-4 py-3">
-          <button
-            onClick={() => setActiveTab("home")}
-            className={`flex flex-col items-center space-y-1 p-2 rounded-xl transition-colors ${
-              activeTab === "home" ? "text-pink-400" : "text-white/60"
-            }`}
-          >
-            <Home className="w-6 h-6" />
-            <span className="text-xs">Home</span>
-          </button>
-          
-          <button
-            onClick={() => setActiveTab("pairing")}
-            className={`flex flex-col items-center space-y-1 p-2 rounded-xl transition-colors ${
-              activeTab === "pairing" ? "text-pink-400" : "text-white/60"
-            }`}
-          >
-            <Zap className="w-6 h-6" />
-            <span className="text-xs">Pairing</span>
-          </button>
-          
-          <button
-            onClick={() => setActiveTab("blinddate")}
-            className={`flex flex-col items-center space-y-1 p-2 rounded-xl transition-colors ${
-              activeTab === "blinddate" ? "text-pink-400" : "text-white/60"
-            }`}
-          >
-            <Coffee className="w-6 h-6" />
-            <span className="text-xs">Blind Date</span>
-          </button>
-          
-          <button
-            onClick={() => setActiveTab("profile")}
-            className={`flex flex-col items-center space-y-1 p-2 rounded-xl transition-colors ${
-              activeTab === "profile" ? "text-pink-400" : "text-white/60"
-            }`}
-          >
-            <User className="w-6 h-6" />
-            <span className="text-xs">Profile</span>
-          </button>
-        </div>
-      </div>
+      <GhostBenchBar 
+        onChatSelected={(chatId) => {
+          console.log('Chat selected:', chatId);
+          onNavigate('chat');
+        }}
+      />
     </div>
   );
 };

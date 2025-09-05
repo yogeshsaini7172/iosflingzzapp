@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
 
 interface IDVerificationFlowProps {
   onBack: () => void;
@@ -32,7 +31,6 @@ const IDVerificationFlow = ({ onBack, onComplete, onSkip }: IDVerificationFlowPr
   const [govtIdFile, setGovtIdFile] = useState<File | null>(null);
   const [verificationStatus, setVerificationStatus] = useState<'pending' | 'approved' | 'rejected'>('pending');
   const { toast } = useToast();
-  const { user } = useAuth();
 
   const totalSteps = 3;
 
@@ -40,10 +38,11 @@ const IDVerificationFlow = ({ onBack, onComplete, onSkip }: IDVerificationFlowPr
     try {
       setIsLoading(true);
       
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No authenticated user");
 
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.uid}/${type}_id_${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}/${type}_id_${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('verification-documents')
@@ -63,7 +62,7 @@ const IDVerificationFlow = ({ onBack, onComplete, onSkip }: IDVerificationFlowPr
           [updateField]: publicUrl,
           verification_status: 'pending'
         })
-        .eq('user_id', user.uid);
+        .eq('user_id', user.id);
 
       if (updateError) throw updateError;
 

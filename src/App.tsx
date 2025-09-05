@@ -9,10 +9,9 @@ import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import DatingAppContainer from "./components/DatingAppContainer";
 import NotFound from "./pages/NotFound";
-import SimpleAuthScreen from "./components/auth/SimpleAuthScreen";
+import AuthScreen from "./components/auth/AuthScreen";
 import ProfileSetupFlow from "./components/profile/ProfileSetupFlow";
 import GenZBackground from "./components/ui/genZ-background";
-import AuthCallback from "./pages/AuthCallback";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,7 +23,7 @@ const queryClient = new QueryClient({
 });
 
 function AppContent() {
-  const { user, isLoading } = useAuth();
+  const { user, session, isLoading } = useAuth();
   const [currentView, setCurrentView] = useState<'auth' | 'setup' | 'app'>('auth');
   const [hasProfile, setHasProfile] = useState(false);
   const [profileCheckLoading, setProfileCheckLoading] = useState(false);
@@ -42,7 +41,7 @@ function AppContent() {
         const { data, error } = await supabase
           .from('profiles')
           .select('id, first_name, is_active')
-          .eq('user_id', user.uid)
+          .eq('user_id', user.id)
           .maybeSingle();
         
         if (error) {
@@ -56,7 +55,7 @@ function AppContent() {
           setHasProfile(true);
           setCurrentView('app');
           // Set user ID in localStorage for demo compatibility
-          localStorage.setItem('demoUserId', user.uid);
+          localStorage.setItem('demoUserId', user.id);
         } else {
           setCurrentView('setup');
           setHasProfile(false);
@@ -96,21 +95,16 @@ function AppContent() {
     );
   }
 
-  // Not authenticated - show auth routes (Auth and OAuth callback)
+  // Not authenticated - show auth screen
   if (!user && currentView === 'auth') {
     return (
-      <BrowserRouter>
-        <TooltipProvider>
-          <GenZBackground variant="auth">
-            <Toaster />
-            <Sonner />
-            <Routes>
-              <Route path="/auth/callback" element={<AuthCallback />} />
-              <Route path="*" element={<SimpleAuthScreen />} />
-            </Routes>
-          </GenZBackground>
-        </TooltipProvider>
-      </BrowserRouter>
+      <TooltipProvider>
+        <GenZBackground variant="auth">
+          <Toaster />
+          <Sonner />
+          <AuthScreen />
+        </GenZBackground>
+      </TooltipProvider>
     );
   }
 

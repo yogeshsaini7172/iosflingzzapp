@@ -38,7 +38,7 @@ export function useProfilesFeed() {
         const { data, error } = await supabase
           .from("profiles")
           .select("*")
-          .neq("user_id", user.uid)
+          .neq("user_id", user.id)
           .eq("is_active", true)
           .limit(20);
 

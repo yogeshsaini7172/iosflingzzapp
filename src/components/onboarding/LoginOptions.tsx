@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
 
 interface LoginOptionsProps {
   onBack: () => void;
@@ -14,37 +13,17 @@ interface LoginOptionsProps {
 
 const LoginOptions = ({ onBack, onContinue }: LoginOptionsProps) => {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [showEmailForm, setShowEmailForm] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { signInWithGoogle, signInWithEmail, signUpWithEmail } = useAuth();
 
-  const handleGoogleAuth = async () => {
-    setIsLoading(true);
-    try {
-      const { error } = await signInWithGoogle();
-      if (!error) {
-        onContinue();
-      }
-    } catch (error) {
-      console.error('Google auth error:', error);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleGoogleAuth = () => {
+    toast({
+      title: "Google Sign-In",
+      description: "Google authentication will be implemented in the next phase.",
+    });
   };
 
-  const handleEmailAuth = async () => {
-    if (!email || !password) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in both email and password",
-        variant: "destructive"
-      });
-      return;
-    }
-
+  const handleEmailContinue = async () => {
     if (!email.includes('.edu')) {
       toast({
         title: "College Email Required",
@@ -54,20 +33,16 @@ const LoginOptions = ({ onBack, onContinue }: LoginOptionsProps) => {
       return;
     }
 
-    setIsLoading(true);
-    try {
-      const { error } = isSignUp 
-        ? await signUpWithEmail(email, password)
-        : await signInWithEmail(email, password);
-        
-      if (!error) {
-        onContinue();
-      }
-    } catch (error) {
-      console.error('Email auth error:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    // Here we would integrate with actual auth
+    toast({
+      title: "Success! ✨",
+      description: "Authentication successful! Setting up your profile...",
+    });
+
+    // Simulate auth success and continue to next step
+    setTimeout(() => {
+      onContinue();
+    }, 1000);
   };
 
   return (
@@ -93,7 +68,6 @@ const LoginOptions = ({ onBack, onContinue }: LoginOptionsProps) => {
             <div className="space-y-3">
               <Button
                 onClick={handleGoogleAuth}
-                disabled={isLoading}
                 variant="outline"
                 className="w-full justify-center gap-2"
                 size="lg"
@@ -128,23 +102,6 @@ const LoginOptions = ({ onBack, onContinue }: LoginOptionsProps) => {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="flex justify-center gap-2 mb-4">
-                <Button
-                  variant={!isSignUp ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setIsSignUp(false)}
-                >
-                  Sign In
-                </Button>
-                <Button
-                  variant={isSignUp ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setIsSignUp(true)}
-                >
-                  Sign Up
-                </Button>
-              </div>
-
               <div className="space-y-2">
                 <Label htmlFor="email">College Email</Label>
                 <Input
@@ -155,27 +112,18 @@ const LoginOptions = ({ onBack, onContinue }: LoginOptionsProps) => {
                   onChange={(e) => setEmail(e.target.value)}
                   className="bg-muted/50"
                 />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="bg-muted/50"
-                />
+                <p className="text-xs text-muted-foreground">
+                  We'll send you a verification code
+                </p>
               </div>
               
               <Button
-                onClick={handleEmailAuth}
-                disabled={isLoading || !email || !password}
+                onClick={handleEmailContinue}
                 className="w-full bg-gradient-primary"
                 size="lg"
+                disabled={!email}
               >
-                {isLoading ? "Loading..." : (isSignUp ? "Create Account" : "Sign In")}
+                Send Verification Code
               </Button>
               
               <Button

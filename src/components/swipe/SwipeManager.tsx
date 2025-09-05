@@ -42,7 +42,7 @@ const SwipeManager = ({ onUpgrade }: SwipeManagerProps) => {
       const { data, error } = await supabase
         .from('profiles')
         .select('swipes_left, subscription_tier')
-        .eq('user_id', user.uid)
+        .eq('user_id', user.id)
         .single();
 
       if (error) throw error;
@@ -62,14 +62,14 @@ const SwipeManager = ({ onUpgrade }: SwipeManagerProps) => {
       const { data: preferences } = await supabase
         .from('partner_preferences')
         .select('*')
-        .eq('user_id', user.uid)
+        .eq('user_id', user.id)
         .single();
 
       // Get candidates based on preferences
       let query = supabase
         .from('profiles')
         .select('*')
-        .neq('user_id', user.uid)  // Exclude self
+        .neq('user_id', user.id)  // Exclude self
         .eq('is_profile_public', true)  // Only public profiles
         .limit(20);
 
@@ -99,7 +99,7 @@ const SwipeManager = ({ onUpgrade }: SwipeManagerProps) => {
       const { data: swipedUsers } = await supabase
         .from('swipes')
         .select('candidate_id')
-        .eq('user_id', user.uid);
+        .eq('user_id', user.id);
 
       const swipedIds = swipedUsers?.map(s => s.candidate_id) || [];
       const filteredCandidates = candidatesData?.filter(
@@ -145,7 +145,7 @@ const SwipeManager = ({ onUpgrade }: SwipeManagerProps) => {
       const { error: swipeError } = await supabase
         .from('swipes')
         .insert({
-          user_id: user.uid,
+          user_id: user.id,
           candidate_id: currentCandidate.user_id,
           direction: direction
         });
@@ -157,7 +157,7 @@ const SwipeManager = ({ onUpgrade }: SwipeManagerProps) => {
         const { error: updateError } = await supabase
           .from('profiles')
           .update({ swipes_left: swipesLeft - 1 })
-          .eq('user_id', user.uid);
+          .eq('user_id', user.id);
 
         if (updateError) throw updateError;
         setSwipesLeft(prev => prev - 1);
@@ -169,7 +169,7 @@ const SwipeManager = ({ onUpgrade }: SwipeManagerProps) => {
           .from('swipes')
           .select('*')
           .eq('user_id', currentCandidate.user_id)
-          .eq('candidate_id', user.uid)
+          .eq('candidate_id', user.id)
           .eq('direction', 'right')
           .single();
 
@@ -178,7 +178,7 @@ const SwipeManager = ({ onUpgrade }: SwipeManagerProps) => {
           const { error: matchError } = await supabase
             .from('matches')
             .insert({
-              liker_id: user.uid,
+              liker_id: user.id,
               liked_id: currentCandidate.user_id,
               status: 'matched' as const
             });

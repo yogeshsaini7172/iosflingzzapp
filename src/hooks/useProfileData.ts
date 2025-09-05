@@ -75,7 +75,7 @@ export const useProfileData = () => {
       return;
     }
     
-    const userId = user.uid;
+    const userId = user.id;
 
     try {
       setIsLoading(true);
@@ -143,7 +143,7 @@ export const useProfileData = () => {
 
   const updateProfile = async (updates: Partial<Profile>) => {
     if (!user) return;
-    const userId = user.uid;
+    const userId = user.id;
     
     try {
       // Transform array fields back to database format for backward compatibility
@@ -185,7 +185,7 @@ export const useProfileData = () => {
 
   const updatePreferences = async (updates: Partial<PartnerPreferences>) => {
     if (!user) return;
-    const userId = user.uid;
+    const userId = user.id;
     
     try {
       const { error } = await supabase

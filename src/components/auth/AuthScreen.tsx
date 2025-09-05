@@ -26,6 +26,12 @@ const AuthScreen = () => {
   const {
     signInWithEmail,
     signUpWithEmail,
+    signUpWithEmailOTP,
+    verifyEmailOTP,
+    resendEmailOTP,
+    signUpWithPhoneOTP,
+    verifyPhoneOTP,
+    resendPhoneOTP,
     signInWithGoogle
   } = useAuth();
 
@@ -62,6 +68,44 @@ const AuthScreen = () => {
           }
           await signUpWithEmail(formData.email, formData.password);
           break;
+
+        case 'email-otp':
+          if (!formData.email) {
+            toast.error('Please enter your email');
+            return;
+          }
+          const { error: emailOtpError } = await signUpWithEmailOTP(formData.email);
+          if (!emailOtpError) {
+            setCurrentStep('verify-email-otp');
+          }
+          break;
+
+        case 'phone-otp':
+          if (!formData.phone) {
+            toast.error('Please enter your phone number');
+            return;
+          }
+          const { error: phoneOtpError } = await signUpWithPhoneOTP(formData.phone);
+          if (!phoneOtpError) {
+            setCurrentStep('verify-phone-otp');
+          }
+          break;
+
+        case 'verify-email-otp':
+          if (!formData.otp) {
+            toast.error('Please enter the OTP code');
+            return;
+          }
+          await verifyEmailOTP(formData.email, formData.otp);
+          break;
+
+        case 'verify-phone-otp':
+          if (!formData.otp) {
+            toast.error('Please enter the OTP code');
+            return;
+          }
+          await verifyPhoneOTP(formData.phone, formData.otp);
+          break;
       }
     } catch (error: any) {
       toast.error(error.message || 'An error occurred');
@@ -82,9 +126,15 @@ const AuthScreen = () => {
   };
 
   const handleResendOTP = async () => {
-    // Not available with Firebase auth - redirect to main form
-    toast.error('Please use the main authentication form');
-    resetForm();
+    try {
+      if (currentStep === 'verify-email-otp') {
+        await resendEmailOTP(formData.email);
+      } else if (currentStep === 'verify-phone-otp') {
+        await resendPhoneOTP(formData.phone);
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to resend OTP');
+    }
   };
 
   const resetForm = () => {
