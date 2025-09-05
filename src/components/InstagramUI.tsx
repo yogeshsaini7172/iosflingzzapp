@@ -89,10 +89,6 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
     // TODO: Save swipe action to Supabase if required
   };
 
-  // Navigation to chat
-  const handleNavigateToChat = () => {
-    onNavigate('chat');
-  };
 
   // Subscription Plans
   const plans = [
@@ -257,10 +253,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                         <Heart className="w-3 h-3" />
                         <span className="text-xs">{post.likes}</span>
                       </button>
-                      <button 
-                        className="text-white/60 hover:text-blue-400 transition-colors"
-                        onClick={handleNavigateToChat}
-                      >
+                      <button className="text-white/60 hover:text-blue-400 transition-colors">
                         <MessageCircle className="w-3 h-3" />
                       </button>
                       <button className="text-white/60 hover:text-green-400 transition-colors">
@@ -301,14 +294,6 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                     {/* Enhanced Swipe Interface */}
                     <SwipeCards />
 
-                    <div className="flex justify-end">
-                      <Button
-                        onClick={handleNavigateToChat}
-                        className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white mt-2"
-                      >
-                        Open Chat
-                      </Button>
-                    </div>
 
                     {/* Quick Stats */}
                   <div className="grid grid-cols-3 gap-4 mt-8">
@@ -340,14 +325,6 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                 <p className="text-white/70">Smart matches based on compatibility</p>
               </div>
               <PairingMatches />
-              <div className="mt-6 text-center">
-                <Button 
-                  onClick={handleNavigateToChat}
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
-                >
-                  View All Chats
-                </Button>
-              </div>
             </div>
           </div>
         );
