@@ -1,13 +1,13 @@
 project_id = "cchvsqeqiavhanurnbeo"
 
 [functions.pairing-matches]
-verify_jwt = true
+verify_jwt = false
 
 [functions.blind-date]
-verify_jwt = true
+verify_jwt = false
 
 [functions.compatibility-scoring]
-verify_jwt = true
+verify_jwt = false
 
 [functions.swipe-action]
 verify_jwt = true
@@ -22,13 +22,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.id-verification]
-verify_jwt = true
+verify_jwt = false
 
 [functions.qcs-scoring]
-verify_jwt = true
-
-[functions.enhanced-swipe-action]
-verify_jwt = true
-
-[functions.swipe-feed]
-verify_jwt = true
+verify_jwt = false
