@@ -23,7 +23,7 @@ const queryClient = new QueryClient({
 });
 
 function AppContent() {
-  const { user, session, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
   const [currentView, setCurrentView] = useState<'auth' | 'setup' | 'app'>('auth');
   const [hasProfile, setHasProfile] = useState(false);
   const [profileCheckLoading, setProfileCheckLoading] = useState(false);
@@ -41,7 +41,7 @@ function AppContent() {
         const { data, error } = await supabase
           .from('profiles')
           .select('id, first_name, is_active')
-          .eq('user_id', user.id)
+          .eq('user_id', user.uid)
           .maybeSingle();
         
         if (error) {
@@ -55,7 +55,7 @@ function AppContent() {
           setHasProfile(true);
           setCurrentView('app');
           // Set user ID in localStorage for demo compatibility
-          localStorage.setItem('demoUserId', user.id);
+          localStorage.setItem('demoUserId', user.uid);
         } else {
           setCurrentView('setup');
           setHasProfile(false);

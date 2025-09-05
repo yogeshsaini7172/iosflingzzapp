@@ -513,6 +513,9 @@ const AuthScreen = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* reCAPTCHA container for Firebase phone auth - invisible */}
+        <div id="recaptcha-container" className="hidden"></div>
       </div>
     </div>
   );
