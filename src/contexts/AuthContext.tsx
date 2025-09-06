@@ -1,20 +1,18 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { User, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, signOut as firebaseSignOut, sendEmailVerification, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
+import { auth, googleProvider, createRecaptchaVerifier } from '@/integrations/firebase/config';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
   isLoading: boolean;
-  // Email OTP (kept for backward-compat)
-  signUpWithEmail: (email: string) => Promise<{ error?: any }>;
-  verifyOTP: (email: string, otp: string) => Promise<{ error?: any }>;
-  resendOTP: (email: string) => Promise<{ error?: any }>;
+  // Email/Password Auth
+  signUpWithEmail: (email: string, password: string) => Promise<{ error?: any }>;
+  signInWithEmail: (email: string, password: string) => Promise<{ error?: any }>;
   // Phone OTP
-  signInWithPhone: (phone: string) => Promise<{ error?: any }>;
-  verifyPhoneOTP: (phone: string, otp: string) => Promise<{ error?: any }>;
-  resendPhoneOTP: (phone: string) => Promise<{ error?: any }>;
+  signInWithPhone: (phone: string) => Promise<{ error?: any; confirmationResult?: ConfirmationResult }>;
+  verifyPhoneOTP: (confirmationResult: ConfirmationResult, otp: string) => Promise<{ error?: any }>;
   // OAuth
   signInWithGoogle: () => Promise<{ error?: any }>;
   signOut: () => Promise<{ error?: any }>;
@@ -36,232 +34,144 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
 
   useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
-        setSession(session);
-        setUser(session?.user ?? null);
-        setIsLoading(false);
-
-        // Handle successful sign in
-        if (event === 'SIGNED_IN' && session?.user) {
-          toast.success('Successfully signed in!');
-        }
-
-        // Handle sign out
-        if (event === 'SIGNED_OUT') {
-          toast.success('Successfully signed out');
-        }
-      }
-    );
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    // Set up Firebase auth state listener
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log('Firebase auth state changed:', firebaseUser?.email);
+      setUser(firebaseUser);
       setIsLoading(false);
+
+      // Sync with Supabase when user signs in
+      if (firebaseUser) {
+        // Create or update profile in Supabase
+        await syncUserProfile(firebaseUser);
+        toast.success('Successfully signed in!');
+      } else {
+        toast.success('Successfully signed out');
+      }
     });
 
-    return () => subscription.unsubscribe();
+    return () => unsubscribe();
   }, []);
 
-  const signUpWithEmail = async (email: string) => {
+  const syncUserProfile = async (firebaseUser: User) => {
     try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          shouldCreateUser: true,
-          // Remove emailRedirectTo to force OTP codes instead of magic links
-        },
-      });
+      // Check if profile exists
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', firebaseUser.uid)
+        .maybeSingle();
 
-      if (error) {
-        console.error('Sign up error:', error);
-        toast.error(error.message);
-        return { error };
+      if (!existingProfile) {
+        // Create new profile
+        const { error } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: firebaseUser.uid,
+            first_name: firebaseUser.displayName?.split(' ')[0] || '',
+            last_name: firebaseUser.displayName?.split(' ').slice(1).join(' ') || '',
+            email: firebaseUser.email || '',
+            date_of_birth: new Date().toISOString().split('T')[0],
+            gender: 'prefer_not_to_say',
+            university: '',
+            verification_status: 'pending',
+            is_active: true,
+            last_active: new Date().toISOString()
+          });
+
+        if (error) {
+          console.error('Error creating profile:', error);
+        }
       }
+    } catch (error) {
+      console.error('Error syncing user profile:', error);
+    }
+  };
 
-      toast.success('Check your email for the 6-digit OTP code!');
+  const signUpWithEmail = async (email: string, password: string) => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await sendEmailVerification(userCredential.user);
+      toast.success('Account created! Please check your email for verification.');
       return {};
     } catch (error: any) {
       console.error('Sign up error:', error);
-      toast.error('An unexpected error occurred');
+      toast.error(error.message);
       return { error };
     }
   };
 
-  const verifyOTP = async (email: string, otp: string) => {
+  const signInWithEmail = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.verifyOtp({
-        email,
-        token: otp,
-        type: 'email',
-      });
+      await signInWithEmailAndPassword(auth, email, password);
+      return {};
+    } catch (error: any) {
+      console.error('Sign in error:', error);
+      toast.error(error.message);
+      return { error };
+    }
+  };
 
-      if (error) {
-        console.error('OTP verification error:', error);
-        toast.error(error.message);
-        return { error };
-      }
+  const signInWithPhone = async (phone: string) => {
+    try {
+      // Create reCAPTCHA verifier
+      const recaptchaVerifier = createRecaptchaVerifier('recaptcha-container');
+      const confirmationResult = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
+      setConfirmationResult(confirmationResult);
+      toast.success('OTP sent to your phone!');
+      return { confirmationResult };
+    } catch (error: any) {
+      console.error('Phone sign-in error:', error);
+      toast.error(error.message);
+      return { error };
+    }
+  };
 
-      if (data.user) {
-        toast.success('Email verified successfully!');
-        return {};
-      }
-
-      return { error: { message: 'Verification failed' } };
+  const verifyPhoneOTP = async (confirmationResult: ConfirmationResult, otp: string) => {
+    try {
+      await confirmationResult.confirm(otp);
+      toast.success('Phone verified successfully!');
+      return {};
     } catch (error: any) {
       console.error('OTP verification error:', error);
-      toast.error('An unexpected error occurred');
+      toast.error(error.message);
       return { error };
     }
   };
 
   const signInWithGoogle = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth?verified=true`,
-        },
-      });
-
-      if (error) {
-        console.error('Google sign in error:', error);
-        toast.error(error.message);
-        return { error };
-      }
-
+      await signInWithPopup(auth, googleProvider);
       return {};
     } catch (error: any) {
       console.error('Google sign in error:', error);
-      toast.error('An unexpected error occurred');
-      return { error };
-    }
-  };
-
-  const resendOTP = async (email: string) => {
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          shouldCreateUser: true,
-        },
-      });
-
-      if (error) {
-        console.error('Resend OTP error:', error);
-        toast.error(error.message);
-        return { error };
-      }
-
-      toast.success('OTP code resent! Check your email.');
-      return {};
-    } catch (error: any) {
-      console.error('Resend OTP error:', error);
-      toast.error('An unexpected error occurred');
-      return { error };
-    }
-  };
-
-  // Phone-based OTP
-  const signInWithPhone = async (phone: string) => {
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        phone,
-        options: { shouldCreateUser: true },
-      });
-      if (error) {
-        console.error('Phone sign-in error:', error);
-        toast.error(error.message);
-        return { error };
-      }
-      toast.success('OTP sent via SMS!');
-      return {};
-    } catch (error: any) {
-      console.error('Phone sign-in error:', error);
-      toast.error('An unexpected error occurred');
-      return { error };
-    }
-  };
-
-  const verifyPhoneOTP = async (phone: string, otp: string) => {
-    try {
-      const { data, error } = await supabase.auth.verifyOtp({
-        phone,
-        token: otp,
-        type: 'sms',
-      });
-      if (error) {
-        console.error('SMS verification error:', error);
-        toast.error(error.message);
-        return { error };
-      }
-      if (data.user) {
-        toast.success('Phone verified successfully!');
-        return {};
-      }
-      return { error: { message: 'Verification failed' } };
-    } catch (error: any) {
-      console.error('SMS verification error:', error);
-      toast.error('An unexpected error occurred');
-      return { error };
-    }
-  };
-
-  const resendPhoneOTP = async (phone: string) => {
-    try {
-      const { error } = await supabase.auth.signInWithOtp({ phone, options: { shouldCreateUser: true } });
-      if (error) {
-        console.error('Resend SMS OTP error:', error);
-        toast.error(error.message);
-        return { error };
-      }
-      toast.success('OTP resent via SMS!');
-      return {};
-    } catch (error: any) {
-      console.error('Resend SMS OTP error:', error);
-      toast.error('An unexpected error occurred');
+      toast.error(error.message);
       return { error };
     }
   };
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        console.error('Sign out error:', error);
-        toast.error(error.message);
-        return { error };
-      }
-
+      await firebaseSignOut(auth);
       return {};
     } catch (error: any) {
       console.error('Sign out error:', error);
-      toast.error('An unexpected error occurred');
+      toast.error(error.message);
       return { error };
     }
   };
 
   const value = {
     user,
-    session,
     isLoading,
-    // email OTP (legacy)
     signUpWithEmail,
-    verifyOTP,
-    resendOTP,
-    // phone OTP (primary)
+    signInWithEmail,
     signInWithPhone,
     verifyPhoneOTP,
-    resendPhoneOTP,
-    // oauth
     signInWithGoogle,
     signOut,
   };

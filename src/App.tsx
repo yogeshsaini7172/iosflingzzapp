@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-// REMOVED AUTH: import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 // REMOVED AUTH: import LoginPage from "./pages/LoginPage";
 import DatingAppContainer from "./components/DatingAppContainer";
@@ -84,20 +84,20 @@ function App() {
   return (
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
-        {/* REMOVED AUTH: <AuthProvider> */}
+        <AuthProvider>
           <TooltipProvider>
             <GenZBackground variant="app">
               <Toaster />
               <Sonner />
+              <div id="recaptcha-container"></div>
               <Routes>
                 <Route path="/" element={<DatingAppContainer />} />
-                {/* REMOVED AUTH: <Route path="/login" element={<LoginPage />} /> */}
                 <Route path="/app" element={<DatingAppContainer />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </GenZBackground>
           </TooltipProvider>
-        {/* REMOVED AUTH: </AuthProvider> */}
+        </AuthProvider>
       </QueryClientProvider>
     </BrowserRouter>
   );

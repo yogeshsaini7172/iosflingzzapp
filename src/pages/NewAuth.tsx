@@ -18,7 +18,7 @@ const NewAuth = () => {
   
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, isLoading: authLoading, signUpWithEmail, verifyOTP, signInWithGoogle, resendOTP } = useAuth();
+  const { user, isLoading: authLoading, signInWithEmail, signInWithGoogle } = useAuth();
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -46,30 +46,18 @@ const NewAuth = () => {
     }
 
     setIsLoading(true);
-    const { error } = await signUpWithEmail(email);
+    const { error } = await signInWithEmail(email, 'password123'); // For now, using default password
     
     if (!error) {
-      setStep('otp');
-      toast.success('We sent a 6-digit code to your email');
+      navigate('/', { replace: true });
     }
     setIsLoading(false);
   };
 
   const handleOTPSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (otp.length !== 6) {
-      toast.error('Please enter the complete 6-digit code');
-      return;
-    }
-
-    setIsLoading(true);
-    const { error } = await verifyOTP(email, otp);
-    
-    if (!error) {
-      // Success is handled by AuthContext
-      navigate('/', { replace: true });
-    }
-    setIsLoading(false);
+    // OTP verification removed for Firebase
+    navigate('/', { replace: true });
   };
 
   const handleGoogleSignIn = async () => {
@@ -79,9 +67,8 @@ const NewAuth = () => {
   };
 
   const handleResendOTP = async () => {
-    setIsLoading(true);
-    await resendOTP(email);
-    setIsLoading(false);
+    // Resend not needed for Firebase
+    toast.success('Feature not available with Firebase auth');
   };
 
   const handleBackToEmail = () => {
@@ -159,7 +146,7 @@ const NewAuth = () => {
                   ) : (
                     <>
                       <Mail className="mr-2 h-4 w-4" />
-                      Send verification code
+                      Send sign in email
                     </>
                   )}
                 </Button>

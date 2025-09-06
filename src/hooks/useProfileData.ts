@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 export type Gender = "male" | "female" | "non_binary" | "prefer_not_to_say";
 
@@ -66,8 +67,15 @@ export const useProfileData = () => {
   const [preferences, setPreferences] = useState<PartnerPreferences | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const getCurrentUserId = () => {
+    // Get user ID directly from Firebase auth
+    if (user?.uid) {
+      return user.uid;
+    }
+    
+    // Fallback for backward compatibility during migration
     return localStorage.getItem("demoUserId") || "6e6a510a-d406-4a01-91ab-64efdbca98f2";
   };
 
