@@ -1,17 +1,12 @@
-import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
-import Index from "./pages/Index";
-// REMOVED AUTH: import LoginPage from "./pages/LoginPage";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import DatingAppContainer from "./components/DatingAppContainer";
-// REMOVED AUTH: import WelcomePage from "./components/WelcomePage";
 import NotFound from "./pages/NotFound";
-import LoginSignup from "./pages/LoginSignup";
-import ProfileSetupFlow from "./components/profile/ProfileSetupFlow";
+import NewAuth from "./pages/NewAuth";
 import GenZBackground from "./components/ui/genZ-background";
 
 const queryClient = new QueryClient({
@@ -23,83 +18,46 @@ const queryClient = new QueryClient({
   },
 });
 
-function App() {
-  const [currentView, setCurrentView] = useState<'auth' | 'setup' | 'app'>('auth');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+const AuthenticatedApp = () => {
+  const { user, isLoading } = useAuth();
 
-  useEffect(() => {
-    // Check if user is already logged in
-    const userId = localStorage.getItem("demoUserId");
-    if (userId) {
-      setIsLoggedIn(true);
-      setCurrentView('app');
-    }
-  }, []);
-
-  const handleLoginSuccess = (userId: string) => {
-    setIsLoggedIn(true);
-    setCurrentView('app');
-  };
-
-  const handleSignupSuccess = () => {
-    setCurrentView('setup');
-  };
-
-  const handleProfileSetupComplete = () => {
-    setIsLoggedIn(true);
-    setCurrentView('app');
-  };
-
-  if (!isLoggedIn && currentView === 'auth') {
+  if (isLoading) {
     return (
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <GenZBackground variant="auth">
-            <Toaster />
-            <Sonner />
-            <LoginSignup 
-              onLoginSuccess={handleLoginSuccess}
-              onSignupSuccess={handleSignupSuccess}
-            />
-          </GenZBackground>
-        </TooltipProvider>
-      </QueryClientProvider>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
     );
   }
 
-  if (!isLoggedIn && currentView === 'setup') {
-    return (
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <GenZBackground variant="setup">
-            <Toaster />
-            <Sonner />
-            <ProfileSetupFlow onComplete={handleProfileSetupComplete} />
-          </GenZBackground>
-        </TooltipProvider>
-      </QueryClientProvider>
-    );
+  if (!user) {
+    return <NewAuth />;
   }
 
   return (
     <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <TooltipProvider>
-            <GenZBackground variant="app">
-              <Toaster />
-              <Sonner />
-              <div id="recaptcha-container"></div>
-              <Routes>
-                <Route path="/" element={<DatingAppContainer />} />
-                <Route path="/app" element={<DatingAppContainer />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </GenZBackground>
-          </TooltipProvider>
-        </AuthProvider>
-      </QueryClientProvider>
+      <TooltipProvider>
+        <GenZBackground variant="app">
+          <Toaster />
+          <Sonner />
+          <div id="recaptcha-container"></div>
+          <Routes>
+            <Route path="/" element={<DatingAppContainer />} />
+            <Route path="/app" element={<DatingAppContainer />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </GenZBackground>
+      </TooltipProvider>
     </BrowserRouter>
+  );
+};
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <AuthenticatedApp />
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
 
