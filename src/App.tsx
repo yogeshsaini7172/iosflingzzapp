@@ -34,29 +34,29 @@ const AuthenticatedApp = () => {
   }
 
   return (
-    <BrowserRouter>
-      <TooltipProvider>
-        <GenZBackground variant="app">
-          <Toaster />
-          <Sonner />
-          <div id="recaptcha-container"></div>
-          <Routes>
-            <Route path="/" element={<DatingAppContainer />} />
-            <Route path="/app" element={<DatingAppContainer />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </GenZBackground>
-      </TooltipProvider>
-    </BrowserRouter>
+    <TooltipProvider>
+      <GenZBackground variant="app">
+        <Toaster />
+        <Sonner />
+        <div id="recaptcha-container"></div>
+        <Routes>
+          <Route path="/" element={<DatingAppContainer />} />
+          <Route path="/app" element={<DatingAppContainer />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </GenZBackground>
+    </TooltipProvider>
   );
 };
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <AuthenticatedApp />
-      </AuthProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <AuthenticatedApp />
+        </AuthProvider>
+      </BrowserRouter>
     </QueryClientProvider>
   );
 }
