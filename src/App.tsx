@@ -5,6 +5,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import DatingAppContainer from "./components/DatingAppContainer";
+import InstagramUI from "./components/InstagramUI";
+import SwipePage from "./pages/SwipePage";
+import PairingPage from "./pages/PairingPage";
+import MatchesPage from "./pages/MatchesPage";
+import ChatPage from "./pages/ChatPage";
+import ProfilePage from "./pages/ProfilePage";
+import BlindDatePage from "./pages/BlindDatePage";
 import NotFound from "./pages/NotFound";
 import NewAuth from "./pages/NewAuth";
 import GenZBackground from "./components/ui/genZ-background";
@@ -40,7 +47,13 @@ const AuthenticatedApp = () => {
         <Sonner />
         <div id="recaptcha-container"></div>
         <Routes>
-          <Route path="/" element={<DatingAppContainer />} />
+          <Route path="/" element={<InstagramUI onNavigate={(view) => {}} />} />
+          <Route path="/swipe" element={<SwipePage onNavigate={(view) => {}} />} />
+          <Route path="/pairing" element={<PairingPage onNavigate={(view) => {}} />} />
+          <Route path="/matches" element={<MatchesPage onNavigate={(view) => {}} />} />
+          <Route path="/chat" element={<ChatPage onNavigate={(view) => {}} />} />
+          <Route path="/profile" element={<ProfilePage onNavigate={(view) => {}} />} />
+          <Route path="/blind-date" element={<BlindDatePage onNavigate={(view) => {}} />} />
           <Route path="/app" element={<DatingAppContainer />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -33,25 +33,7 @@ const NewAuth = () => {
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) {
-      toast.error('Please enter your email address');
-      return;
-    }
-
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      toast.error('Please enter a valid email address');
-      return;
-    }
-
-    setIsLoading(true);
-    const { error } = await signInWithEmail(email, 'password123'); // For now, using default password
-    
-    if (!error) {
-      navigate('/', { replace: true });
-    }
-    setIsLoading(false);
+    setStep('otp');
   };
 
   const handleOTPSubmit = async (e: React.FormEvent) => {

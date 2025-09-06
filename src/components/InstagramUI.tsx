@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -35,9 +36,8 @@ interface InstagramUIProps {
 }
 
 const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
-  const [activeTab, setActiveTab] = useState<
-    "home" | "pairing" | "blinddate" | "profile"
-  >("home");
+  const location = useLocation();
+  const activeTab = location.pathname === '/' ? 'home' : location.pathname.substring(1);
   const { toast } = useToast();
 
   // ✅ Profiles feed from Supabase (only for Swipe tab)
@@ -539,15 +539,13 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                     Coming Soon! 🚀
                   </p>
                   
-                  <Button 
-                    onClick={() => setActiveTab('home')} 
-                    className="bg-gradient-primary hover:shadow-royal transition-luxury font-modern font-bold text-lg h-12 rounded-2xl px-8"
+                  <Link 
+                    to="/" 
+                    className="bg-gradient-primary hover:shadow-royal transition-luxury font-modern font-bold text-lg h-12 rounded-2xl px-8 flex items-center justify-center space-x-2 text-white no-underline"
                   >
-                    <div className="flex items-center space-x-2">
-                      <span>Back to Home</span>
-                      <span>🏠</span>
-                    </div>
-                  </Button>
+                    <span>Back to Home</span>
+                    <span>🏠</span>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -695,15 +693,14 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
               emoji: "👤"
             },
           ].map((tab) => (
-            <Button
+            <Link
               key={tab.id}
-              size="sm"
-              className={`touch-feedback genZ-hover-lift flex-col space-y-1 sm:space-y-2 h-auto py-2 sm:py-4 px-2 sm:px-4 relative bg-transparent border-0 transition-all duration-200 group min-w-[60px] min-h-[60px] ${
+              to={tab.id === 'home' ? '/' : `/${tab.id}`}
+              className={`touch-feedback genZ-hover-lift flex flex-col items-center space-y-1 sm:space-y-2 py-2 sm:py-4 px-2 sm:px-4 relative bg-transparent transition-all duration-200 group min-w-[60px] min-h-[60px] no-underline ${
                 activeTab === tab.id 
                   ? "scale-105 -translate-y-1 sm:-translate-y-3 shadow-glow" 
                   : ""
               }`}
-              onClick={() => setActiveTab(tab.id as any)}
               aria-label={tab.label}
             >
               <div className={`p-2 sm:p-3 rounded-full bg-gradient-to-r ${tab.gradient} ${

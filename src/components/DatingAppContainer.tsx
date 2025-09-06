@@ -1,40 +1,11 @@
-import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import InstagramUI from '@/components/InstagramUI';
-import SwipePage from '@/pages/SwipePage';
-import PairingPage from '@/pages/PairingPage';
-import MatchesPage from '@/pages/MatchesPage';
-import ChatPage from '@/pages/ChatPage';
-import ProfilePage from '@/pages/ProfilePage';
-import BlindDatePage from '@/pages/BlindDatePage';
-
-type View = 'instagram' | 'swipe' | 'pairing' | 'matches' | 'chat' | 'profile' | 'blind-date';
 
 const DatingAppContainer = () => {
-  const [currentView, setCurrentView] = useState<View>('instagram');
+  const navigate = useNavigate();
 
   const handleNavigate = (view: string) => {
-    setCurrentView(view as View);
-  };
-
-  const renderContent = () => {
-    switch (currentView) {
-      case 'instagram':
-        return <InstagramUI onNavigate={handleNavigate} />;
-      case 'swipe':
-        return <SwipePage onNavigate={handleNavigate} />;
-      case 'pairing':
-        return <PairingPage onNavigate={handleNavigate} />;
-      case 'matches':
-        return <MatchesPage onNavigate={handleNavigate} />;
-      case 'chat':
-        return <ChatPage onNavigate={handleNavigate} />;
-      case 'profile':
-        return <ProfilePage onNavigate={handleNavigate} />;
-      case 'blind-date':
-        return <BlindDatePage onNavigate={handleNavigate} />;
-      default:
-        return <InstagramUI onNavigate={handleNavigate} />;
-    }
+    navigate(`/${view === 'instagram' ? '' : view}`);
   };
 
   // Instagram-like responsive container with PWA optimizations
@@ -43,7 +14,7 @@ const DatingAppContainer = () => {
       <div className="min-h-screen w-full relative overflow-x-hidden">
         {/* Mobile-first responsive content */}
         <div className="w-full h-full sm:max-w-md sm:mx-auto lg:max-w-none lg:mx-0">
-          {renderContent()}
+          <InstagramUI onNavigate={handleNavigate} />
         </div>
       </div>
     </div>
