@@ -721,7 +721,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
               {activeTab === tab.id && (
                 <div className={`absolute -top-0.5 sm:-top-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r ${tab.gradient} rounded-full animate-pulse-glow`}></div>
               )}
-            </Button>
+            </Link>
           ))}
         </div>
       </div>
