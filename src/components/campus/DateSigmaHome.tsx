@@ -3,6 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { 
   Heart, 
   X,
@@ -13,18 +16,31 @@ import {
   Star,
   Shield,
   Plus,
-  Crown
+  Crown,
+  Send,
+  MessageCircle
 } from "lucide-react";
 import { useProfilesFeed } from '@/hooks/useProfilesFeed';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
+interface Thread {
+  id: number;
+  author: string;
+  content: string;
+  time: string;
+  likes: number;
+  replies: number;
+  avatar: string;
+  userId?: string;
+}
+
 interface DateSigmaHomeProps {
   onNavigate: (view: string) => void;
 }
 
-// Mock threads data
-const mockThreads = [
+// Initial threads data
+const initialThreads: Thread[] = [
   { 
     id: 1, 
     author: "Sarah K", 
@@ -58,11 +74,99 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
   const { profiles, loading } = useProfilesFeed();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [swipeCount, setSwipeCount] = useState(0);
+  const [threads, setThreads] = useState<Thread[]>(() => {
+    const savedThreads = localStorage.getItem('userThreads');
+    return savedThreads ? JSON.parse(savedThreads) : initialThreads;
+  });
+  const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+  const [newThreadContent, setNewThreadContent] = useState('');
+  const [likedThreads, setLikedThreads] = useState<Set<number>>(() => {
+    const savedLikes = localStorage.getItem('likedThreads');
+    return savedLikes ? new Set(JSON.parse(savedLikes)) : new Set();
+  });
   const { toast } = useToast();
+
+  // Save threads to localStorage whenever threads change
+  useEffect(() => {
+    localStorage.setItem('userThreads', JSON.stringify(threads));
+  }, [threads]);
+
+  // Save liked threads to localStorage whenever likes change
+  useEffect(() => {
+    localStorage.setItem('likedThreads', JSON.stringify(Array.from(likedThreads)));
+  }, [likedThreads]);
 
   const getCurrentUserId = () => {
     // Bypass auth - use default user ID for database operations
     return '11111111-1111-1111-1111-111111111001'; // Default Alice user
+  };
+
+  const getCurrentUserProfile = () => {
+    return {
+      name: 'You',
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150'
+    };
+  };
+
+  const handlePostThread = () => {
+    if (!newThreadContent.trim()) {
+      toast({
+        title: "Error",
+        description: "Please write something to share!",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const userProfile = getCurrentUserProfile();
+    const newThread: Thread = {
+      id: Date.now(), // Simple ID generation
+      author: userProfile.name,
+      content: newThreadContent.trim(),
+      time: "now",
+      likes: 0,
+      replies: 0,
+      avatar: userProfile.avatar,
+      userId: getCurrentUserId()
+    };
+
+    setThreads(prevThreads => [newThread, ...prevThreads]);
+    setNewThreadContent('');
+    setIsPostModalOpen(false);
+    
+    toast({
+      title: "Thread posted! 🎉",
+      description: "Your thread has been shared with the community.",
+    });
+  };
+
+  const handleLikeThread = (threadId: number) => {
+    const newLikedThreads = new Set(likedThreads);
+    const isCurrentlyLiked = likedThreads.has(threadId);
+    
+    if (isCurrentlyLiked) {
+      newLikedThreads.delete(threadId);
+    } else {
+      newLikedThreads.add(threadId);
+    }
+    
+    setLikedThreads(newLikedThreads);
+    
+    // Update the thread's like count
+    setThreads(prevThreads => 
+      prevThreads.map(thread => 
+        thread.id === threadId 
+          ? { ...thread, likes: thread.likes + (isCurrentlyLiked ? -1 : 1) }
+          : thread
+      )
+    );
+
+    if (!isCurrentlyLiked) {
+      toast({
+        title: "Liked! ❤️",
+        description: "You liked this thread.",
+      });
+    }
   };
 
   const calculateAge = (dateOfBirth: string) => {
@@ -133,48 +237,108 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
           <h2 className="text-lg font-display font-bold text-rose-700">Threads</h2>
         </div>
         <div className="flex space-x-3 overflow-x-auto scrollbar-hide pb-2">
-          {/* Add Today's Thread Option */}
-          <div className="flex-shrink-0 w-64">
-            <Card className="p-4 bg-gradient-to-r from-rose-400 to-pink-500 text-white border-0 hover:from-rose-500 hover:to-pink-600 transition-colors cursor-pointer">
-              <div className="flex items-center justify-center space-x-2 mb-3">
-                <Plus className="w-5 h-5" />
-                <span className="font-semibold text-sm">Add Today's Thread</span>
+          {/* Add Today's Thread Option - Now Functional */}
+          <Dialog open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
+            <DialogTrigger asChild>
+              <div className="flex-shrink-0 w-64">
+                <Card className="p-4 bg-gradient-to-r from-rose-400 to-pink-500 text-white border-0 hover:from-rose-500 hover:to-pink-600 transition-colors cursor-pointer">
+                  <div className="flex items-center justify-center space-x-2 mb-3">
+                    <Plus className="w-5 h-5" />
+                    <span className="font-semibold text-sm">Add Today's Thread</span>
+                  </div>
+                  <p className="text-xs text-white/90 text-center">Share what's on your mind today</p>
+                </Card>
               </div>
-              <p className="text-xs text-white/90 text-center">Share what's on your mind today</p>
-            </Card>
-          </div>
-
-          {/* Thread Cards - Horizontal */}
-          {mockThreads.map((thread) => (
-            <div key={thread.id} className="flex-shrink-0 w-72">
-              <Card className="p-4 bg-white/80 backdrop-blur-sm border-rose-200/50 hover:bg-white/90 transition-colors h-full">
-                <div className="flex space-x-3 mb-3">
-                  <Avatar className="w-8 h-8">
-                    <AvatarImage src={thread.avatar} alt={thread.author} />
-                    <AvatarFallback className="bg-rose-100 text-rose-600 text-xs font-semibold">
-                      {thread.author.split(' ').map(n => n[0]).join('')}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <span className="font-semibold text-sm text-rose-700 truncate">{thread.author}</span>
-                      <span className="text-xs text-rose-400 flex-shrink-0">{thread.time}</span>
-                    </div>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-rose-700">Share Your Thoughts</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="thread-content">What's on your mind?</Label>
+                  <Textarea
+                    id="thread-content"
+                    placeholder="Share your thoughts, experiences, or advice with the community..."
+                    value={newThreadContent}
+                    onChange={(e) => setNewThreadContent(e.target.value)}
+                    className="min-h-[100px] border-rose-200 focus:border-rose-400"
+                    maxLength={280}
+                  />
+                  <div className="text-right text-xs text-rose-500">
+                    {newThreadContent.length}/280 characters
                   </div>
                 </div>
-                <p className="text-sm text-rose-600 leading-relaxed mb-3 line-clamp-3">{thread.content}</p>
-                <div className="flex items-center justify-between text-xs text-rose-400">
-                  <button className="flex items-center space-x-1 hover:text-rose-600 transition-colors">
-                    <Heart className="w-3 h-3" />
-                    <span>{thread.likes}</span>
-                  </button>
-                  <button className="hover:text-rose-600 transition-colors">
-                    {thread.replies} replies
-                  </button>
+                <div className="flex justify-end space-x-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsPostModalOpen(false)}
+                    className="border-rose-200 text-rose-600 hover:bg-rose-50"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handlePostThread}
+                    className="bg-gradient-to-r from-rose-400 to-pink-500 hover:from-rose-500 hover:to-pink-600"
+                    disabled={!newThreadContent.trim()}
+                  >
+                    <Send className="w-4 h-4 mr-2" />
+                    Post Thread
+                  </Button>
                 </div>
-              </Card>
-            </div>
-          ))}
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Thread Cards - Now Dynamic */}
+          {threads.slice(0, 5).map((thread) => {
+            const isLiked = likedThreads.has(thread.id);
+            const isOwnThread = thread.userId === getCurrentUserId();
+            
+            return (
+              <div key={thread.id} className="flex-shrink-0 w-72">
+                <Card className="p-4 bg-white/80 backdrop-blur-sm border-rose-200/50 hover:bg-white/90 transition-colors h-full">
+                  <div className="flex space-x-3 mb-3">
+                    <Avatar className="w-8 h-8">
+                      <AvatarImage src={thread.avatar} alt={thread.author} />
+                      <AvatarFallback className="bg-rose-100 text-rose-600 text-xs font-semibold">
+                        {thread.author.split(' ').map(n => n[0]).join('')}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <span className="font-semibold text-sm text-rose-700 truncate flex items-center">
+                          {thread.author}
+                          {isOwnThread && (
+                            <Badge variant="secondary" className="ml-2 text-xs bg-rose-100 text-rose-600">
+                              You
+                            </Badge>
+                          )}
+                        </span>
+                        <span className="text-xs text-rose-400 flex-shrink-0">{thread.time}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-rose-600 leading-relaxed mb-3 line-clamp-3">{thread.content}</p>
+                  <div className="flex items-center justify-between text-xs text-rose-400">
+                    <button 
+                      className={`flex items-center space-x-1 hover:text-rose-600 transition-colors ${
+                        isLiked ? 'text-red-500' : ''
+                      }`}
+                      onClick={() => handleLikeThread(thread.id)}
+                    >
+                      <Heart className={`w-3 h-3 ${isLiked ? 'fill-current' : ''}`} />
+                      <span>{thread.likes}</span>
+                    </button>
+                    <button className="hover:text-rose-600 transition-colors flex items-center space-x-1">
+                      <MessageCircle className="w-3 h-3" />
+                      <span>{thread.replies} replies</span>
+                    </button>
+                  </div>
+                </Card>
+              </div>
+            );
+          })}
         </div>
       </div>
 
