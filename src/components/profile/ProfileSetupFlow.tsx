@@ -326,24 +326,24 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-3 sm:p-6">
       <div className="w-full max-w-2xl">
         <Card className="border-0 shadow-premium genZ-glass-card genZ-hover-lift">
-          <CardHeader className="text-center space-y-8 pb-10">
+          <CardHeader className="text-center space-y-6 sm:space-y-8 pb-6 sm:pb-10 px-4 sm:px-8">
             <div className="flex items-center justify-between">
               <Button 
                 variant="ghost" 
                 onClick={handleBack}
-                className="rounded-full w-14 h-14 p-0 bg-black/20 hover:bg-primary/20 text-white transition-luxury hover-luxury border border-white/20"
+                className="rounded-full w-12 h-12 sm:w-14 sm:h-14 p-0 bg-black/20 hover:bg-primary/20 text-white transition-luxury hover-luxury border border-white/20"
               >
-                <ArrowLeft className="w-6 h-6" />
+                <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" />
               </Button>
               
-              <div className="text-sm text-white/80 font-modern font-semibold bg-black/20 px-4 py-2 rounded-full border border-white/20">
+              <div className="text-xs sm:text-sm text-white/80 font-modern font-semibold bg-black/20 px-3 py-2 sm:px-4 sm:py-2 rounded-full border border-white/20">
                 Step {currentStep} of {totalSteps} ✨
               </div>
               
-              <div className="w-14" /> {/* Spacer */}
+              <div className="w-12 sm:w-14" /> {/* Spacer */}
             </div>
 
             <ProgressIndicator 
@@ -352,19 +352,19 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
               stepTitles={stepTitles}
             />
             
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <div className="relative">
-                <CardTitle className="text-4xl font-elegant font-bold text-gradient-royal animate-fade-in">
+                <CardTitle className="text-2xl sm:text-4xl font-elegant font-bold text-gradient-royal animate-fade-in">
                   {stepTitles[currentStep - 1]}
                 </CardTitle>
-                <div className="absolute -top-2 -right-4 text-2xl animate-bounce-slow">
+                <div className="absolute -top-1 -right-2 sm:-top-2 sm:-right-4 text-xl sm:text-2xl animate-bounce-slow">
                   {currentStep === 1 ? '👤' : currentStep === 2 ? '✨' : currentStep === 3 ? '💕' : currentStep === 4 ? '📸' : '🔐'}
                 </div>
               </div>
-              <p className="text-white/80 font-modern text-lg">
+              <p className="text-white/80 font-modern text-base sm:text-lg">
                 Create your perfect GenZ profile 🚀
               </p>
-              <div className="flex justify-center space-x-2 text-lg animate-pulse-glow delay-500">
+              <div className="flex justify-center space-x-2 text-base sm:text-lg animate-pulse-glow delay-500">
                 <span>💫</span>
                 <span>🌟</span>
                 <span>💜</span>
@@ -372,44 +372,44 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
             </div>
           </CardHeader>
 
-          <CardContent className="px-10 pb-12 space-y-10">
-            <div className="animate-elegant-entrance genZ-glass-card p-8 rounded-3xl border border-white/10">
+          <CardContent className="px-4 sm:px-10 pb-8 sm:pb-12 space-y-8 sm:space-y-10">
+            <div className="animate-elegant-entrance genZ-glass-card p-4 sm:p-8 rounded-2xl sm:rounded-3xl border border-white/10">
               {renderStepContent()}
             </div>
 
-            {/* Navigation Buttons */}
-            <div className="flex space-x-6 pt-6">
+            {/* Navigation Buttons - Mobile Optimized */}
+            <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 pt-4 sm:pt-6">
               <Button
                 onClick={handleBack}
                 variant="outline"
-                className="flex-1 h-16 rounded-2xl font-modern font-bold transition-luxury hover-luxury border-2 border-white/20 bg-black/20 text-white hover:bg-white/10 text-lg"
+                className="w-full sm:flex-1 h-14 sm:h-16 rounded-2xl font-modern font-bold transition-luxury hover-luxury border-2 border-white/20 bg-black/20 text-white hover:bg-white/10 text-base sm:text-lg"
                 disabled={isLoading}
               >
-                <ArrowLeft className="w-6 h-6 mr-3" />
+                <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3" />
                 Back
               </Button>
               
               <Button
                 onClick={handleNext}
                 disabled={!canProceed() || isLoading}
-                className="flex-1 h-16 rounded-2xl bg-gradient-primary hover:shadow-royal transition-luxury font-modern font-bold text-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:flex-1 h-14 sm:h-16 rounded-2xl bg-gradient-primary hover:shadow-royal transition-luxury font-modern font-bold text-lg sm:text-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
-                  <div className="flex items-center space-x-3">
-                    <div className="animate-spin rounded-full h-6 w-6 border-2 border-white/30 border-t-white"></div>
-                    <span>Creating Magic...</span>
+                  <div className="flex items-center space-x-2 sm:space-x-3">
+                    <div className="animate-spin rounded-full h-5 w-5 sm:h-6 sm:w-6 border-2 border-white/30 border-t-white"></div>
+                    <span className="text-base sm:text-lg">Creating Magic...</span>
                     <span>✨</span>
                   </div>
                 ) : currentStep === totalSteps ? (
-                  <div className="flex items-center space-x-3">
-                    <Check className="w-6 h-6" />
-                    <span>Complete Profile</span>
+                  <div className="flex items-center space-x-2 sm:space-x-3">
+                    <Check className="w-5 h-5 sm:w-6 sm:h-6" />
+                    <span className="text-base sm:text-lg">Complete Profile</span>
                     <span>🎉</span>
                   </div>
                 ) : (
-                  <div className="flex items-center space-x-3">
-                    <span>Continue</span>
-                    <ArrowRight className="w-6 h-6" />
+                  <div className="flex items-center space-x-2 sm:space-x-3">
+                    <span className="text-base sm:text-lg">Continue</span>
+                    <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6" />
                     <span>🚀</span>
                   </div>
                 )}

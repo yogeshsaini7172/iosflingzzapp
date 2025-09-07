@@ -14,50 +14,51 @@ const BasicDetailsStep = ({ data, onChange }: BasicDetailsStepProps) => {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="text-center mb-6">
-        <User className="w-12 h-12 text-primary mx-auto mb-3" />
-        <p className="text-muted-foreground">Let's start with your basic information</p>
+    <div className="space-y-8 animate-fade-in">
+      <div className="text-center mb-8">
+        <User className="w-16 h-16 text-primary mx-auto mb-4" />
+        <p className="text-muted-foreground text-lg">Let's start with your basic information</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>First Name</Label>
+      {/* Mobile-first: Stack on small screens, grid on larger */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="space-y-3">
+          <Label className="text-base font-medium">First Name</Label>
           <Input
             placeholder="John"
             value={data.firstName}
             onChange={(e) => updateField('firstName', e.target.value)}
-            className="rounded-xl h-12"
+            className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors"
           />
         </div>
-        <div className="space-y-2">
-          <Label>Last Name</Label>
+        <div className="space-y-3">
+          <Label className="text-base font-medium">Last Name</Label>
           <Input
             placeholder="Doe"
             value={data.lastName}
             onChange={(e) => updateField('lastName', e.target.value)}
-            className="rounded-xl h-12"
+            className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors"
           />
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label>Date of Birth</Label>
+      <div className="space-y-3">
+        <Label className="text-base font-medium">Date of Birth</Label>
         <Input
           type="date"
           value={data.dateOfBirth}
           onChange={(e) => updateField('dateOfBirth', e.target.value)}
-          className="rounded-xl h-12"
+          className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors"
         />
       </div>
 
-      <div className="space-y-2">
-        <Label>Gender</Label>
+      <div className="space-y-3">
+        <Label className="text-base font-medium">Gender</Label>
         <Select value={data.gender} onValueChange={(value) => updateField('gender', value)}>
-          <SelectTrigger className="rounded-xl h-12">
+          <SelectTrigger className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors">
             <SelectValue placeholder="Select your gender" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="rounded-2xl">
             <SelectItem value="male">Male</SelectItem>
             <SelectItem value="female">Female</SelectItem>
             <SelectItem value="non_binary">Non-binary</SelectItem>
@@ -66,24 +67,24 @@ const BasicDetailsStep = ({ data, onChange }: BasicDetailsStepProps) => {
         </Select>
       </div>
 
-      <div className="space-y-2">
-        <Label>University/College</Label>
+      <div className="space-y-3">
+        <Label className="text-base font-medium">University/College</Label>
         <Input
           placeholder="Harvard University"
           value={data.university}
           onChange={(e) => updateField('university', e.target.value)}
-          className="rounded-xl h-12"
+          className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors"
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>Year of Study</Label>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="space-y-3">
+          <Label className="text-base font-medium">Year of Study</Label>
           <Select value={data.yearOfStudy} onValueChange={(value) => updateField('yearOfStudy', value)}>
-            <SelectTrigger className="rounded-xl h-12">
+            <SelectTrigger className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors">
               <SelectValue placeholder="Select year" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="rounded-2xl">
               <SelectItem value="1">1st Year</SelectItem>
               <SelectItem value="2">2nd Year</SelectItem>
               <SelectItem value="3">3rd Year</SelectItem>
@@ -93,13 +94,13 @@ const BasicDetailsStep = ({ data, onChange }: BasicDetailsStepProps) => {
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-2">
-          <Label>Field of Study</Label>
+        <div className="space-y-3">
+          <Label className="text-base font-medium">Field of Study</Label>
           <Input
             placeholder="Computer Science"
             value={data.fieldOfStudy}
             onChange={(e) => updateField('fieldOfStudy', e.target.value)}
-            className="rounded-xl h-12"
+            className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors"
           />
         </div>
       </div>

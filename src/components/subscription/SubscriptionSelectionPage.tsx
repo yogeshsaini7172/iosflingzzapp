@@ -102,63 +102,63 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 flex items-center justify-center p-3 sm:p-6">
       <div className="w-full max-w-6xl">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent mb-4">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent mb-3 sm:mb-4">
             Choose Your Plan
           </h1>
-          <p className="text-lg text-muted-foreground mb-6">
+          <p className="text-base sm:text-lg text-muted-foreground mb-4 sm:mb-6 px-4">
             Select the perfect plan to enhance your dating experience
           </p>
           <Button 
             variant="ghost" 
             onClick={handleSkip}
-            className="text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground text-sm sm:text-base"
           >
             I'll skip this time →
           </Button>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {plans.map((plan) => (
             <Card 
               key={plan.id}
-              className={`relative cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${plan.color} ${
+              className={`relative cursor-pointer transition-all duration-300 hover:shadow-lg lg:hover:-translate-y-1 ${plan.color} ${
                 selectedPlan === plan.id ? 'ring-2 ring-primary shadow-lg' : ''
               }`}
               onClick={() => setSelectedPlan(plan.id)}
             >
               {plan.popular && (
-                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+                <Badge className="absolute -top-2 sm:-top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs sm:text-sm">
                   Most Popular
                 </Badge>
               )}
               
-              <CardHeader className="text-center">
-                <div className="flex justify-center mb-4">
+              <CardHeader className="text-center p-4 sm:p-6">
+                <div className="flex justify-center mb-3 sm:mb-4">
                   {plan.icon}
                 </div>
-                <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
-                <div className="text-3xl font-bold">
+                <CardTitle className="text-xl sm:text-2xl font-bold">{plan.name}</CardTitle>
+                <div className="text-2xl sm:text-3xl font-bold">
                   {plan.price}
-                  <span className="text-lg font-normal text-muted-foreground">{plan.period}</span>
+                  <span className="text-base sm:text-lg font-normal text-muted-foreground">{plan.period}</span>
                 </div>
-                <p className="text-muted-foreground">{plan.description}</p>
+                <p className="text-sm sm:text-base text-muted-foreground">{plan.description}</p>
               </CardHeader>
 
-              <CardContent className="space-y-4">
-                <ul className="space-y-3">
+              <CardContent className="space-y-4 p-4 sm:p-6 pt-0">
+                <ul className="space-y-2 sm:space-y-3">
                   {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-center gap-3">
-                      <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                      <span className="text-sm">{feature}</span>
+                    <li key={index} className="flex items-start gap-2 sm:gap-3">
+                      <Check className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-xs sm:text-sm text-left">{feature}</span>
                     </li>
                   ))}
                 </ul>
 
                 <Button 
-                  className={`w-full h-12 ${plan.id === 'free' ? 'bg-gray-600 hover:bg-gray-700' : plan.id === 'basic' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-purple-600 hover:bg-purple-700'}`}
+                  className={`w-full h-12 sm:h-12 text-sm sm:text-base font-medium ${plan.id === 'free' ? 'bg-gray-600 hover:bg-gray-700' : plan.id === 'basic' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-purple-600 hover:bg-purple-700'}`}
                   onClick={(e) => {
                     e.stopPropagation();
                     handlePlanSelect(plan.id);
@@ -171,11 +171,11 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
           ))}
         </div>
 
-        <div className="text-center mt-8 space-y-2">
-          <p className="text-sm text-muted-foreground">
+        <div className="text-center mt-6 sm:mt-8 space-y-2 px-4">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             ✨ All plans include basic matching and messaging
           </p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             💝 No commitment • Cancel anytime • Upgrade or downgrade easily
           </p>
         </div>
