@@ -734,7 +734,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
                   
                   {/* Decorative Elements */}
                   <div className="absolute top-4 left-4 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30">
-                    <div className="w-6 h-6 bg-gradient-to-r from-rose-400 to-pink-500 rounded-full animate-pulse"></div>
+                    <div className="w-6 h-6 bg-gradient-to-r from-rose-400 to-pink-500 rounded-full"></div>
                   </div>
                   
                   {/* Age Badge with Modern Design */}
@@ -769,7 +769,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
                                 </div>
                               </div>
                             )}
-                            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-lg"></div>
+                            <div className="w-2 h-2 bg-green-400 rounded-full shadow-lg"></div>
                           </div>
                         </div>
                       </div>
@@ -777,9 +777,6 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
                   </div>
                   
                   {/* Floating Action Indicator */}
-                  <div className="absolute bottom-6 right-6 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30 animate-bounce">
-                    <Heart className="w-6 h-6 text-white" />
-                  </div>
                 </div>
               </div>
 
@@ -850,8 +847,8 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
                 onClick={() => handleSwipe('right')}
                 className="group relative w-20 h-20 bg-gradient-to-r from-rose-400 to-pink-500 rounded-full flex items-center justify-center shadow-2xl hover:shadow-rose-500/25 transition-all duration-300 hover:scale-110 border-2 border-white"
               >
-                <Heart className="w-8 h-8 text-white fill-current animate-pulse" />
-                <div className="absolute inset-0 rounded-full bg-white/20 animate-ping"></div>
+                <Heart className="w-8 h-8 text-white fill-current" />
+                <div className="absolute inset-0 rounded-full bg-white/20"></div>
                 <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <span className="text-xs font-semibold text-rose-600 bg-white px-3 py-1 rounded-full shadow-lg">Like</span>
                 </div>

@@ -236,21 +236,9 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
             <div className="relative min-h-screen bg-transparent">
               {/* Neon Glow Effects */}
               <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute top-20 left-1/4 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-float"></div>
-                <div className="absolute bottom-20 right-1/4 w-48 h-48 bg-accent/10 rounded-full blur-2xl animate-pulse-glow delay-1000"></div>
-                <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-secondary/10 rounded-full blur-xl animate-float delay-500"></div>
               </div>
 
               <div className="relative z-10 px-4 py-8">
-                {/* GenZ Background Elements */}
-                <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                  
-                  {/* Floating geometric shapes */}
-                  <div className="absolute top-20 right-1/3 w-8 h-8 bg-accent/20 rotate-45 animate-float delay-700"></div>
-                  <div className="absolute bottom-80 left-1/3 w-6 h-6 bg-primary/20 rounded-full animate-pulse delay-1200"></div>
-                  <div className="absolute top-1/2 right-10 w-4 h-16 bg-secondary/20 rotate-12 animate-bounce delay-800"></div>
-                </div>
-
                 <div className="max-w-lg mx-auto space-y-6 relative z-10">
                   {/* Swipe Cards Container */}
                   <div className="relative h-[600px] perspective-1000">
@@ -301,7 +289,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                         <div className={`w-full h-full bg-gradient-to-br ${profile.gradient} rounded-3xl overflow-hidden shadow-elegant border border-border/50 backdrop-blur-sm animate-fade-in`}>
                           {/* Profile Image Area */}
                           <div className="h-2/3 relative bg-background/20 flex items-center justify-center">
-                            <div className="text-8xl animate-pulse-glow">{profile.image}</div>
+                            <div className="text-8xl">{profile.image}</div>
                             
                             {/* Distance Badge */}
                             <div className="absolute top-4 right-4 bg-background/70 backdrop-blur-sm rounded-full px-3 py-1">
@@ -315,7 +303,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                               <div>
                                 <h3 className="text-2xl font-display font-bold text-foreground">{profile.name}, {profile.age}</h3>
                               </div>
-                              <div className="w-6 h-6 bg-primary rounded-full animate-pulse-glow"></div>
+                              <div className="w-6 h-6 bg-primary rounded-full"></div>
                             </div>
                             
                             <p className="text-foreground/90 font-professional text-sm mb-3 line-clamp-2">{profile.bio}</p>
@@ -425,12 +413,6 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                 <span className="text-sm text-muted-foreground font-professional font-medium">AI Matches 🧠</span>
               </div>
             </header>
-
-            {/* GenZ Background Elements for Pairing */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              <div className="absolute top-20 left-1/4 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-float"></div>
-              <div className="absolute bottom-20 right-1/4 w-48 h-48 bg-secondary/10 rounded-full blur-2xl animate-pulse-glow delay-1000"></div>
-            </div>
 
             <div className="relative z-10 p-4">
               <PairingMatches />
@@ -570,7 +552,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                 }`}
               >
-                <item.icon className={`w-5 h-5 mb-1 ${item.isActive ? 'animate-pulse-glow' : ''}`} />
+                <item.icon className={`w-5 h-5 mb-1 ${item.isActive ? 'text-primary' : ''}`} />
                 <span className={`text-xs font-professional font-medium ${item.isActive ? 'font-bold' : ''}`}>
                   {item.label}
                 </span>

@@ -368,7 +368,7 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
               ) : (
                 <div className="w-full h-full bg-gradient-royal flex items-center justify-center">
                   <div className="text-center text-white animate-fade-in">
-                    <div className="text-6xl mb-4 animate-pulse-glow">✨</div>
+                    <div className="text-6xl mb-4">✨</div>
                     <p className="font-elegant text-lg">Premium Profile</p>
                   </div>
                 </div>

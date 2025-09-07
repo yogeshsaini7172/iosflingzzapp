@@ -243,7 +243,6 @@ const EnhancedProfileDisplay: React.FC = () => {
               <h2 className="text-lg font-elegant font-bold text-gradient-royal">
                 Your Profile
               </h2>
-              <div className="absolute -top-0.5 -right-2 text-sm animate-bounce-slow">✨</div>
             </div>
           </div>
           

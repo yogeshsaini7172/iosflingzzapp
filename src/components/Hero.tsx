@@ -55,17 +55,13 @@ const Hero = () => {
           
           {/* Right Content - Hero Image */}
           <div className="relative">
-            <div className="relative z-10 animate-float">
+            <div className="relative z-10">
               <img 
                 src={heroImage} 
                 alt="Modern web development and digital solutions" 
                 className="w-full max-w-lg mx-auto rounded-3xl shadow-glow"
               />
             </div>
-            
-            {/* Floating Elements */}
-            <div className="absolute -top-4 -right-4 w-20 h-20 bg-secondary/20 rounded-full animate-pulse-glow"></div>
-            <div className="absolute -bottom-6 -left-6 w-16 h-16 bg-accent/20 rounded-full animate-pulse-glow" style={{ animationDelay: '1s' }}></div>
           </div>
         </div>
       </div>
