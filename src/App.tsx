@@ -13,6 +13,7 @@ import ChatPage from "./pages/ChatPage";
 import ProfilePage from "./pages/ProfilePage";
 import BlindDatePage from "./pages/BlindDatePage";
 import DateSigmaHome from "./components/campus/DateSigmaHome";
+import SubscriptionPage from "./components/subscription/SubscriptionPage";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 import GenZBackground from "./components/ui/genZ-background";
@@ -66,6 +67,7 @@ const AuthenticatedApp = () => {
             if (view === 'pairing') window.location.href = '/pairing';
             if (view === 'blind-date') window.location.href = '/blind-date';
             if (view === 'profile') window.location.href = '/profile';
+            if (view === 'subscription') window.location.href = '/subscription';
           }} />} />
           <Route path="/swipe" element={<SwipePage onNavigate={(view) => {}} />} />
           <Route path="/pairing" element={<PairingPage onNavigate={(view) => {}} />} />
@@ -73,6 +75,9 @@ const AuthenticatedApp = () => {
           <Route path="/chat/:matchId?" element={<ChatPage onNavigate={(view) => {}} />} />
           <Route path="/profile" element={<ProfilePage onNavigate={(view) => {}} />} />
           <Route path="/blind-date" element={<BlindDatePage onNavigate={(view) => {}} />} />
+          <Route path="/subscription" element={<SubscriptionPage onNavigate={(view) => {
+            if (view === 'home') window.location.href = '/';
+          }} />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </GenZBackground>

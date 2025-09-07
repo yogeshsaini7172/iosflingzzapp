@@ -12,7 +12,8 @@ import {
   MapPin,
   Star,
   Shield,
-  Plus
+  Plus,
+  Crown
 } from "lucide-react";
 import { useProfilesFeed } from '@/hooks/useProfilesFeed';
 import { useToast } from '@/hooks/use-toast';
@@ -22,13 +23,35 @@ interface DateSigmaHomeProps {
   onNavigate: (view: string) => void;
 }
 
-// Mock threads/stories data - replace with real data
-const mockStories = [
-  { id: 1, name: "Your Story", image: "/placeholder.svg", isOwn: true },
-  { id: 2, name: "Sarah", image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150" },
-  { id: 3, name: "Alex", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150" },
-  { id: 4, name: "Maria", image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150" },
-  { id: 5, name: "Jake", image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150" },
+// Mock threads data
+const mockThreads = [
+  { 
+    id: 1, 
+    author: "Sarah K", 
+    content: "Just had the most amazing coffee date! Sometimes the best connections happen when you least expect them ☕️💕", 
+    time: "2m ago",
+    likes: 24,
+    replies: 5,
+    avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150"
+  },
+  { 
+    id: 2, 
+    author: "Alex M", 
+    content: "Pro tip: Don't overthink your bio. Just be yourself and let your personality shine through! 🌟", 
+    time: "15m ago",
+    likes: 18,
+    replies: 3,
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150"
+  },
+  { 
+    id: 3, 
+    author: "Maria L", 
+    content: "Found my study buddy turned something more 📚❤️ College romance is real!", 
+    time: "1h ago",
+    likes: 42,
+    replies: 12,
+    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150"
+  }
 ];
 
 const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
@@ -104,26 +127,42 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-rose-100 pb-20">
-      {/* Stories/Threads Section */}
+      {/* Threads Section */}
       <div className="bg-white/60 backdrop-blur-sm border-b border-rose-200/50 p-4">
-        <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
-          {mockStories.map((story) => (
-            <div key={story.id} className="flex flex-col items-center space-y-2 min-w-[60px]">
-              <div className={`relative ${story.isOwn ? 'ring-2 ring-rose-400 ring-offset-2' : 'ring-2 ring-rose-200'} rounded-full p-1`}>
-                <Avatar className="w-12 h-12">
-                  <AvatarImage src={story.image} alt={story.name} />
-                  <AvatarFallback className="bg-rose-100 text-rose-600 font-semibold">{story.name[0]}</AvatarFallback>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-display font-bold text-rose-700">Threads</h2>
+          <Button variant="ghost" size="sm" className="text-rose-600 hover:text-rose-700 hover:bg-rose-50">
+            <Plus className="w-4 h-4" />
+          </Button>
+        </div>
+        <div className="space-y-4 max-h-80 overflow-y-auto">
+          {mockThreads.map((thread) => (
+            <Card key={thread.id} className="p-3 bg-white/80 backdrop-blur-sm border-rose-200/50 hover:bg-white/90 transition-colors">
+              <div className="flex space-x-3">
+                <Avatar className="w-10 h-10">
+                  <AvatarImage src={thread.avatar} alt={thread.author} />
+                  <AvatarFallback className="bg-rose-100 text-rose-600 text-sm font-semibold">
+                    {thread.author.split(' ').map(n => n[0]).join('')}
+                  </AvatarFallback>
                 </Avatar>
-                {story.isOwn && (
-                  <div className="absolute -bottom-1 -right-1 bg-rose-500 rounded-full p-1">
-                    <Plus className="w-3 h-3 text-white" />
+                <div className="flex-1 space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-semibold text-sm text-rose-700">{thread.author}</span>
+                    <span className="text-xs text-rose-400">{thread.time}</span>
                   </div>
-                )}
+                  <p className="text-sm text-rose-600 leading-relaxed">{thread.content}</p>
+                  <div className="flex items-center space-x-4 text-xs text-rose-400">
+                    <button className="flex items-center space-x-1 hover:text-rose-600 transition-colors">
+                      <Heart className="w-4 h-4" />
+                      <span>{thread.likes}</span>
+                    </button>
+                    <button className="flex items-center space-x-1 hover:text-rose-600 transition-colors">
+                      <span>{thread.replies} replies</span>
+                    </button>
+                  </div>
+                </div>
               </div>
-              <span className="text-xs text-center text-rose-600 max-w-[60px] truncate font-medium">
-                {story.name}
-              </span>
-            </div>
+            </Card>
           ))}
         </div>
       </div>
@@ -291,6 +330,16 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
           >
             <User className="w-6 h-6 mb-1" />
             <span className="text-xs font-medium">Profile</span>
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onNavigate('subscription')}
+            className="flex-col h-auto py-2 px-3 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+          >
+            <Crown className="w-6 h-6 mb-1" />
+            <span className="text-xs font-medium">Premium</span>
           </Button>
         </div>
       </div>
