@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import GenZBackground from '@/components/ui/genZ-background';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -102,7 +103,8 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
   };
 
   return (
-    <div className="min-h-screen bg-gradient-soft flex items-center justify-center p-3 sm:p-6">
+    <GenZBackground variant="app">
+      <div className="min-h-screen flex items-center justify-center p-3 sm:p-6">
       <div className="w-full max-w-6xl">
         <div className="text-center mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-3 sm:mb-4">
@@ -180,7 +182,8 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
           </p>
         </div>
       </div>
-    </div>
+      </div>
+    </GenZBackground>
   );
 };
 

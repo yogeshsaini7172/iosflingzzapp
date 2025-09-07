@@ -1,4 +1,5 @@
 import { useState } from "react";
+import GenZBackground from '@/components/ui/genZ-background';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -105,7 +106,8 @@ const SubscriptionPage = ({ onNavigate }: SubscriptionPageProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-soft pb-20">
+    <GenZBackground variant="app">
+      <div className="min-h-screen pb-20">
       {/* Header */}
       <div className="bg-card/60 backdrop-blur-sm border-b border-border/50 p-4">
         <div className="flex items-center space-x-3">
@@ -234,7 +236,8 @@ const SubscriptionPage = ({ onNavigate }: SubscriptionPageProps) => {
           </div>
         </Card>
       </div>
-    </div>
+      </div>
+    </GenZBackground>
   );
 };
 

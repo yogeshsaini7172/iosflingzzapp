@@ -6,27 +6,6 @@ interface GenZBackgroundProps {
 }
 
 const GenZBackground: React.FC<GenZBackgroundProps> = ({ children, variant = 'default' }) => {
-  const [floatingElements, setFloatingElements] = useState<Array<{
-    id: number;
-    emoji: string;
-    size: string;
-    left: string;
-    top: string;
-    delay: string;
-  }>>([]);
-
-  useEffect(() => {
-    const emojis = ['💜', '💕', '✨', '🔥', '💫', '🌙', '💎', '🦄', '🌈', '⭐', '💖', '🌟'];
-    const elements = Array.from({ length: 15 }, (_, i) => ({
-      id: i,
-      emoji: emojis[Math.floor(Math.random() * emojis.length)],
-      size: `${Math.random() * 30 + 20}px`,
-      left: `${Math.random() * 100}%`,
-      top: `${Math.random() * 100}%`,
-      delay: `${Math.random() * 10}s`
-    }));
-    setFloatingElements(elements);
-  }, []);
 
   const getVariantStyles = () => {
     switch (variant) {
@@ -52,21 +31,6 @@ const GenZBackground: React.FC<GenZBackgroundProps> = ({ children, variant = 'de
         <div className="absolute bottom-10 left-10 w-56 h-56 bg-secondary-light/10 rounded-full blur-2xl animate-pulse-glow delay-1500"></div>
       </div>
 
-      {/* Floating emoji elements */}
-      {floatingElements.map((element) => (
-        <div
-          key={element.id}
-          className="genZ-floating-element"
-          style={{
-            fontSize: element.size,
-            left: element.left,
-            top: element.top,
-            animationDelay: element.delay,
-          }}
-        >
-          {element.emoji}
-        </div>
-      ))}
 
       {/* Geometric shapes */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">

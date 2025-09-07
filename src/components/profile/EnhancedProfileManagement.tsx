@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import GenZBackground from '@/components/ui/genZ-background';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -1155,11 +1156,12 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-soft pb-20">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-background/90 backdrop-blur-lg border-b border-border/50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+    <GenZBackground variant="app">
+      <div className="min-h-screen pb-20">
+        {/* Header */}
+        <div className="sticky top-0 z-40 bg-background/90 backdrop-blur-lg border-b border-border/50">
+          <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+            <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={() => onNavigate('home')} className="text-foreground hover:text-foreground hover:bg-muted">
               <ArrowLeft className="w-4 h-4" />
             </Button>
@@ -1175,6 +1177,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
             <Button variant="outline" size="sm" onClick={handleLogout} className="text-foreground border-border hover:bg-muted">
               <LogOut className="w-4 h-4" />
             </Button>
+          </div>
           </div>
         </div>
       </div>
@@ -1197,26 +1200,26 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
                       e.currentTarget.src = 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400';
                     }}
                   />
-                ) : (
-                  <div className="w-full h-full bg-white/20 flex items-center justify-center">
-                    <User className="w-8 h-8 text-white/60" />
-                  </div>
-                )}
-              </div>
-              <div>
-                <h2 className="text-xl font-bold">{formData.firstName} {formData.lastName}</h2>
-                <div className="flex items-center gap-2 text-white/90">
-                  <Calendar className="w-4 h-4" />
-                  <span>Age: {new Date().getFullYear() - (profile?.date_of_birth ? new Date(profile.date_of_birth).getFullYear() : 2000)}</span>
-                </div>
-                <div className="flex items-center gap-2 text-white/90">
-                  <MapPin className="w-4 h-4" />
-                  <span>{profile?.university}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Card>
+                 ) : (
+                   <div className="w-full h-full bg-white/20 flex items-center justify-center">
+                     <User className="w-8 h-8 text-white/60" />
+                   </div>
+                 )}
+               </div>
+               <div>
+                 <h2 className="text-xl font-bold">{formData.firstName} {formData.lastName}</h2>
+                 <div className="flex items-center gap-2 text-white/90">
+                   <Calendar className="w-4 h-4" />
+                   <span>Age: {new Date().getFullYear() - (profile?.date_of_birth ? new Date(profile.date_of_birth).getFullYear() : 2000)}</span>
+                 </div>
+                 <div className="flex items-center gap-2 text-white/90">
+                   <MapPin className="w-4 h-4" />
+                   <span>{profile?.university}</span>
+                 </div>
+               </div>
+             </div>
+           </div>
+         </Card>
 
         {/* Tabs */}
         <Card className="mb-6 shadow-glow border-border/50 bg-card/80 backdrop-blur-sm">
@@ -1310,7 +1313,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
           </Button>
         </div>
       </div>
-    </div>
+    </GenZBackground>
   );
 };
 
