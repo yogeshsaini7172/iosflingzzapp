@@ -767,6 +767,14 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
         const newImages = [...formData.profileImages, ...uploadedUrls];
         setFormData(prev => ({ ...prev, profileImages: newImages }));
         
+        // Save to database immediately
+        try {
+          await updateProfile({ profile_images: newImages });
+          console.log("✅ Profile updated with new images");
+        } catch (error) {
+          console.error("❌ Failed to save images to profile:", error);
+        }
+        
         console.log("✅ Photos uploaded successfully:", uploadedUrls);
         console.log("📸 Total images now:", newImages.length);
         
