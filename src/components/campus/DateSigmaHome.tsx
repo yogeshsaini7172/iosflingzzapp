@@ -297,8 +297,29 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
 
       // Show toast for matches
       if (direction === 'right') {
-        // Simulate match probability
-        if (Math.random() > 0.7) {
+        // Check for mutual like and ensure chat room
+        const { data: otherSwipe } = await supabase
+          .from('enhanced_swipes')
+          .select('*')
+          .eq('user_id', currentProfile.user_id)
+          .eq('target_user_id', userId)
+          .eq('direction', 'right')
+          .maybeSingle();
+
+        if (otherSwipe) {
+          // Create or ensure chat room exists
+          const { data: roomResp, error: fnError } = await supabase.functions.invoke('chat-management', {
+            body: {
+              action: 'create_room',
+              user_id: userId,
+              other_user_id: currentProfile.user_id,
+            }
+          });
+
+          if (fnError) {
+            console.error('Chat room creation failed:', fnError);
+          }
+
           toast({
             title: "It's a Match! 💕",
             description: `You and ${currentProfile.first_name} liked each other!`,
