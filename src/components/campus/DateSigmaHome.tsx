@@ -333,13 +333,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
           </div>
           <div className="flex items-center space-x-2">
             <ChatNotificationBadge 
-              onClick={() => {
-                toast({
-                  title: "Chats available! 💬",
-                  description: "Check your active conversations"
-                });
-                // Navigate to chat section when implemented
-              }}
+              onClick={() => onNavigate('chat')}
             />
             <Button 
               variant="ghost" 

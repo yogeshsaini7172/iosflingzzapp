@@ -68,6 +68,7 @@ const AuthenticatedApp = () => {
             if (view === 'blind-date') window.location.href = '/blind-date';
             if (view === 'profile') window.location.href = '/profile';
             if (view === 'subscription') window.location.href = '/subscription';
+            if (view === 'chat') window.location.href = '/chat';
           }} />} />
           <Route path="/swipe" element={<SwipePage onNavigate={(view) => {}} />} />
           <Route path="/pairing" element={<PairingPage onNavigate={(view) => {
