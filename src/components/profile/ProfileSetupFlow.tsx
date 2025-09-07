@@ -205,6 +205,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       const { data: profileResult, error: profileError } = await supabase.functions.invoke('profile-completion', {
         body: {
           userId,
+          email: user?.email || `${userId}@firebase.user`,
           firstName: profileData.firstName,
           lastName: profileData.lastName,
           dateOfBirth: profileData.dateOfBirth,

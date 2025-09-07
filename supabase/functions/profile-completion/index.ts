@@ -38,14 +38,29 @@ serve(async (req) => {
       profileImages,
       isProfilePublic,
       qcsScore,
-      preferences
+      preferences,
+      email
     } = await req.json();
 
     if (!userId) {
       throw new Error('User ID is required');
     }
 
-    console.log('Completing profile for user:', userId);
+    // Get user email from Firebase auth token or use a placeholder
+    const authHeader = req.headers.get('authorization');
+    let userEmail = '';
+    
+    if (authHeader) {
+      try {
+        // For Firebase users, we might need to pass email in the request body
+        // since we can't easily decode Firebase tokens in edge functions
+        userEmail = req.body?.email || 'firebase-user@datesigma.app';
+      } catch (e) {
+        userEmail = 'firebase-user@datesigma.app';
+      }
+    }
+
+    console.log('Completing profile for user:', userId, 'with email:', userEmail);
 
     // Upsert profile with service role (bypasses RLS) - creates if doesn't exist
     const { error: upsertError } = await supabase
@@ -74,7 +89,7 @@ serve(async (req) => {
         is_active: true,
         last_active: new Date().toISOString(),
         total_qcs: qcsScore || 0,
-        email: '' // Default empty email for Firebase users
+        email: email || userEmail // Use provided email or Firebase email
       }, {
         onConflict: 'user_id'
       });

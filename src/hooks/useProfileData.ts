@@ -72,15 +72,19 @@ export const useProfileData = () => {
   const getCurrentUserId = () => {
     // Get user ID directly from Firebase auth
     if (user?.uid) {
+      console.log("🔥 Firebase user ID:", user.uid);
       return user.uid;
     }
     
     // Fallback for backward compatibility during migration
-    return localStorage.getItem("demoUserId") || "6e6a510a-d406-4a01-91ab-64efdbca98f2";
+    const fallbackId = localStorage.getItem("demoUserId") || "6e6a510a-d406-4a01-91ab-64efdbca98f2";
+    console.log("📱 Using fallback user ID:", fallbackId);
+    return fallbackId;
   };
 
   const fetchProfileData = async () => {
     const userId = getCurrentUserId();
+    console.log("🔍 Fetching profile data for user ID:", userId);
 
     try {
       setIsLoading(true);
@@ -93,6 +97,8 @@ export const useProfileData = () => {
         .maybeSingle();
 
       if (profileError) throw profileError;
+      
+      console.log("📊 Profile data from DB:", profileData);
       
       // Transform legacy single values to arrays for backward compatibility
       if (profileData) {
@@ -115,8 +121,10 @@ export const useProfileData = () => {
               : [],
         };
         setProfile(transformedProfile as Profile);
+        console.log("✅ Profile set:", transformedProfile);
       } else {
         setProfile(null);
+        console.log("❌ No profile data found");
       }
 
       // Fetch preferences

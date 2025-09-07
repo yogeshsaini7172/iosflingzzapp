@@ -37,7 +37,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     // Set up Firebase auth state listener
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      console.log('Firebase auth state changed:', firebaseUser?.email);
+      console.log('🔥 Firebase auth state changed:', firebaseUser ? { 
+        uid: firebaseUser.uid, 
+        email: firebaseUser.email,
+        displayName: firebaseUser.displayName 
+      } : 'null');
       setUser(firebaseUser);
       setIsLoading(false);
 
