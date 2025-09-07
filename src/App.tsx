@@ -30,6 +30,7 @@ const queryClient = new QueryClient({
 const AuthenticatedApp = () => {
   const { user, isLoading } = useAuth();
   const [hasProfile, setHasProfile] = useState(false);
+  const [hasSubscription, setHasSubscription] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(true);
 
   // Function to check if user has completed profile
@@ -48,20 +49,43 @@ const AuthenticatedApp = () => {
     }
   };
 
+  // Function to check if user has selected a subscription
+  const checkUserSubscription = async (userId: string) => {
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('subscription_tier')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      return profile && profile.subscription_tier;
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+      return false;
+    }
+  };
+
   // Function to recheck profile status
   const recheckProfile = async () => {
     if (!user) return false;
     
     const profileComplete = await checkUserProfile(user.uid);
+    const subscriptionSelected = await checkUserSubscription(user.uid);
+    
     setHasProfile(!!profileComplete);
-    return !!profileComplete;
+    setHasSubscription(!!subscriptionSelected);
+    
+    return !!profileComplete && !!subscriptionSelected;
   };
 
   useEffect(() => {
     const checkProfile = async () => {
       if (user) {
         const profileComplete = await checkUserProfile(user.uid);
+        const subscriptionSelected = await checkUserSubscription(user.uid);
+        
         setHasProfile(!!profileComplete);
+        setHasSubscription(!!subscriptionSelected);
       }
       setCheckingProfile(false);
     };
@@ -79,15 +103,18 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Show authentication/profile setup flow if user not authenticated or profile incomplete
-  if (!user || !hasProfile) {
+  // Show authentication/profile setup/subscription flow if not complete
+  if (!user || !hasProfile || !hasSubscription) {
     return (
       <TooltipProvider>
         <GenZBackground variant="app">
           <Toaster />
           <Sonner />
           <div id="recaptcha-container"></div>
-          <Index onProfileComplete={recheckProfile} />
+          <Index 
+            onProfileComplete={recheckProfile}
+            showSubscription={!!user && hasProfile && !hasSubscription}
+          />
         </GenZBackground>
       </TooltipProvider>
     );

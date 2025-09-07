@@ -84,21 +84,40 @@ const WhatYouAreStep = ({ data, onChange }: WhatYouAreStepProps) => {
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label>Skin Tone</Label>
-        <Select value={data.skinTone} onValueChange={(value) => updateField('skinTone', value)}>
-          <SelectTrigger className="rounded-xl h-12">
-            <SelectValue placeholder="Select skin tone" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="very_fair">Very Fair</SelectItem>
-            <SelectItem value="fair">Fair</SelectItem>
-            <SelectItem value="medium">Medium</SelectItem>
-            <SelectItem value="olive">Olive</SelectItem>
-            <SelectItem value="brown">Brown</SelectItem>
-            <SelectItem value="dark">Dark</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>Skin Tone</Label>
+          <Select value={data.skinTone} onValueChange={(value) => updateField('skinTone', value)}>
+            <SelectTrigger className="rounded-xl h-12">
+              <SelectValue placeholder="Select skin tone" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="very_fair">Very Fair</SelectItem>
+              <SelectItem value="fair">Fair</SelectItem>
+              <SelectItem value="medium">Medium</SelectItem>
+              <SelectItem value="olive">Olive</SelectItem>
+              <SelectItem value="brown">Brown</SelectItem>
+              <SelectItem value="dark">Dark</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label>Face Type</Label>
+          <Select value={data.faceType} onValueChange={(value) => updateField('faceType', value)}>
+            <SelectTrigger className="rounded-xl h-12">
+              <SelectValue placeholder="Select face type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="round">Round</SelectItem>
+              <SelectItem value="oval">Oval</SelectItem>
+              <SelectItem value="square">Square</SelectItem>
+              <SelectItem value="heart_shaped">Heart-shaped</SelectItem>
+              <SelectItem value="diamond">Diamond</SelectItem>
+              <SelectItem value="long">Long</SelectItem>
+              <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Personality */}

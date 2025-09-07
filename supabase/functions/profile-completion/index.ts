@@ -28,7 +28,7 @@ serve(async (req) => {
       fieldOfStudy,
       height,
       bodyType,
-      skinTone,
+      faceType: profileData.faceType,
       personalityType,
       values,
       mindset,
