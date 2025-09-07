@@ -140,14 +140,29 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
 
   const handleChatClick = async (match: Match) => {
     const userId = getCurrentUserId();
+    const compatibilityScore = match.compatibility_score || 0;
     
+    // If compatibility score is 80% or below, send a chat request
+    if (compatibilityScore <= 80) {
+      try {
+        toast.success(`Chat request sent to ${match.first_name}! 💌`);
+        toast.info("They'll be notified and can choose to accept your request.");
+        return;
+      } catch (error: any) {
+        console.error("Error sending chat request:", error);
+        toast.error("Failed to send chat request");
+        return;
+      }
+    }
+    
+    // If compatibility score is above 80%, allow direct chat
     try {
       // Check if chat room already exists
       const { data: existingRoom } = await supabase
         .from("chat_rooms")
         .select("id")
         .or(`and(user1_id.eq.${userId},user2_id.eq.${match.user_id}),and(user1_id.eq.${match.user_id},user2_id.eq.${userId})`)
-        .single();
+        .maybeSingle();
 
       let chatRoomId = existingRoom?.id;
 
@@ -167,7 +182,7 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
       }
 
       setSelectedChatId(chatRoomId);
-      toast.success("Chat opened!");
+      toast.success("Chat opened! Start the conversation! 💬");
     } catch (error: any) {
       console.error("Error opening chat:", error);
       toast.error("Failed to open chat");
@@ -373,9 +388,14 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                     {/* QCS Score */}
                     <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                       <span className="text-sm font-medium">QCS Score</span>
-                      <Badge variant="outline" className="font-bold">
-                        {match.total_qcs}
-                      </Badge>
+                      <div className="flex items-center space-x-2">
+                        <Badge variant="outline" className="font-bold">
+                          {match.total_qcs}
+                        </Badge>
+                        {(match.compatibility_score || 0) > 80 && (
+                          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" title="High compatibility - Direct chat available!"></div>
+                        )}
+                      </div>
                     </div>
 
                     {/* Interests */}
@@ -407,14 +427,28 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                       >
                         View Profile
                       </Button>
-                      <Button 
-                        size="sm" 
-                        className="flex-1 bg-gradient-primary shadow-royal hover:opacity-90"
-                        onClick={() => handleChatClick(match)}
-                      >
-                        <MessageCircle className="h-4 w-4 mr-1" />
-                        Chat Now
-                      </Button>
+                      
+                      {/* Conditional Chat Button based on compatibility score */}
+                      {(match.compatibility_score || 0) > 80 ? (
+                        <Button 
+                          size="sm" 
+                          className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg text-white"
+                          onClick={() => handleChatClick(match)}
+                        >
+                          <MessageCircle className="h-4 w-4 mr-1" />
+                          Chat Now
+                        </Button>
+                      ) : (
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          className="flex-1 border-rose-300 text-rose-600 hover:bg-rose-50 hover:border-rose-400"
+                          onClick={() => handleChatClick(match)}
+                        >
+                          <MessageCircle className="h-4 w-4 mr-1" />
+                          Chat Request
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </CardContent>
