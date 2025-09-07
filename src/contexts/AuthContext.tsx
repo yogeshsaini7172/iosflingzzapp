@@ -91,21 +91,54 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signInWithPhone = async (phone: string) => {
     try {
+      // Format phone number for India
+      let formattedPhone = phone.trim();
+      if (formattedPhone.startsWith('91') && !formattedPhone.startsWith('+')) {
+        formattedPhone = '+' + formattedPhone;
+      } else if (formattedPhone.startsWith('0')) {
+        formattedPhone = '+91' + formattedPhone.substring(1);
+      } else if (!formattedPhone.startsWith('+91') && formattedPhone.length === 10) {
+        formattedPhone = '+91' + formattedPhone;
+      }
+
+      console.log('Attempting phone auth with:', formattedPhone);
+
       // Clear any existing reCAPTCHA first
       const recaptchaContainer = document.getElementById('recaptcha-container');
       if (recaptchaContainer) {
         recaptchaContainer.innerHTML = '';
       }
 
-      // Create reCAPTCHA verifier
+      // Wait a bit for DOM to be ready
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Create reCAPTCHA verifier with better configuration for Indian users
       const recaptchaVerifier = createRecaptchaVerifier('recaptcha-container');
-      const confirmationResult = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
+      
+      // Add error handling for reCAPTCHA failures
+      recaptchaVerifier.verify().catch((error) => {
+        console.error('reCAPTCHA verification failed:', error);
+        toast.error('Verification failed. Please try again.');
+      });
+
+      const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, recaptchaVerifier);
       setConfirmationResult(confirmationResult);
       toast.success('OTP sent to your phone!');
       return { confirmationResult };
     } catch (error: any) {
       console.error('Phone sign-in error:', error);
-      toast.error(error.message);
+      
+      // Provide more specific error messages
+      if (error.code === 'auth/invalid-phone-number') {
+        toast.error('Invalid phone number. Please include country code (+91 for India)');
+      } else if (error.code === 'auth/too-many-requests') {
+        toast.error('Too many attempts. Please try again later.');
+      } else if (error.code === 'auth/captcha-check-failed') {
+        toast.error('Verification failed. Please refresh and try again.');
+      } else {
+        toast.error(error.message || 'Failed to send OTP. Please try again.');
+      }
+      
       return { error };
     }
   };

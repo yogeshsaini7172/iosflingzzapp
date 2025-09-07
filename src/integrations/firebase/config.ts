@@ -27,12 +27,18 @@ googleProvider.setCustomParameters({
   prompt: 'select_account'
 });
 
-// Helper function to create RecaptchaVerifier
+// Helper function to create RecaptchaVerifier optimized for Indian users
 export const createRecaptchaVerifier = (elementId: string) => {
   return new RecaptchaVerifier(auth, elementId, {
     size: 'invisible',
     callback: () => {
-      // reCAPTCHA solved
+      console.log('reCAPTCHA solved successfully');
+    },
+    'expired-callback': () => {
+      console.log('reCAPTCHA expired');
+    },
+    'error-callback': (error: any) => {
+      console.error('reCAPTCHA error:', error);
     }
   });
 };

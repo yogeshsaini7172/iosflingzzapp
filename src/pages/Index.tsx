@@ -46,10 +46,8 @@ const Index = () => {
     );
   }
 
-  // If user is authenticated and has profile, don't show Index at all
-  if (user && hasProfile) {
-    return null; // Let App.tsx handle routing to main app
-  }
+  // This component now only handles unauthenticated users and profile setup
+  // App.tsx will handle routing for authenticated users with complete profiles
 
   // Handle different steps
   switch (currentStep) {

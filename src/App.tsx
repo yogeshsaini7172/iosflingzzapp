@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import SwipePage from "./pages/SwipePage";
 import PairingPage from "./pages/PairingPage";
 import MatchesPage from "./pages/MatchesPage";
@@ -25,8 +27,41 @@ const queryClient = new QueryClient({
 
 const AuthenticatedApp = () => {
   const { user, isLoading } = useAuth();
+  const [hasProfile, setHasProfile] = useState(false);
+  const [checkingProfile, setCheckingProfile] = useState(false);
 
-  if (isLoading) {
+  useEffect(() => {
+    const checkUserProfile = async () => {
+      if (!user) {
+        setHasProfile(false);
+        return;
+      }
+
+      setCheckingProfile(true);
+      try {
+        // Check if user has completed profile setup
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.uid)
+          .maybeSingle();
+
+        const profileComplete = profile && profile.first_name && profile.university;
+        setHasProfile(!!profileComplete);
+      } catch (error) {
+        console.error('Error checking profile:', error);
+        setHasProfile(false);
+      } finally {
+        setCheckingProfile(false);
+      }
+    };
+
+    if (!isLoading) {
+      checkUserProfile();
+    }
+  }, [user, isLoading]);
+
+  if (isLoading || checkingProfile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -34,7 +69,8 @@ const AuthenticatedApp = () => {
     );
   }
 
-  if (!user) {
+  // If no user or user doesn't have complete profile, show Index (auth/profile setup)
+  if (!user || !hasProfile) {
     return <Index />;
   }
 
