@@ -76,6 +76,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
   const { profiles, loading } = useProfilesFeed();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [swipeCount, setSwipeCount] = useState(0);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0); // Add image index state
   const [threads, setThreads] = useState<Thread[]>(() => {
     const savedThreads = localStorage.getItem('userThreads');
     return savedThreads ? JSON.parse(savedThreads) : initialThreads;
@@ -294,6 +295,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
       // Update UI
       setCurrentIndex(prev => prev + 1);
       setSwipeCount(prev => prev + 1);
+      setCurrentImageIndex(0); // Reset image index for next profile
 
       // Show toast for matches
       if (direction === 'right') {
@@ -336,10 +338,27 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
       console.error('Error handling swipe:', error);
       setCurrentIndex(prev => prev + 1);
       setSwipeCount(prev => prev + 1);
+      setCurrentImageIndex(0); // Reset image index for next profile
     }
   };
 
   const currentProfile = profiles[currentIndex];
+  
+  // Reset image index when profile changes
+  useEffect(() => {
+    setCurrentImageIndex(0);
+  }, [currentIndex]);
+
+  const handleImageNavigation = (direction: 'prev' | 'next') => {
+    if (!currentProfile?.profile_images || currentProfile.profile_images.length <= 1) return;
+    
+    const totalImages = currentProfile.profile_images.length;
+    if (direction === 'next') {
+      setCurrentImageIndex((prev) => (prev + 1) % totalImages);
+    } else {
+      setCurrentImageIndex((prev) => (prev - 1 + totalImages) % totalImages);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-rose-100 pb-20">
@@ -659,11 +678,51 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
             <Card className="overflow-hidden shadow-2xl border-0 bg-white/90 backdrop-blur-sm rounded-3xl">
               <div className="relative">
                 <div className="aspect-[3/4] relative overflow-hidden">
+                  {/* Tinder-style Progress Bars */}
+                  {currentProfile?.profile_images && currentProfile.profile_images.length > 1 && (
+                    <div className="absolute top-3 left-3 right-3 flex gap-1 z-20">
+                      {currentProfile.profile_images.map((_, index) => (
+                        <div 
+                          key={index}
+                          className="flex-1 h-1 bg-black/20 rounded-full overflow-hidden"
+                        >
+                          <div 
+                            className={`h-full bg-white rounded-full transition-all duration-300 ${
+                              index === currentImageIndex ? 'w-full' : index < currentImageIndex ? 'w-full' : 'w-0'
+                            }`}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Main Image */}
                   <img
-                    src={currentProfile?.profile_images?.[0] || 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400'}
-                    alt={`${currentProfile?.first_name}'s profile`}
+                    src={currentProfile?.profile_images?.[currentImageIndex] || currentProfile?.profile_images?.[0] || 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400'}
+                    alt={`${currentProfile?.first_name}'s profile photo ${currentImageIndex + 1}`}
                     className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
                   />
+
+                  {/* Invisible tap areas for navigation */}
+                  {currentProfile?.profile_images && currentProfile.profile_images.length > 1 && (
+                    <>
+                      <div 
+                        className="absolute left-0 top-0 w-1/2 h-full cursor-pointer z-10"
+                        onClick={() => handleImageNavigation('prev')}
+                      />
+                      <div 
+                        className="absolute right-0 top-0 w-1/2 h-full cursor-pointer z-10"
+                        onClick={() => handleImageNavigation('next')}
+                      />
+                    </>
+                  )}
+
+                  {/* Photo count indicator */}
+                  {currentProfile?.profile_images && currentProfile.profile_images.length > 1 && (
+                    <div className="absolute top-16 right-4 bg-black/50 text-white text-sm px-2 py-1 rounded-full backdrop-blur-sm z-20">
+                      {currentImageIndex + 1}/{currentProfile.profile_images.length}
+                    </div>
+                  )}
                   
                   {/* Enhanced Gradient Overlays */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
