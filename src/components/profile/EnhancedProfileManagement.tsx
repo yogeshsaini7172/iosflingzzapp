@@ -1155,7 +1155,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-hero pb-20">
+    <div className="min-h-screen bg-gradient-soft pb-20">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-background/90 backdrop-blur-lg border-b border-border/50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">

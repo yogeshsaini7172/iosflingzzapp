@@ -105,7 +105,7 @@ const SubscriptionPage = ({ onNavigate }: SubscriptionPageProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-hero pb-20">
+    <div className="min-h-screen bg-gradient-soft pb-20">
       {/* Header */}
       <div className="bg-card/60 backdrop-blur-sm border-b border-border/50 p-4">
         <div className="flex items-center space-x-3">

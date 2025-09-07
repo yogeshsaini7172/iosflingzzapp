@@ -361,7 +361,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-hero pb-20">
+    <div className="min-h-screen bg-gradient-soft pb-20">
       {/* Company Header & Chat Section */}
       <div className="bg-card/80 backdrop-blur-md border-b border-border/50 px-4 py-2">
         <div className="flex items-center justify-between">

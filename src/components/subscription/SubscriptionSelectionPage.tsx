@@ -102,7 +102,7 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
   };
 
   return (
-    <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-3 sm:p-6">
+    <div className="min-h-screen bg-gradient-soft flex items-center justify-center p-3 sm:p-6">
       <div className="w-full max-w-6xl">
         <div className="text-center mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-3 sm:mb-4">
