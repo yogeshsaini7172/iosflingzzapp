@@ -26,6 +26,8 @@ import { useProfilesFeed } from '@/hooks/useProfilesFeed';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import ChatNotificationBadge from '@/components/ui/chat-notification-badge';
+import HeartNotificationBadge from '@/components/ui/heart-notification-badge';
+import WhoLikedMeModal from '@/components/likes/WhoLikedMeModal';
 
 interface Thread {
   id: number;
@@ -94,6 +96,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
     const savedLikes = localStorage.getItem('likedThreads');
     return savedLikes ? new Set(JSON.parse(savedLikes)) : new Set();
   });
+  const [showWhoLikedMe, setShowWhoLikedMe] = useState(false);
   const { toast } = useToast();
 
   // Save threads to localStorage whenever threads change
@@ -373,16 +376,12 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
             <h1 className="text-base font-display font-bold text-foreground">DateSigma</h1>
           </div>
           <div className="flex items-center space-x-2">
+            <HeartNotificationBadge 
+              onClick={() => setShowWhoLikedMe(true)}
+            />
             <ChatNotificationBadge 
               onClick={() => onNavigate('chat')}
             />
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 p-2"
-            >
-              <Bell className="w-4 h-4" />
-            </Button>
           </div>
         </div>
       </div>
@@ -918,6 +917,16 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
           </Button>
         </div>
       </div>
+      {/* Who Liked Me Modal */}
+      <WhoLikedMeModal 
+        isOpen={showWhoLikedMe} 
+        onClose={() => setShowWhoLikedMe(false)} 
+      />
+      {/* Who Liked Me Modal */}
+      <WhoLikedMeModal 
+        isOpen={showWhoLikedMe} 
+        onClose={() => setShowWhoLikedMe(false)} 
+      />
     </div>
   );
 };

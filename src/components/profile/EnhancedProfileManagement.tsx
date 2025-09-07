@@ -952,24 +952,21 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted pb-20">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-background/90 backdrop-blur-lg border-b border-border/50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => onNavigate('home')} className="text-foreground hover:text-foreground hover:bg-muted">
+      {/* Header - Consistent with other sections */}
+      <div className="bg-card/80 backdrop-blur-md border-b border-border/50 px-4 py-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Button variant="ghost" size="sm" onClick={() => onNavigate('home')} className="text-foreground hover:text-foreground hover:bg-muted p-2">
               <ArrowLeft className="w-4 h-4" />
             </Button>
-            <div>
-              <h1 className="text-xl font-bold text-foreground">Edit Profile</h1>
-              <p className="text-sm text-muted-foreground">Make yourself shine ✨</p>
+            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center shadow-sm">
+              <span className="text-primary-foreground font-bold text-sm">DS</span>
             </div>
+            <h1 className="text-base font-display font-bold text-foreground">Profile</h1>
           </div>
           <div className="flex items-center gap-2">
-            <Button className="bg-gradient-primary text-primary-foreground" onClick={handleSaveChanges}>
-              Save Changes
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleLogout} className="text-foreground border-border hover:bg-muted">
-              <LogOut className="w-4 h-4" />
+            <Button className="bg-gradient-primary text-primary-foreground text-sm px-4 py-2" onClick={handleSaveChanges}>
+              Save
             </Button>
           </div>
         </div>
@@ -983,11 +980,12 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
               <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white/20">
                 {formData.profileImages[0] ? (
                   <img
-                    src={formData.profileImages[0]}
+                    src={formData.profileImages[0] || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.user_id || 'default'}`}
                     alt="Profile"
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      e.currentTarget.src = 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400';
+                      const target = e.target as HTMLImageElement;
+                      target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=profile-${profile?.user_id || 'default'}`;
                     }}
                   />
                  ) : (
