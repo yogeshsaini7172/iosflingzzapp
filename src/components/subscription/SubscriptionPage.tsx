@@ -19,7 +19,7 @@ interface SubscriptionPageProps {
 }
 
 const SubscriptionPage = ({ onNavigate }: SubscriptionPageProps) => {
-  const [selectedPlan, setSelectedPlan] = useState<'basic' | 'premium' | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<'basic' | 'plus' | 'pro' | null>(null);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -29,41 +29,54 @@ const SubscriptionPage = ({ onNavigate }: SubscriptionPageProps) => {
       name: 'Basic Plan',
       price: '₹49',
       period: '/month',
-      description: 'Perfect for casual dating',
+      description: 'Ad-free experience with essential features',
       features: [
-        'Unlimited swipes',
-        '10 pairing requests per day',
-        '2 blind date setups per month',
-        'Basic profile verification',
-        'Standard customer support'
+        'Ad-free experience',
+        'Limited daily swipes',
+        '1 profile boost per month'
       ],
       icon: Heart,
       popular: false,
-      gradient: 'from-rose-400 to-pink-500'
+      gradient: 'from-blue-400 to-blue-500'
     },
     {
-      id: 'premium',
-      name: 'Premium Plan',
+      id: 'plus',
+      name: 'Plus Plan',
       price: '₹89',
       period: '/month',
-      description: 'For serious relationship seekers',
+      description: 'Enhanced features for better connections',
       features: [
         'Everything in Basic',
-        '25 pairing requests per day',
-        '5 blind date setups per month',
-        'Priority profile verification',
-        'Advanced matching algorithm',
+        'Extra daily swipes',
         'See who liked you',
-        'Premium customer support',
-        'Profile boost feature'
+        '2 profile boosts per month',
+        '2 superlikes per month'
       ],
       icon: Crown,
       popular: true,
-      gradient: 'from-purple-400 to-pink-500'
+      gradient: 'from-yellow-400 to-orange-500'
+    },
+    {
+      id: 'pro',
+      name: 'Pro Plan',
+      price: '₹129',
+      period: '/month',
+      description: 'Ultimate premium experience',
+      features: [
+        'Everything in Plus',
+        'Unlimited swipes',
+        'Daily profile boost',
+        'Unlimited superlikes',
+        'Priority matching (your profile is shown first)',
+        'AI match insights for better compatibility'
+      ],
+      icon: Zap,
+      popular: false,
+      gradient: 'from-purple-400 to-purple-600'
     }
   ];
 
-  const handleSubscribe = async (planId: 'basic' | 'premium') => {
+  const handleSubscribe = async (planId: 'basic' | 'plus' | 'pro') => {
     setSelectedPlan(planId);
     setLoading(true);
 
@@ -179,7 +192,7 @@ const SubscriptionPage = ({ onNavigate }: SubscriptionPageProps) => {
                   </div>
 
                   <Button
-                    onClick={() => handleSubscribe(plan.id as 'basic' | 'premium')}
+                    onClick={() => handleSubscribe(plan.id as 'basic' | 'plus' | 'pro')}
                     disabled={loading}
                     className={`w-full bg-gradient-to-r ${plan.gradient} hover:opacity-90 text-white shadow-lg font-semibold`}
                   >

@@ -6,14 +6,14 @@ import { Check, Crown, Star, Zap, Gem } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface SubscriptionPlansProps {
-  currentPlan?: 'free' | 'silver' | 'gold' | 'platinum';
-  onPlanSelect?: (plan: 'free' | 'silver' | 'gold' | 'platinum') => void;
+  currentPlan?: 'basic' | 'plus' | 'pro';
+  onPlanSelect?: (plan: 'basic' | 'plus' | 'pro') => void;
   showCurrentPlan?: boolean;
   onSkip?: () => void;
 }
 
 const SubscriptionPlans = ({ 
-  currentPlan = 'free', 
+  currentPlan = 'basic', 
   onPlanSelect,
   showCurrentPlan = true,
   onSkip 
@@ -23,73 +23,62 @@ const SubscriptionPlans = ({
 
   const plans = [
     {
-      id: 'free' as const,
-      name: 'Free Plan',
-      price: '₹0',
-      period: 'Forever',
-      description: 'Get started with basic features',
-      icon: <Star className="w-6 h-6" />,
-      color: 'border-muted-foreground',
-      bgColor: 'bg-muted/20',
-      textColor: 'text-muted-foreground',
-      features: [
-        '10 swipes per day',
-        'Match & chat after mutual right swipe',
-        'Standard profile visibility'
-      ]
-    },
-    {
-      id: 'silver' as const,
-      name: 'Silver Plan',
+      id: 'basic' as const,
+      name: 'Basic Plan',
       price: '₹49',
       period: 'per month',
-      description: 'Unlock more connections',
-      icon: <Crown className="w-6 h-6" />,
-      color: 'border-slate-400',
-      bgColor: 'bg-slate-100',
-      textColor: 'text-slate-600',
-      popular: true,
+      description: 'Ad-free experience with limited features',
+      icon: <Star className="w-6 h-6" />,
+      color: 'border-blue-400',
+      bgColor: 'bg-blue-100',
+      textColor: 'text-blue-600',
       features: [
-        'Unlock & see all 10 profiles in daily pairing',
-        'Unlimited swipes',
-        '2 Blind Date requests per month'
+        'Ad-free experience',
+        'Limited daily swipes',
+        '1 profile boost per month'
       ]
     },
     {
-      id: 'gold' as const,
-      name: 'Gold Plan',
+      id: 'plus' as const,
+      name: 'Plus Plan',
       price: '₹89',
       period: 'per month',
-      description: 'Enhanced matching power',
-      icon: <Gem className="w-6 h-6" />,
+      description: 'Enhanced features for better connections',
+      icon: <Crown className="w-6 h-6" />,
       color: 'border-yellow-400',
       bgColor: 'bg-yellow-100',
       textColor: 'text-yellow-600',
+      popular: true,
       features: [
-        'Everything in Silver (₹49 plan)',
-        '+2 extra pairing requests per day',
-        '4 Blind Date requests per month'
+        'Everything in Basic',
+        'Extra daily swipes',
+        'See who liked you',
+        '2 profile boosts per month',
+        '2 superlikes per month'
       ]
     },
     {
-      id: 'platinum' as const,
-      name: 'Platinum Plan',
+      id: 'pro' as const,
+      name: 'Pro Plan',
       price: '₹129',
       period: 'per month',
-      description: 'Ultimate dating experience',
+      description: 'Ultimate premium experience',
       icon: <Zap className="w-6 h-6" />,
       color: 'border-purple-400',
       bgColor: 'bg-purple-100',
       textColor: 'text-purple-600',
       features: [
-        'Everything in Gold (₹89 plan)',
-        '+10 extra pairing requests per day',
-        'Unlimited Blind Date requests'
+        'Everything in Plus',
+        'Unlimited swipes',
+        'Daily profile boost',
+        'Unlimited superlikes',
+        'Priority matching (shown first)',
+        'AI match insights for compatibility'
       ]
     }
   ];
 
-  const handlePlanSelect = async (planId: 'free' | 'silver' | 'gold' | 'platinum') => {
+  const handlePlanSelect = async (planId: 'basic' | 'plus' | 'pro') => {
     try {
       setIsLoading(true);
       
@@ -109,36 +98,38 @@ const SubscriptionPlans = ({
       
       let planLimits;
       switch(planId) {
-        case 'free':
+        case 'basic':
           planLimits = {
-            subscription_tier: 'free',
-            swipes_left: 10,
-            pairing_requests_left: 1,
-            blinddate_requests_left: 0
+            subscription_tier: 'basic',
+            swipes_left: 50, // limited daily swipes
+            pairing_requests_left: 5,
+            blinddate_requests_left: 1,
+            profile_boosts: 1,
+            superlikes: 0
           };
           break;
-        case 'silver':
+        case 'plus':
           planLimits = {
-            subscription_tier: 'silver',
-            swipes_left: -1, // unlimited
+            subscription_tier: 'plus',
+            swipes_left: 100, // extra daily swipes
             pairing_requests_left: 10,
-            blinddate_requests_left: 2
+            blinddate_requests_left: 3,
+            profile_boosts: 2,
+            superlikes: 2,
+            see_who_liked: true
           };
           break;
-        case 'gold':
+        case 'pro':
           planLimits = {
-            subscription_tier: 'gold', 
-            swipes_left: -1, // unlimited
-            pairing_requests_left: 12, // 10 + 2 extra
-            blinddate_requests_left: 4
-          };
-          break;
-        case 'platinum':
-          planLimits = {
-            subscription_tier: 'platinum',
-            swipes_left: -1, // unlimited
-            pairing_requests_left: 20, // 10 + 10 extra
-            blinddate_requests_left: -1 // unlimited
+            subscription_tier: 'pro',
+            swipes_left: -1, // unlimited swipes
+            pairing_requests_left: -1, // unlimited
+            blinddate_requests_left: -1, // unlimited
+            profile_boosts: -1, // daily boost
+            superlikes: -1, // unlimited
+            see_who_liked: true,
+            priority_matching: true,
+            ai_insights: true
           };
           break;
       }
@@ -146,17 +137,10 @@ const SubscriptionPlans = ({
       const updatedProfile = { ...existingProfile, ...planLimits };
       localStorage.setItem('demoProfile', JSON.stringify(updatedProfile));
 
-      if (planId === 'free') {
-        toast({
-          title: "Free plan activated! 🎉",
-          description: "You now have 10 swipes per day"
-        });
-      } else {
-        toast({
-          title: `${planId.charAt(0).toUpperCase() + planId.slice(1)} plan selected! 💫`,
-          description: "Payment integration coming soon. Enjoy premium features!"
-        });
-      }
+      toast({
+        title: `${planId.charAt(0).toUpperCase() + planId.slice(1)} plan activated! 🎉`,
+        description: "Payment integration coming soon. Enjoy premium features!"
+      });
 
       onPlanSelect?.(planId);
     } catch (error: any) {
@@ -182,7 +166,7 @@ const SubscriptionPlans = ({
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {plans.map((plan) => (
           <Card 
             key={plan.id}
@@ -234,16 +218,16 @@ const SubscriptionPlans = ({
                 onClick={() => handlePlanSelect(plan.id)}
                 disabled={isLoading || (currentPlan === plan.id && showCurrentPlan)}
                 className={`w-full font-professional font-semibold text-sm sm:text-base py-2.5 rounded-xl transition-all duration-300 ${
-                  plan.id === 'silver' ? 'bg-gradient-to-r from-slate-500 to-slate-600 hover:shadow-glow' :
-                  plan.id === 'gold' ? 'bg-gradient-primary hover:shadow-glow' :
-                  plan.id === 'platinum' ? 'bg-gradient-to-r from-purple-500 to-purple-600 hover:shadow-glow' :
+                  plan.id === 'basic' ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:shadow-glow' :
+                  plan.id === 'plus' ? 'bg-gradient-primary hover:shadow-glow' :
+                  plan.id === 'pro' ? 'bg-gradient-to-r from-purple-500 to-purple-600 hover:shadow-glow' :
                   'bg-card border border-border hover:bg-card/80 text-muted-foreground'
                 }`}
-                variant={plan.id === 'free' ? 'outline' : 'default'}
+                variant="default"
               >
                 {currentPlan === plan.id && showCurrentPlan ? 
                   'Current Plan' : 
-                  plan.id === 'free' ? 'Select Free Plan' : 'Upgrade Now'
+                  'Choose Plan'
                 }
               </Button>
             </CardContent>

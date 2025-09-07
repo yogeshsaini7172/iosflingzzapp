@@ -11,9 +11,9 @@ interface SubscriptionSelectorProps {
 }
 
 const SubscriptionSelector = ({ onBack, onComplete, onSkip }: SubscriptionSelectorProps) => {
-  const [selectedPlan, setSelectedPlan] = useState<'free' | 'silver' | 'gold' | 'platinum' | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<'basic' | 'plus' | 'pro' | null>(null);
 
-  const handlePlanSelect = (plan: 'free' | 'silver' | 'gold' | 'platinum') => {
+  const handlePlanSelect = (plan: 'basic' | 'plus' | 'pro') => {
     setSelectedPlan(plan);
     // Auto-proceed after selecting a plan
     setTimeout(() => {
@@ -61,10 +61,7 @@ const SubscriptionSelector = ({ onBack, onComplete, onSkip }: SubscriptionSelect
               <div className="mt-8 text-center">
                 <div className="animate-bounce-in">
                   <p className="text-success font-semibold font-modern text-lg">
-                    {selectedPlan === 'free' 
-                      ? "🎉 Free plan activated! Setting up your experience..."
-                      : `✨ ${selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)} plan selected! Preparing your premium experience...`
-                    }
+                    ✨ {selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)} plan selected! Preparing your premium experience...
                   </p>
                 </div>
               </div>
