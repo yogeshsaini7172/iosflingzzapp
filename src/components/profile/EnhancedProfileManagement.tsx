@@ -1256,13 +1256,13 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-rose-200/50 z-50 shadow-lg">
+      <div className="fixed bottom-0 left-0 right-0 bg-card/90 backdrop-blur-lg border-t border-border z-50 shadow-premium">
         <div className="flex justify-around items-center py-2 px-4">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => onNavigate('home')}
-            className="flex-col h-auto py-2 px-3 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+            className="flex-col h-auto py-2 px-3 text-foreground hover:text-primary hover:bg-primary/10"
           >
             <Heart className="w-6 h-6 mb-1" />
             <span className="text-xs font-medium">Home</span>
@@ -1272,7 +1272,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
             variant="ghost"
             size="sm"
             onClick={() => onNavigate('pairing')}
-            className="flex-col h-auto py-2 px-3 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+            className="flex-col h-auto py-2 px-3 text-foreground hover:text-primary hover:bg-primary/10"
           >
             <Users className="w-6 h-6 mb-1" />
             <span className="text-xs font-medium">Pairing</span>
@@ -1282,7 +1282,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
             variant="ghost"
             size="sm"
             onClick={() => onNavigate('blind-date')}
-            className="flex-col h-auto py-2 px-3 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+            className="flex-col h-auto py-2 px-3 text-foreground hover:text-primary hover:bg-primary/10"
           >
             <Sparkles className="w-6 h-6 mb-1" />
             <span className="text-xs font-medium">Blind Date</span>
@@ -1292,10 +1292,10 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
             variant="ghost"
             size="sm"
             onClick={() => onNavigate('profile')}
-            className="flex-col h-auto py-2 px-3 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+            className="flex-col h-auto py-2 px-3 text-primary hover:text-primary hover:bg-primary/10"
           >
             <div className="w-6 h-6 bg-gradient-primary rounded-lg flex items-center justify-center mb-1">
-              <GraduationCap className="w-4 h-4 text-white" />
+              <GraduationCap className="w-4 h-4 text-primary-foreground" />
             </div>
             <span className="text-xs font-medium">Profile</span>
           </Button>
@@ -1304,7 +1304,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
             variant="ghost"
             size="sm"
             onClick={() => onNavigate('subscription')}
-            className="flex-col h-auto py-2 px-3 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+            className="flex-col h-auto py-2 px-3 text-foreground hover:text-primary hover:bg-primary/10"
           >
             <Star className="w-6 h-6 mb-1" />
             <span className="text-xs font-medium">Premium</span>
