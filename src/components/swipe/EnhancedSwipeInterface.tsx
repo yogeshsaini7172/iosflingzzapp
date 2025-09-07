@@ -35,6 +35,7 @@ interface EnhancedSwipeInterfaceProps {
 const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => {
   const [profiles, setProfiles] = useState<SwipeProfile[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [showDetailedProfile, setShowDetailedProfile] = useState(false);
   const [matchedChatId, setMatchedChatId] = useState<string>("");
@@ -208,6 +209,7 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
 
       // Move to next profile
       setCurrentIndex(prev => prev + 1);
+      setCurrentImageIndex(0); // Reset image index for next profile
     } catch (error: any) {
       console.error("❌ Error handling swipe:", error);
       toast({
@@ -276,6 +278,22 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
 
   const currentProfile = profiles[currentIndex];
 
+  // Reset image index when profile changes
+  useEffect(() => {
+    setCurrentImageIndex(0);
+  }, [currentIndex]);
+
+  const handleImageNavigation = (direction: 'prev' | 'next') => {
+    if (!currentProfile?.profile_images || currentProfile.profile_images.length <= 1) return;
+    
+    const totalImages = currentProfile.profile_images.length;
+    if (direction === 'next') {
+      setCurrentImageIndex((prev) => (prev + 1) % totalImages);
+    } else {
+      setCurrentImageIndex((prev) => (prev - 1 + totalImages) % totalImages);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-elegant">
       <div className="max-w-md mx-auto space-y-6 p-4">
@@ -300,12 +318,53 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
           <div className="relative h-full">
             {/* Profile Image */}
             <div className="absolute inset-0">
+              {/* Tinder-style Progress Bars */}
+              {currentProfile?.profile_images && currentProfile.profile_images.length > 1 && (
+                <div className="absolute top-3 left-3 right-3 flex gap-1 z-20">
+                  {currentProfile.profile_images.map((_, index) => (
+                    <div 
+                      key={index}
+                      className="flex-1 h-1 bg-black/20 rounded-full overflow-hidden"
+                    >
+                      <div 
+                        className={`h-full bg-white rounded-full transition-all duration-300 ${
+                          index === currentImageIndex ? 'w-full' : index < currentImageIndex ? 'w-full' : 'w-0'
+                        }`}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {currentProfile.profile_images && currentProfile.profile_images.length > 0 ? (
-                <img
-                  src={currentProfile.profile_images[0]}
-                  alt={currentProfile.first_name}
-                  className="w-full h-full object-cover"
-                />
+                <div className="relative w-full h-full">
+                  <img
+                    src={currentProfile.profile_images[currentImageIndex]}
+                    alt={`${currentProfile.first_name}'s profile photo ${currentImageIndex + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                  
+                  {/* Invisible tap areas for navigation */}
+                  {currentProfile.profile_images.length > 1 && (
+                    <>
+                      <div 
+                        className="absolute left-0 top-0 w-1/2 h-full cursor-pointer z-10"
+                        onClick={() => handleImageNavigation('prev')}
+                      />
+                      <div 
+                        className="absolute right-0 top-0 w-1/2 h-full cursor-pointer z-10"
+                        onClick={() => handleImageNavigation('next')}
+                      />
+                    </>
+                  )}
+
+                  {/* Photo count indicator */}
+                  {currentProfile.profile_images.length > 1 && (
+                    <div className="absolute top-16 right-4 bg-black/50 text-white text-sm px-2 py-1 rounded-full backdrop-blur-sm z-20">
+                      {currentImageIndex + 1}/{currentProfile.profile_images.length}
+                    </div>
+                  )}
+                </div>
               ) : (
                 <div className="w-full h-full bg-gradient-royal flex items-center justify-center">
                   <div className="text-center text-white animate-fade-in">
