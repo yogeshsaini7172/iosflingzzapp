@@ -174,6 +174,39 @@ export type Database = {
           },
         ]
       }
+      chat_requests: {
+        Row: {
+          compatibility_score: number | null
+          created_at: string
+          id: string
+          message: string | null
+          recipient_id: string
+          sender_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          compatibility_score?: number | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          recipient_id: string
+          sender_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          compatibility_score?: number | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          recipient_id?: string
+          sender_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chat_rooms: {
         Row: {
           created_at: string
@@ -866,6 +899,97 @@ export type Database = {
           password?: string
           profile_id?: string | null
           username?: string
+        }
+        Relationships: []
+      }
+      thread_likes: {
+        Row: {
+          created_at: string
+          id: string
+          thread_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          thread_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          thread_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thread_likes_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      thread_replies: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          thread_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          thread_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          thread_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thread_replies_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      threads: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          likes_count: number
+          replies_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          likes_count?: number
+          replies_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          likes_count?: number
+          replies_count?: number
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
