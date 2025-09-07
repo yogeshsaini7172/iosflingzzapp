@@ -7,7 +7,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Heart, Brain, Star, MapPin, GraduationCap, Sparkles, Users, RefreshCw, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import ProfileModal from '@/components/profile/ProfileModal';
+import DetailedProfileModal from '@/components/profile/DetailedProfileModal';
 import GhostBenchBar from '@/components/ui/ghost-bench-bar';
 import EnhancedChatSystem from '@/components/chat/EnhancedChatSystem';
 
@@ -445,12 +445,17 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
         )}
 
         {/* Profile Modal */}
-        <ProfileModal
-          profile={selectedProfile}
-          isOpen={!!selectedProfile}
-          onClose={() => setSelectedProfile(null)}
-          onChat={setSelectedChatId}
-        />
+        {selectedProfile && (
+          <DetailedProfileModal
+            profile={selectedProfile}
+            isOpen={!!selectedProfile}
+            onClose={() => setSelectedProfile(null)}
+            onChatRequest={(userId) => {
+              const m = matches.find(m => m.user_id === userId) || selectedProfile;
+              if (m) handleChatClick(m);
+            }}
+          />
+        )}
       </div>
 
       {/* Bottom Navigation */}
