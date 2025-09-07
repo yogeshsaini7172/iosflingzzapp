@@ -12,6 +12,7 @@ import MatchesPage from "./pages/MatchesPage";
 import ChatPage from "./pages/ChatPage";
 import ProfilePage from "./pages/ProfilePage";
 import BlindDatePage from "./pages/BlindDatePage";
+import HomePage from "./pages/HomePage";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 import GenZBackground from "./components/ui/genZ-background";
@@ -129,7 +130,7 @@ const AuthenticatedApp = () => {
         <Sonner />
         <div id="recaptcha-container"></div>
         <Routes>
-          <Route path="/" element={<Navigate to="/swipe" replace />} />
+          <Route path="/" element={<HomePage onNavigate={(view) => {}} />} />
           <Route path="/swipe" element={<SwipePage onNavigate={(view) => {}} />} />
           <Route path="/pairing" element={<PairingPage onNavigate={(view) => {}} />} />
           <Route path="/matches" element={<MatchesPage onNavigate={(view) => {}} />} />
