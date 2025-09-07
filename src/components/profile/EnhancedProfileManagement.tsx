@@ -723,7 +723,9 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
 
   const renderPhotos = () => {
     const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+      console.log("🚀 handlePhotoUpload function called!");
       const files = event.target.files;
+      console.log("📁 Files received:", files?.length);
       if (!files) return;
 
       try {
@@ -834,9 +836,13 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
               </div>
               <input
                 type="file"
-                multiple
                 accept="image/*"
-                onChange={handlePhotoUpload}
+                onChange={(e) => {
+                  console.log("🔥 File input triggered!", e.target.files?.length, "files selected");
+                  handlePhotoUpload(e);
+                  // Clear the input so same file can be selected again
+                  e.target.value = '';
+                }}
                 className="hidden"
               />
             </label>
@@ -852,9 +858,13 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
               Upload Your First Photo
               <input
                 type="file"
-                multiple
                 accept="image/*"
-                onChange={handlePhotoUpload}
+                onChange={(e) => {
+                  console.log("🔥 File input triggered (first photo)!", e.target.files?.length, "files selected");
+                  handlePhotoUpload(e);
+                  // Clear the input so same file can be selected again
+                  e.target.value = '';
+                }}
                 className="hidden"
               />
             </label>
