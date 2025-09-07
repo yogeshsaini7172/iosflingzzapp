@@ -332,7 +332,7 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                         match.profile_images?.[0] 
                           ? (match.profile_images[0].startsWith('blob:') || match.profile_images[0].startsWith('http') 
                               ? match.profile_images[0] 
-                              : `${supabase.storage.from('profile-photos').getPublicUrl(match.profile_images[0]).data.publicUrl}`)
+                              : `${supabase.storage.from('profile-images').getPublicUrl(match.profile_images[0]).data.publicUrl}`)
                           : 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400'
                       }
                       alt={`${match.first_name} ${match.last_name}`}

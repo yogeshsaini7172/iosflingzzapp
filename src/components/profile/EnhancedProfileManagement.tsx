@@ -932,7 +932,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
                   <img
                     src={formData.profileImages[0].startsWith('blob:') || formData.profileImages[0].startsWith('http') 
                       ? formData.profileImages[0] 
-                      : `${supabase.storage.from('profile-photos').getPublicUrl(formData.profileImages[0]).data.publicUrl}`
+                      : `${supabase.storage.from('profile-images').getPublicUrl(formData.profileImages[0]).data.publicUrl}`
                     }
                     alt="Profile"
                     className="w-full h-full object-cover"
