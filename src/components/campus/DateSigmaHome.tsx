@@ -24,6 +24,7 @@ import {
 import { useProfilesFeed } from '@/hooks/useProfilesFeed';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import ChatNotificationBadge from '@/components/ui/chat-notification-badge';
 
 interface Thread {
   id: number;
@@ -331,19 +332,15 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
             <h1 className="text-base font-display font-bold text-rose-700">DateSigma</h1>
           </div>
           <div className="flex items-center space-x-2">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 p-2"
+            <ChatNotificationBadge 
               onClick={() => {
                 toast({
-                  title: "Chat coming soon! 💬",
-                  description: "Global chat feature will be available soon"
+                  title: "Chats available! 💬",
+                  description: "Check your active conversations"
                 });
+                // Navigate to chat section when implemented
               }}
-            >
-              <MessageCircle className="w-4 h-4" />
-            </Button>
+            />
             <Button 
               variant="ghost" 
               size="sm" 

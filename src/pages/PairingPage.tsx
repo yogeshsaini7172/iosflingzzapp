@@ -157,6 +157,8 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
     
     // If compatibility score is above 80%, allow direct chat
     try {
+      console.log(`💬 Opening chat with ${match.first_name} (compatibility: ${compatibilityScore}%)`);
+      
       // Check if chat room already exists
       const { data: existingRoom } = await supabase
         .from("chat_rooms")
@@ -167,24 +169,32 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
       let chatRoomId = existingRoom?.id;
 
       if (!chatRoomId) {
-        // Create new chat room
+        console.log("🏗️ Creating new chat room for high compatibility match");
+        
+        // Create new chat room for high compatibility
         const { data: newRoom, error: roomError } = await supabase
           .from("chat_rooms")
           .insert({
-            user1_id: userId,
-            user2_id: match.user_id
+            user1_id: userId < match.user_id ? userId : match.user_id,
+            user2_id: userId < match.user_id ? match.user_id : userId
           })
           .select()
           .single();
 
         if (roomError) throw roomError;
         chatRoomId = newRoom.id;
+        
+        console.log("✅ High compatibility chat room created:", newRoom);
+        
+        toast.success(`🎯 High compatibility detected! Chat with ${match.first_name} is now available.`);
+      } else {
+        console.log("♻️ Using existing chat room:", existingRoom);
       }
 
       setSelectedChatId(chatRoomId);
       toast.success("Chat opened! Start the conversation! 💬");
     } catch (error: any) {
-      console.error("Error opening chat:", error);
+      console.error("❌ Error opening chat:", error);
       toast.error("Failed to open chat");
     }
   };

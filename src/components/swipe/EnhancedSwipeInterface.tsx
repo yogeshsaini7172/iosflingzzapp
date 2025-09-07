@@ -212,7 +212,7 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
 
           toast({
             title: "🎉 It's a Match!",
-            description: `You and ${currentProfile.first_name} liked each other!`,
+            description: `You and ${currentProfile.first_name} liked each other! Chat is now available.`,
           });
 
           setMatchedChatId(chatRoom.id);

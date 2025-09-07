@@ -61,6 +61,8 @@ const EnhancedChatSystem = ({ onNavigate, selectedChatId }: EnhancedChatSystemPr
     const userId = getCurrentUserId();
     
     try {
+      console.log("🔍 Fetching chat rooms for user:", userId);
+      
       const { data: rooms, error } = await supabase
         .from("chat_rooms")
         .select(`
@@ -68,44 +70,58 @@ const EnhancedChatSystem = ({ onNavigate, selectedChatId }: EnhancedChatSystemPr
           match_id,
           user1_id,
           user2_id,
-          updated_at
+          updated_at,
+          created_at
         `)
         .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
         .order("updated_at", { ascending: false });
 
       if (error) throw error;
 
+      console.log("📊 Found chat rooms:", rooms?.length || 0);
+
       // Fetch other user details for each room
       const roomsWithUsers = await Promise.all(
         (rooms || []).map(async (room) => {
           const otherUserId = room.user1_id === userId ? room.user2_id : room.user1_id;
           
+          console.log(`👤 Fetching details for user: ${otherUserId}`);
+          
           const { data: otherUser } = await supabase
             .from("profiles")
-            .select("user_id, first_name, last_name, profile_images")
+            .select("user_id, first_name, last_name, profile_images, university")
             .eq("user_id", otherUserId)
             .single();
 
           // Get last message
           const { data: lastMessage } = await supabase
             .from("chat_messages_enhanced")
-            .select("message_text")
+            .select("message_text, created_at")
             .eq("chat_room_id", room.id)
             .order("created_at", { ascending: false })
             .limit(1)
-            .single();
+            .maybeSingle();
 
           return {
             ...room,
             other_user: otherUser,
-            last_message: lastMessage?.message_text || "No messages yet"
+            last_message: lastMessage?.message_text || "Start your conversation...",
+            last_message_time: lastMessage?.created_at
           };
         })
       );
 
+      console.log("✅ Chat rooms with user details:", roomsWithUsers);
       setChatRooms(roomsWithUsers);
+      
+      if (roomsWithUsers.length > 0) {
+        toast({
+          title: "Chats loaded",
+          description: `You have ${roomsWithUsers.length} active conversations`,
+        });
+      }
     } catch (error: any) {
-      console.error("Error fetching chat rooms:", error);
+      console.error("❌ Error fetching chat rooms:", error);
       toast({
         title: "Error",
         description: "Failed to load chats",
