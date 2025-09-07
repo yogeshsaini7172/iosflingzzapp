@@ -2,18 +2,20 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, Crown, Star, Zap, Gem } from "lucide-react";
+import { Check, Crown, Star, Zap, Gem, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { SUBSCRIPTION_PLANS, type PlanId } from "@/config/subscriptionPlans";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SubscriptionPlansProps {
-  currentPlan?: 'basic' | 'plus' | 'pro';
-  onPlanSelect?: (plan: 'basic' | 'plus' | 'pro') => void;
+  currentPlan?: PlanId;
+  onPlanSelect?: (plan: PlanId) => void;
   showCurrentPlan?: boolean;
   onSkip?: () => void;
 }
 
 const SubscriptionPlans = ({ 
-  currentPlan = 'basic', 
+  currentPlan = 'free', 
   onPlanSelect,
   showCurrentPlan = true,
   onSkip 
@@ -21,128 +23,159 @@ const SubscriptionPlans = ({
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
+  // Create display plans from configuration
   const plans = [
     {
-      id: 'basic' as const,
-      name: 'Basic Plan',
-      price: '₹49',
-      period: 'per month',
-      description: 'Ad-free experience with limited features',
+      id: 'free' as const,
+      name: 'Free',
+      price: '₹0',
+      period: 'forever',
+      description: 'Basic dating features to get started',
       icon: <Star className="w-6 h-6" />,
+      color: 'border-gray-400',
+      bgColor: 'bg-gray-100',
+      textColor: 'text-gray-600',
+      features: [
+        '20 daily swipes',
+        '1 profile shown in feed',
+        'Basic matching'
+      ]
+    },
+    {
+      id: 'basic_49' as const,
+      name: SUBSCRIPTION_PLANS.basic_49.display_name,
+      price: `₹${SUBSCRIPTION_PLANS.basic_49.price_monthly_inr}`,
+      period: 'per month',
+      description: 'Enhanced features for better connections',
+      icon: <Crown className="w-6 h-6" />,
       color: 'border-blue-400',
       bgColor: 'bg-blue-100',
       textColor: 'text-blue-600',
       features: [
-        'Ad-free experience',
-        'Limited daily swipes',
-        '1 profile boost per month'
+        '50 daily swipes',
+        '10 profiles shown in feed',
+        'See who liked you',
+        '1 boost per month',
+        'Request extra pairings'
       ]
     },
     {
-      id: 'plus' as const,
-      name: 'Plus Plan',
-      price: '₹89',
+      id: 'plus_89' as const,
+      name: SUBSCRIPTION_PLANS.plus_89.display_name,
+      price: `₹${SUBSCRIPTION_PLANS.plus_89.price_monthly_inr}`,
       period: 'per month',
-      description: 'Enhanced features for better connections',
-      icon: <Crown className="w-6 h-6" />,
+      description: 'Unlimited swiping with premium features',
+      icon: <Zap className="w-6 h-6" />,
       color: 'border-yellow-400',
       bgColor: 'bg-yellow-100',
       textColor: 'text-yellow-600',
       popular: true,
       features: [
-        'Everything in Basic',
-        'Extra daily swipes',
+        'Unlimited swipes',
+        '10 profiles shown in feed',
         'See who liked you',
-        '2 profile boosts per month',
-        '2 superlikes per month'
+        '2 boosts per month',
+        '2 superlikes per month',
+        'Request extra pairings'
       ]
     },
     {
-      id: 'pro' as const,
-      name: 'Pro Plan',
-      price: '₹129',
+      id: 'pro_129' as const,
+      name: SUBSCRIPTION_PLANS.pro_129.display_name,
+      price: `₹${SUBSCRIPTION_PLANS.pro_129.price_monthly_inr}`,
       period: 'per month',
-      description: 'Ultimate premium experience',
-      icon: <Zap className="w-6 h-6" />,
+      description: 'Ultimate premium experience with AI insights',
+      icon: <Gem className="w-6 h-6" />,
       color: 'border-purple-400',
       bgColor: 'bg-purple-100',
       textColor: 'text-purple-600',
       features: [
-        'Everything in Plus',
         'Unlimited swipes',
-        'Daily profile boost',
+        '10 profiles shown in feed',
+        'See who liked you',
+        '30 boosts per month',
         'Unlimited superlikes',
-        'Priority matching (shown first)',
-        'AI match insights for compatibility'
+        'Priority matching',
+        'AI compatibility insights',
+        'Request extra pairings'
       ]
     }
   ];
 
-  const handlePlanSelect = async (planId: 'basic' | 'plus' | 'pro') => {
+  const handlePlanSelect = async (planId: PlanId) => {
     try {
       setIsLoading(true);
       
-      // Get demo user ID from localStorage
-      const demoUserId = localStorage.getItem('demoUserId');
-      if (!demoUserId) {
+      if (planId === 'free') {
+        // Handle free plan selection (just update local state for demo)
+        const existingProfile = JSON.parse(localStorage.getItem('demoProfile') || '{}');
+        const updatedProfile = { 
+          ...existingProfile, 
+          plan_id: 'free',
+          subscription_tier: 'free'
+        };
+        localStorage.setItem('demoProfile', JSON.stringify(updatedProfile));
+        
         toast({
-          title: "Profile required",
-          description: "Please complete your profile first",
-          variant: "destructive"
+          title: "Free plan selected",
+          description: "You can upgrade anytime for premium features!"
         });
+        
+        onPlanSelect?.(planId);
         return;
       }
 
-      // Update localStorage with selected plan
-      const existingProfile = JSON.parse(localStorage.getItem('demoProfile') || '{}');
-      
-      let planLimits;
-      switch(planId) {
-        case 'basic':
-          planLimits = {
-            subscription_tier: 'basic',
-            swipes_left: 50, // limited daily swipes
-            pairing_requests_left: 5,
-            blinddate_requests_left: 1,
-            profile_boosts: 1,
-            superlikes: 0
+      // For paid plans, call the subscription entitlement function
+      try {
+        const { data, error } = await supabase.functions.invoke('subscription-entitlement', {
+          body: { 
+            action: currentPlan === 'free' ? 'upgrade' : 
+                   SUBSCRIPTION_PLANS[planId].price_monthly_inr > SUBSCRIPTION_PLANS[currentPlan as PlanId].price_monthly_inr ? 'upgrade' : 'downgrade',
+            plan_id: planId 
+          }
+        });
+
+        if (error) throw error;
+
+        if (data.success) {
+          // Update demo profile for consistency
+          const existingProfile = JSON.parse(localStorage.getItem('demoProfile') || '{}');
+          const updatedProfile = { 
+            ...existingProfile, 
+            plan_id: planId,
+            subscription_tier: planId
           };
-          break;
-        case 'plus':
-          planLimits = {
-            subscription_tier: 'plus',
-            swipes_left: 100, // extra daily swipes
-            pairing_requests_left: 10,
-            blinddate_requests_left: 3,
-            profile_boosts: 2,
-            superlikes: 2,
-            see_who_liked: true
-          };
-          break;
-        case 'pro':
-          planLimits = {
-            subscription_tier: 'pro',
-            swipes_left: -1, // unlimited swipes
-            pairing_requests_left: -1, // unlimited
-            blinddate_requests_left: -1, // unlimited
-            profile_boosts: -1, // daily boost
-            superlikes: -1, // unlimited
-            see_who_liked: true,
-            priority_matching: true,
-            ai_insights: true
-          };
-          break;
+          localStorage.setItem('demoProfile', JSON.stringify(updatedProfile));
+
+          toast({
+            title: `${SUBSCRIPTION_PLANS[planId].display_name} plan activated! 🎉`,
+            description: data.message || "Enjoy your premium features!"
+          });
+
+          onPlanSelect?.(planId);
+        } else {
+          throw new Error(data.error || 'Failed to update subscription');
+        }
+      } catch (apiError: any) {
+        // Fallback to demo mode if API fails
+        console.log('API failed, using demo mode:', apiError.message);
+        
+        const existingProfile = JSON.parse(localStorage.getItem('demoProfile') || '{}');
+        const updatedProfile = { 
+          ...existingProfile, 
+          plan_id: planId,
+          subscription_tier: planId
+        };
+        localStorage.setItem('demoProfile', JSON.stringify(updatedProfile));
+
+        toast({
+          title: `${SUBSCRIPTION_PLANS[planId].display_name} plan activated (Demo)! 🎉`,
+          description: "Demo mode - payment integration coming soon!"
+        });
+
+        onPlanSelect?.(planId);
       }
 
-      const updatedProfile = { ...existingProfile, ...planLimits };
-      localStorage.setItem('demoProfile', JSON.stringify(updatedProfile));
-
-      toast({
-        title: `${planId.charAt(0).toUpperCase() + planId.slice(1)} plan activated! 🎉`,
-        description: "Payment integration coming soon. Enjoy premium features!"
-      });
-
-      onPlanSelect?.(planId);
     } catch (error: any) {
       console.error('Error selecting plan:', error);
       toast({
@@ -218,17 +251,18 @@ const SubscriptionPlans = ({
                 onClick={() => handlePlanSelect(plan.id)}
                 disabled={isLoading || (currentPlan === plan.id && showCurrentPlan)}
                 className={`w-full font-professional font-semibold text-sm sm:text-base py-2.5 rounded-xl transition-all duration-300 ${
-                  plan.id === 'basic' ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:shadow-glow' :
-                  plan.id === 'plus' ? 'bg-gradient-primary hover:shadow-glow' :
-                  plan.id === 'pro' ? 'bg-gradient-to-r from-purple-500 to-purple-600 hover:shadow-glow' :
+                  plan.id === 'free' ? 'bg-gradient-to-r from-gray-500 to-gray-600 hover:shadow-glow' :
+                  plan.id === 'basic_49' ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:shadow-glow' :
+                  plan.id === 'plus_89' ? 'bg-gradient-primary hover:shadow-glow' :
+                  plan.id === 'pro_129' ? 'bg-gradient-to-r from-purple-500 to-purple-600 hover:shadow-glow' :
                   'bg-card border border-border hover:bg-card/80 text-muted-foreground'
                 }`}
                 variant="default"
               >
-                {currentPlan === plan.id && showCurrentPlan ? 
-                  'Current Plan' : 
-                  'Choose Plan'
-                }
+              {currentPlan === plan.id && showCurrentPlan ? 
+                'Current Plan' : 
+                'Choose Plan'
+              }
               </Button>
             </CardContent>
           </Card>

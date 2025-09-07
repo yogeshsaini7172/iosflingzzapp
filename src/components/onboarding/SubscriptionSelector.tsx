@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import SubscriptionPlans from "@/components/subscription/SubscriptionPlans";
+import { type PlanId } from "@/config/subscriptionPlans";
 
 interface SubscriptionSelectorProps {
   onBack: () => void;
@@ -11,9 +12,9 @@ interface SubscriptionSelectorProps {
 }
 
 const SubscriptionSelector = ({ onBack, onComplete, onSkip }: SubscriptionSelectorProps) => {
-  const [selectedPlan, setSelectedPlan] = useState<'basic' | 'plus' | 'pro' | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<PlanId | null>(null);
 
-  const handlePlanSelect = (plan: 'basic' | 'plus' | 'pro') => {
+  const handlePlanSelect = (plan: PlanId) => {
     setSelectedPlan(plan);
     // Auto-proceed after selecting a plan
     setTimeout(() => {
@@ -61,7 +62,7 @@ const SubscriptionSelector = ({ onBack, onComplete, onSkip }: SubscriptionSelect
               <div className="mt-8 text-center">
                 <div className="animate-bounce-in">
                   <p className="text-success font-semibold font-modern text-lg">
-                    ✨ {selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)} plan selected! Preparing your premium experience...
+                    ✨ {selectedPlan.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())} plan selected! Preparing your premium experience...
                   </p>
                 </div>
               </div>
