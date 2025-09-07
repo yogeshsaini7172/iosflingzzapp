@@ -201,10 +201,10 @@ export const useProfileData = () => {
     try {
       const { error } = await supabase
         .from("partner_preferences")
-        .upsert({
-          user_id: userId,
-          ...updates,
-        });
+        .upsert(
+          { user_id: userId, ...updates },
+          { onConflict: 'user_id' }
+        );
 
       if (error) throw error;
       
