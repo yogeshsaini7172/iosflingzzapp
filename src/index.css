@@ -82,15 +82,15 @@
     /* Border Radius - More elegant */
     --radius: 1.5rem;
 
-    /* GenZ Black Gradients - Dark themed */
-    --gradient-primary: linear-gradient(135deg, hsl(280 100% 8%), hsl(320 100% 12%));
-    --gradient-secondary: linear-gradient(135deg, hsl(0 0% 8%), hsl(0 0% 15%));
-    --gradient-royal: linear-gradient(135deg, hsl(280 100% 8%), hsl(320 100% 12%), hsl(0 0% 10%));
-    --gradient-elegant: linear-gradient(145deg, hsl(280 100% 8%), hsl(320 100% 12%), hsl(260 100% 10%));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 6%), hsl(0 0% 10%));
-    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 4%), hsl(0 0% 8%));
-    --gradient-gold: linear-gradient(135deg, hsl(280 100% 8%), hsl(320 100% 12%));
-    --gradient-rose: linear-gradient(135deg, hsl(320 100% 10%), hsl(280 100% 8%));
+    /* Soft Pink Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(340 75% 65%), hsl(340 85% 75%));
+    --gradient-secondary: linear-gradient(135deg, hsl(345 60% 80%), hsl(345 70% 85%));
+    --gradient-royal: linear-gradient(135deg, hsl(340 75% 65%), hsl(350 70% 60%), hsl(345 60% 80%));
+    --gradient-elegant: linear-gradient(145deg, hsl(340 75% 65%), hsl(340 85% 75%), hsl(350 70% 60%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(340 30% 98%));
+    --gradient-subtle: linear-gradient(180deg, hsl(340 40% 98%), hsl(340 30% 96%));
+    --gradient-gold: linear-gradient(135deg, hsl(350 70% 60%), hsl(340 75% 65%));
+    --gradient-rose: linear-gradient(135deg, hsl(340 75% 65%), hsl(350 80% 70%));
 
     /* Soft Pink Shadows */
     --shadow-elegant: 0 25px 50px -12px hsl(340 75% 65% / 0.2);

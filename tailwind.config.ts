@@ -79,8 +79,7 @@ export default {
 				'gradient-card': 'var(--gradient-card)',
 				'gradient-subtle': 'var(--gradient-subtle)',
 				'gradient-gold': 'var(--gradient-gold)',
-				'gradient-rose': 'var(--gradient-rose)',
-				'gradient-hero': 'linear-gradient(135deg, hsl(0 0% 2%), hsl(0 0% 8%), hsl(280 100% 5%))',
+				'gradient-rose': 'var(--gradient-rose)'
 			},
 			boxShadow: {
 				'elegant': 'var(--shadow-elegant)',
