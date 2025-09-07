@@ -17,7 +17,7 @@ async function resetIfNeeded(supabaseClient: any, userId: string) {
     .from('profiles')
     .select('last_reset, subscription_tier')
     .eq('user_id', userId)
-    .single();
+    .maybeSingle();
 
   if (!profile) return;
 
@@ -76,14 +76,46 @@ serve(async (req) => {
     // Reset daily limits if needed
     await resetIfNeeded(supabaseClient, userId);
 
-    // Get user profile to check swipe limits
-    const { data: profile, error: profileError } = await supabaseClient
+    // Get user profile to check swipe limits - create if doesn't exist
+    let { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
-      .select('swipes_left')
+      .select('swipes_left, subscription_tier')
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
 
-    if (profileError) throw profileError;
+    if (profileError) {
+      console.error('Profile fetch error:', profileError);
+      throw profileError;
+    }
+
+    if (!profile) {
+      // Create default profile for demo user
+      console.log(`Creating demo profile for user: ${userId}`);
+      const { data: newProfile, error: createError } = await supabaseClient
+        .from('profiles')
+        .insert({
+          user_id: userId,
+          first_name: 'Demo',
+          last_name: 'User',
+          email: `${userId}@demo.com`,
+          date_of_birth: '2000-01-01',
+          gender: 'prefer_not_to_say',
+          university: 'Demo University',
+          swipes_left: 20,
+          subscription_tier: 'free',
+          is_active: true,
+          last_active: new Date().toISOString()
+        })
+        .select('swipes_left, subscription_tier')
+        .single();
+
+      if (createError) {
+        console.error('Profile creation error:', createError);
+        throw createError;
+      }
+      
+      profile = newProfile;
+    }
 
     if (profile.swipes_left === 0) {
       return new Response(JSON.stringify({
@@ -125,49 +157,66 @@ serve(async (req) => {
         .eq('direction', 'right');
 
       if (candidateSwipes && candidateSwipes.length > 0) {
-        // Create match
-        const { data: match, error: matchError } = await supabaseClient
+        // Create match - check if it already exists first
+        const { data: existingMatch } = await supabaseClient
           .from('matches')
-          .insert({
-            liker_id: userId,
-            liked_id: candidate_id,
-            status: 'matched',
-            created_at: new Date().toISOString()
-          })
-          .select()
-          .single();
+          .select('id')
+          .or(`and(liker_id.eq.${userId},liked_id.eq.${candidate_id}),and(liker_id.eq.${candidate_id},liked_id.eq.${userId})`)
+          .maybeSingle();
 
-        if (!matchError && match) {
-          matchCreated = true;
-          matchId = match.id;
-          console.log(`Match created between ${userId} and ${candidate_id}`);
-
-          // Also create chat room if not exists
-          const user1 = userId < candidate_id ? userId : candidate_id;
-          const user2 = userId < candidate_id ? candidate_id : userId;
-          const { data: existingRoom } = await supabaseClient
-            .from('chat_rooms')
-            .select('id')
-            .or(`and(user1_id.eq.${user1},user2_id.eq.${user2}),and(user1_id.eq.${user2},user2_id.eq.${user1})`)
+        if (!existingMatch) {
+          const { data: match, error: matchError } = await supabaseClient
+            .from('matches')
+            .insert({
+              liker_id: userId,
+              liked_id: candidate_id,
+              status: 'matched',
+              created_at: new Date().toISOString()
+            })
+            .select()
             .maybeSingle();
 
-          if (!existingRoom) {
-            const { data: room, error: roomError } = await supabaseClient
-              .from('chat_rooms')
-              .insert({
-                match_id: match.id,
-                user1_id: user1,
-                user2_id: user2
-              })
-              .select()
-              .single();
+          if (!matchError && match) {
+            matchCreated = true;
+            matchId = match.id;
+            console.log(`🎉 NEW MATCH created between ${userId} and ${candidate_id}`);
 
-            if (roomError) {
-              console.error('Chat room creation error:', roomError);
+            // Create chat room
+            const user1 = userId < candidate_id ? userId : candidate_id;
+            const user2 = userId < candidate_id ? candidate_id : userId;
+            
+            const { data: existingRoom } = await supabaseClient
+              .from('chat_rooms')
+              .select('id')
+              .or(`and(user1_id.eq.${user1},user2_id.eq.${user2}),and(user1_id.eq.${user2},user2_id.eq.${user1})`)
+              .maybeSingle();
+
+            if (!existingRoom) {
+              const { data: room, error: roomError } = await supabaseClient
+                .from('chat_rooms')
+                .insert({
+                  match_id: match.id,
+                  user1_id: user1,
+                  user2_id: user2,
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
+                })
+                .select()
+                .maybeSingle();
+
+              if (roomError) {
+                console.error('❌ Chat room creation error:', roomError);
+              } else {
+                console.log(`✅ Chat room created: ${room?.id} for match ${match.id}`);
+              }
             } else {
-              console.log('Chat room created:', room?.id);
+              console.log(`Chat room already exists: ${existingRoom.id}`);
             }
+          } else {
+            console.error('❌ Match creation error:', matchError);
           }
+        } else {
+          console.log(`Match already exists: ${existingMatch.id}`);
         }
       }
     }
