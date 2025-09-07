@@ -150,6 +150,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       mindset: formData.mindset,
       relationship_goals: formData.relationshipGoals,
       interests: formData.interests,
+      profile_images: formData.profileImages,
       show_profile: formData.isVisible
     });
 
