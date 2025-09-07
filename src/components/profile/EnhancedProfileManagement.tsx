@@ -26,6 +26,7 @@ import {
   GraduationCap
 } from 'lucide-react';
 import { useProfileData } from '@/hooks/useProfileData';
+import { supabase } from '@/integrations/supabase/client';
 
 interface EnhancedProfileManagementProps {
   onNavigate: (view: string) => void;
@@ -719,50 +720,127 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
     </div>
   );
 
-  const renderPhotos = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h3 className="text-lg font-semibold mb-2">Your Photos</h3>
-        <p className="text-muted-foreground text-sm mb-6">
-          Add up to 6 photos to show your personality
-        </p>
-      </div>
+  const renderPhotos = () => {
+    const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const files = event.target.files;
+      if (!files) return;
 
-      <div className="grid grid-cols-3 gap-4">
-        {formData.profileImages.map((image, index) => (
-          <div key={index} className="aspect-square relative group overflow-hidden rounded-xl border-2 border-primary/20">
-            <img
-              src={image}
-              alt={`Profile ${index + 1}`}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-              <Button variant="secondary" size="sm">
-                <Edit3 className="w-4 h-4" />
-              </Button>
-            </div>
-            {index === 0 && (
-              <Badge className="absolute top-2 left-2 bg-primary text-white border-0">
-                Main
-              </Badge>
-            )}
-          </div>
-        ))}
+      try {
+        const uploadedUrls: string[] = [];
         
-        {Array.from({ length: 6 - formData.profileImages.length }).map((_, index) => (
-          <div
-            key={`empty-${index}`}
-            className="aspect-square border-2 border-dashed border-primary/30 rounded-xl flex items-center justify-center hover:border-primary/60 transition-colors cursor-pointer group"
-          >
-            <div className="text-center">
-              <Camera className="w-8 h-8 text-primary/60 group-hover:text-primary transition-colors mx-auto mb-2" />
-              <span className="text-xs text-muted-foreground">Add Photo</span>
+        for (let i = 0; i < Math.min(files.length, 6); i++) {
+          const file = files[i];
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${Date.now()}-${i}.${fileExt}`;
+          const filePath = `${profile?.user_id}/${fileName}`;
+
+          const { error } = await supabase.storage
+            .from('profile-images')
+            .upload(filePath, file);
+
+          if (error) throw error;
+
+          const { data: urlData } = supabase.storage
+            .from('profile-images')
+            .getPublicUrl(filePath);
+
+          uploadedUrls.push(urlData.publicUrl);
+        }
+
+        // Set the first uploaded photo as the main profile photo
+        const newImages = [...formData.profileImages, ...uploadedUrls];
+        setFormData(prev => ({ ...prev, profileImages: newImages }));
+        
+        // Update profile with new images
+        await updateProfile({
+          profile_images: newImages
+        });
+
+        console.log("✅ Photos uploaded successfully, first photo set as main:", uploadedUrls[0]);
+      } catch (error) {
+        console.error('❌ Error uploading photos:', error);
+      }
+    };
+
+    const removePhoto = async (index: number) => {
+      const newImages = formData.profileImages.filter((_, i) => i !== index);
+      setFormData(prev => ({ ...prev, profileImages: newImages }));
+      
+      await updateProfile({
+        profile_images: newImages
+      });
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold mb-2">Your Photos</h3>
+          <p className="text-muted-foreground text-sm mb-6">
+            Add up to 6 photos to show your personality. The first photo will be your main profile picture.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-3 gap-4">
+          {formData.profileImages.map((image, index) => (
+            <div key={index} className="aspect-square relative group overflow-hidden rounded-xl border-2 border-primary/20">
+              <img
+                src={image}
+                alt={`Profile ${index + 1}`}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                <Button variant="secondary" size="sm" onClick={() => removePhoto(index)}>
+                  ×
+                </Button>
+              </div>
+              {index === 0 && (
+                <Badge className="absolute top-2 left-2 bg-primary text-white border-0">
+                  Main
+                </Badge>
+              )}
             </div>
+          ))}
+          
+          {Array.from({ length: 6 - formData.profileImages.length }).map((_, index) => (
+            <label
+              key={`empty-${index}`}
+              className="aspect-square border-2 border-dashed border-primary/30 rounded-xl flex items-center justify-center hover:border-primary/60 transition-colors cursor-pointer group"
+            >
+              <div className="text-center">
+                <Camera className="w-8 h-8 text-primary/60 group-hover:text-primary transition-colors mx-auto mb-2" />
+                <span className="text-xs text-muted-foreground">Add Photo</span>
+              </div>
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                className="hidden"
+              />
+            </label>
+          ))}
+        </div>
+
+        {formData.profileImages.length === 0 && (
+          <div className="text-center py-8 bg-muted/50 rounded-lg">
+            <Camera className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+            <p className="text-muted-foreground mb-4">No photos uploaded yet</p>
+            <label className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md cursor-pointer hover:bg-primary/90 transition-colors">
+              <Camera className="w-4 h-4" />
+              Upload Your First Photo
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                className="hidden"
+              />
+            </label>
           </div>
-        ))}
+        )}
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderPrivacy = () => (
     <div className="space-y-6">
