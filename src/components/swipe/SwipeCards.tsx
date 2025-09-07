@@ -15,7 +15,8 @@ const SwipeCards: React.FC = () => {
   const { toast } = useToast();
 
   const getCurrentUserId = () => {
-    return localStorage.getItem("demoUserId") || "6e6a510a-d406-4a01-91ab-64efdbca98f2";
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    return user?.id || null;
   };
 
   const calculateAge = (dateOfBirth: string) => {
@@ -34,6 +35,15 @@ const SwipeCards: React.FC = () => {
 
     const currentProfile = profiles[currentIndex];
     const userId = getCurrentUserId();
+
+    if (!userId) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to continue swiping",
+        variant: "destructive"
+      });
+      return;
+    }
 
     try {
       // Record swipe in database

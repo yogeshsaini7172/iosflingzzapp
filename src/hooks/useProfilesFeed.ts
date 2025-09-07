@@ -23,7 +23,8 @@ export function useProfilesFeed() {
   const [loading, setLoading] = useState(true);
 
   const getCurrentUserId = () => {
-    return localStorage.getItem("demoUserId") || "6e6a510a-d406-4a01-91ab-64efdbca98f2";
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    return user?.id || null;
   };
 
   useEffect(() => {
@@ -32,6 +33,12 @@ export function useProfilesFeed() {
 
       try {
         const currentUserId = getCurrentUserId();
+        
+        if (!currentUserId) {
+          console.log("❌ No authenticated user found");
+          setProfiles([]);
+          return;
+        }
         
         // Fetch profiles excluding current user
         const { data, error } = await supabase

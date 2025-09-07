@@ -18,9 +18,10 @@ const ProfileModal = ({ profile, isOpen, onClose, onChat }: ProfileModalProps) =
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const getCurrentUserId = () => {
-    return localStorage.getItem("demoUserId") || "6e6a510a-d406-4a01-91ab-64efdbca98f2";
-  };
+    const getCurrentUserId = () => {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      return user?.id || null;
+    };
 
   const handleInteraction = async (type: 'like' | 'ghost' | 'bench') => {
     setIsLoading(true);

@@ -113,7 +113,7 @@ const EnhancedProfileDisplay: React.FC = () => {
   const fetchProfileData = async () => {
     try {
       setIsLoading(true);
-      const currentUserId = localStorage.getItem("demoUserId");
+      const currentUserId = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user") || '{}').id : null;
       
       if (!currentUserId) {
         toast({
