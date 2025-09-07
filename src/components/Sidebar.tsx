@@ -12,13 +12,13 @@ const Sidebar: React.FC = () => {
 
   return (
     <div className="flex flex-col space-y-6">
-      <h1 className="text-2xl font-bold text-purple-600">DatingSigma</h1>
+      <h1 className="text-2xl font-bold text-primary">DatingSigma</h1>
       <nav className="space-y-4">
         {menuItems.map((item, idx) => (
           <div
             key={idx}
-            className={`flex items-center gap-3 text-lg cursor-pointer p-2 rounded-lg hover:bg-purple-50 ${
-              item.active ? "text-purple-600 font-semibold" : "text-gray-700"
+            className={`flex items-center gap-3 text-lg cursor-pointer p-2 rounded-lg hover:bg-muted ${
+              item.active ? "text-primary font-semibold" : "text-muted-foreground"
             }`}
           >
             {item.icon}

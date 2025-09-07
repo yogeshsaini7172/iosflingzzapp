@@ -42,10 +42,10 @@ const Navbar = () => {
     <NavLink
       to={to}
       className={({ isActive }) =>
-        `flex items-center space-x-2 px-3 py-2 rounded-xl transition-all duration-200 hover:bg-rose-100 ${
+        `flex items-center space-x-2 px-3 py-2 rounded-xl transition-all duration-200 hover:bg-muted ${
           isActiveRoute(to)
-            ? 'bg-rose-200 text-rose-700 font-semibold shadow-sm' 
-            : 'text-rose-600 hover:text-rose-700'
+            ? 'bg-muted text-foreground font-semibold shadow-sm' 
+            : 'text-foreground hover:text-foreground'
         } ${mobile ? 'w-full justify-center' : ''}`
       }
       onClick={() => mobile && setIsOpen(false)}
@@ -56,15 +56,15 @@ const Navbar = () => {
   );
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-rose-200/50 shadow-sm">
+    <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-rose-400 to-pink-500 rounded-xl flex items-center justify-center shadow-sm">
-              <Heart className="h-4 w-4 text-white" />
+            <div className="w-8 h-8 bg-gradient-primary rounded-xl flex items-center justify-center shadow-sm">
+              <Heart className="h-4 w-4 text-primary-foreground" />
             </div>
-            <NavLink to="/" className="text-xl font-display font-bold text-rose-600 hover:text-rose-700 transition-colors">
+            <NavLink to="/" className="text-xl font-display font-bold text-primary hover:text-foreground transition-colors">
               DateSigma
             </NavLink>
           </div>
@@ -82,19 +82,19 @@ const Navbar = () => {
             <Button
               variant="ghost"
               size="sm"
-              className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 relative"
+              className="text-foreground hover:text-foreground hover:bg-muted relative"
             >
               <Bell className="h-4 w-4" />
-              <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs bg-rose-500 text-white border-0">
+              <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs bg-primary text-primary-foreground border-0">
                 3
               </Badge>
             </Button>
 
             {/* Profile Avatar */}
             <NavLink to="/profile">
-              <Avatar className="h-8 w-8 border-2 border-rose-300 hover:border-rose-400 transition-colors cursor-pointer">
+              <Avatar className="h-8 w-8 border-2 border-border hover:border-primary transition-colors cursor-pointer">
                 <AvatarImage src="/api/placeholder/32/32" />
-                <AvatarFallback className="bg-gradient-to-r from-rose-400 to-pink-500 text-white text-sm font-semibold">
+                <AvatarFallback className="bg-gradient-primary text-primary-foreground text-sm font-semibold">
                   AW
                 </AvatarFallback>
               </Avatar>
@@ -107,24 +107,24 @@ const Navbar = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                  className="text-foreground hover:text-foreground hover:bg-muted"
                   >
                     <Menu className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-64 bg-white/95 backdrop-blur-lg border-l border-rose-200">
+                <SheetContent side="right" className="w-64 bg-background/95 backdrop-blur-lg border-l border-border">
                   <div className="flex flex-col space-y-4 mt-8">
                     {/* Profile section in mobile */}
-                    <div className="flex items-center space-x-3 p-4 bg-rose-50 rounded-xl">
-                      <Avatar className="h-10 w-10 border-2 border-rose-300">
+                    <div className="flex items-center space-x-3 p-4 bg-muted rounded-xl">
+                      <Avatar className="h-10 w-10 border-2 border-border">
                         <AvatarImage src="/api/placeholder/40/40" />
-                        <AvatarFallback className="bg-gradient-to-r from-rose-400 to-pink-500 text-white font-semibold">
+                        <AvatarFallback className="bg-gradient-primary text-primary-foreground font-semibold">
                           AW
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="text-rose-700 font-semibold text-sm">Andrew Williams</p>
-                        <p className="text-rose-500 text-xs">University of Texas</p>
+                        <p className="text-foreground font-semibold text-sm">Andrew Williams</p>
+                        <p className="text-muted-foreground text-xs">University of Texas</p>
                       </div>
                     </div>
 
@@ -136,10 +136,10 @@ const Navbar = () => {
                     </div>
 
                     {/* Settings */}
-                    <div className="pt-4 border-t border-rose-200">
+                    <div className="pt-4 border-t border-border">
                       <Button
                         variant="ghost"
-                        className="w-full justify-start text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                        className="w-full justify-start text-foreground hover:text-foreground hover:bg-muted"
                       >
                         <Settings className="h-4 w-4 mr-2" />
                         Settings
