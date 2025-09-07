@@ -5,7 +5,11 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
-const Index = () => {
+interface IndexProps {
+  onProfileComplete?: () => void;
+}
+
+const Index = ({ onProfileComplete }: IndexProps) => {
   const [currentStep, setCurrentStep] = useState<'auth' | 'splash' | 'profile'>('auth');
   const [hasProfile, setHasProfile] = useState(false);
   const { user, isLoading } = useAuth();
@@ -64,7 +68,10 @@ const Index = () => {
     case 'profile':
       return (
         <ProfileSetupFlow 
-          onComplete={() => setHasProfile(true)}
+          onComplete={() => {
+            setHasProfile(true);
+            onProfileComplete?.(); // Trigger recheck in App.tsx
+          }}
         />
       );
 

@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.qcs-scoring]
 verify_jwt = false
+
+[functions.profile-completion]
+verify_jwt = false

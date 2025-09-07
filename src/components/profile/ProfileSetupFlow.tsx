@@ -201,25 +201,30 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       };
 
       localStorage.setItem('demoQCS', JSON.stringify(qcsScore));
-      // After QCS success, update profile so app recognizes completion
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({
-          first_name: profileData.firstName,
-          last_name: profileData.lastName,
-          date_of_birth: profileData.dateOfBirth,
-          gender: profileData.gender as 'male' | 'female' | 'non_binary' | 'prefer_not_to_say',
+      // After QCS success, update profile via Edge Function (service role)
+      const { error: profileError } = await supabase.functions.invoke('profile-completion', {
+        body: {
+          userId,
+          firstName: profileData.firstName,
+          lastName: profileData.lastName,
+          dateOfBirth: profileData.dateOfBirth,
+          gender: profileData.gender,
           university: profileData.university,
-          verification_status: 'verified',
-          is_active: true,
-          last_active: new Date().toISOString()
-        })
-        .eq('user_id', userId);
-      if (updateError) throw updateError;
+          qcsScore: totalScore
+        }
+      });
+
+      if (profileError) {
+        console.error('Profile completion error:', profileError);
+        throw new Error('Failed to complete profile setup');
+      }
 
       toast({ title: "Profile Setup Complete! 🎉", description: `Your QCS score: ${totalScore}/100. Ready to start!` });
 
-      onComplete();
+      // Force a slight delay to ensure database is updated
+      setTimeout(() => {
+        onComplete();
+      }, 500);
     } catch (error: any) {
       console.error('Profile creation error:', error);
       toast({

@@ -48,6 +48,12 @@ const AuthenticatedApp = () => {
 
         const profileComplete = profile && profile.first_name && profile.university;
         setHasProfile(!!profileComplete);
+        
+        console.log('Profile check:', { 
+          userId: user.uid, 
+          hasProfile: !!profileComplete,
+          profileData: profile 
+        });
       } catch (error) {
         console.error('Error checking profile:', error);
         setHasProfile(false);
@@ -61,6 +67,32 @@ const AuthenticatedApp = () => {
     }
   }, [user, isLoading]);
 
+  // Add a function to recheck profile status
+  const recheckProfile = async () => {
+    if (user) {
+      setCheckingProfile(true);
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.uid)
+          .maybeSingle();
+
+        const profileComplete = profile && profile.first_name && profile.university;
+        setHasProfile(!!profileComplete);
+        
+        console.log('Profile recheck:', { 
+          userId: user.uid, 
+          hasProfile: !!profileComplete 
+        });
+      } catch (error) {
+        console.error('Error rechecking profile:', error);
+      } finally {
+        setCheckingProfile(false);
+      }
+    }
+  };
+
   if (isLoading || checkingProfile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
@@ -71,7 +103,7 @@ const AuthenticatedApp = () => {
 
   // If no user or user doesn't have complete profile, show Index (auth/profile setup)
   if (!user || !hasProfile) {
-    return <Index />;
+    return <Index onProfileComplete={recheckProfile} />;
   }
 
   return (
