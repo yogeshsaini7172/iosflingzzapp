@@ -244,12 +244,6 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
               <div className="relative z-10 px-4 py-8">
                 {/* GenZ Background Elements */}
                 <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                  <div className="absolute top-10 left-10 text-6xl opacity-20 animate-float">💜</div>
-                  <div className="absolute top-40 right-20 text-4xl opacity-30 animate-pulse delay-1000">✨</div>
-                  <div className="absolute bottom-60 left-20 text-5xl opacity-25 animate-bounce delay-500">🔥</div>
-                  <div className="absolute top-80 left-1/2 text-3xl opacity-20 animate-spin">💫</div>
-                  <div className="absolute bottom-40 right-10 text-4xl opacity-30 animate-pulse delay-2000">🌙</div>
-                  <div className="absolute top-60 right-1/4 text-2xl opacity-25 animate-bounce delay-1500">💕</div>
                   
                   {/* Floating geometric shapes */}
                   <div className="absolute top-20 right-1/3 w-8 h-8 bg-accent/20 rotate-45 animate-float delay-700"></div>
