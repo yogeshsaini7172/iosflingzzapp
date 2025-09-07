@@ -128,48 +128,68 @@ const SwipeCards: React.FC = () => {
   const currentProfile = profiles[currentIndex];
 
   return (
-    <div className="max-w-md mx-auto p-4 space-y-6 bg-gradient-subtle min-h-screen">
-      {/* Premium Stats Header */}
-      <div className="flex justify-between items-center p-4 glass-luxury rounded-xl border-gradient shadow-soft">
-        <Badge variant="outline" className="flex items-center space-x-2 border-primary/30 text-primary bg-primary/5">
+    <div className="w-full min-h-screen bg-gradient-subtle p-3 pb-20">
+      {/* Mobile-Optimized Stats Header */}
+      <div className="flex justify-between items-center p-3 glass-luxury rounded-2xl border-gradient shadow-soft mb-4">
+        <Badge variant="outline" className="flex items-center space-x-2 border-primary/30 text-primary bg-primary/5 px-3 py-1.5">
           <Zap className="w-4 h-4 animate-pulse-glow" />
           <span className="font-modern font-semibold">{currentIndex + 1} of {profiles.length}</span>
         </Badge>
-        <Badge className="bg-gradient-rose text-white border-0 shadow-royal font-modern font-semibold">
-          {20 - swipeCount} premium swipes left
+        <Badge className="bg-gradient-rose text-white border-0 shadow-royal font-modern font-semibold px-3 py-1.5">
+          {20 - swipeCount} swipes left
         </Badge>
       </div>
 
-      {/* Premium Profile Card */}
-      <Card className="overflow-hidden shadow-premium border-gradient bg-gradient-card hover-elegant">
+      {/* Mobile-Optimized Profile Card */}
+      <Card className="overflow-hidden shadow-premium border-gradient bg-gradient-card hover-elegant rounded-3xl">
         <div className="relative">
-          {/* Profile Image */}
+          {/* Profile Image with Multiple Photo Support */}
           <div className="aspect-[3/4] relative">
-            <img
-              src={currentProfile.profile_images?.[0] || 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400'}
-              alt={`${currentProfile.first_name}'s profile`}
-              className="w-full h-full object-cover"
-            />
+            {currentProfile.profile_images && currentProfile.profile_images.length > 0 ? (
+              <>
+                <img
+                  src={currentProfile.profile_images[0]}
+                  alt={`${currentProfile.first_name}'s profile`}
+                  className="w-full h-full object-cover"
+                />
+                
+                {/* Multiple Photos Indicator */}
+                {currentProfile.profile_images.length > 1 && (
+                  <div className="absolute top-4 right-4 bg-black/60 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+                    1/{currentProfile.profile_images.length}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                <div className="text-center space-y-2">
+                  <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto">
+                    <span className="text-2xl">👤</span>
+                  </div>
+                  <p className="text-white/60 text-sm">No photo</p>
+                </div>
+              </div>
+            )}
             
             {/* Premium Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
             
-            {/* Premium Profile Info Overlay */}
-            <div className="absolute bottom-0 left-0 right-0 p-6 text-white animate-slide-up">
-              <div className="flex items-center space-x-3 mb-4">
+            {/* Mobile-Optimized Profile Info Overlay */}
+            <div className="absolute bottom-0 left-0 right-0 p-5 text-white animate-slide-up">
+              <div className="space-y-3">
                 <div>
-                  <h3 className="text-3xl font-elegant font-bold tracking-tight">
+                  <h3 className="text-2xl font-elegant font-bold tracking-tight leading-tight">
                     {currentProfile.first_name}, {calculateAge(currentProfile.date_of_birth)}
                   </h3>
                   <div className="flex items-center space-x-2 text-white/90 mt-1">
                     <MapPin className="w-4 h-4" />
-                    <span className="font-modern">{currentProfile.university}</span>
+                    <span className="font-modern text-sm">{currentProfile.university}</span>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Shield className="w-5 h-5 text-accent animate-pulse-glow" />
+                  <Shield className="w-4 h-4 text-accent animate-pulse-glow" />
                   {currentProfile.total_qcs && (
-                    <Badge className="bg-gradient-gold text-black border-0 shadow-gold font-modern font-bold">
+                    <Badge className="bg-gradient-gold text-black border-0 shadow-gold font-modern font-bold text-xs px-2 py-1">
                       QCS: {currentProfile.total_qcs}
                     </Badge>
                   )}
@@ -179,44 +199,52 @@ const SwipeCards: React.FC = () => {
           </div>
         </div>
 
-        <CardContent className="p-6 space-y-6 bg-gradient-card">
-          {/* Premium Bio */}
+        <CardContent className="p-5 space-y-5 bg-gradient-card">
+          {/* Mobile-Optimized Bio */}
           {currentProfile.bio && (
-            <div className="glass-dark-luxury p-4 rounded-xl border border-border/50">
-              <h4 className="font-elegant font-semibold mb-3 text-gradient-primary">About</h4>
+            <div className="glass-dark-luxury p-4 rounded-2xl border border-border/50">
+              <h4 className="font-elegant font-semibold mb-3 text-gradient-primary text-base">About</h4>
               <p className="text-foreground/80 text-sm leading-relaxed font-modern">
                 {currentProfile.bio}
               </p>
             </div>
           )}
 
-          {/* Premium Interests */}
+          {/* Mobile-Optimized Interests */}
           {currentProfile.interests && currentProfile.interests.length > 0 && (
             <div>
-              <h4 className="font-elegant font-semibold mb-3 text-gradient-gold">Interests</h4>
+              <h4 className="font-elegant font-semibold mb-3 text-gradient-gold text-base">Interests</h4>
               <div className="flex flex-wrap gap-2">
                 {currentProfile.interests.slice(0, 6).map((interest, index) => (
                   <Badge 
                     key={index} 
                     variant="secondary" 
-                    className="text-xs border-primary/20 bg-primary/5 hover:bg-primary/10 transition-luxury font-modern"
+                    className="text-xs border-primary/20 bg-primary/5 hover:bg-primary/10 transition-luxury font-modern px-3 py-1.5"
                   >
                     {interest}
                   </Badge>
                 ))}
+                {currentProfile.interests.length > 6 && (
+                  <Badge 
+                    variant="secondary" 
+                    className="text-xs border-primary/20 bg-primary/5 font-modern px-3 py-1.5"
+                  >
+                    +{currentProfile.interests.length - 6} more
+                  </Badge>
+                )}
               </div>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Premium Action Buttons */}
-      <div className="flex justify-center space-x-6">
+      {/* Mobile-Optimized Action Buttons */}
+      <div className="flex justify-center space-x-4 mt-6">
         <Button
           onClick={() => handleSwipe('left')}
           variant="outline"
           size="lg"
-          className="flex-1 h-16 glass-luxury border-red-300/50 hover:bg-red-50 hover:border-red-400 hover:shadow-soft transition-luxury group"
+          className="w-16 h-16 rounded-full glass-luxury border-red-300/50 hover:bg-red-50 hover:border-red-400 hover:shadow-soft transition-luxury group touch-manipulation"
         >
           <X className="w-7 h-7 text-red-500 group-hover:scale-110 transition-all" />
         </Button>
@@ -224,15 +252,15 @@ const SwipeCards: React.FC = () => {
         <Button
           onClick={() => handleSwipe('right')}
           size="lg"
-          className="flex-1 h-16 bg-gradient-rose shadow-premium hover:shadow-glow transition-luxury group animate-pulse-glow"
+          className="w-16 h-16 rounded-full bg-gradient-rose shadow-premium hover:shadow-glow transition-luxury group animate-pulse-glow touch-manipulation"
         >
           <Heart className="w-7 h-7 text-white group-hover:scale-110 transition-all" />
         </Button>
       </div>
 
-      {/* Premium Tips */}
-      <div className="text-center text-sm text-foreground/60 font-modern">
-        Swipe left to pass • Swipe right for premium matches
+      {/* Mobile Tips */}
+      <div className="text-center text-sm text-foreground/60 font-modern mt-4 px-4">
+        Tap ✗ to pass • Tap ❤️ for premium matches
       </div>
     </div>
   );

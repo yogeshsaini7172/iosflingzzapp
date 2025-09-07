@@ -181,70 +181,95 @@ const EnhancedSwipeCards = ({ onNavigate, subscriptionTier }: EnhancedSwipeCards
 
   return (
     <div className="min-h-screen bg-gradient-soft">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-card/90 backdrop-blur-lg border-b border-border p-4">
+      {/* Mobile-Optimized Header */}
+      <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-lg border-b border-border p-4">
         <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={() => onNavigate('home')}>
+          <Button variant="ghost" onClick={() => onNavigate('home')} className="touch-manipulation">
             ← Back
           </Button>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <Button
               variant={blindMode ? "default" : "outline"}
               size="sm"
               onClick={() => setBlindMode(!blindMode)}
+              className="text-xs px-3 py-2 touch-manipulation"
             >
-              🎭 Blind Mode
+              🎭 Blind
             </Button>
-            <Badge variant="secondary">
+            <Badge variant="secondary" className="text-xs px-2 py-1">
               {subscriptionTier === 'free' ? 'Free' : subscriptionTier.charAt(0).toUpperCase() + subscriptionTier.slice(1)}
             </Badge>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6 max-w-md">
-        {/* Profile Card */}
-        <Card className="relative overflow-hidden shadow-card border-0 mb-6">
-          {/* Compatibility Score */}
-          <div className="absolute top-4 left-4 z-10">
-            <div className={`${getCompatibilityColor(currentProfile.compatibilityScore)} text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg`}>
-              {currentProfile.compatibilityScore}% {getCompatibilityText(currentProfile.compatibilityScore)}
+      <div className="w-full px-3 py-4 pb-20">
+        {/* Mobile-Optimized Profile Card */}
+        <Card className="relative overflow-hidden shadow-card border-0 mb-6 rounded-3xl">
+          {/* Mobile Compatibility Score */}
+          <div className="absolute top-3 left-3 z-10">
+            <div className={`${getCompatibilityColor(currentProfile.compatibilityScore)} text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg`}>
+              {currentProfile.compatibilityScore}%
             </div>
           </div>
 
-          {/* Verification Badge */}
+          {/* Mobile Verification Badge */}
           {currentProfile.isVerified && (
-            <div className="absolute top-4 right-4 z-10">
-              <Badge variant="default" className="bg-emerald-500 text-white">
+            <div className="absolute top-3 right-3 z-10">
+              <Badge variant="default" className="bg-emerald-500 text-white text-xs px-2 py-1">
                 <Shield className="h-3 w-3 mr-1" />
-                Verified
+                ✓
               </Badge>
             </div>
           )}
 
           <CardContent className="p-0">
-            {/* Photo Section */}
+            {/* Mobile Photo Section */}
             {!blindMode && (
               <div className="aspect-[3/4] bg-muted relative">
-                <img
-                  src={currentProfile.photos[0]}
-                  alt={currentProfile.name}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-6">
-                  <h2 className="text-white text-2xl font-bold mb-1">
+                {currentProfile.photos && currentProfile.photos.length > 0 ? (
+                  <>
+                    <img
+                      src={currentProfile.photos[0]}
+                      alt={currentProfile.name}
+                      className="w-full h-full object-cover"
+                    />
+                    {/* Multiple Photos Indicator */}
+                    {currentProfile.photos.length > 1 && (
+                      <div className="absolute top-12 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+                        1/{currentProfile.photos.length}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                    <div className="text-center space-y-2">
+                      <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto">
+                        <span className="text-2xl">👤</span>
+                      </div>
+                      <p className="text-white/60 text-sm">No photo</p>
+                    </div>
+                  </div>
+                )}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-5">
+                  <h2 className="text-white text-xl font-bold mb-1 leading-tight">
                     {currentProfile.name}, {currentProfile.age}
                   </h2>
-                  <div className="flex items-center text-white/80 text-sm mb-2">
-                    <MapPin className="h-4 w-4 mr-1" />
+                  <div className="flex items-center text-white/80 text-sm">
+                    <MapPin className="h-3 w-3 mr-1" />
                     {currentProfile.distance}
+                  </div>
+                  <div className="mt-2">
+                    <span className={`${getCompatibilityColor(currentProfile.compatibilityScore)} text-white px-2 py-1 rounded-full text-xs font-medium`}>
+                      {getCompatibilityText(currentProfile.compatibilityScore)}
+                    </span>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Profile Info */}
-            <div className="p-6 space-y-4">
+            {/* Mobile Profile Info */}
+            <div className="p-5 space-y-4">
               {blindMode && (
                 <div className="text-center space-y-2">
                   <h2 className="text-2xl font-bold">{currentProfile.name}, {currentProfile.age}</h2>
@@ -308,46 +333,46 @@ const EnhancedSwipeCards = ({ onNavigate, subscriptionTier }: EnhancedSwipeCards
           </CardContent>
         </Card>
 
-        {/* Action Buttons */}
-        <div className="flex justify-center items-center gap-4">
+        {/* Mobile-Optimized Action Buttons */}
+        <div className="flex justify-center items-center gap-6 px-4">
           <Button
             variant="outline"
             size="lg"
-            className="h-14 w-14 rounded-full border-2 border-red-200 hover:bg-red-50 hover:border-red-300"
+            className="h-16 w-16 rounded-full border-2 border-red-200 hover:bg-red-50 hover:border-red-300 touch-manipulation shadow-md"
             onClick={() => handleSwipe('pass')}
             disabled={isAnimating}
           >
-            <X className="h-6 w-6 text-red-500" />
+            <X className="h-7 w-7 text-red-500" />
           </Button>
 
           <Button
             variant="outline"
             size="lg"
-            className="h-16 w-16 rounded-full border-2 border-blue-200 hover:bg-blue-50 hover:border-blue-300"
+            className="h-18 w-18 rounded-full border-2 border-blue-200 hover:bg-blue-50 hover:border-blue-300 touch-manipulation shadow-md"
             onClick={() => handleSwipe('super-like')}
             disabled={isAnimating}
           >
-            <Star className="h-7 w-7 text-blue-500" />
+            <Star className="h-8 w-8 text-blue-500" />
           </Button>
 
           <Button
             variant="outline"
             size="lg"
-            className="h-14 w-14 rounded-full border-2 border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300"
+            className="h-16 w-16 rounded-full border-2 border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300 touch-manipulation shadow-md"
             onClick={() => handleSwipe('like')}
             disabled={isAnimating}
           >
-            <Heart className="h-6 w-6 text-emerald-500" />
+            <Heart className="h-7 w-7 text-emerald-500" />
           </Button>
         </div>
 
-        {/* Subscription Limit Warning */}
+        {/* Mobile Subscription Limit Warning */}
         {subscriptionTier === 'free' && (
-          <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-            <p className="text-sm text-amber-800 text-center">
+          <div className="mt-6 mx-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl">
+            <p className="text-sm text-amber-800 text-center leading-relaxed">
               Upgrade to Premium to unlock super likes and see who liked you!
             </p>
-            <Button variant="outline" size="sm" className="w-full mt-2">
+            <Button variant="outline" size="sm" className="w-full mt-3 touch-manipulation">
               Upgrade Now
             </Button>
           </div>

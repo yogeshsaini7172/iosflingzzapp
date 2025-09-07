@@ -312,10 +312,10 @@ const EnhancedProfileDisplay: React.FC = () => {
       <div className="space-y-3">
         {/* Profile Photo & Basic Info - Mobile */}
         <div className="space-y-3">
-          {/* Profile Photo - Mobile */}
-          <div className="genZ-glass-card p-3 rounded-2xl border border-white/20">
+          {/* Mobile-Optimized Profile Photo */}
+          <div className="genZ-glass-card p-4 rounded-2xl border border-white/20">
             <div className="relative">
-              <div className="aspect-[3/4] bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl overflow-hidden border border-white/10 max-w-xs mx-auto">
+              <div className="aspect-[3/4] bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl overflow-hidden border border-white/10 max-w-sm mx-auto">
                 {profileImage ? (
                   <img 
                     src={profileImage} 
@@ -324,50 +324,57 @@ const EnhancedProfileDisplay: React.FC = () => {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <div className="text-center space-y-2">
-                      <Camera className="w-8 h-8 text-white/50 mx-auto" />
-                      <p className="text-white/60 text-xs">No photo</p>
+                    <div className="text-center space-y-3">
+                      <Camera className="w-12 h-12 text-white/50 mx-auto" />
+                      <p className="text-white/60 text-sm">No photo uploaded</p>
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Photo Navigation - Mobile */}
+              {/* Mobile Photo Navigation */}
               {profileData.profile_images && profileData.profile_images.length > 1 && (
-                <div className="absolute inset-0 flex items-center justify-between px-1">
+                <div className="absolute inset-0 flex items-center justify-between px-2">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={prevImage}
-                    className="bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm rounded-full w-6 h-6 p-0 text-sm"
+                    className="bg-black/40 hover:bg-black/60 text-white backdrop-blur-sm rounded-full w-10 h-10 p-0 touch-manipulation shadow-lg"
                   >
-                    ‹
+                    <span className="text-lg">‹</span>
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={nextImage}
-                    className="bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm rounded-full w-6 h-6 p-0 text-sm"
+                    className="bg-black/40 hover:bg-black/60 text-white backdrop-blur-sm rounded-full w-10 h-10 p-0 touch-manipulation shadow-lg"
                   >
-                    ›
+                    <span className="text-lg">›</span>
                   </Button>
                 </div>
               )}
 
-              {/* Photo Indicators - Mobile */}
+              {/* Mobile Photo Indicators */}
               {profileData.profile_images && profileData.profile_images.length > 1 && (
-                <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
+                <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-2">
                   {profileData.profile_images.map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentImageIndex(index)}
-                      className={`w-1.5 h-1.5 rounded-full transition-all ${
+                      className={`w-2 h-2 rounded-full transition-all touch-manipulation ${
                         index === currentImageIndex 
-                          ? 'bg-white scale-125' 
+                          ? 'bg-white scale-125 shadow-md' 
                           : 'bg-white/50 hover:bg-white/75'
                       }`}
                     />
                   ))}
+                </div>
+              )}
+
+              {/* Photo Count Indicator */}
+              {profileData.profile_images && profileData.profile_images.length > 1 && (
+                <div className="absolute top-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+                  {currentImageIndex + 1}/{profileData.profile_images.length}
                 </div>
               )}
             </div>
