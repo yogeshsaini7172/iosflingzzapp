@@ -7,10 +7,12 @@ const corsHeaders = {
 };
 
 interface ChatRequest {
-  action: 'create' | 'send' | 'history';
+  action: 'create' | 'send' | 'history' | 'list' | 'create_room';
   candidate_id?: string;
   match_id?: string;
   message?: string;
+  user_id?: string;
+  other_user_id?: string;
 }
 
 serve(async (req) => {
@@ -25,26 +27,27 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const authHeader = req.headers.get('Authorization')!;
-    const token = authHeader.replace('Bearer ', '');
-    const { data } = await supabaseClient.auth.getUser(token);
-    const user = data.user;
-    if (!user) throw new Error('User not authenticated');
+    const { action, candidate_id, match_id, message, user_id }: ChatRequest = await req.json();
 
-    const { action, candidate_id, match_id, message }: ChatRequest = await req.json();
+    // Optional auth: try JWT, but allow unauthenticated for 'list' with explicit user_id
+    const authHeader = req.headers.get('Authorization') || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.replace('Bearer ', '') : '';
+    const { data } = token ? await supabaseClient.auth.getUser(token) : { data: { user: null } } as any;
+    const authedUser = data?.user;
 
     switch (action) {
       case 'create':
         if (!candidate_id) {
           throw new Error('Candidate ID is required');
         }
+        if (!authedUser) throw new Error('User not authenticated');
 
         // Check if match already exists
         const { data: existingMatches } = await supabaseClient
           .from('matches')
           .select('*')
           .or(
-            `and(liker_id.eq.${user.id},liked_id.eq.${candidate_id}),and(liker_id.eq.${candidate_id},liked_id.eq.${user.id})`
+            `and(liker_id.eq.${authedUser.id},liked_id.eq.${candidate_id}),and(liker_id.eq.${candidate_id},liked_id.eq.${authedUser.id})`
           );
 
         if (existingMatches && existingMatches.length > 0) {
@@ -62,7 +65,7 @@ serve(async (req) => {
         const { data: newMatch, error: matchError } = await supabaseClient
           .from('matches')
           .insert({
-            liker_id: user.id,
+            liker_id: authedUser.id,
             liked_id: candidate_id,
             status: 'matched',
             created_at: new Date().toISOString()
@@ -72,7 +75,7 @@ serve(async (req) => {
 
         if (matchError) throw matchError;
 
-        console.log(`Chat created between ${user.id} and ${candidate_id} | match_id=${newMatch.id}`);
+        console.log(`Chat created between ${authedUser.id} and ${candidate_id} | match_id=${newMatch.id}`);
         return new Response(JSON.stringify({
           success: true,
           data: { match_id: newMatch.id, status: 'active' },
@@ -86,6 +89,7 @@ serve(async (req) => {
         if (!match_id || !message) {
           throw new Error('Match ID and message are required');
         }
+        if (!authedUser) throw new Error('User not authenticated');
 
         // Verify user is part of this match
         const { data: match } = await supabaseClient
@@ -94,7 +98,7 @@ serve(async (req) => {
           .eq('id', match_id)
           .single();
 
-        if (!match || (match.liker_id !== user.id && match.liked_id !== user.id)) {
+        if (!match || (match.liker_id !== authedUser.id && match.liked_id !== authedUser.id)) {
           throw new Error('Unauthorized: You are not part of this match');
         }
 
@@ -103,7 +107,7 @@ serve(async (req) => {
           .from('messages')
           .insert({
             match_id,
-            sender_id: user.id,
+            sender_id: authedUser.id,
             content: message,
             created_at: new Date().toISOString()
           })
@@ -112,7 +116,7 @@ serve(async (req) => {
 
         if (messageError) throw messageError;
 
-        console.log(`Message sent | match_id=${match_id} | sender=${user.id}`);
+        console.log(`Message sent | match_id=${match_id} | sender=${authedUser.id}`);
         return new Response(JSON.stringify({
           success: true,
           data: sentMessage,
@@ -126,6 +130,7 @@ serve(async (req) => {
         if (!match_id) {
           throw new Error('Match ID is required');
         }
+        if (!authedUser) throw new Error('User not authenticated');
 
         // Verify user is part of this match
         const { data: matchForHistory } = await supabaseClient
@@ -134,7 +139,7 @@ serve(async (req) => {
           .eq('id', match_id)
           .single();
 
-        if (!matchForHistory || (matchForHistory.liker_id !== user.id && matchForHistory.liked_id !== user.id)) {
+        if (!matchForHistory || (matchForHistory.liker_id !== authedUser.id && matchForHistory.liked_id !== authedUser.id)) {
           throw new Error('Unauthorized: You are not part of this match');
         }
 
@@ -162,6 +167,44 @@ serve(async (req) => {
           data: messages,
           message: 'Chat history fetched'
         }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        });
+
+      case 'list':
+        if (!user_id) throw new Error('user_id is required');
+        // List chat rooms for a user and enrich with other user and last message
+        const { data: rooms, error: roomsError } = await supabaseClient
+          .from('chat_rooms')
+          .select('id, match_id, user1_id, user2_id, updated_at, created_at')
+          .or(`user1_id.eq.${user_id},user2_id.eq.${user_id}`)
+          .order('updated_at', { ascending: false });
+        if (roomsError) throw roomsError;
+
+        const enriched = [] as any[];
+        for (const room of rooms || []) {
+          const otherUserId = room.user1_id === user_id ? room.user2_id : room.user1_id;
+          const { data: otherUser } = await supabaseClient
+            .from('profiles')
+            .select('user_id, first_name, last_name, profile_images, university')
+            .eq('user_id', otherUserId)
+            .single();
+          const { data: lastMessage } = await supabaseClient
+            .from('chat_messages_enhanced')
+            .select('message_text, created_at')
+            .eq('chat_room_id', room.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          enriched.push({
+            ...room,
+            other_user: otherUser,
+            last_message: lastMessage?.message_text || 'Start your conversation...',
+            last_message_time: lastMessage?.created_at || room.updated_at,
+          });
+        }
+
+        return new Response(JSON.stringify({ success: true, data: enriched }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200,
         });

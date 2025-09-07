@@ -7,6 +7,7 @@ const corsHeaders = {
 };
 
 interface SwipeRequest {
+  user_id?: string;
   candidate_id: string;
   direction: 'left' | 'right';
 }
@@ -62,22 +63,24 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const authHeader = req.headers.get('Authorization')!;
-    const token = authHeader.replace('Bearer ', '');
-    const { data } = await supabaseClient.auth.getUser(token);
-    const user = data.user;
-    if (!user) throw new Error('User not authenticated');
+    // Try to get user from JWT, but allow fallback to body.user_id for demo
+    const authHeader = req.headers.get('Authorization') || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.replace('Bearer ', '') : '';
+    const { data } = token ? await supabaseClient.auth.getUser(token) : { data: { user: null } } as any;
+    const authedUser = data?.user;
 
-    const { candidate_id, direction }: SwipeRequest = await req.json();
+    const { user_id: bodyUserId, candidate_id, direction }: SwipeRequest = await req.json();
+    const userId = authedUser?.id || bodyUserId;
+    if (!userId) throw new Error('User not authenticated');
 
     // Reset daily limits if needed
-    await resetIfNeeded(supabaseClient, user.id);
+    await resetIfNeeded(supabaseClient, userId);
 
     // Get user profile to check swipe limits
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
       .select('swipes_left')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single();
 
     if (profileError) throw profileError;
@@ -97,13 +100,13 @@ serve(async (req) => {
     await supabaseClient
       .from('profiles')
       .update({ swipes_left: newSwipesLeft })
-      .eq('user_id', user.id);
+      .eq('user_id', userId);
 
-    // Record swipe
+    // Record swipe (in base swipes table for analytics)
     await supabaseClient
       .from('swipes')
       .upsert({
-        user_id: user.id,
+        user_id: userId,
         candidate_id,
         direction,
         created_at: new Date().toISOString()
@@ -118,7 +121,7 @@ serve(async (req) => {
         .from('swipes')
         .select('*')
         .eq('user_id', candidate_id)
-        .eq('candidate_id', user.id)
+        .eq('candidate_id', userId)
         .eq('direction', 'right');
 
       if (candidateSwipes && candidateSwipes.length > 0) {
@@ -126,7 +129,7 @@ serve(async (req) => {
         const { data: match, error: matchError } = await supabaseClient
           .from('matches')
           .insert({
-            liker_id: user.id,
+            liker_id: userId,
             liked_id: candidate_id,
             status: 'matched',
             created_at: new Date().toISOString()
@@ -137,12 +140,39 @@ serve(async (req) => {
         if (!matchError && match) {
           matchCreated = true;
           matchId = match.id;
-          console.log(`Match created between ${user.id} and ${candidate_id}`);
+          console.log(`Match created between ${userId} and ${candidate_id}`);
+
+          // Also create chat room if not exists
+          const user1 = userId < candidate_id ? userId : candidate_id;
+          const user2 = userId < candidate_id ? candidate_id : userId;
+          const { data: existingRoom } = await supabaseClient
+            .from('chat_rooms')
+            .select('id')
+            .or(`and(user1_id.eq.${user1},user2_id.eq.${user2}),and(user1_id.eq.${user2},user2_id.eq.${user1})`)
+            .maybeSingle();
+
+          if (!existingRoom) {
+            const { data: room, error: roomError } = await supabaseClient
+              .from('chat_rooms')
+              .insert({
+                match_id: match.id,
+                user1_id: user1,
+                user2_id: user2
+              })
+              .select()
+              .single();
+
+            if (roomError) {
+              console.error('Chat room creation error:', roomError);
+            } else {
+              console.log('Chat room created:', room?.id);
+            }
+          }
         }
       }
     }
 
-    console.log(`Swipe recorded | user=${user.id} → ${candidate_id} [${direction}]`);
+    console.log(`Swipe recorded | user=${userId} → ${candidate_id} [${direction}]`);
 
     return new Response(JSON.stringify({
       success: true,
