@@ -199,12 +199,27 @@ export const useProfileData = () => {
     const userId = getCurrentUserId();
     
     try {
-      const { error } = await supabase
+      // Check if a row already exists for this user (Firebase UID)
+      const { data: existing } = await supabase
         .from("partner_preferences")
-        .upsert(
-          { user_id: userId, ...updates },
-          { onConflict: 'user_id' }
-        );
+        .select("user_id")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      let error: any = null;
+
+      if (existing) {
+        // Update existing row to avoid unique constraint conflicts
+        ({ error } = await supabase
+          .from("partner_preferences")
+          .update({ ...updates })
+          .eq("user_id", userId));
+      } else {
+        // Insert new row
+        ({ error } = await supabase
+          .from("partner_preferences")
+          .insert({ user_id: userId, ...updates }));
+      }
 
       if (error) throw error;
       
