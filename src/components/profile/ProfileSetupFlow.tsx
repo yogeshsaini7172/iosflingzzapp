@@ -229,7 +229,14 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
             preferredGender: profileData.preferredGender,
             ageRangeMin: profileData.ageRangeMin,
             ageRangeMax: profileData.ageRangeMax,
-            preferredRelationshipGoals: profileData.preferredRelationshipGoals
+            preferredRelationshipGoals: profileData.preferredRelationshipGoals,
+            // Add physical preferences for requirements matching
+            heightRangeMin: profileData.heightRangeMin,
+            heightRangeMax: profileData.heightRangeMax, 
+            preferredBodyTypes: profileData.preferredBodyTypes,
+            preferredValues: profileData.preferredValues,
+            preferredMindset: profileData.preferredMindset,
+            preferredPersonality: profileData.preferredPersonality
           }
         }
       });

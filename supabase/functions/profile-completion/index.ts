@@ -89,7 +89,28 @@ serve(async (req) => {
         is_active: true,
         last_active: new Date().toISOString(),
         total_qcs: qcsScore || 0,
-        email: email || userEmail // Use provided email or Firebase email
+        email: email || userEmail, // Use provided email or Firebase email
+        // Set user qualities (what they offer)
+        qualities: JSON.stringify({
+          height: height || null,
+          body_type: bodyType || null,
+          skin_tone: skinTone || null,
+          personality_type: personalityType || null,
+          values: values || null,
+          mindset: mindset || null,
+          university: university || null,
+          field_of_study: fieldOfStudy || null
+        }),
+        // Set user requirements (what they want in a partner) from preferences
+        requirements: JSON.stringify({
+          height_range_min: preferences?.heightRangeMin || null,
+          height_range_max: preferences?.heightRangeMax || null,
+          preferred_body_types: preferences?.preferredBodyTypes || [],
+          preferred_values: preferences?.preferredValues || [],
+          preferred_mindset: preferences?.preferredMindset || [],
+          preferred_personality: preferences?.preferredPersonality || [],
+          preferred_gender: preferences?.preferredGender || []
+        })
       }, {
         onConflict: 'user_id'
       });

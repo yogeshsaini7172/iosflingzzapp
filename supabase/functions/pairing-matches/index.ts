@@ -51,18 +51,127 @@ async function resetIfNeeded(supabaseClient: any, userId: string) {
 }
 
 async function calculateCompatibilityScore(userA: any, userB: any): Promise<{ score: number; breakdown: any }> {
-  // Simplified compatibility calculation
-  // In production, this would use the full algorithm from compatibility-scoring function
-  const baseScore = 50 + Math.random() * 50;
+  let totalScore = 0;
+  let matches = 0;
   
-  return {
-    score: Math.round(baseScore),
-    breakdown: {
-      physical: Math.random() * 100,
-      mental: Math.random() * 100,
-      interests: Math.random() * 100
+  try {
+    // Parse qualities and requirements
+    const userAQualities = typeof userA.qualities === 'string' ? JSON.parse(userA.qualities) : userA.qualities;
+    const userARequirements = typeof userA.requirements === 'string' ? JSON.parse(userA.requirements) : userA.requirements;
+    const userBQualities = typeof userB.qualities === 'string' ? JSON.parse(userB.qualities) : userB.qualities;
+    const userBRequirements = typeof userB.requirements === 'string' ? JSON.parse(userB.requirements) : userB.requirements;
+    
+    console.log('User A Requirements:', userARequirements);
+    console.log('User B Qualities:', userBQualities);
+    
+    // Physical compatibility: Does User A's height requirements match User B's height?
+    let physicalScore = 50;
+    if (userARequirements?.height_range_min && userARequirements?.height_range_max && userBQualities?.height) {
+      const heightMatch = userBQualities.height >= userARequirements.height_range_min && 
+                         userBQualities.height <= userARequirements.height_range_max;
+      if (heightMatch) {
+        physicalScore += 25;
+        matches++;
+      }
     }
-  };
+    
+    // Body type compatibility
+    if (userARequirements?.preferred_body_types?.length > 0 && userBQualities?.body_type) {
+      const bodyMatch = userARequirements.preferred_body_types.includes(userBQualities.body_type) ||
+                       userARequirements.preferred_body_types.includes('Any');
+      if (bodyMatch) {
+        physicalScore += 25;
+        matches++;
+      }
+    }
+    
+    // Values compatibility: Does User A want User B's values?
+    let valuesScore = 50;
+    if (userARequirements?.preferred_values?.length > 0 && userBQualities?.values) {
+      const valuesMatch = userARequirements.preferred_values.includes(userBQualities.values);
+      if (valuesMatch) {
+        valuesScore += 50;
+        matches++;
+      }
+    }
+    
+    // Personality compatibility
+    let personalityScore = 50;
+    if (userARequirements?.preferred_personality?.length > 0 && userBQualities?.personality_type) {
+      const personalityMatch = userARequirements.preferred_personality.includes(userBQualities.personality_type);
+      if (personalityMatch) {
+        personalityScore += 50;
+        matches++;
+      }
+    }
+    
+    // Mindset compatibility
+    let mindsetScore = 50;
+    if (userARequirements?.preferred_mindset?.length > 0 && userBQualities?.mindset) {
+      const mindsetMatch = userARequirements.preferred_mindset.includes(userBQualities.mindset);
+      if (mindsetMatch) {
+        mindsetScore += 50;
+        matches++;
+      }
+    }
+    
+    // Calculate mutual compatibility (both directions)
+    const userAToB = (physicalScore + valuesScore + personalityScore + mindsetScore) / 4;
+    
+    // Now check User B's requirements against User A's qualities
+    let reverseMutualScore = 50;
+    if (userBRequirements?.height_range_min && userBRequirements?.height_range_max && userAQualities?.height) {
+      const reverseHeightMatch = userAQualities.height >= userBRequirements.height_range_min && 
+                                userAQualities.height <= userBRequirements.height_range_max;
+      if (reverseHeightMatch) reverseMutualScore += 12.5;
+    }
+    
+    if (userBRequirements?.preferred_body_types?.length > 0 && userAQualities?.body_type) {
+      const reverseBodyMatch = userBRequirements.preferred_body_types.includes(userAQualities.body_type);
+      if (reverseBodyMatch) reverseMutualScore += 12.5;
+    }
+    
+    if (userBRequirements?.preferred_values?.length > 0 && userAQualities?.values) {
+      const reverseValuesMatch = userBRequirements.preferred_values.includes(userAQualities.values);
+      if (reverseValuesMatch) reverseMutualScore += 12.5;
+    }
+    
+    if (userBRequirements?.preferred_personality?.length > 0 && userAQualities?.personality_type) {
+      const reversePersonalityMatch = userBRequirements.preferred_personality.includes(userAQualities.personality_type);
+      if (reversePersonalityMatch) reverseMutualScore += 12.5;
+    }
+    
+    // Final score is average of both directions (mutual compatibility)
+    totalScore = (userAToB + reverseMutualScore) / 2;
+    
+    console.log(`Compatibility: User A->B: ${userAToB}, User B->A: ${reverseMutualScore}, Final: ${totalScore}`);
+    
+    return {
+      score: Math.min(100, Math.max(0, Math.round(totalScore))),
+      breakdown: {
+        physical: physicalScore,
+        values: valuesScore,
+        personality: personalityScore,
+        mindset: mindsetScore,
+        mutual: reverseMutualScore,
+        matches: matches
+      }
+    };
+  } catch (error) {
+    console.error('Error calculating compatibility:', error);
+    // Fallback to random score
+    return {
+      score: 50 + Math.random() * 30,
+      breakdown: {
+        physical: 50,
+        values: 50,
+        personality: 50,
+        mindset: 50,
+        mutual: 50,
+        matches: 0
+      }
+    };
+  }
 }
 
 serve(async (req) => {
