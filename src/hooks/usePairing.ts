@@ -9,7 +9,8 @@ export const usePairing = () => {
   const { toast } = useToast();
 
   const getCurrentUserId = () => {
-    return localStorage.getItem("demoUserId") || "6e6a510a-d406-4a01-91ab-64efdbca98f2";
+    // Bypass auth - use default Alice user ID
+    return "11111111-1111-1111-1111-111111111001";
   };
 
   const fetchPairedProfiles = async () => {

@@ -27,90 +27,22 @@ const queryClient = new QueryClient({
 });
 
 const AuthenticatedApp = () => {
-  const { user, isLoading } = useAuth();
-  const [hasProfile, setHasProfile] = useState(false);
+  // Bypass auth - always show app content
+  const [hasProfile, setHasProfile] = useState(true); // Always true for bypass
   const [checkingProfile, setCheckingProfile] = useState(false);
 
-  useEffect(() => {
-    const checkUserProfile = async () => {
-      if (!user) {
-        setHasProfile(false);
-        return;
-      }
-
-      setCheckingProfile(true);
-      try {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('first_name, university, verification_status, total_qcs')
-          .eq('user_id', user.uid)
-          .maybeSingle();
-
-        const profileComplete = !!profile && (
-          profile.verification_status === 'verified' ||
-          (!!profile.first_name && !!profile.university) ||
-          (typeof profile.total_qcs === 'number' && profile.total_qcs > 0)
-        );
-        setHasProfile(profileComplete);
-        
-        console.log('Profile check:', { 
-          userId: user.uid, 
-          hasProfile: !!profileComplete,
-          profileData: profile 
-        });
-      } catch (error) {
-        console.error('Error checking profile:', error);
-        setHasProfile(false);
-      } finally {
-        setCheckingProfile(false);
-      }
-    };
-
-    if (!isLoading) {
-      checkUserProfile();
-    }
-  }, [user, isLoading]);
+  // Mock user object for bypassed auth
+  const user = { uid: '11111111-1111-1111-1111-111111111001' };
+  const isLoading = false;
 
   // Add a function to recheck profile status
   const recheckProfile = async () => {
-    console.log('Rechecking profile status...');
-    if (user) {
-      setCheckingProfile(true);
-      try {
-        // Add a small delay to ensure database has been updated
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('first_name, university, verification_status, total_qcs')
-          .eq('user_id', user.uid)
-          .maybeSingle();
-
-        const profileComplete = !!profile && (
-          profile.verification_status === 'verified' ||
-          (!!profile.first_name && !!profile.university) ||
-          (typeof profile.total_qcs === 'number' && profile.total_qcs > 0)
-        );
-        setHasProfile(profileComplete);
-        
-        console.log('Profile recheck result:', { 
-          userId: user.uid, 
-          hasProfile: !!profileComplete,
-          profileData: profile
-        });
-        
-        return !!profileComplete;
-      } catch (error) {
-        console.error('Error rechecking profile:', error);
-        return false;
-      } finally {
-        setCheckingProfile(false);
-      }
-    }
-    return false;
+    // Bypass auth - always return true
+    return true;
   };
 
-  if (isLoading || checkingProfile) {
+  // Bypass loading states
+  if (false) { // Never loading
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -118,10 +50,8 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // If no user or user doesn't have complete profile, show Index (auth/profile setup)
-  if (!user || !hasProfile) {
-    return <Index onProfileComplete={recheckProfile} />;
-  }
+  // Bypass auth checks - always show app content
+  // No user or profile checks needed
 
   return (
     <TooltipProvider>
