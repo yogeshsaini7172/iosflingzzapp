@@ -511,18 +511,23 @@ export type Database = {
       }
       profiles: {
         Row: {
+          ai_insights_enabled: boolean | null
           bio: string | null
           blinddate_requests_left: number | null
           body_type: string | null
+          boosts_remaining: number | null
+          can_see_who_liked_you: boolean | null
           college_id_url: string | null
           college_tier: string | null
           compatibility_preferences: Json | null
           created_at: string
           daily_incoming_matches: number | null
           daily_outgoing_matches: number | null
+          daily_swipes_reset_at: string | null
           daily_swipes_used: number | null
           date_of_birth: string
           email: string
+          extra_pairings_left: number | null
           face_type: string | null
           field_of_study: string | null
           first_name: string
@@ -546,6 +551,10 @@ export type Database = {
           mindset: string | null
           pairing_requests_left: number | null
           personality_type: string | null
+          plan_expires_at: string | null
+          plan_id: string | null
+          plan_started_at: string | null
+          priority_score: number | null
           profile_completion_percentage: number | null
           profile_images: string[] | null
           qualities: Json | null
@@ -559,6 +568,7 @@ export type Database = {
           student_id_verified: boolean | null
           subscription_expires_at: string | null
           subscription_tier: string | null
+          superlikes_remaining: number | null
           swipes_left: number | null
           total_qcs: number | null
           university: string
@@ -570,18 +580,23 @@ export type Database = {
           year_of_study: number | null
         }
         Insert: {
+          ai_insights_enabled?: boolean | null
           bio?: string | null
           blinddate_requests_left?: number | null
           body_type?: string | null
+          boosts_remaining?: number | null
+          can_see_who_liked_you?: boolean | null
           college_id_url?: string | null
           college_tier?: string | null
           compatibility_preferences?: Json | null
           created_at?: string
           daily_incoming_matches?: number | null
           daily_outgoing_matches?: number | null
+          daily_swipes_reset_at?: string | null
           daily_swipes_used?: number | null
           date_of_birth: string
           email: string
+          extra_pairings_left?: number | null
           face_type?: string | null
           field_of_study?: string | null
           first_name: string
@@ -605,6 +620,10 @@ export type Database = {
           mindset?: string | null
           pairing_requests_left?: number | null
           personality_type?: string | null
+          plan_expires_at?: string | null
+          plan_id?: string | null
+          plan_started_at?: string | null
+          priority_score?: number | null
           profile_completion_percentage?: number | null
           profile_images?: string[] | null
           qualities?: Json | null
@@ -618,6 +637,7 @@ export type Database = {
           student_id_verified?: boolean | null
           subscription_expires_at?: string | null
           subscription_tier?: string | null
+          superlikes_remaining?: number | null
           swipes_left?: number | null
           total_qcs?: number | null
           university: string
@@ -629,18 +649,23 @@ export type Database = {
           year_of_study?: number | null
         }
         Update: {
+          ai_insights_enabled?: boolean | null
           bio?: string | null
           blinddate_requests_left?: number | null
           body_type?: string | null
+          boosts_remaining?: number | null
+          can_see_who_liked_you?: boolean | null
           college_id_url?: string | null
           college_tier?: string | null
           compatibility_preferences?: Json | null
           created_at?: string
           daily_incoming_matches?: number | null
           daily_outgoing_matches?: number | null
+          daily_swipes_reset_at?: string | null
           daily_swipes_used?: number | null
           date_of_birth?: string
           email?: string
+          extra_pairings_left?: number | null
           face_type?: string | null
           field_of_study?: string | null
           first_name?: string
@@ -664,6 +689,10 @@ export type Database = {
           mindset?: string | null
           pairing_requests_left?: number | null
           personality_type?: string | null
+          plan_expires_at?: string | null
+          plan_id?: string | null
+          plan_started_at?: string | null
+          priority_score?: number | null
           profile_completion_percentage?: number | null
           profile_images?: string[] | null
           qualities?: Json | null
@@ -677,6 +706,7 @@ export type Database = {
           student_id_verified?: boolean | null
           subscription_expires_at?: string | null
           subscription_tier?: string | null
+          superlikes_remaining?: number | null
           swipes_left?: number | null
           total_qcs?: number | null
           university?: string
