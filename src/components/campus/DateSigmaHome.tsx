@@ -30,6 +30,7 @@ import HeartNotificationBadge from '@/components/ui/heart-notification-badge';
 import WhoLikedMeModal from '@/components/likes/WhoLikedMeModal';
 import ChatRequestsModal from '@/components/notifications/ChatRequestsModal';
 import { useSwipeRealtime, useLikeRealtime, useNotificationRealtime } from '@/hooks/useRealtime';
+import QCSFixer from '@/components/debug/QCSFixer';
 
 interface Thread {
   id: number;
@@ -952,6 +953,11 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
         isOpen={showWhoLikedMe} 
         onClose={() => setShowWhoLikedMe(false)} 
       />
+      {/* Debug Tools - Temporary */}
+      <div className="p-4">
+        <QCSFixer />
+      </div>
+
       {/* Who Liked Me Modal */}
       <WhoLikedMeModal 
         isOpen={showWhoLikedMe}
