@@ -739,6 +739,22 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
         return;
       }
 
+      // Validate file types and sizes
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (!allowedTypes.includes(file.type)) {
+          alert('Please upload only JPG, PNG, or WEBP images.');
+          return;
+        }
+        if (file.size > maxSize) {
+          alert(`File ${file.name} is too large. Please upload images under 10MB.`);
+          return;
+        }
+      }
+
       try {
         console.log("📸 Starting photo upload...", files.length, "files");
         const uploadedUrls: string[] = [];
@@ -767,7 +783,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
 
           if (error) {
             console.error("❌ Upload error:", error);
-            throw error;
+            throw new Error(`Upload failed: ${error.message}`);
           }
 
           console.log("✅ Upload successful:", data);
@@ -790,14 +806,15 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
           console.log("✅ Profile updated with new images");
         } catch (error) {
           console.error("❌ Failed to save images to profile:", error);
+          throw new Error("Failed to save images to profile");
         }
         
         console.log("✅ Photos uploaded successfully:", uploadedUrls);
         console.log("📸 Total images now:", newImages.length);
         
-      } catch (error) {
+      } catch (error: any) {
         console.error('❌ Error uploading photos:', error);
-        alert('Error uploading photos. Please try again.');
+        alert(`Upload error: ${error.message || 'Please try again.'}`);
       }
     };
 
