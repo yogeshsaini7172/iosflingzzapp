@@ -30,75 +30,52 @@ const PairingMatches: React.FC = () => {
   const [selectedProfile, setSelectedProfile] = useState<PairingMatch | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [matchedChatId, setMatchedChatId] = useState<string>("");
+  const [scoringLoading, setScoringLoading] = useState<boolean>(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Transform pairing data to matches format with REAL compatibility scores
-    const transformPairingToMatches = async () => {
-      if (pairedProfiles.length === 0) return;
-
+    // Always compute REAL compatibility first; only show profiles after scoring
+    const runDeterministicPairing = async () => {
+      setScoringLoading(true);
       const userId = getCurrentUserId();
-      
       try {
-        // Get real deterministic compatibility scores
         const { data: pairingResults, error } = await supabase.functions.invoke('deterministic-pairing', {
           body: { user_id: userId }
         });
 
-        if (error) {
-          console.error('Failed to get deterministic pairing:', error);
-          // Fallback to profiles with varied compatibility scores
-          const transformedMatches: PairingMatch[] = pairedProfiles.map((profile, index) => ({
-            ...profile,
-            compatibility_score: [95, 89, 83, 78, 72, 68, 92, 85, 76, 81][index % 10] || 75,
-            can_chat: Math.random() > 0.3
-          }));
-          
-          transformedMatches.sort((a, b) => (b.compatibility_score || 0) - (a.compatibility_score || 0));
-          setMatches(transformedMatches);
-          return;
-        }
+        if (error) throw error;
 
-        // Use real calculated compatibility scores
-        const realMatches: PairingMatch[] = pairingResults.top_candidates?.map((candidate: any) => ({
-          user_id: candidate.candidate_id,
-          first_name: candidate.candidate_name.split(' ')[0] || 'Unknown',
-          last_name: candidate.candidate_name.split(' ').slice(1).join(' ') || '',
-          university: candidate.candidate_university || 'Unknown University',
-          profile_images: ['https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400'],
-          bio: 'Smart, ambitious, and looking for meaningful connections',
-          total_qcs: candidate.candidate_qcs,
-          compatibility_score: Math.round(candidate.final_score), // Use REAL calculated score
-          can_chat: candidate.final_score > 85 // High compatibility = direct chat
-        })) || [];
+        // Map candidates to UI model and enrich from pairedProfiles when possible
+        const candidates = pairingResults?.top_candidates || [];
+        const enriched: PairingMatch[] = candidates.map((c: any) => {
+          const fromFeed = pairedProfiles.find(p => p.user_id === c.candidate_id);
+          const [first, ...rest] = (c.candidate_name || '').split(' ');
+          return {
+            user_id: c.candidate_id,
+            first_name: first || fromFeed?.first_name || 'User',
+            last_name: rest.join(' ') || fromFeed?.last_name || '',
+            university: c.candidate_university || fromFeed?.university || '',
+            profile_images: fromFeed?.profile_images || [],
+            bio: fromFeed?.bio,
+            total_qcs: c.candidate_qcs,
+            compatibility_score: Math.round(c.final_score),
+            can_chat: Math.round(c.final_score) >= 85,
+          };
+        });
 
-        // Fill with existing profiles if we need more
-        const additionalMatches = pairedProfiles.slice(realMatches.length).map((profile, index) => ({
-          ...profile,
-          compatibility_score: [88, 75, 69, 82, 91, 74, 86, 79, 93, 77][index % 10] || 73,
-          can_chat: Math.random() > 0.4
-        }));
-
-        const allMatches = [...realMatches, ...additionalMatches];
-        allMatches.sort((a, b) => (b.compatibility_score || 0) - (a.compatibility_score || 0));
-        
-        setMatches(allMatches);
-        
-      } catch (error) {
-        console.error('Error calculating real compatibility:', error);
-        // Fallback with varied scores
-        const transformedMatches: PairingMatch[] = pairedProfiles.map((profile, index) => ({
-          ...profile,
-          compatibility_score: [94, 87, 71, 83, 96, 79, 91, 68, 85, 76][index % 10] || 74,
-          can_chat: Math.random() > 0.3
-        }));
-        
-        transformedMatches.sort((a, b) => (b.compatibility_score || 0) - (a.compatibility_score || 0));
-        setMatches(transformedMatches);
+        // Sort strictly by computed score desc
+        enriched.sort((a, b) => (b.compatibility_score || 0) - (a.compatibility_score || 0));
+        setMatches(enriched);
+      } catch (err: any) {
+        console.error('Deterministic pairing failed:', err);
+        toast({ title: 'Pairing unavailable', description: 'Could not compute compatibility right now.', variant: 'destructive' });
+        setMatches([]);
+      } finally {
+        setScoringLoading(false);
       }
     };
 
-    transformPairingToMatches();
+    runDeterministicPairing();
   }, [pairedProfiles]);
 
   const handleChatRequest = async (matchId: string, canChat: boolean) => {
@@ -228,12 +205,12 @@ const PairingMatches: React.FC = () => {
     );
   }
 
-  if (loading) {
+  if (loading || scoringLoading) {
     return (
       <div className="flex items-center justify-center min-h-[40vh]">
         <div className="text-center space-y-4">
           <div className="w-16 h-16 border-4 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-white/70">Finding your perfect matches... ✨</p>
+          <p className="text-white/70">Computing real compatibility… ✨</p>
         </div>
       </div>
     );
