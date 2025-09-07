@@ -79,7 +79,13 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
     return savedThreads ? JSON.parse(savedThreads) : initialThreads;
   });
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+  const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
+  const [isRewriteModalOpen, setIsRewriteModalOpen] = useState(false);
   const [newThreadContent, setNewThreadContent] = useState('');
+  const [replyContent, setReplyContent] = useState('');
+  const [rewriteContent, setRewriteContent] = useState('');
+  const [selectedThreadForReply, setSelectedThreadForReply] = useState<Thread | null>(null);
+  const [selectedThreadForRewrite, setSelectedThreadForRewrite] = useState<Thread | null>(null);
   const [likedThreads, setLikedThreads] = useState<Set<number>>(() => {
     const savedLikes = localStorage.getItem('likedThreads');
     return savedLikes ? new Set(JSON.parse(savedLikes)) : new Set();
@@ -169,6 +175,89 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
     }
   };
 
+  const handleReplyToThread = (thread: Thread) => {
+    setSelectedThreadForReply(thread);
+    setIsReplyModalOpen(true);
+    setReplyContent('');
+  };
+
+  const handleSubmitReply = () => {
+    if (!replyContent.trim() || !selectedThreadForReply) {
+      toast({
+        title: "Error",
+        description: "Please write a reply!",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Update the thread's reply count
+    setThreads(prevThreads => 
+      prevThreads.map(thread => 
+        thread.id === selectedThreadForReply.id 
+          ? { ...thread, replies: thread.replies + 1 }
+          : thread
+      )
+    );
+
+    setIsReplyModalOpen(false);
+    setReplyContent('');
+    setSelectedThreadForReply(null);
+    
+    toast({
+      title: "Reply posted! 💬",
+      description: `Your reply to ${selectedThreadForReply.author} has been added.`,
+    });
+  };
+
+  const handleRewriteThread = (thread: Thread) => {
+    setSelectedThreadForRewrite(thread);
+    setRewriteContent(thread.content);
+    setIsRewriteModalOpen(true);
+  };
+
+  const handleSubmitRewrite = () => {
+    if (!rewriteContent.trim() || !selectedThreadForRewrite) {
+      toast({
+        title: "Error",
+        description: "Please write something to update your thread!",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setThreads(prevThreads => 
+      prevThreads.map(thread => 
+        thread.id === selectedThreadForRewrite.id 
+          ? { ...thread, content: rewriteContent.trim(), time: "edited now" }
+          : thread
+      )
+    );
+
+    setIsRewriteModalOpen(false);
+    setRewriteContent('');
+    setSelectedThreadForRewrite(null);
+    
+    toast({
+      title: "Thread updated! ✏️",
+      description: "Your thread has been rewritten successfully.",
+    });
+  };
+
+  const handleDeleteThread = (threadId: number) => {
+    setThreads(prevThreads => prevThreads.filter(thread => thread.id !== threadId));
+    
+    // Also remove from liked threads if it was liked
+    const newLikedThreads = new Set(likedThreads);
+    newLikedThreads.delete(threadId);
+    setLikedThreads(newLikedThreads);
+    
+    toast({
+      title: "Thread deleted! 🗑️",
+      description: "Your thread has been removed.",
+    });
+  };
+
   const calculateAge = (dateOfBirth: string) => {
     const today = new Date();
     const birthDate = new Date(dateOfBirth);
@@ -237,60 +326,105 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
           <h2 className="text-lg font-display font-bold text-rose-700">Threads</h2>
         </div>
         <div className="flex space-x-3 overflow-x-auto scrollbar-hide pb-2">
-          {/* Add Today's Thread Option - Now Functional */}
-          <Dialog open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
-            <DialogTrigger asChild>
-              <div className="flex-shrink-0 w-64">
-                <Card className="p-4 bg-gradient-to-r from-rose-400 to-pink-500 text-white border-0 hover:from-rose-500 hover:to-pink-600 transition-colors cursor-pointer">
-                  <div className="flex items-center justify-center space-x-2 mb-3">
-                    <Plus className="w-5 h-5" />
-                    <span className="font-semibold text-sm">Add Today's Thread</span>
-                  </div>
-                  <p className="text-xs text-white/90 text-center">Share what's on your mind today</p>
-                </Card>
-              </div>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle className="text-rose-700">Share Your Thoughts</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="thread-content">What's on your mind?</Label>
-                  <Textarea
-                    id="thread-content"
-                    placeholder="Share your thoughts, experiences, or advice with the community..."
-                    value={newThreadContent}
-                    onChange={(e) => setNewThreadContent(e.target.value)}
-                    className="min-h-[100px] border-rose-200 focus:border-rose-400"
-                    maxLength={280}
-                  />
-                  <div className="text-right text-xs text-rose-500">
-                    {newThreadContent.length}/280 characters
-                  </div>
+          {/* Add Today's Thread Option OR User's Thread Management */}
+          {(() => {
+            const userThreads = threads.filter(t => t.userId === getCurrentUserId());
+            
+            if (userThreads.length === 0) {
+              // Show "Add Today's Thread" if user has no threads
+              return (
+                <Dialog open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
+                  <DialogTrigger asChild>
+                    <div className="flex-shrink-0 w-64">
+                      <Card className="p-4 bg-gradient-to-r from-rose-400 to-pink-500 text-white border-0 hover:from-rose-500 hover:to-pink-600 transition-colors cursor-pointer">
+                        <div className="flex items-center justify-center space-x-2 mb-3">
+                          <Plus className="w-5 h-5" />
+                          <span className="font-semibold text-sm">Add Today's Thread</span>
+                        </div>
+                        <p className="text-xs text-white/90 text-center">Share what's on your mind today</p>
+                      </Card>
+                    </div>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="text-rose-700">Share Your Thoughts</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="thread-content">What's on your mind?</Label>
+                        <Textarea
+                          id="thread-content"
+                          placeholder="Share your thoughts, experiences, or advice with the community..."
+                          value={newThreadContent}
+                          onChange={(e) => setNewThreadContent(e.target.value)}
+                          className="min-h-[100px] border-rose-200 focus:border-rose-400"
+                          maxLength={280}
+                        />
+                        <div className="text-right text-xs text-rose-500">
+                          {newThreadContent.length}/280 characters
+                        </div>
+                      </div>
+                      <div className="flex justify-end space-x-2">
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setIsPostModalOpen(false)}
+                          className="border-rose-200 text-rose-600 hover:bg-rose-50"
+                        >
+                          Cancel
+                        </Button>
+                        <Button 
+                          onClick={handlePostThread}
+                          className="bg-gradient-to-r from-rose-400 to-pink-500 hover:from-rose-500 hover:to-pink-600"
+                          disabled={!newThreadContent.trim()}
+                        >
+                          <Send className="w-4 h-4 mr-2" />
+                          Post Thread
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              );
+            } else {
+              // Show user's thread management options
+              const latestUserThread = userThreads[0];
+              return (
+                <div className="flex-shrink-0 w-64">
+                  <Card className="p-4 bg-gradient-to-r from-purple-500 to-indigo-600 text-white border-0">
+                    <div className="space-y-3">
+                      <div className="text-center">
+                        <div className="flex items-center justify-center space-x-2 mb-2">
+                          <User className="w-4 h-4" />
+                          <span className="font-semibold text-sm">Your Thread</span>
+                        </div>
+                        <p className="text-xs text-white/90 line-clamp-2">{latestUserThread.content}</p>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="flex-1 text-white hover:bg-white/20 border border-white/30"
+                          onClick={() => handleRewriteThread(latestUserThread)}
+                        >
+                          <span className="text-xs">Rewrite</span>
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="flex-1 text-white hover:bg-red-500/50 border border-white/30"
+                          onClick={() => handleDeleteThread(latestUserThread.id)}
+                        >
+                          <span className="text-xs">Delete</span>
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
                 </div>
-                <div className="flex justify-end space-x-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setIsPostModalOpen(false)}
-                    className="border-rose-200 text-rose-600 hover:bg-rose-50"
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    onClick={handlePostThread}
-                    className="bg-gradient-to-r from-rose-400 to-pink-500 hover:from-rose-500 hover:to-pink-600"
-                    disabled={!newThreadContent.trim()}
-                  >
-                    <Send className="w-4 h-4 mr-2" />
-                    Post Thread
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+              );
+            }
+          })()}
 
-          {/* Thread Cards - Now Dynamic */}
+          {/* Thread Cards - Now Dynamic with Reply/Like Options */}
           {threads.slice(0, 5).map((thread) => {
             const isLiked = likedThreads.has(thread.id);
             const isOwnThread = thread.userId === getCurrentUserId();
@@ -320,26 +454,124 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
                     </div>
                   </div>
                   <p className="text-sm text-rose-600 leading-relaxed mb-3 line-clamp-3">{thread.content}</p>
-                  <div className="flex items-center justify-between text-xs text-rose-400">
-                    <button 
-                      className={`flex items-center space-x-1 hover:text-rose-600 transition-colors ${
-                        isLiked ? 'text-red-500' : ''
-                      }`}
-                      onClick={() => handleLikeThread(thread.id)}
-                    >
-                      <Heart className={`w-3 h-3 ${isLiked ? 'fill-current' : ''}`} />
-                      <span>{thread.likes}</span>
-                    </button>
-                    <button className="hover:text-rose-600 transition-colors flex items-center space-x-1">
-                      <MessageCircle className="w-3 h-3" />
-                      <span>{thread.replies} replies</span>
-                    </button>
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex space-x-3">
+                      <button 
+                        className={`flex items-center space-x-1 hover:text-rose-600 transition-colors ${
+                          isLiked ? 'text-red-500' : 'text-rose-400'
+                        }`}
+                        onClick={() => handleLikeThread(thread.id)}
+                      >
+                        <Heart className={`w-3 h-3 ${isLiked ? 'fill-current' : ''}`} />
+                        <span>{thread.likes}</span>
+                      </button>
+                      
+                      {!isOwnThread && (
+                        <button 
+                          className="flex items-center space-x-1 text-rose-400 hover:text-rose-600 transition-colors"
+                          onClick={() => handleReplyToThread(thread)}
+                        >
+                          <MessageCircle className="w-3 h-3" />
+                          <span>Reply</span>
+                        </button>
+                      )}
+                    </div>
+                    <span className="text-rose-400">{thread.replies} replies</span>
                   </div>
                 </Card>
               </div>
             );
           })}
         </div>
+
+        {/* Reply Modal */}
+        <Dialog open={isReplyModalOpen} onOpenChange={setIsReplyModalOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-rose-700">Reply to {selectedThreadForReply?.author}</DialogTitle>
+            </DialogHeader>
+            {selectedThreadForReply && (
+              <div className="space-y-4">
+                <div className="p-3 bg-rose-50 rounded-lg">
+                  <p className="text-sm text-rose-600 italic">"{selectedThreadForReply.content}"</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="reply-content">Your reply:</Label>
+                  <Textarea
+                    id="reply-content"
+                    placeholder="Write your reply..."
+                    value={replyContent}
+                    onChange={(e) => setReplyContent(e.target.value)}
+                    className="min-h-[80px] border-rose-200 focus:border-rose-400"
+                    maxLength={280}
+                  />
+                  <div className="text-right text-xs text-rose-500">
+                    {replyContent.length}/280 characters
+                  </div>
+                </div>
+                <div className="flex justify-end space-x-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsReplyModalOpen(false)}
+                    className="border-rose-200 text-rose-600 hover:bg-rose-50"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleSubmitReply}
+                    className="bg-gradient-to-r from-rose-400 to-pink-500 hover:from-rose-500 hover:to-pink-600"
+                    disabled={!replyContent.trim()}
+                  >
+                    <Send className="w-4 h-4 mr-2" />
+                    Post Reply
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Rewrite Modal */}
+        <Dialog open={isRewriteModalOpen} onOpenChange={setIsRewriteModalOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-rose-700">Rewrite Your Thread</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="rewrite-content">Edit your thread:</Label>
+                <Textarea
+                  id="rewrite-content"
+                  placeholder="Rewrite your thoughts..."
+                  value={rewriteContent}
+                  onChange={(e) => setRewriteContent(e.target.value)}
+                  className="min-h-[100px] border-rose-200 focus:border-rose-400"
+                  maxLength={280}
+                />
+                <div className="text-right text-xs text-rose-500">
+                  {rewriteContent.length}/280 characters
+                </div>
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsRewriteModalOpen(false)}
+                  className="border-rose-200 text-rose-600 hover:bg-rose-50"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleSubmitRewrite}
+                  className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700"
+                  disabled={!rewriteContent.trim()}
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  Update Thread
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Swipe Interface */}
