@@ -1156,12 +1156,11 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
   ];
 
   return (
-    <GenZBackground variant="app">
-      <div className="min-h-screen pb-20">
-        {/* Header */}
-        <div className="sticky top-0 z-40 bg-background/90 backdrop-blur-lg border-b border-border/50">
-          <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-3">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted pb-20">
+      {/* Header */}
+      <div className="sticky top-0 z-40 bg-background/90 backdrop-blur-lg border-b border-border/50">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={() => onNavigate('home')} className="text-foreground hover:text-foreground hover:bg-muted">
               <ArrowLeft className="w-4 h-4" />
             </Button>
@@ -1313,7 +1312,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
           </Button>
         </div>
       </div>
-    </GenZBackground>
+    </div>
   );
 };
 

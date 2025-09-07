@@ -108,7 +108,7 @@ const AuthenticatedApp = () => {
   if (!user || !hasProfile || !hasSubscription) {
     return (
       <TooltipProvider>
-        <GenZBackground variant="app">
+        <div className="min-h-screen bg-gradient-to-br from-background to-muted">
           <Toaster />
           <Sonner />
           <div id="recaptcha-container"></div>
@@ -116,14 +116,14 @@ const AuthenticatedApp = () => {
             onProfileComplete={recheckProfile}
             showSubscription={!!user && hasProfile && !hasSubscription}
           />
-        </GenZBackground>
+        </div>
       </TooltipProvider>
     );
   }
 
   return (
     <TooltipProvider>
-      <GenZBackground variant="app">
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted">
         <Toaster />
         <Sonner />
         <div id="recaptcha-container"></div>
@@ -174,7 +174,7 @@ const AuthenticatedApp = () => {
           }} />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </GenZBackground>
+      </div>
     </TooltipProvider>
   );
 };

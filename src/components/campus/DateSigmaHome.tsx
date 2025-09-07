@@ -362,12 +362,11 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
   };
 
   return (
-    <GenZBackground variant="app">
-      <div className="min-h-screen pb-20">
-        {/* Company Header & Chat Section */}
-        <div className="bg-card/80 backdrop-blur-md border-b border-border/50 px-4 py-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted pb-20">
+      {/* Company Header & Chat Section */}
+      <div className="bg-card/80 backdrop-blur-md border-b border-border/50 px-4 py-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center shadow-sm">
               <span className="text-primary-foreground font-bold text-sm">DS</span>
             </div>
@@ -384,7 +383,6 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
             >
               <Bell className="w-4 h-4" />
             </Button>
-          </div>
           </div>
         </div>
       </div>
@@ -922,7 +920,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
           </Button>
         </div>
       </div>
-    </GenZBackground>
+    </div>
   );
 };
 

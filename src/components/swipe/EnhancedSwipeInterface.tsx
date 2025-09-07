@@ -295,7 +295,7 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
   };
 
   return (
-    <div className="min-h-screen bg-gradient-elegant">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
       <div className="max-w-md mx-auto space-y-6 p-4">
         <GhostBenchBar onChatSelected={setMatchedChatId} />
         
