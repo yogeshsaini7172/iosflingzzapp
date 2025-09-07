@@ -727,40 +727,52 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       if (!files) return;
 
       try {
+        console.log("📸 Starting photo upload...", files.length, "files");
         const uploadedUrls: string[] = [];
         
-        for (let i = 0; i < Math.min(files.length, 6); i++) {
+        for (let i = 0; i < Math.min(files.length, 6 - formData.profileImages.length); i++) {
           const file = files[i];
+          console.log("📸 Uploading file:", file.name, file.size, "bytes");
+          
           const fileExt = file.name.split('.').pop();
-          const fileName = `${Date.now()}-${i}.${fileExt}`;
+          const fileName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
           const userFolder = profile?.user_id || 'anon';
           const filePath = `${userFolder}/${fileName}`;
 
-          const { error } = await supabase.storage
-            .from('profile-images')
-            .upload(filePath, file);
+          console.log("📸 Upload path:", filePath);
 
-          if (error) throw error;
+          const { data, error } = await supabase.storage
+            .from('profile-images')
+            .upload(filePath, file, {
+              cacheControl: '3600',
+              upsert: false
+            });
+
+          if (error) {
+            console.error("❌ Upload error:", error);
+            throw error;
+          }
+
+          console.log("✅ Upload successful:", data);
 
           const { data: urlData } = supabase.storage
             .from('profile-images')
             .getPublicUrl(filePath);
 
+          console.log("🔗 Public URL:", urlData.publicUrl);
           uploadedUrls.push(urlData.publicUrl);
         }
 
-        // Set the first uploaded photo as the main profile photo
+        // Update local state immediately
         const newImages = [...formData.profileImages, ...uploadedUrls];
         setFormData(prev => ({ ...prev, profileImages: newImages }));
         
-        // Update profile with new images
-        await updateProfile({
-          profile_images: newImages
-        });
-
-        console.log("✅ Photos uploaded successfully, first photo set as main:", uploadedUrls[0]);
+        console.log("✅ Photos uploaded successfully:", uploadedUrls);
+        console.log("📸 Total images now:", newImages.length);
+        
       } catch (error) {
         console.error('❌ Error uploading photos:', error);
+        alert('Error uploading photos. Please try again.');
       }
     };
 
