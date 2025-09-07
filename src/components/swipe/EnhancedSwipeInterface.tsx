@@ -48,7 +48,7 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
   const { toast } = useToast();
 
   const getCurrentUserId = () => {
-    return localStorage.getItem("demoUserId") || "6e6a510a-d406-4a01-91ab-64efdbca98f2";
+    return localStorage.getItem("demoUserId") || "11111111-1111-1111-1111-111111111001";
   };
 
   useEffect(() => {
@@ -167,55 +167,30 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
         console.log("🔍 Checking for mutual like:", { otherSwipe });
 
         if (otherSwipe) {
-          console.log("🎉 Mutual match found! Creating match record...");
-          
-          // Create match record
-          const user1_id = userId < currentProfile.user_id ? userId : currentProfile.user_id;
-          const user2_id = userId < currentProfile.user_id ? currentProfile.user_id : userId;
+          console.log("🎉 Mutual match found! Creating chat room via function...");
 
-          const { data: match, error: matchError } = await supabase
-            .from("enhanced_matches")
-            .insert({
-              user1_id,
-              user2_id,
-              status: 'matched',
-              user1_swiped: true,
-              user2_swiped: true
-            })
-            .select()
-            .single();
+          const { data: roomResp, error: fnError } = await supabase.functions.invoke('chat-management', {
+            body: {
+              action: 'create_room',
+              user_id: userId,
+              other_user_id: currentProfile.user_id,
+            }
+          });
 
-          if (matchError) {
-            console.error("❌ Match creation error:", matchError);
-            throw matchError;
+          if (fnError || !roomResp?.data?.id) {
+            console.error("❌ Chat room creation via function failed:", fnError || roomResp);
+            throw fnError || new Error('Chat room creation failed');
           }
 
-          console.log("✅ Match created:", match);
-
-          // Create chat room
-          const { data: chatRoom, error: chatError } = await supabase
-            .from("chat_rooms")
-            .insert({
-              match_id: match.id,
-              user1_id: match.user1_id,
-              user2_id: match.user2_id
-            })
-            .select()
-            .single();
-
-          if (chatError) {
-            console.error("❌ Chat room creation error:", chatError);
-            throw chatError;
-          }
-
-          console.log("✅ Chat room created:", chatRoom);
+          const chatRoomId = roomResp.data.id as string;
+          console.log("✅ Chat room created (function):", chatRoomId);
 
           toast({
             title: "🎉 It's a Match!",
             description: `You and ${currentProfile.first_name} liked each other! Chat is now available.`,
           });
 
-          setMatchedChatId(chatRoom.id);
+          setMatchedChatId(chatRoomId);
         } else {
           console.log("💝 Like sent, waiting for match");
           toast({

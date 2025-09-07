@@ -171,6 +171,64 @@ serve(async (req) => {
           status: 200,
         });
 
+      case 'create_room':
+        if (!user_id || !other_user_id) {
+          throw new Error('user_id and other_user_id are required');
+        }
+        // Ensure consistent ordering
+        const u1 = user_id < other_user_id ? user_id : other_user_id;
+        const u2 = user_id < other_user_id ? other_user_id : user_id;
+
+        // Check or create enhanced match
+        const { data: existingEnhancedMatch } = await supabaseClient
+          .from('enhanced_matches')
+          .select('*')
+          .or(`and(user1_id.eq.${u1},user2_id.eq.${u2}),and(user1_id.eq.${u2},user2_id.eq.${u1})`)
+          .maybeSingle();
+
+        let ensuredMatch = existingEnhancedMatch;
+        if (!ensuredMatch) {
+          const { data: newEnsuredMatch, error: emErr } = await supabaseClient
+            .from('enhanced_matches')
+            .insert({
+              user1_id: u1,
+              user2_id: u2,
+              status: 'matched',
+              user1_swiped: true,
+              user2_swiped: true
+            })
+            .select()
+            .single();
+          if (emErr) throw emErr;
+          ensuredMatch = newEnsuredMatch;
+        }
+
+        // Check or create chat room
+        const { data: existingRoom } = await supabaseClient
+          .from('chat_rooms')
+          .select('id')
+          .or(`and(user1_id.eq.${u1},user2_id.eq.${u2}),and(user1_id.eq.${u2},user2_id.eq.${u1})`)
+          .maybeSingle();
+
+        if (existingRoom) {
+          return new Response(JSON.stringify({ success: true, data: existingRoom }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200,
+          });
+        }
+
+        const { data: room, error: roomError } = await supabaseClient
+          .from('chat_rooms')
+          .insert({ match_id: ensuredMatch.id, user1_id: u1, user2_id: u2 })
+          .select()
+          .single();
+        if (roomError) throw roomError;
+
+        return new Response(JSON.stringify({ success: true, data: room }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        });
+
       case 'list':
         if (!user_id) throw new Error('user_id is required');
         // List chat rooms for a user and enrich with other user and last message
@@ -188,7 +246,7 @@ serve(async (req) => {
             .from('profiles')
             .select('user_id, first_name, last_name, profile_images, university')
             .eq('user_id', otherUserId)
-            .single();
+            .maybeSingle();
           const { data: lastMessage } = await supabaseClient
             .from('chat_messages_enhanced')
             .select('message_text, created_at')
