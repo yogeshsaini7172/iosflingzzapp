@@ -3,11 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, MessageCircle, MoreVertical, Shield, Brain, Zap, Users, ChevronRight, Star, MapPin, GraduationCap, Sparkles } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Heart, MessageCircle, MoreVertical, Shield, Brain, Zap, Users, ChevronRight, Star, MapPin, GraduationCap, Sparkles, Ghost, UserMinus, Clock, ArrowLeft } from 'lucide-react';
 import { usePairing } from '@/hooks/usePairing';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import DetailedProfileModal from '@/components/profile/DetailedProfileModal';
+import GhostBenchBar from '@/components/ui/ghost-bench-bar';
+import EnhancedChatSystem from '@/components/chat/EnhancedChatSystem';
 
 interface PairingMatch {
   user_id: string;
@@ -26,6 +29,7 @@ const PairingMatches: React.FC = () => {
   const [matches, setMatches] = useState<PairingMatch[]>([]);
   const [selectedProfile, setSelectedProfile] = useState<PairingMatch | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [matchedChatId, setMatchedChatId] = useState<string>("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -67,17 +71,68 @@ const PairingMatches: React.FC = () => {
     setSelectedProfile(null);
   };
 
-  const handleAction = (matchId: string, action: 'ghost' | 'bench') => {
-    const actionText = action === 'ghost' ? 'Ghosted' : 'Benched';
-    toast({
-      title: `${actionText}! 👻`,
-      description: `This match has been ${actionText.toLowerCase()}`,
-      variant: "destructive"
-    });
-    
-    // Remove from matches
-    setMatches(prev => prev.filter(m => m.user_id !== matchId));
+  const getCurrentUserId = () => {
+    return localStorage.getItem("demoUserId") || "11111111-1111-1111-1111-111111111001";
   };
+
+  const handleAction = async (matchId: string, action: 'ghost' | 'bench') => {
+    const userId = getCurrentUserId();
+    const actionText = action === 'ghost' ? 'Ghosted' : 'Benched';
+    
+    try {
+      // Calculate expiration for ghost (24 hours from now)
+      const expiresAt = action === 'ghost' 
+        ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+        : null;
+
+      // Save interaction to database
+      const { error } = await supabase
+        .from('user_interactions')
+        .insert({
+          user_id: userId,
+          target_user_id: matchId,
+          interaction_type: action,
+          expires_at: expiresAt
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: `${actionText}! ${action === 'ghost' ? '👻' : '🪑'}`,
+        description: action === 'ghost' 
+          ? 'This match has been ghosted for 24 hours'
+          : 'This match has been benched - they can still chat with you',
+        variant: action === 'ghost' ? "destructive" : "default"
+      });
+      
+      // Remove from matches
+      setMatches(prev => prev.filter(m => m.user_id !== matchId));
+    } catch (error: any) {
+      console.error('Error handling action:', error);
+      toast({
+        title: "Error",
+        description: `Failed to ${action} this match. Please try again.`,
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Handle chat navigation from ghost/bench bar
+  if (matchedChatId) {
+    return (
+      <div className="space-y-4">
+        <Button
+          variant="outline"
+          onClick={() => setMatchedChatId("")}
+          className="mb-4 border-purple-400/50 bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 hover:text-purple-200"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Pairing
+        </Button>
+        <EnhancedChatSystem selectedChatId={matchedChatId} onNavigate={() => {}} />
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -114,6 +169,11 @@ const PairingMatches: React.FC = () => {
           <Brain className="w-3 h-3 mr-1" />
           {matches.length} compatible matches found
         </Badge>
+      </div>
+
+      {/* Ghost & Bench Management Bar */}
+      <div className="mb-6">
+        <GhostBenchBar onChatSelected={setMatchedChatId} />
       </div>
 
       {/* Matches List */}
@@ -212,7 +272,7 @@ const PairingMatches: React.FC = () => {
                 </div>
 
                 {/* Enhanced Action Buttons - Mobile Optimized */}
-                <div className="flex flex-col space-y-2 flex-shrink-0">
+                <div className="flex items-center space-x-2 flex-shrink-0">
                   {match.can_chat ? (
                     <Button 
                       onClick={(e) => {
@@ -240,6 +300,48 @@ const PairingMatches: React.FC = () => {
                       <span className="sm:hidden">Request</span>
                     </Button>
                   )}
+
+                  {/* Ghost & Bench Actions */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-white/70 hover:text-white hover:bg-white/10 p-2"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAction(match.user_id, 'ghost');
+                        }}
+                        className="text-orange-600 focus:text-orange-600 focus:bg-orange-50"
+                      >
+                        <Ghost className="w-4 h-4 mr-2" />
+                        <div className="flex flex-col">
+                          <span>Ghost (24h)</span>
+                          <span className="text-xs text-muted-foreground">Hide temporarily</span>
+                        </div>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAction(match.user_id, 'bench');
+                        }}
+                        className="text-blue-600 focus:text-blue-600 focus:bg-blue-50"
+                      >
+                        <UserMinus className="w-4 h-4 mr-2" />
+                        <div className="flex flex-col">
+                          <span>Bench</span>
+                          <span className="text-xs text-muted-foreground">Keep for later</span>
+                        </div>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
 
