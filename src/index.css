@@ -9,71 +9,71 @@
   :root {
     /* Premium Color Palette - Royal & Elegant */
     
-    /* Base Colors */
-    --background: 0 0% 100%;
-    --foreground: 240 15% 9%;
+    /* Base Colors - Soft Pink Theme */
+    --background: 340 40% 98%;
+    --foreground: 340 15% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 240 15% 9%;
+    --card-foreground: 340 15% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 15% 9%;
+    --popover-foreground: 340 15% 15%;
 
-    /* Primary - Royal Purple */
-    --primary: 269 89% 52%;
+    /* Primary - Soft Rose Pink */
+    --primary: 340 75% 65%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 269 89% 72%;
-    --primary-variant: 258 90% 66%;
+    --primary-glow: 340 85% 75%;
+    --primary-variant: 335 70% 70%;
 
-    /* Secondary - Elegant Gold */
-    --secondary: 45 93% 58%;
-    --secondary-foreground: 240 15% 9%;
-    --secondary-glow: 45 93% 78%;
+    /* Secondary - Blush Pink */
+    --secondary: 345 60% 80%;
+    --secondary-foreground: 340 15% 15%;
+    --secondary-glow: 345 70% 85%;
 
-    /* Accent - Rose Gold */
-    --accent: 340 82% 70%;
+    /* Accent - Deep Rose */
+    --accent: 350 70% 60%;
     --accent-foreground: 0 0% 100%;
-    --accent-glow: 340 82% 85%;
+    --accent-glow: 350 80% 75%;
 
-    /* Success - Emerald */
-    --success: 142 76% 36%;
+    /* Success - Soft Green */
+    --success: 120 40% 55%;
     --success-foreground: 0 0% 100%;
 
-    /* Destructive - Ruby Red */
-    --destructive: 0 75% 60%;
+    /* Destructive - Coral Red */
+    --destructive: 0 70% 65%;
     --destructive-foreground: 0 0% 100%;
 
     /* Muted Tones */
-    --muted: 240 9% 97%;
-    --muted-foreground: 240 8% 46%;
+    --muted: 340 20% 95%;
+    --muted-foreground: 340 25% 50%;
 
     /* Borders & Inputs */
-    --border: 240 9% 89%;
-    --input: 240 9% 89%;
-    --ring: 269 89% 52%;
+    --border: 340 25% 85%;
+    --input: 340 25% 90%;
+    --ring: 340 75% 65%;
 
     /* Border Radius - More elegant */
     --radius: 1.5rem;
 
-    /* Premium Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(269 89% 52%), hsl(258 90% 66%));
-    --gradient-secondary: linear-gradient(135deg, hsl(45 93% 58%), hsl(38 92% 50%));
-    --gradient-royal: linear-gradient(135deg, hsl(269 89% 52%), hsl(340 82% 70%), hsl(45 93% 58%));
-    --gradient-elegant: linear-gradient(145deg, hsl(269 89% 52%), hsl(258 90% 66%), hsl(340 82% 70%));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(240 9% 98%));
-    --gradient-subtle: linear-gradient(180deg, hsl(240 9% 99%), hsl(240 9% 97%));
-    --gradient-gold: linear-gradient(135deg, hsl(45 93% 58%), hsl(38 92% 50%));
-    --gradient-rose: linear-gradient(135deg, hsl(340 82% 70%), hsl(330 81% 60%));
+    /* Soft Pink Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(340 75% 65%), hsl(340 85% 75%));
+    --gradient-secondary: linear-gradient(135deg, hsl(345 60% 80%), hsl(345 70% 85%));
+    --gradient-royal: linear-gradient(135deg, hsl(340 75% 65%), hsl(350 70% 60%), hsl(345 60% 80%));
+    --gradient-elegant: linear-gradient(145deg, hsl(340 75% 65%), hsl(340 85% 75%), hsl(350 70% 60%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(340 30% 98%));
+    --gradient-subtle: linear-gradient(180deg, hsl(340 40% 98%), hsl(340 30% 96%));
+    --gradient-gold: linear-gradient(135deg, hsl(350 70% 60%), hsl(340 75% 65%));
+    --gradient-rose: linear-gradient(135deg, hsl(340 75% 65%), hsl(350 80% 70%));
 
-    /* Luxury Shadows */
-    --shadow-elegant: 0 25px 50px -12px hsl(269 89% 52% / 0.25);
-    --shadow-royal: 0 20px 40px -8px hsl(269 89% 52% / 0.3);
-    --shadow-gold: 0 10px 30px -5px hsl(45 93% 58% / 0.4);
-    --shadow-soft: 0 8px 32px -8px hsl(240 15% 9% / 0.08);
-    --shadow-medium: 0 16px 64px -12px hsl(240 15% 9% / 0.12);
-    --shadow-card: 0 4px 24px -4px hsl(240 15% 9% / 0.06);
-    --shadow-glow: 0 0 64px hsl(var(--primary-glow) / 0.6);
-    --shadow-premium: 0 32px 80px -16px hsl(269 89% 52% / 0.35);
+    /* Soft Pink Shadows */
+    --shadow-elegant: 0 25px 50px -12px hsl(340 75% 65% / 0.2);
+    --shadow-royal: 0 20px 40px -8px hsl(340 75% 65% / 0.25);
+    --shadow-gold: 0 10px 30px -5px hsl(350 70% 60% / 0.3);
+    --shadow-soft: 0 8px 32px -8px hsl(340 25% 85% / 0.4);
+    --shadow-medium: 0 16px 64px -12px hsl(340 25% 85% / 0.5);
+    --shadow-card: 0 4px 24px -4px hsl(340 25% 85% / 0.3);
+    --shadow-glow: 0 0 64px hsl(var(--primary-glow) / 0.4);
+    --shadow-premium: 0 32px 80px -16px hsl(340 75% 65% / 0.25);
 
     /* Premium Animations */
     --transition-luxury: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -81,74 +81,74 @@
     --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
     /* Sidebar */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 15% 9%;
-    --sidebar-primary: 269 89% 52%;
+    --sidebar-background: 340 35% 96%;
+    --sidebar-foreground: 340 15% 15%;
+    --sidebar-primary: 340 75% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 9% 96%;
-    --sidebar-accent-foreground: 240 15% 9%;
-    --sidebar-border: 240 9% 91%;
-    --sidebar-ring: 269 89% 52%;
+    --sidebar-accent: 340 25% 92%;
+    --sidebar-accent-foreground: 340 15% 15%;
+    --sidebar-border: 340 25% 88%;
+    --sidebar-ring: 340 75% 65%;
   }
 
   .dark {
-    /* Dark Mode - Midnight Luxury */
-    --background: 240 15% 4%;
-    --foreground: 0 0% 98%;
+    /* Dark Mode - Soft Pink Dark */
+    --background: 340 25% 8%;
+    --foreground: 340 40% 95%;
 
-    --card: 240 15% 6%;
-    --card-foreground: 0 0% 98%;
+    --card: 340 20% 12%;
+    --card-foreground: 340 40% 95%;
 
-    --popover: 240 15% 6%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 340 20% 10%;
+    --popover-foreground: 340 40% 95%;
 
-    /* Primary - Electric Purple */
-    --primary: 269 89% 68%;
+    /* Primary - Soft Rose Dark */
+    --primary: 340 70% 60%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 269 89% 85%;
+    --primary-glow: 340 80% 75%;
 
-    /* Secondary - Champagne Gold */
-    --secondary: 45 93% 78%;
-    --secondary-foreground: 240 15% 4%;
+    /* Secondary - Blush Dark */
+    --secondary: 345 50% 35%;
+    --secondary-foreground: 340 40% 95%;
 
-    /* Accent - Electric Rose */
-    --accent: 340 82% 80%;
-    --accent-foreground: 240 15% 4%;
+    /* Accent - Deep Rose Dark */
+    --accent: 350 65% 55%;
+    --accent-foreground: 0 0% 100%;
 
-    /* Success - Neon Green */
-    --success: 142 76% 46%;
+    /* Success - Soft Green Dark */
+    --success: 120 35% 50%;
     --success-foreground: 0 0% 100%;
 
-    /* Destructive - Electric Red */
-    --destructive: 0 75% 70%;
+    /* Destructive - Coral Dark */
+    --destructive: 0 65% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Muted - Dark luxury */
-    --muted: 240 15% 12%;
-    --muted-foreground: 240 8% 65%;
+    /* Muted - Dark Pink */
+    --muted: 340 20% 18%;
+    --muted-foreground: 340 25% 70%;
 
     /* Borders & Inputs */
-    --border: 240 15% 18%;
-    --input: 240 15% 18%;
-    --ring: 269 89% 68%;
+    --border: 340 25% 25%;
+    --input: 340 20% 20%;
+    --ring: 340 70% 60%;
 
-    /* Dark Gradients - Neon luxury */
-    --gradient-primary: linear-gradient(135deg, hsl(269 89% 68%), hsl(258 90% 76%));
-    --gradient-secondary: linear-gradient(135deg, hsl(45 93% 78%), hsl(38 92% 70%));
-    --gradient-royal: linear-gradient(135deg, hsl(269 89% 68%), hsl(340 82% 80%), hsl(45 93% 78%));
-    --gradient-elegant: linear-gradient(145deg, hsl(269 89% 68%), hsl(258 90% 76%), hsl(340 82% 80%));
-    --gradient-card: linear-gradient(145deg, hsl(240 15% 6%), hsl(240 15% 12%));
-    --gradient-subtle: linear-gradient(180deg, hsl(240 15% 8%), hsl(240 15% 6%));
+    /* Dark Gradients - Pink themed */
+    --gradient-primary: linear-gradient(135deg, hsl(340 70% 60%), hsl(340 80% 75%));
+    --gradient-secondary: linear-gradient(135deg, hsl(345 50% 35%), hsl(345 60% 45%));
+    --gradient-royal: linear-gradient(135deg, hsl(340 70% 60%), hsl(350 65% 55%), hsl(345 50% 35%));
+    --gradient-elegant: linear-gradient(145deg, hsl(340 70% 60%), hsl(340 80% 75%), hsl(350 65% 55%));
+    --gradient-card: linear-gradient(145deg, hsl(340 20% 12%), hsl(340 25% 18%));
+    --gradient-subtle: linear-gradient(180deg, hsl(340 25% 10%), hsl(340 20% 12%));
 
     /* Sidebar Dark */
-    --sidebar-background: 240 15% 2%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 269 89% 68%;
+    --sidebar-background: 340 25% 6%;
+    --sidebar-foreground: 340 40% 95%;
+    --sidebar-primary: 340 70% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 15% 10%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 240 15% 15%;
-    --sidebar-ring: 269 89% 68%;
+    --sidebar-accent: 340 20% 15%;
+    --sidebar-accent-foreground: 340 40% 95%;
+    --sidebar-border: 340 25% 20%;
+    --sidebar-ring: 340 70% 60%;
   }
 }
 
@@ -158,14 +158,14 @@
   }
 
   body {
-    @apply bg-gradient-to-br from-purple-900 via-pink-900 to-black text-foreground antialiased;
+    @apply bg-gradient-to-br from-pink-100 via-rose-50 to-pink-200 text-foreground antialiased;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     position: relative;
     overflow-x: hidden;
   }
 
-  /* GenZ Dynamic Background */
+  /* Soft Pink Dynamic Background */
   body::before {
     content: '';
     position: fixed;
@@ -175,14 +175,14 @@
     bottom: 0;
     z-index: -2;
     background: 
-      radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
-      radial-gradient(circle at 40% 40%, rgba(255, 184, 0, 0.2) 0%, transparent 50%),
-      linear-gradient(135deg, #1a0033 0%, #0d0015 25%, #001a33 50%, #330033 75%, #000000 100%);
+      radial-gradient(circle at 20% 80%, rgba(255, 182, 193, 0.4) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255, 192, 203, 0.3) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(255, 182, 193, 0.2) 0%, transparent 50%),
+      linear-gradient(135deg, #fff0f5 0%, #ffe4e8 25%, #ffeef2 50%, #fdf2f8 75%, #fcf7ff 100%);
     animation: backgroundShift 20s ease-in-out infinite;
   }
 
-  /* Floating GenZ Elements */
+  /* Floating Pink Elements */
   body::after {
     content: '';
     position: fixed;
@@ -192,11 +192,11 @@
     bottom: 0;
     z-index: -1;
     background-image: 
-      radial-gradient(2px 2px at 20px 30px, rgba(255, 255, 255, 0.15), transparent),
-      radial-gradient(2px 2px at 40px 70px, rgba(255, 119, 198, 0.2), transparent),
-      radial-gradient(1px 1px at 90px 40px, rgba(120, 119, 198, 0.3), transparent),
-      radial-gradient(1px 1px at 130px 80px, rgba(255, 184, 0, 0.2), transparent),
-      radial-gradient(2px 2px at 160px 30px, rgba(255, 255, 255, 0.1), transparent);
+      radial-gradient(2px 2px at 20px 30px, rgba(255, 192, 203, 0.3), transparent),
+      radial-gradient(2px 2px at 40px 70px, rgba(255, 182, 193, 0.4), transparent),
+      radial-gradient(1px 1px at 90px 40px, rgba(255, 192, 203, 0.2), transparent),
+      radial-gradient(1px 1px at 130px 80px, rgba(255, 182, 193, 0.3), transparent),
+      radial-gradient(2px 2px at 160px 30px, rgba(255, 255, 255, 0.2), transparent);
     background-repeat: repeat;
     background-size: 200px 100px;
     animation: floatingDots 15s linear infinite;
