@@ -170,6 +170,41 @@ const WhatYouAreStep = ({ data, onChange }: WhatYouAreStepProps) => {
         </Select>
       </div>
 
+      {/* Love Language */}
+      <div className="space-y-3">
+        <Label className="text-base font-medium">Love Language</Label>
+        <Select value={data.loveLanguage} onValueChange={(value) => updateField('loveLanguage', value)}>
+          <SelectTrigger className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors">
+            <SelectValue placeholder="Select your love language" />
+          </SelectTrigger>
+          <SelectContent className="rounded-2xl">
+            <SelectItem value="words_of_affirmation">Words of Affirmation</SelectItem>
+            <SelectItem value="acts_of_service">Acts of Service</SelectItem>
+            <SelectItem value="receiving_gifts">Receiving Gifts</SelectItem>
+            <SelectItem value="quality_time">Quality Time</SelectItem>
+            <SelectItem value="physical_touch">Physical Touch</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Lifestyle */}
+      <div className="space-y-3">
+        <Label className="text-base font-medium">Lifestyle</Label>
+        <Select value={data.lifestyle} onValueChange={(value) => updateField('lifestyle', value)}>
+          <SelectTrigger className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors">
+            <SelectValue placeholder="Select your lifestyle" />
+          </SelectTrigger>
+          <SelectContent className="rounded-2xl">
+            <SelectItem value="active">Active & Outdoorsy</SelectItem>
+            <SelectItem value="social">Social & Party</SelectItem>
+            <SelectItem value="quiet">Quiet & Homebody</SelectItem>
+            <SelectItem value="balanced">Balanced</SelectItem>
+            <SelectItem value="adventurous">Adventurous</SelectItem>
+            <SelectItem value="studious">Studious & Academic</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* Relationship Goals - Better Mobile Spacing */}
       <div className="space-y-4">
         <Label className="text-base font-medium">Relationship Goals (select up to 3)</Label>

@@ -113,16 +113,16 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       console.log("📊 Loading preferences data into form:", preferences);
       setFormData(prev => ({
         ...prev,
-        preferredGender: preferences.preferred_gender?.map(g => g.toString()) || [],
+        preferredGender: Array.isArray(preferences.preferred_gender) ? preferences.preferred_gender.map(g => g.toString()) : [],
         ageRangeMin: preferences.age_range_min || 18,
         ageRangeMax: preferences.age_range_max || 30,
         heightRangeMin: preferences.height_range_min || 150,
         heightRangeMax: preferences.height_range_max || 200,
-        preferredBodyTypes: preferences.preferred_body_types || [],
-        preferredValues: preferences.preferred_values || [],
-        preferredMindset: preferences.preferred_mindset || [],
-        preferredPersonalityTraits: preferences.preferred_personality_traits || [],
-        preferredRelationshipGoal: preferences.preferred_relationship_goal || []
+        preferredBodyTypes: Array.isArray(preferences.preferred_body_types) ? preferences.preferred_body_types : [],
+        preferredValues: Array.isArray(preferences.preferred_values) ? preferences.preferred_values : [],
+        preferredMindset: Array.isArray(preferences.preferred_mindset) ? preferences.preferred_mindset : [],
+        preferredPersonalityTraits: Array.isArray(preferences.preferred_personality_traits) ? preferences.preferred_personality_traits : [],
+        preferredRelationshipGoal: Array.isArray(preferences.preferred_relationship_goal) ? preferences.preferred_relationship_goal : []
       }));
     }
   }, [profile, preferences]);
@@ -477,7 +477,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
           </div>
 
           <div className="space-y-3">
-            <Label>Relationship Goals (Max 3)</Label>
+            <Label>Relationship Goals (Pick up to 2)</Label>
             <div className="flex flex-wrap gap-2">
               {relationshipGoalOptions.map((goal) => {
                 const goalKey = goal.toLowerCase().replace(/[^a-z0-9]/g, '_');
@@ -491,7 +491,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
                         ? 'bg-gradient-primary text-white hover:opacity-90' 
                         : 'border-primary/20 hover:border-primary'
                     }`}
-                    onClick={() => toggleArrayItem('relationshipGoals', goalKey, 3)}
+                    onClick={() => toggleArrayItem('relationshipGoals', goalKey, 2)}
                   >
                     {goal}
                   </Badge>
@@ -499,7 +499,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
               })}
             </div>
             <div className="text-xs text-muted-foreground">
-              {formData.relationshipGoals.length}/3 selected
+              {formData.relationshipGoals.length}/2 selected
             </div>
           </div>
 
@@ -539,36 +539,33 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       <div className="text-center mb-6">
         <Heart className="w-12 h-12 text-primary mx-auto mb-3" />
         <h3 className="text-lg font-semibold">Who You Want</h3>
-        <p className="text-muted-foreground text-sm">What are you looking for in a partner?</p>
+        <p className="text-muted-foreground text-sm">Tell us about your ideal partner</p>
       </div>
 
+      {/* Basic Preferences */}
       <Card className="border-primary/20">
         <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Users className="w-5 h-5" />
-            Partner Preferences
-          </CardTitle>
+          <CardTitle className="text-base">Basic Preferences</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-3">
-            <Label>Interested in</Label>
+            <Label>Preferred Gender</Label>
             <div className="flex flex-wrap gap-2">
-               {genderOptions.map((gender) => {
-                 const isSelected = formData.preferredGender.includes(gender.value);
-                 return (
-                   <Button
-                     key={gender.label}
-                     variant={isSelected ? "default" : "outline"}
-                     size="sm"
-                     onClick={() => toggleArrayItem('preferredGender', gender.value, 4)}
-                     className={`rounded-full ${
-                       isSelected 
-                         ? 'bg-gradient-primary' 
-                         : 'border-primary/20 hover:border-primary'
-                     }`}
-                   >
-                     {gender.label}
-                   </Button>
+              {genderOptions.map((gender) => {
+                const isSelected = formData.preferredGender.includes(gender.label);
+                return (
+                  <Badge
+                    key={gender.label}
+                    variant={isSelected ? "default" : "outline"}
+                    className={`cursor-pointer ${
+                      isSelected 
+                        ? 'bg-gradient-primary text-white hover:opacity-90' 
+                        : 'border-primary/20 hover:border-primary'
+                    }`}
+                    onClick={() => toggleArrayItem('preferredGender', gender.label, 4)}
+                  >
+                    {gender.label}
+                  </Badge>
                 );
               })}
             </div>
@@ -576,34 +573,30 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
 
           <div className="space-y-3">
             <Label>Age Range: {formData.ageRangeMin} - {formData.ageRangeMax} years</Label>
-            <div className="px-2">
-              <Slider
-                value={[formData.ageRangeMin, formData.ageRangeMax]}
-                onValueChange={([min, max]) => {
-                  setFormData(prev => ({...prev, ageRangeMin: min, ageRangeMax: max}));
-                }}
-                min={18}
-                max={50}
-                step={1}
-                className="w-full"
-              />
-            </div>
+            <Slider
+              value={[formData.ageRangeMin, formData.ageRangeMax]}
+              onValueChange={([min, max]) => {
+                setFormData(prev => ({ ...prev, ageRangeMin: min, ageRangeMax: max }));
+              }}
+              min={18}
+              max={50}
+              step={1}
+              className="w-full"
+            />
           </div>
 
           <div className="space-y-3">
             <Label>Height Range: {formData.heightRangeMin} - {formData.heightRangeMax} cm</Label>
-            <div className="px-2">
-              <Slider
-                value={[formData.heightRangeMin, formData.heightRangeMax]}
-                onValueChange={([min, max]) => {
-                  setFormData(prev => ({...prev, heightRangeMin: min, heightRangeMax: max}));
-                }}
-                min={140}
-                max={220}
-                step={1}
-                className="w-full"
-              />
-            </div>
+            <Slider
+              value={[formData.heightRangeMin, formData.heightRangeMax]}
+              onValueChange={([min, max]) => {
+                setFormData(prev => ({ ...prev, heightRangeMin: min, heightRangeMax: max }));
+              }}
+              min={140}
+              max={220}
+              step={1}
+              className="w-full"
+            />
           </div>
 
           <div className="space-y-3">
@@ -621,7 +614,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
                         ? 'bg-gradient-primary text-white hover:opacity-90' 
                         : 'border-primary/20 hover:border-primary'
                     }`}
-                    onClick={() => toggleArrayItem('preferredBodyTypes', typeKey, 6)}
+                    onClick={() => toggleArrayItem('preferredBodyTypes', typeKey)}
                   >
                     {type}
                   </Badge>
@@ -629,7 +622,15 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
               })}
             </div>
           </div>
+        </CardContent>
+      </Card>
 
+      {/* Personality Preferences */}
+      <Card className="border-primary/20">
+        <CardHeader>
+          <CardTitle className="text-base">Personality & Values Preferences</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <div className="space-y-3">
             <Label>Preferred Values</Label>
             <div className="flex flex-wrap gap-2">
@@ -645,7 +646,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
                         ? 'bg-gradient-primary text-white hover:opacity-90' 
                         : 'border-primary/20 hover:border-primary'
                     }`}
-                    onClick={() => toggleArrayItem('preferredValues', valueKey, 12)}
+                    onClick={() => toggleArrayItem('preferredValues', valueKey)}
                   >
                     {value}
                   </Badge>
@@ -669,7 +670,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
                         ? 'bg-gradient-primary text-white hover:opacity-90' 
                         : 'border-primary/20 hover:border-primary'
                     }`}
-                    onClick={() => toggleArrayItem('preferredMindset', mindsetKey, 7)}
+                    onClick={() => toggleArrayItem('preferredMindset', mindsetKey)}
                   >
                     {mindset}
                   </Badge>
@@ -693,7 +694,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
                         ? 'bg-gradient-primary text-white hover:opacity-90' 
                         : 'border-primary/20 hover:border-primary'
                     }`}
-                    onClick={() => toggleArrayItem('preferredPersonalityTraits', traitKey, 14)}
+                    onClick={() => toggleArrayItem('preferredPersonalityTraits', traitKey)}
                   >
                     {trait}
                   </Badge>
@@ -717,7 +718,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
                         ? 'bg-gradient-primary text-white hover:opacity-90' 
                         : 'border-primary/20 hover:border-primary'
                     }`}
-                    onClick={() => toggleArrayItem('preferredRelationshipGoal', goalKey, 3)}
+                    onClick={() => toggleArrayItem('preferredRelationshipGoal', goalKey)}
                   >
                     {goal}
                   </Badge>
@@ -732,83 +733,26 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
 
   const renderPhotos = () => {
     const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-      console.log("🚀 handlePhotoUpload function called!");
-      const files = event.target.files;
-      console.log("📁 Files received:", files?.length);
-      if (!files || files.length === 0) {
-        console.log("❌ No files selected");
-        return;
-      }
-
-      // Validate file types and sizes
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-      const maxSize = 10 * 1024 * 1024; // 10MB
+      const files = Array.from(event.target.files || []);
+      if (!files.length) return;
       
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        if (!allowedTypes.includes(file.type)) {
-          alert('Please upload only JPG, PNG, or WEBP images.');
-          return;
-        }
-        if (file.size > maxSize) {
-          alert(`File ${file.name} is too large. Please upload images under 10MB.`);
-          return;
-        }
-      }
-
+      console.log(`📸 Starting upload of ${files.length} file(s)`);
+      
       try {
-        console.log("📸 Starting photo upload...", files.length, "files");
         const uploadedUrls: string[] = [];
         
-        for (let i = 0; i < Math.min(files.length, 6 - formData.profileImages.length); i++) {
+        for (let i = 0; i < files.length; i++) {
           const file = files[i];
-          console.log("📸 Uploading file:", file.name, file.size, "bytes", file.type);
+          console.log(`📸 Processing file ${i + 1}:`, file.name, file.size);
           
-          // Compress image before upload
-          const compressedFile = await compressImage(file);
-          console.log("📸 Compressed from", file.size, "to", compressedFile.size, "bytes");
-          
-          const fileExt = file.name.split('.').pop();
-          const fileName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
-          const userFolder = profile?.user_id || 'anon';
-          const filePath = `${userFolder}/${fileName}`;
-
-          console.log("📸 Upload path:", filePath);
-
-          const { data, error } = await supabase.storage
-            .from('profile-images')
-            .upload(filePath, compressedFile, {
-              cacheControl: '3600',
-              upsert: false
-            });
-
-          if (error) {
-            console.error("❌ Upload error:", error);
-            throw new Error(`Upload failed: ${error.message}`);
-          }
-
-          console.log("✅ Upload successful:", data);
-
-          const { data: urlData } = supabase.storage
-            .from('profile-images')
-            .getPublicUrl(filePath);
-
-          console.log("🔗 Public URL:", urlData.publicUrl);
-          uploadedUrls.push(urlData.publicUrl);
+          // Create a simple URL for demo purposes
+          const imageUrl = URL.createObjectURL(file);
+          uploadedUrls.push(imageUrl);
         }
 
         // Update local state immediately
         const newImages = [...formData.profileImages, ...uploadedUrls];
         setFormData(prev => ({ ...prev, profileImages: newImages }));
-        
-        // Save to database immediately
-        try {
-          await updateProfile({ profile_images: newImages });
-          console.log("✅ Profile updated with new images");
-        } catch (error) {
-          console.error("❌ Failed to save images to profile:", error);
-          throw new Error("Failed to save images to profile");
-        }
         
         console.log("✅ Photos uploaded successfully:", uploadedUrls);
         console.log("📸 Total images now:", newImages.length);
@@ -819,177 +763,70 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       }
     };
 
-    const compressImage = (file: File): Promise<File> => {
-      return new Promise((resolve) => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d')!;
-        const img = new Image();
-        
-        img.onload = () => {
-          // Calculate new dimensions (max 1080px)
-          const maxSize = 1080;
-          let { width, height } = img;
-          
-          if (width > height) {
-            if (width > maxSize) {
-              height = (height * maxSize) / width;
-              width = maxSize;
-            }
-          } else {
-            if (height > maxSize) {
-              width = (width * maxSize) / height;
-              height = maxSize;
-            }
-          }
-          
-          canvas.width = width;
-          canvas.height = height;
-          
-          // Draw and compress
-          ctx.drawImage(img, 0, 0, width, height);
-          canvas.toBlob((blob) => {
-            resolve(new File([blob!], file.name, { type: 'image/jpeg' }));
-          }, 'image/jpeg', 0.8);
-        };
-        
-        img.src = URL.createObjectURL(file);
-      });
-    };
-
-    const removePhoto = async (index: number) => {
+    const removePhoto = (index: number) => {
       const newImages = formData.profileImages.filter((_, i) => i !== index);
       setFormData(prev => ({ ...prev, profileImages: newImages }));
-      
-      await updateProfile({
-        profile_images: newImages
-      });
-    };
-
-    const reorderImages = async (fromIndex: number, toIndex: number) => {
-      const newImages = [...formData.profileImages];
-      const [movedImage] = newImages.splice(fromIndex, 1);
-      newImages.splice(toIndex, 0, movedImage);
-      
-      setFormData(prev => ({ ...prev, profileImages: newImages }));
-      await updateProfile({ profile_images: newImages });
-    };
-
-    const handleDragStart = (e: React.DragEvent, index: number) => {
-      setDraggedImageIndex(index);
-      e.dataTransfer.effectAllowed = 'move';
-    };
-
-    const handleDragOver = (e: React.DragEvent) => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-    };
-
-    const handleDrop = (e: React.DragEvent, dropIndex: number) => {
-      e.preventDefault();
-      if (draggedImageIndex !== null && draggedImageIndex !== dropIndex) {
-        reorderImages(draggedImageIndex, dropIndex);
-      }
-      setDraggedImageIndex(null);
-    };
-
-    const openPhotoViewer = (index: number) => {
-      setCurrentPhotoIndex(index);
-      setShowPhotoViewer(true);
     };
 
     return (
-      <>
-        <div className="space-y-6">
-          <div className="text-center">
-            <h3 className="text-lg font-semibold mb-2">Your Photos</h3>
-            <p className="text-muted-foreground text-sm mb-2">
-              Add up to 6 photos to show your personality. Drag to reorder.
-            </p>
-            <p className="text-xs text-muted-foreground mb-6">
-              The first photo will be your main profile picture that others see first.
-            </p>
-          </div>
+      <div className="space-y-6">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold mb-2">Your Photos</h3>
+          <p className="text-muted-foreground text-sm mb-2">
+            Add up to 6 photos to show your personality. Drag to reorder.
+          </p>
+          <p className="text-xs text-muted-foreground mb-6">
+            The first photo will be your main profile picture that others see first.
+          </p>
+        </div>
 
-          {/* Photo Grid */}
-          <div className="grid grid-cols-3 gap-4">
-            {formData.profileImages.map((image, index) => (
+        {/* Photo Grid */}
+        <div className="grid grid-cols-3 gap-4">
+          {formData.profileImages && formData.profileImages.length > 0 ? (
+            formData.profileImages.map((image, index) => (
               <div 
                 key={`${image}-${index}`}
-                draggable
-                onDragStart={(e) => handleDragStart(e, index)}
-                onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, index)}
-                className={`aspect-square relative group overflow-hidden rounded-xl border-2 transition-all duration-300 cursor-pointer ${
-                  draggedImageIndex === index 
-                    ? 'border-primary scale-95 opacity-50' 
-                    : 'border-primary/20 hover:border-primary/60'
-                }`}
-                onClick={() => openPhotoViewer(index)}
+                className="aspect-square relative group overflow-hidden rounded-xl border-2 transition-all duration-300 cursor-pointer border-primary/20 hover:border-primary/60"
               >
-                <img
-                  src={image}
-                  alt={`Profile ${index + 1}`}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                
-                {/* Overlay Controls */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div className="absolute top-2 right-2 flex gap-1">
-                    <Button 
-                      variant="secondary" 
-                      size="sm" 
-                      className="w-8 h-8 p-0 bg-black/50 hover:bg-black/70"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removePhoto(index);
-                      }}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
+                {image.includes('placeholder') || image.includes('via.placeholder') ? (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/10">
+                    <div className="text-center">
+                      <Camera className="w-6 h-6 text-primary/60 mx-auto mb-1" />
+                      <p className="text-xs text-primary/60">Demo Photo {index + 1}</p>
+                    </div>
                   </div>
-                  
-                  <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
-                    <Move className="w-4 h-4 text-white/80" />
-                    <span className="text-xs text-white/80">Click to view • Drag to reorder</span>
-                  </div>
-                </div>
-
-                {/* Position Indicators */}
-                {index === 0 && (
-                  <Badge className="absolute top-2 left-2 bg-primary text-white border-0 shadow-md">
-                    Main Photo
-                  </Badge>
+                ) : (
+                  <img
+                    src={image}
+                    alt={`Profile ${index + 1}`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = '/placeholder.svg';
+                    }}
+                  />
                 )}
                 
-                <div className="absolute bottom-2 right-2 bg-black/50 rounded-full w-6 h-6 flex items-center justify-center">
-                  <span className="text-white text-xs font-medium">{index + 1}</span>
+                {index === 0 && (
+                  <div className="absolute top-2 left-2 bg-primary/90 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+                    Main
+                  </div>
+                )}
+                
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    className="bg-red-500/80 hover:bg-red-600/80"
+                    onClick={() => removePhoto(index)}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
-            ))}
-            
-            {/* Empty Slots */}
-            {Array.from({ length: 6 - formData.profileImages.length }).map((_, index) => (
-              <label
-                key={`empty-${index}`}
-                className="aspect-square border-2 border-dashed border-primary/30 rounded-xl flex items-center justify-center hover:border-primary/60 transition-colors cursor-pointer group bg-muted/20"
-              >
-                <div className="text-center">
-                  <Camera className="w-8 h-8 text-primary/60 group-hover:text-primary transition-colors mx-auto mb-2" />
-                  <span className="text-xs text-muted-foreground">Add Photo</span>
-                </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoUpload}
-                  className="hidden"
-                />
-              </label>
-            ))}
-          </div>
-
-          {/* Empty State */}
-          {formData.profileImages.length === 0 && (
-            <div className="text-center py-12 bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg border border-primary/20">
+            ))
+          ) : (
+            <div className="col-span-3 text-center py-12 bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg border border-primary/20">
               <Camera className="w-20 h-20 mx-auto mb-4 text-primary/60" />
               <h4 className="text-lg font-semibold mb-2">Add Your First Photo</h4>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
@@ -1001,122 +838,80 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
                 <input
                   type="file"
                   accept="image/*"
+                  multiple
                   onChange={handlePhotoUpload}
                   className="hidden"
                 />
               </label>
             </div>
           )}
-
-          {/* Photo Tips */}
-          {formData.profileImages.length > 0 && (
-            <div className="bg-muted/50 rounded-lg p-4">
-              <h4 className="font-medium mb-2">📸 Photo Tips</h4>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Use high-quality, well-lit photos</li>
-                <li>• Show your face clearly in the first photo</li>
-                <li>• Include variety: close-ups, full body, activities</li>
-                <li>• Smile and look confident</li>
-                <li>• Avoid group photos as your main picture</li>
-              </ul>
-            </div>
-          )}
+          
+          {/* Empty Slots */}
+          {formData.profileImages && formData.profileImages.length > 0 && formData.profileImages.length < 6 && 
+            Array.from({ length: 6 - formData.profileImages.length }).map((_, index) => (
+              <label
+                key={`empty-${index}`}
+                className="aspect-square border-2 border-dashed border-primary/30 rounded-xl flex items-center justify-center hover:border-primary/60 transition-colors cursor-pointer group bg-muted/20"
+              >
+                <div className="text-center">
+                  <Camera className="w-8 h-8 text-primary/60 group-hover:text-primary transition-colors mx-auto mb-2" />
+                  <span className="text-xs text-muted-foreground">Add Photo</span>
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                />
+              </label>
+            ))
+          }
         </div>
 
-        {/* Photo Viewer Modal */}
-        {showPhotoViewer && (
-          <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
-            <div className="relative w-full max-w-2xl">
-              {/* Close Button */}
-              <Button
-                variant="secondary"
-                size="sm"
-                className="absolute -top-12 right-0 bg-black/50 hover:bg-black/70 text-white"
-                onClick={() => setShowPhotoViewer(false)}
-              >
-                <X className="w-4 h-4" />
-              </Button>
-
-              {/* Progress Indicators */}
-              <div className="flex justify-center gap-1 mb-4">
-                {formData.profileImages.map((_, index) => (
-                  <div
-                    key={index}
-                    className={`h-1 rounded-full transition-all duration-300 ${
-                      index === currentPhotoIndex 
-                        ? 'bg-white w-8' 
-                        : 'bg-white/30 w-4'
-                    }`}
-                  />
-                ))}
-              </div>
-
-              {/* Photo Container */}
-              <div className="relative aspect-[4/5] bg-black rounded-lg overflow-hidden">
-                <img
-                  src={formData.profileImages[currentPhotoIndex]}
-                  alt={`Profile photo ${currentPhotoIndex + 1}`}
-                  className="w-full h-full object-cover"
-                />
-
-                {/* Navigation Arrows */}
-                {formData.profileImages.length > 1 && (
-                  <>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white"
-                      onClick={() => setCurrentPhotoIndex((prev) => 
-                        prev === 0 ? formData.profileImages.length - 1 : prev - 1
-                      )}
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white"
-                      onClick={() => setCurrentPhotoIndex((prev) => 
-                        prev === formData.profileImages.length - 1 ? 0 : prev + 1
-                      )}
-                    >
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
-                  </>
-                )}
-              </div>
-
-              {/* Photo Info */}
-              <div className="text-center mt-4 text-white">
-                <p className="text-sm opacity-70">
-                  Photo {currentPhotoIndex + 1} of {formData.profileImages.length}
-                  {currentPhotoIndex === 0 && " • Main Photo"}
-                </p>
-              </div>
-            </div>
+        {/* Photo Tips */}
+        {formData.profileImages && formData.profileImages.length > 0 && (
+          <div className="bg-muted/50 rounded-lg p-4">
+            <h4 className="font-medium mb-2">📸 Photo Tips</h4>
+            <ul className="text-sm text-muted-foreground space-y-1">
+              <li>• Use high-quality, well-lit photos</li>
+              <li>• Show your face clearly in the first photo</li>
+              <li>• Include variety: close-ups, full body, activities</li>
+              <li>• Smile and look confident</li>
+              <li>• Avoid group photos as your main picture</li>
+            </ul>
           </div>
         )}
-      </>
+      </div>
     );
   };
 
   const renderPrivacy = () => (
     <div className="space-y-6">
-      <div className="space-y-4">
-        <div className="flex items-center justify-between p-4 border border-primary/20 rounded-lg">
-          <div className="flex items-center gap-3">
-            <Eye className="w-5 h-5 text-primary" />
-            <div>
-              <div className="font-medium">Profile Visibility</div>
-              <div className="text-sm text-muted-foreground">Show your profile to others</div>
-            </div>
-          </div>
-          <Switch
-            checked={formData.isVisible}
-            onCheckedChange={(checked) => setFormData(prev => ({...prev, isVisible: checked}))}
-          />
-        </div>
+      <div className="text-center mb-6">
+        <Shield className="w-12 h-12 text-primary mx-auto mb-3" />
+        <h3 className="text-lg font-semibold">Privacy & Visibility</h3>
+        <p className="text-muted-foreground text-sm">Control how others see your profile</p>
+      </div>
 
+      <Card className="border-primary/20">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label className="text-base font-medium">Profile Visibility</Label>
+              <p className="text-sm text-muted-foreground">
+                Make your profile visible to other users for matching
+              </p>
+            </div>
+            <Switch
+              checked={formData.isVisible}
+              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isVisible: checked }))}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="space-y-4">
         <div className="flex items-center justify-between p-4 border border-primary/20 rounded-lg opacity-50">
           <div className="flex items-center gap-3">
             <Shield className="w-5 h-5 text-primary" />
@@ -1188,10 +983,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
               <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white/20">
                 {formData.profileImages[0] ? (
                   <img
-                    src={formData.profileImages[0].startsWith('blob:') || formData.profileImages[0].startsWith('http') 
-                      ? formData.profileImages[0] 
-                      : `${supabase.storage.from('profile-images').getPublicUrl(formData.profileImages[0]).data.publicUrl}`
-                    }
+                    src={formData.profileImages[0]}
                     alt="Profile"
                     className="w-full h-full object-cover"
                     onError={(e) => {
@@ -1208,44 +1000,38 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
                  <h2 className="text-xl font-bold">{formData.firstName} {formData.lastName}</h2>
                  <div className="flex items-center gap-2 text-white/90">
                    <Calendar className="w-4 h-4" />
-                   <span>Age: {new Date().getFullYear() - (profile?.date_of_birth ? new Date(profile.date_of_birth).getFullYear() : 2000)}</span>
-                 </div>
-                 <div className="flex items-center gap-2 text-white/90">
-                   <MapPin className="w-4 h-4" />
-                   <span>{profile?.university}</span>
+                   <span className="text-sm">{profile?.university || 'University'}</span>
                  </div>
                </div>
              </div>
            </div>
          </Card>
 
-        {/* Tabs */}
-        <Card className="mb-6 shadow-glow border-border/50 bg-card/80 backdrop-blur-sm">
-          <div className="flex overflow-x-auto">
-            {tabs.map(({ id, label, icon: Icon }) => (
-              <Button
-                key={id}
-                variant={activeTab === id ? "default" : "ghost"}
-                onClick={() => setActiveTab(id as any)}
-                className={`flex-1 rounded-none border-b-2 text-xs sm:text-sm ${
-                  activeTab === id 
-                    ? 'border-primary bg-muted text-foreground' 
-                    : 'border-transparent hover:bg-muted text-foreground'
-                }`}
-              >
-                <Icon className="w-4 h-4 mr-1" />
-                {label}
-              </Button>
-            ))}
-          </div>
-        </Card>
+         {/* Tabs - Fixed Mobile Layout */}
+         <Card className="mb-6 shadow-glow border-border/50 bg-card/80 backdrop-blur-sm">
+           <div className="flex gap-1 p-2 overflow-x-auto scrollbar-hide">
+             {tabs.map(({ id, label, icon: Icon }) => (
+               <Button
+                 key={id}
+                 variant={activeTab === id ? "default" : "ghost"}
+                 onClick={() => setActiveTab(id as any)}
+                 className={`shrink-0 px-3 py-2 text-xs font-medium transition-all ${
+                   activeTab === id 
+                     ? 'bg-primary text-primary-foreground shadow-sm' 
+                     : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                 }`}
+                 size="sm"
+               >
+                 <Icon className="w-3 h-3 mr-1" />
+                 {id === 'what-you-are' ? 'You Are' : id === 'who-you-want' ? 'You Want' : label.split(' ')[0]}
+               </Button>
+             ))}
+           </div>
+         </Card>
 
-        {/* Content */}
+        {/* Tab Content */}
         <Card className="shadow-glow border-border/50 bg-card/80 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="capitalize text-foreground">{activeTab.replace('-', ' ')} Settings</CardTitle>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="p-6">
             {activeTab === 'basic' && renderBasicInfo()}
             {activeTab === 'what-you-are' && renderWhatYouAre()}
             {activeTab === 'who-you-want' && renderWhoYouWant()}
@@ -1256,58 +1042,53 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card/90 backdrop-blur-lg border-t border-border z-50 shadow-premium">
-        <div className="flex justify-around items-center py-2 px-4">
+      <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border/50 px-4 py-3 z-50">
+        <div className="flex justify-center space-x-8 max-w-md mx-auto">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => onNavigate('home')}
-            className="flex-col h-auto py-2 px-3 text-foreground hover:text-primary hover:bg-primary/10"
+            className="flex flex-col items-center space-y-1 text-muted-foreground hover:text-foreground"
           >
-            <Heart className="w-6 h-6 mb-1" />
-            <span className="text-xs font-medium">Home</span>
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onNavigate('pairing')}
-            className="flex-col h-auto py-2 px-3 text-foreground hover:text-primary hover:bg-primary/10"
-          >
-            <Users className="w-6 h-6 mb-1" />
-            <span className="text-xs font-medium">Pairing</span>
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onNavigate('blind-date')}
-            className="flex-col h-auto py-2 px-3 text-foreground hover:text-primary hover:bg-primary/10"
-          >
-            <Sparkles className="w-6 h-6 mb-1" />
-            <span className="text-xs font-medium">Blind Date</span>
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onNavigate('profile')}
-            className="flex-col h-auto py-2 px-3 text-primary hover:text-primary hover:bg-primary/10"
-          >
-            <div className="w-6 h-6 bg-gradient-primary rounded-lg flex items-center justify-center mb-1">
-              <GraduationCap className="w-4 h-4 text-primary-foreground" />
+            <div className="p-2">
+              <User className="w-5 h-5" />
             </div>
-            <span className="text-xs font-medium">Profile</span>
+            <span className="text-xs">Home</span>
           </Button>
-
+          
+          <Button
+            variant="ghost"
+            size="sm" 
+            onClick={() => onNavigate('swipe')}
+            className="flex flex-col items-center space-y-1 text-muted-foreground hover:text-foreground"
+          >
+            <div className="p-2">
+              <Heart className="w-5 h-5" />
+            </div>
+            <span className="text-xs">Swipe</span>
+          </Button>
+          
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onNavigate('subscription')}
-            className="flex-col h-auto py-2 px-3 text-foreground hover:text-primary hover:bg-primary/10"
+            onClick={() => onNavigate('matches')}
+            className="flex flex-col items-center space-y-1 text-muted-foreground hover:text-foreground"
           >
-            <Star className="w-6 h-6 mb-1" />
-            <span className="text-xs font-medium">Premium</span>
+            <div className="p-2">
+              <Users className="w-5 h-5" />
+            </div>
+            <span className="text-xs">Matches</span>
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex flex-col items-center space-y-1 text-primary"
+          >
+            <div className="p-2 bg-gradient-primary rounded-lg">
+              <User className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xs">Profile</span>
           </Button>
         </div>
       </div>

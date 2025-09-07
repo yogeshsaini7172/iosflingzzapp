@@ -42,6 +42,8 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
     personalityType: "",
     values: "",
     mindset: "",
+    loveLanguage: "",
+    lifestyle: "",
     relationshipGoals: [] as string[],
     interests: [] as string[],
     bio: "",
