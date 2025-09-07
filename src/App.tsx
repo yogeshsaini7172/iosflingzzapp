@@ -2,10 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import DatingAppContainer from "./components/DatingAppContainer";
-import InstagramUI from "./components/InstagramUI";
 import SwipePage from "./pages/SwipePage";
 import PairingPage from "./pages/PairingPage";
 import MatchesPage from "./pages/MatchesPage";
@@ -13,7 +11,7 @@ import ChatPage from "./pages/ChatPage";
 import ProfilePage from "./pages/ProfilePage";
 import BlindDatePage from "./pages/BlindDatePage";
 import NotFound from "./pages/NotFound";
-import NewAuth from "./pages/NewAuth";
+import Index from "./pages/Index";
 import GenZBackground from "./components/ui/genZ-background";
 
 const queryClient = new QueryClient({
@@ -37,7 +35,7 @@ const AuthenticatedApp = () => {
   }
 
   if (!user) {
-    return <NewAuth />;
+    return <Index />;
   }
 
   return (
@@ -47,14 +45,13 @@ const AuthenticatedApp = () => {
         <Sonner />
         <div id="recaptcha-container"></div>
         <Routes>
-          <Route path="/" element={<InstagramUI onNavigate={(view) => {}} />} />
-          <Route path="/swipe" element={<SwipePage onNavigate={(view) => {}} />} />
-          <Route path="/pairing" element={<PairingPage onNavigate={(view) => {}} />} />
-          <Route path="/matches" element={<MatchesPage onNavigate={(view) => {}} />} />
-          <Route path="/chat" element={<ChatPage onNavigate={(view) => {}} />} />
-          <Route path="/profile" element={<ProfilePage onNavigate={(view) => {}} />} />
-          <Route path="/blind-date" element={<BlindDatePage onNavigate={(view) => {}} />} />
-          <Route path="/app" element={<DatingAppContainer />} />
+          <Route path="/" element={<Navigate to="/app/swipe" replace />} />
+          <Route path="/app/swipe" element={<SwipePage onNavigate={(view) => {}} />} />
+          <Route path="/app/pairing" element={<PairingPage onNavigate={(view) => {}} />} />
+          <Route path="/app/matches" element={<MatchesPage onNavigate={(view) => {}} />} />
+          <Route path="/app/chat/:matchId?" element={<ChatPage onNavigate={(view) => {}} />} />
+          <Route path="/app/profile" element={<ProfilePage onNavigate={(view) => {}} />} />
+          <Route path="/app/blind-date" element={<BlindDatePage onNavigate={(view) => {}} />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </GenZBackground>
