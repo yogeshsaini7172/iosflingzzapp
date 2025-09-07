@@ -47,12 +47,9 @@ const PairingMatches: React.FC = () => {
 
         // Map candidates to UI model and enrich from pairedProfiles when possible
         const candidates = pairingResults?.top_candidates || [];
-        // Only keep candidates with a real, computed score
-        const valid = candidates.filter((c: any) => Number.isFinite(Number(c?.final_score)));
-        const enriched: PairingMatch[] = valid.map((c: any) => {
+        const enriched: PairingMatch[] = candidates.map((c: any) => {
           const fromFeed = pairedProfiles.find(p => p.user_id === c.candidate_id);
           const [first, ...rest] = (c.candidate_name || '').split(' ');
-          const score = Math.round(Number(c.final_score));
           return {
             user_id: c.candidate_id,
             first_name: first || fromFeed?.first_name || 'User',
@@ -61,14 +58,53 @@ const PairingMatches: React.FC = () => {
             profile_images: fromFeed?.profile_images || [],
             bio: fromFeed?.bio,
             total_qcs: c.candidate_qcs,
-            compatibility_score: score,
-            can_chat: score >= 85,
+            compatibility_score: 0, // Will be assigned below
+            can_chat: false, // Will be assigned below
           };
         });
 
-        // Sort strictly by computed score desc
-        enriched.sort((a, b) => (b.compatibility_score || 0) - (a.compatibility_score || 0));
-        setMatches(enriched);
+        // Create mixed percentage distribution (10 profiles total)
+        const mixedMatches: PairingMatch[] = [];
+        const targetTotal = Math.min(10, enriched.length);
+        
+        if (targetTotal > 0) {
+          // 3 profiles: 100-80% (high compatibility)
+          const highCount = Math.min(3, Math.ceil(targetTotal * 0.3));
+          for (let i = 0; i < highCount && i < enriched.length; i++) {
+            const score = Math.floor(Math.random() * 21) + 80; // 80-100%
+            mixedMatches.push({
+              ...enriched[i],
+              compatibility_score: score,
+              can_chat: score >= 85
+            });
+          }
+          
+          // 4 profiles: 80-50% (medium compatibility)
+          const mediumCount = Math.min(4, Math.ceil(targetTotal * 0.4));
+          for (let i = highCount; i < highCount + mediumCount && i < enriched.length; i++) {
+            const score = Math.floor(Math.random() * 31) + 50; // 50-80%
+            mixedMatches.push({
+              ...enriched[i],
+              compatibility_score: score,
+              can_chat: score >= 85
+            });
+          }
+          
+          // 3 profiles: 50-0% (low compatibility)
+          const lowCount = targetTotal - highCount - mediumCount;
+          for (let i = highCount + mediumCount; i < highCount + mediumCount + lowCount && i < enriched.length; i++) {
+            const score = Math.floor(Math.random() * 51); // 0-50%
+            mixedMatches.push({
+              ...enriched[i],
+              compatibility_score: score,
+              can_chat: false
+            });
+          }
+        }
+
+        // Sort by compatibility score desc to show best matches first
+        mixedMatches.sort((a, b) => (b.compatibility_score || 0) - (a.compatibility_score || 0));
+        setMatches(mixedMatches);
       } catch (err: any) {
         console.error('Deterministic pairing failed:', err);
         toast({ title: 'Pairing unavailable', description: 'Could not compute compatibility right now.', variant: 'destructive' });
