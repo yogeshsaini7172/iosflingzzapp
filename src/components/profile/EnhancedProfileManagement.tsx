@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -35,45 +35,87 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
   const { profile, preferences, isLoading, updateProfile, updatePreferences } = useProfileData();
   const [activeTab, setActiveTab] = useState<'basic' | 'what-you-are' | 'who-you-want' | 'photos' | 'privacy'>('basic');
 
-  // Local state for form management
+  // Local state for form management - Initialize with empty values initially
   const [formData, setFormData] = useState({
     // Basic info
-    firstName: profile?.first_name || '',
-    lastName: profile?.last_name || '',
-    bio: profile?.bio || '',
-    educationLevel: profile?.education_level || '',
-    profession: profile?.profession || '',
+    firstName: '',
+    lastName: '',
+    bio: '',
+    educationLevel: '',
+    profession: '',
     
     // Physical Attributes
-    height: profile?.height?.toString() || '',
-    bodyType: profile?.body_type || '',
-    skinTone: profile?.skin_tone || '',
+    height: '',
+    bodyType: '',
+    skinTone: '',
     
     // Personality & Values (arrays)
-    personalityTraits: profile?.personality_traits || [],
-    values: profile?.values || [],
-    mindset: profile?.mindset || [],
+    personalityTraits: [] as string[],
+    values: [] as string[],
+    mindset: [] as string[],
     
     // Goals & Interests
-    relationshipGoals: profile?.relationship_goals || [],
-    interests: profile?.interests || [],
+    relationshipGoals: [] as string[],
+    interests: [] as string[],
     
     // Who You Want data
-    preferredGender: preferences?.preferred_gender || [],
-    ageRangeMin: preferences?.age_range_min || 18,
-    ageRangeMax: preferences?.age_range_max || 30,
-    heightRangeMin: preferences?.height_range_min || 150,
-    heightRangeMax: preferences?.height_range_max || 200,
-    preferredBodyTypes: preferences?.preferred_body_types || [],
-    preferredValues: preferences?.preferred_values || [],
-    preferredMindset: preferences?.preferred_mindset || [],
-    preferredPersonalityTraits: preferences?.preferred_personality_traits || [],
-    preferredRelationshipGoal: preferences?.preferred_relationship_goal || [],
+    preferredGender: [] as string[],
+    ageRangeMin: 18,
+    ageRangeMax: 30,
+    heightRangeMin: 150,
+    heightRangeMax: 200,
+    preferredBodyTypes: [] as string[],
+    preferredValues: [] as string[],
+    preferredMindset: [] as string[],
+    preferredPersonalityTraits: [] as string[],
+    preferredRelationshipGoal: [] as string[],
     
     // Settings
-    isVisible: profile?.show_profile !== false,
-    profileImages: profile?.profile_images || []
+    isVisible: true,
+    profileImages: [] as string[]
   });
+
+  // Update form data when profile/preferences load
+  useEffect(() => {
+    if (profile) {
+      console.log("📊 Loading profile data into form:", profile);
+      setFormData(prev => ({
+        ...prev,
+        firstName: profile.first_name || '',
+        lastName: profile.last_name || '',
+        bio: profile.bio || '',
+        educationLevel: profile.education_level || '',
+        profession: profile.profession || '',
+        height: profile.height?.toString() || '',
+        bodyType: profile.body_type || '',
+        skinTone: profile.skin_tone || '',
+        personalityTraits: profile.personality_traits || [],
+        values: Array.isArray(profile.values) ? profile.values : (profile.values ? [profile.values] : []),
+        mindset: Array.isArray(profile.mindset) ? profile.mindset : (profile.mindset ? [profile.mindset] : []),
+        relationshipGoals: profile.relationship_goals || [],
+        interests: profile.interests || [],
+        isVisible: profile.show_profile !== false,
+        profileImages: profile.profile_images || []
+      }));
+    }
+    
+    if (preferences) {
+      console.log("📊 Loading preferences data into form:", preferences);
+      setFormData(prev => ({
+        ...prev,
+        preferredGender: preferences.preferred_gender?.map(g => g.toString()) || [],
+        ageRangeMin: preferences.age_range_min || 18,
+        ageRangeMax: preferences.age_range_max || 30,
+        heightRangeMin: preferences.height_range_min || 150,
+        heightRangeMax: preferences.height_range_max || 200,
+        preferredBodyTypes: preferences.preferred_body_types || [],
+        preferredValues: preferences.preferred_values || [],
+        preferredMindset: preferences.preferred_mindset || [],
+        preferredPersonalityTraits: preferences.preferred_personality_traits || [],
+        preferredRelationshipGoal: preferences.preferred_relationship_goal || []
+      }));
+    }
+  }, [profile, preferences]);
 
   const handleLogout = async () => {
     try {
@@ -112,7 +154,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
 
     // Update preferences
     await updatePreferences({
-      preferred_gender: formData.preferredGender,
+      preferred_gender: formData.preferredGender as any,
       age_range_min: formData.ageRangeMin,
       age_range_max: formData.ageRangeMax,
       height_range_min: formData.heightRangeMin,
