@@ -1139,7 +1139,7 @@ export type Database = {
     Enums: {
       app_subscription_tier: "free" | "basic" | "plus" | "premium"
       blind_date_status: "pending" | "accepted" | "declined" | "completed"
-      gender: "male" | "female" | "non_binary" | "prefer_not_to_say"
+      gender: "male" | "female" | "non_binary" | "prefer_not_to_say" | "other"
       match_status: "liked" | "passed" | "matched"
       swipe_direction: "left" | "right"
       verification_status: "pending" | "approved" | "rejected"
@@ -1272,7 +1272,7 @@ export const Constants = {
     Enums: {
       app_subscription_tier: ["free", "basic", "plus", "premium"],
       blind_date_status: ["pending", "accepted", "declined", "completed"],
-      gender: ["male", "female", "non_binary", "prefer_not_to_say"],
+      gender: ["male", "female", "non_binary", "prefer_not_to_say", "other"],
       match_status: ["liked", "passed", "matched"],
       swipe_direction: ["left", "right"],
       verification_status: ["pending", "approved", "rejected"],
