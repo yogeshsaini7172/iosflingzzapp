@@ -182,50 +182,50 @@ const SubscriptionPlans = ({
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {plans.map((plan) => (
           <Card 
             key={plan.id}
-            className={`relative transition-all duration-300 hover:shadow-lg ${
-              plan.popular ? 'ring-2 ring-primary scale-105' : ''
-            } ${currentPlan === plan.id && showCurrentPlan ? 'bg-primary/5' : ''}`}
+            className={`relative transition-all duration-300 hover:shadow-elegant ${
+              plan.popular ? 'ring-2 ring-primary scale-105 border-primary/50' : 'border-border/30'
+            } ${currentPlan === plan.id && showCurrentPlan ? 'bg-card/80 backdrop-blur-md' : 'bg-card/60 backdrop-blur-sm'}`}
           >
             {plan.popular && (
-              <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground">
+              <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-primary text-primary-foreground font-display font-semibold">
                 Most Popular
               </Badge>
             )}
             
             {currentPlan === plan.id && showCurrentPlan && (
-              <Badge className="absolute -top-3 right-4 bg-success text-success-foreground">
+              <Badge className="absolute -top-3 right-4 bg-success text-success-foreground font-professional">
                 Current Plan
               </Badge>
             )}
 
-            <CardHeader className="text-center">
-              <div className={`w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-4 ${plan.bgColor}`}>
+            <CardHeader className="text-center px-4 py-6">
+              <div className={`w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-4 ${plan.bgColor} shadow-soft`}>
                 <span className={plan.textColor}>
                   {plan.icon}
                 </span>
               </div>
               
-              <CardTitle className="text-xl">{plan.name}</CardTitle>
-              <CardDescription className="text-sm">{plan.description}</CardDescription>
+              <CardTitle className="text-lg sm:text-xl font-display font-bold text-foreground">{plan.name}</CardTitle>
+              <CardDescription className="text-xs sm:text-sm font-professional text-muted-foreground">{plan.description}</CardDescription>
               
               <div className="mt-4">
-                <div className="text-3xl font-bold">
+                <div className="text-2xl sm:text-3xl font-display font-bold text-primary">
                   {plan.price}
                 </div>
-                <div className="text-sm text-muted-foreground">{plan.period}</div>
+                <div className="text-xs sm:text-sm font-professional text-muted-foreground">{plan.period}</div>
               </div>
             </CardHeader>
 
-            <CardContent className="space-y-6">
-              <div className="space-y-3">
+            <CardContent className="space-y-4 sm:space-y-6 px-4 pb-6">
+              <div className="space-y-2 sm:space-y-3">
                 {plan.features.map((feature, index) => (
-                  <div key={index} className="flex items-start space-x-3">
-                    <Check className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
-                    <span className="text-sm">{feature}</span>
+                  <div key={index} className="flex items-start space-x-2">
+                    <Check className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm font-professional text-muted-foreground leading-relaxed">{feature}</span>
                   </div>
                 ))}
               </div>
@@ -233,11 +233,11 @@ const SubscriptionPlans = ({
               <Button
                 onClick={() => handlePlanSelect(plan.id)}
                 disabled={isLoading || (currentPlan === plan.id && showCurrentPlan)}
-                className={`w-full ${
-                  plan.id === 'silver' ? 'bg-slate-500 hover:bg-slate-600' :
-                  plan.id === 'gold' ? 'bg-yellow-500 hover:bg-yellow-600' :
-                  plan.id === 'platinum' ? 'bg-purple-500 hover:bg-purple-600' :
-                  'bg-muted hover:bg-muted/90 text-muted-foreground'
+                className={`w-full font-professional font-semibold text-sm sm:text-base py-2.5 rounded-xl transition-all duration-300 ${
+                  plan.id === 'silver' ? 'bg-gradient-to-r from-slate-500 to-slate-600 hover:shadow-glow' :
+                  plan.id === 'gold' ? 'bg-gradient-primary hover:shadow-glow' :
+                  plan.id === 'platinum' ? 'bg-gradient-to-r from-purple-500 to-purple-600 hover:shadow-glow' :
+                  'bg-card border border-border hover:bg-card/80 text-muted-foreground'
                 }`}
                 variant={plan.id === 'free' ? 'outline' : 'default'}
               >

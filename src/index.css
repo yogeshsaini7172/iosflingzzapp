@@ -2,6 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Professional Typography */
+@layer base {
+  body {
+    font-family: 'Poppins', 'Inter', system-ui, sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', sans-serif;
+  }
+}
+
+@layer utilities {
+  .font-professional {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  .font-display {
+    font-family: 'Poppins', sans-serif;
+  }
+}
+
 /* GradSync - Elite College Dating Platform */
 /* Premium Design System - Royal & Luxury Aesthetic */
 

@@ -97,10 +97,9 @@ export default {
 				sm: 'calc(var(--radius) - 4px)'
 			},
 			fontFamily: {
-				'elegant': ['Playfair Display', 'serif'],
-				'modern': ['Montserrat', 'sans-serif'],
-				'script': ['Cormorant Garamond', 'serif'],
-				'sans': ['Inter', 'system-ui', 'sans-serif']
+				'professional': ['Inter', 'system-ui', 'sans-serif'],
+				'sans': ['Poppins', 'Inter', 'system-ui', 'sans-serif'],
+				'display': ['Poppins', 'sans-serif']
 			},
 			keyframes: {
 				'accordion-down': {

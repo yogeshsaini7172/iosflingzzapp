@@ -96,8 +96,8 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
       name: "Basic",
       price: "₹49 / month",
       features: ["10 Swipes per day", "Basic Matching", "Chat with Matches"],
-      color: "border-blue-500",
-      buttonColor: "bg-blue-500 hover:bg-blue-600",
+      color: "border-primary/30",
+      buttonColor: "bg-primary/80 hover:bg-primary",
     },
     {
       id: 2,
@@ -109,8 +109,8 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
         "Priority Matches",
         "See Who Liked You",
       ],
-      color: "border-purple-500",
-      buttonColor: "bg-purple-500 hover:bg-purple-600",
+      color: "border-secondary/30",
+      buttonColor: "bg-secondary/80 hover:bg-secondary",
     },
     {
       id: 3,
@@ -122,39 +122,10 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
         "1 Blind Date Credit Daily",
         "VIP Support",
       ],
-      color: "border-yellow-500",
-      buttonColor: "bg-yellow-500 hover:bg-yellow-600",
+      color: "border-accent/30",
+      buttonColor: "bg-accent/80 hover:bg-accent",
     },
   ];
-
-  const renderPlans = () => (
-    <div className="grid gap-6">
-      {plans.map((plan) => (
-        <Card
-          key={plan.id}
-          className={`border-2 ${plan.color} shadow-md rounded-xl`}
-        >
-          <CardContent className="p-6">
-            <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
-            <p className="text-2xl font-semibold mb-4">{plan.price}</p>
-
-            <ul className="space-y-2 mb-4 text-sm text-gray-600">
-              {plan.features.map((f, idx) => (
-                <li key={idx}>✅ {f}</li>
-              ))}
-            </ul>
-
-            <Button
-              className={`w-full text-white ${plan.buttonColor}`}
-              onClick={() => alert(`Subscribed to ${plan.name}`)}
-            >
-              Subscribe
-            </Button>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
 
   // ✅ Main content per tab
   const renderContent = () => {
@@ -167,9 +138,9 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
               <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-glow">
-                    <span className="text-white font-bold text-lg sm:text-xl">💕</span>
+                    <span className="text-primary-foreground font-bold text-lg sm:text-xl">💕</span>
                   </div>
-                  <h1 className="text-lg sm:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                  <h1 className="text-lg sm:text-2xl font-display font-bold bg-gradient-primary bg-clip-text text-transparent">
                     datingSigma
                   </h1>
                 </div>
@@ -182,7 +153,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5z" />
                     </svg>
                   </button>
-                  <span className="text-xs sm:text-sm text-muted-foreground font-medium hidden sm:block">GenZ Dating 🔥</span>
+                  <span className="text-xs sm:text-sm text-muted-foreground font-professional font-medium hidden sm:block">GenZ Dating 🔥</span>
                 </div>
               </div>
             </header>
@@ -236,13 +207,13 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                         {post.avatar}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-foreground font-semibold text-xs truncate">@{post.user}</p>
-                        <p className="text-muted-foreground text-xs">{post.time} ago</p>
+                        <p className="text-foreground font-professional font-semibold text-xs truncate">@{post.user}</p>
+                        <p className="text-muted-foreground font-professional text-xs">{post.time} ago</p>
                       </div>
                     </div>
                     
                     {/* Card Content */}
-                    <p className="text-foreground/90 text-xs leading-relaxed mb-3 line-clamp-2">
+                    <p className="text-foreground/90 font-professional text-xs leading-relaxed mb-3 line-clamp-2">
                       {post.content}
                     </p>
                     
@@ -351,16 +322,16 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                           <div className="h-1/3 p-6 bg-background/30 backdrop-blur-sm">
                             <div className="flex items-center justify-between mb-2">
                               <div>
-                                <h3 className="text-2xl font-bold text-foreground">{profile.name}, {profile.age}</h3>
+                                <h3 className="text-2xl font-display font-bold text-foreground">{profile.name}, {profile.age}</h3>
                               </div>
                               <div className="w-6 h-6 bg-primary rounded-full animate-pulse-glow"></div>
                             </div>
                             
-                            <p className="text-foreground/90 text-sm mb-3 line-clamp-2">{profile.bio}</p>
+                            <p className="text-foreground/90 font-professional text-sm mb-3 line-clamp-2">{profile.bio}</p>
                             
                             <div className="flex gap-2 flex-wrap">
                               {profile.interests.map((interest, idx) => (
-                                <span key={idx} className="px-3 py-1 bg-card/50 rounded-full text-foreground text-xs font-medium">
+                                <span key={idx} className="px-3 py-1 bg-card/50 rounded-full text-foreground font-professional text-xs font-medium">
                                   {interest}
                                 </span>
                               ))}
@@ -389,56 +360,57 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                   {/* Quick Stats */}
                   <div className="grid grid-cols-3 gap-4 mt-8">
                     <div className="text-center bg-card/50 rounded-2xl p-4 backdrop-blur-sm">
-                      <div className="text-2xl font-bold text-foreground">47</div>
-                      <div className="text-muted-foreground text-sm">Likes Today</div>
+                      <div className="text-2xl font-display font-bold text-foreground">47</div>
+                      <div className="text-muted-foreground font-professional text-sm">Likes Today</div>
                     </div>
                     <div className="text-center bg-card/50 rounded-2xl p-4 backdrop-blur-sm">
-                      <div className="text-2xl font-bold text-foreground">12</div>
-                      <div className="text-muted-foreground text-sm">Matches</div>
+                      <div className="text-2xl font-display font-bold text-foreground">12</div>
+                      <div className="text-muted-foreground font-professional text-sm">Matches</div>
                     </div>
                     <div className="text-center bg-card/50 rounded-2xl p-4 backdrop-blur-sm">
-                      <div className="text-2xl font-bold text-foreground">3</div>
-                      <div className="text-white/70 text-sm">Super Likes</div>
+                      <div className="text-2xl font-display font-bold text-foreground">3</div>
+                      <div className="text-muted-foreground font-professional text-sm">Super Likes</div>
                     </div>
                   </div>
+
                   {/* Compact Horizontal Subscription Plans */}
                   <div className="mt-8">
-                    <div className="text-center mb-4">
-                      <h3 className="text-lg font-bold text-white mb-2">Upgrade Your Experience ✨</h3>
-                      <p className="text-white/70 text-sm">Choose your dating superpower</p>
+                    <div className="text-center mb-6">
+                      <h3 className="text-xl font-display font-bold text-foreground mb-2">Upgrade Your Experience ✨</h3>
+                      <p className="text-muted-foreground text-sm font-professional">Choose your dating superpower</p>
                     </div>
                     
-                    <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-3 sm:overflow-x-auto pb-4 scrollbar-hide">
                       {plans.map((plan) => (
                         <div
                           key={plan.id}
-                          className={`flex-shrink-0 w-48 border-2 ${plan.color} shadow-lg rounded-2xl bg-black/60 backdrop-blur-sm animate-fade-in hover:scale-105 transition-all duration-300`}
+                          className={`w-full sm:flex-shrink-0 sm:w-56 md:w-64 border border-border/50 shadow-elegant rounded-2xl bg-card/80 backdrop-blur-md animate-fade-in hover:scale-105 transition-all duration-300 hover:shadow-glow`}
                           style={{ animationDelay: `${plan.id * 0.1}s` }}
                         >
-                          <div className="p-4">
-                            <div className="text-center mb-3">
-                              <h4 className="text-lg font-bold text-white">{plan.name}</h4>
-                              <p className="text-xl font-semibold text-white">{plan.price}</p>
+                          <div className="p-5">
+                            <div className="text-center mb-4">
+                              <h4 className="text-lg font-display font-bold text-foreground">{plan.name}</h4>
+                              <p className="text-xl font-professional font-semibold text-primary">{plan.price}</p>
                             </div>
 
-                            <ul className="space-y-1 mb-3 text-xs text-gray-300">
+                            <ul className="space-y-2 mb-4 text-sm font-professional text-muted-foreground">
                               {plan.features.slice(0, 3).map((f, idx) => (
-                                <li key={idx} className="flex items-center">
-                                  <span className="text-green-400 mr-1">✓</span>
-                                  {f}
+                                <li key={idx} className="flex items-start gap-2">
+                                  <span className="text-primary text-xs mt-1 flex-shrink-0">✓</span>
+                                  <span className="leading-tight">{f}</span>
                                 </li>
                               ))}
                               {plan.features.length > 3 && (
-                                <li className="text-gray-400 text-xs">+{plan.features.length - 3} more</li>
+                                <li className="text-muted-foreground/70 text-xs font-professional">+{plan.features.length - 3} more features</li>
                               )}
                             </ul>
 
-                            <button
-                              className={`w-full text-white ${plan.buttonColor} py-2 rounded-xl text-sm font-semibold hover:scale-105 transition-all duration-300 shadow-md`}
+                            <Button
+                              className="w-full bg-gradient-primary hover:shadow-glow transition-all duration-300 font-professional font-semibold text-sm sm:text-base py-2.5 rounded-xl"
                               onClick={() => alert(`Subscribed to ${plan.name}`)}
                             >
                               Choose Plan
-                            </button>
+                            </Button>
                           </div>
                         </div>
                       ))}
@@ -454,99 +426,44 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
         return (
           <div className="flex-1 overflow-y-auto min-h-screen scroll-smooth relative">
             {/* GenZ Header for Pairing */}
-            <header className="sticky top-0 z-20 backdrop-blur-md bg-black/30 border-b border-white/10">
+            <header className="sticky top-0 z-20 backdrop-blur-md bg-background/80 border-b border-border">
               <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-pink-500 to-blue-500 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-display font-bold bg-gradient-primary bg-clip-text text-transparent">
                   Smart Pairing ✨
                 </h1>
-                <span className="text-sm text-white/80 font-medium">AI Matches 🧠</span>
+                <span className="text-sm text-muted-foreground font-professional font-medium">AI Matches 🧠</span>
               </div>
             </header>
 
             {/* GenZ Background Elements for Pairing */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              <div className="absolute top-20 left-1/4 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl animate-float"></div>
-              <div className="absolute bottom-20 right-1/4 w-48 h-48 bg-pink-500/10 rounded-full blur-2xl animate-pulse-glow delay-1000"></div>
-              <div className="absolute top-1/2 left-1/2 w-32 h-32 bg-blue-500/10 rounded-full blur-xl animate-bounce-slow delay-500"></div>
-              
-              {/* Floating emojis */}
-              <div className="absolute top-10 left-10 text-4xl opacity-20 animate-float">💜</div>
-              <div className="absolute top-40 right-20 text-3xl opacity-30 animate-pulse delay-1000">✨</div>
-              <div className="absolute bottom-60 left-20 text-4xl opacity-25 animate-bounce delay-500">🔥</div>
-              <div className="absolute top-80 right-1/4 text-2xl opacity-20 animate-spin-slow">💫</div>
+              <div className="absolute top-20 left-1/4 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-float"></div>
+              <div className="absolute bottom-20 right-1/4 w-48 h-48 bg-secondary/10 rounded-full blur-2xl animate-pulse-glow delay-1000"></div>
             </div>
 
-            <div className="relative z-10 p-4 space-y-4">
-              <GhostBenchBar onChatSelected={() => onNavigate('chat')} />
+            <div className="relative z-10 p-4">
               <PairingMatches />
             </div>
           </div>
         );
 
-      case "blinddate":
+      case "swipe":
         return (
-          <div className="flex-1 overflow-y-auto min-h-screen scroll-smooth relative">
-            {/* GenZ Header for Blind Date */}
-            <header className="sticky top-0 z-20 backdrop-blur-md bg-black/30 border-b border-white/10">
-              <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-400 via-red-500 to-pink-500 bg-clip-text text-transparent">
-                  Blind Date Magic 🎭
-                </h1>
-                <span className="text-sm text-white/80 font-medium">Mystery Dating ❤️</span>
-              </div>
-            </header>
+          <div className="flex-1 overflow-y-auto min-h-screen bg-background">
+            <SwipeCards />
+          </div>
+        );
 
-            {/* GenZ Background Elements for Blind Date */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              <div className="absolute top-20 left-1/4 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl animate-float"></div>
-              <div className="absolute bottom-20 right-1/4 w-64 h-64 bg-red-500/10 rounded-full blur-2xl animate-pulse-glow delay-1000"></div>
-              <div className="absolute top-1/2 left-1/2 w-48 h-48 bg-pink-500/10 rounded-full blur-xl animate-bounce-slow delay-500"></div>
-              
-              {/* Floating emojis */}
-              <div className="absolute top-10 left-10 text-5xl opacity-20 animate-float">🎭</div>
-              <div className="absolute top-40 right-20 text-4xl opacity-30 animate-pulse delay-1000">💘</div>
-              <div className="absolute bottom-60 left-20 text-3xl opacity-25 animate-bounce delay-500">🌹</div>
-              <div className="absolute top-80 right-1/4 text-4xl opacity-20 animate-wiggle">❤️</div>
-              <div className="absolute bottom-40 left-1/3 text-3xl opacity-25 animate-float delay-2000">✨</div>
-            </div>
-
-            <div className="relative z-10 min-h-full flex items-center justify-center p-4">
-              <div className="genZ-glass-card genZ-hover-lift text-center p-10 shadow-premium border border-white/20 rounded-3xl max-w-lg">
-                <div className="space-y-6">
-                  <div className="relative">
-                    <div className="w-20 h-20 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse-glow">
-                      <Coffee className="w-10 h-10 text-white" />
-                    </div>
-                    <div className="absolute -top-2 -right-2 text-2xl animate-bounce-slow">🎭</div>
-                  </div>
-                  
-                  <h2 className="text-4xl font-elegant font-bold text-gradient-royal animate-fade-in">
-                    Blind Date Experience
-                  </h2>
-                  
-                  <p className="text-white/80 font-modern text-lg leading-relaxed">
-                    Connect with someone special without seeing their profile first. 
-                    Let chemistry lead the way! ✨
-                  </p>
-                  
-                  <div className="flex justify-center space-x-2 text-2xl animate-pulse-glow delay-500">
-                    <span>💕</span>
-                    <span>🌟</span>
-                    <span>💫</span>
-                  </div>
-                  
-                  <p className="text-2xl font-bold text-gradient-secondary mb-6 animate-bounce-slow">
-                    Coming Soon! 🚀
-                  </p>
-                  
-                  <Link 
-                    to="/" 
-                    className="bg-gradient-primary hover:shadow-royal transition-luxury font-modern font-bold text-lg h-12 rounded-2xl px-8 flex items-center justify-center space-x-2 text-white no-underline"
-                  >
-                    <span>Back to Home</span>
-                    <span>🏠</span>
-                  </Link>
-                </div>
+      case "chat":
+        return (
+          <div className="flex-1 overflow-y-auto min-h-screen bg-background">
+            <div className="max-w-4xl mx-auto p-4">
+              <h2 className="text-2xl font-display font-bold text-center mb-6 bg-gradient-primary bg-clip-text text-transparent">
+                Messages ✨
+              </h2>
+              <div className="text-center text-muted-foreground font-professional">
+                <p>Chat feature coming soon! 💬</p>
+                <p className="mt-2 text-sm">Start swiping to get matches</p>
               </div>
             </div>
           </div>
@@ -554,175 +471,89 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
 
       case "profile":
         return (
-          <div className="flex-1 overflow-y-auto min-h-screen scroll-smooth relative">
-            {/* GenZ Header for Profile */}
-            <header className="sticky top-0 z-20 backdrop-blur-md bg-black/30 border-b border-white/10">
-              <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">
-                  Your Profile ✨
-                </h1>
-                <span className="text-sm text-white/80 font-medium">Manage & Edit 🛠️</span>
-              </div>
-            </header>
-
-            {/* GenZ Background Elements for Profile */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              <div className="absolute top-20 left-1/4 w-72 h-72 bg-green-500/10 rounded-full blur-3xl animate-float"></div>
-              <div className="absolute bottom-20 right-1/4 w-56 h-56 bg-blue-500/10 rounded-full blur-2xl animate-pulse-glow delay-1000"></div>
-              <div className="absolute top-1/2 left-1/2 w-40 h-40 bg-purple-500/10 rounded-full blur-xl animate-bounce-slow delay-500"></div>
-              
-              {/* Floating emojis */}
-              <div className="absolute top-10 left-10 text-4xl opacity-20 animate-float">👤</div>
-              <div className="absolute top-40 right-20 text-3xl opacity-30 animate-pulse delay-1000">⚙️</div>
-              <div className="absolute bottom-60 left-20 text-4xl opacity-25 animate-bounce delay-500">✨</div>
-              <div className="absolute top-80 right-1/4 text-3xl opacity-20 animate-wiggle">🎯</div>
-              <div className="absolute bottom-40 left-1/3 text-2xl opacity-25 animate-float delay-2000">💫</div>
-            </div>
-
-            <div className="relative z-10 p-4">
-              <div className="max-w-2xl mx-auto space-y-6">
-                <div className="genZ-glass-card genZ-hover-lift p-8 rounded-3xl border border-white/20 text-center">
-                  <div className="space-y-4">
-                    <div className="relative">
-                      <h2 className="text-3xl font-elegant font-bold text-gradient-royal animate-fade-in">
-                        Profile Management
-                      </h2>
-                      <div className="absolute -top-2 -right-4 text-2xl animate-bounce-slow">👤</div>
-                    </div>
-                    
-                    <p className="text-white/80 font-modern text-lg">
-                      View and manage your profile information ✨
-                    </p>
-                    
-                    <div className="flex justify-center space-x-2 text-xl animate-pulse-glow delay-500">
-                      <span>⚙️</span>
-                      <span>📸</span>
-                      <span>✏️</span>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Enhanced Profile Display */}
-                <EnhancedProfileDisplay />
-                
-                {/* User Selector for Testing - Enhanced */}
-                <div className="genZ-glass-card p-6 rounded-3xl border border-white/20">
-                  <UserSelector />
-                </div>
-              </div>
-            </div>
+          <div className="flex-1 overflow-y-auto min-h-screen bg-background">
+            <EnhancedProfileDisplay />
           </div>
         );
 
       default:
         return (
-          <div className="p-6 text-center text-red-500">
-            ❌ Nothing to render — activeTab: {activeTab}
+          <div className="flex-1 flex items-center justify-center">
+            <p className="text-muted-foreground font-professional">Page not found</p>
           </div>
         );
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Enhanced GenZ Header */}
-      <div className="sticky top-0 z-40 genZ-glass-card border-b border-white/20 shadow-premium">
-        <div className="flex items-center justify-between px-6 py-4 backdrop-blur-xl">
-          <div className="relative">
-            <h1 className="text-2xl font-elegant font-bold text-gradient-royal tracking-tight">
-              datingSigma
-            </h1>
-            <div className="absolute -top-1 -right-2 text-sm animate-bounce-slow">✨</div>
-          </div>
-          
-          <div className="flex items-center space-x-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onNavigate("chat")}
-              className="bg-black/20 hover:bg-primary/20 text-white/80 hover:text-primary transition-luxury rounded-full shadow-soft border border-white/20"
-            >
-              <MessageCircle className="w-6 h-6" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="bg-black/20 hover:bg-accent/20 text-white/80 hover:text-accent transition-luxury rounded-full shadow-soft border border-white/20"
-            >
-              <Heart className="w-6 h-6" />
-            </Button>
-            <Button 
-              onClick={handleLogout}
-              variant="ghost"
-              className="bg-black/20 hover:bg-red-500/20 text-white/80 hover:text-red-400 transition-luxury border border-white/20 rounded-xl px-4 py-2"
-            >
-              <span className="text-sm font-medium">Logout</span>
-              <span className="ml-1">👋</span>
-            </Button>
-          </div>
-        </div>
-      </div>
+    <div className="genZ-app-container pwa-ready smooth-scroll safe-area-top safe-area-bottom">
+      <div className="min-h-screen flex flex-col">
+        {/* Main Content */}
+        <main className="flex-1 relative">
+          {renderContent()}
+        </main>
 
-      {/* Main Content */}
-      {renderContent()}
-
-      {/* Instagram-style bottom navigation */}
-      <div className="sticky bottom-0 genZ-glass-card border-t border-white/20 shadow-premium safe-area-bottom">
-        <div className="flex items-center justify-around py-2 sm:py-3 px-2 sm:px-4">
-          {[
-            { id: "home", icon: Home, label: "Home", gradient: "from-primary to-primary-glow", emoji: "🏠" },
-            {
-              id: "pairing",
-              icon: Heart,
-              label: "Pairing",
-              gradient: "from-secondary to-secondary-glow",
-              emoji: "💕"
-            },
-            {
-              id: "blinddate",
-              icon: Coffee,
-              label: "Blind Date",
-              gradient: "from-orange-500 to-orange-400",
-              emoji: "🎭"
-            },
-            {
-              id: "profile",
-              icon: User,
-              label: "Profile",
-              gradient: "from-primary-variant to-primary",
-              emoji: "👤"
-            },
-          ].map((tab) => (
-            <Link
-              key={tab.id}
-              to={tab.id === 'home' ? '/' : `/${tab.id}`}
-              className={`touch-feedback genZ-hover-lift flex flex-col items-center space-y-1 sm:space-y-2 py-2 sm:py-4 px-2 sm:px-4 relative bg-transparent transition-all duration-200 group min-w-[60px] min-h-[60px] no-underline ${
-                activeTab === tab.id 
-                  ? "scale-105 -translate-y-1 sm:-translate-y-3 shadow-glow" 
-                  : ""
-              }`}
-              aria-label={tab.label}
-            >
-              <div className={`p-2 sm:p-3 rounded-full bg-gradient-to-r ${tab.gradient} ${
-                activeTab === tab.id ? 'shadow-premium animate-pulse-glow' : 'group-hover:shadow-royal'
-              } transition-all duration-200`}>
-                <tab.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" />
-              </div>
-              <div className="flex flex-col items-center space-y-0.5 sm:space-y-1">
-                <span className={`text-xs font-modern font-medium hidden sm:block ${
-                  activeTab === tab.id 
-                    ? `bg-gradient-to-r ${tab.gradient} bg-clip-text text-transparent font-semibold` 
-                    : 'text-white/70 group-hover:text-white'
-                }`}>
-                  {tab.label}
+        {/* Bottom Navigation */}
+        <nav className="genZ-bottom-nav bg-card/80 backdrop-blur-xl border-t border-border safe-area-bottom">
+          <div className="flex items-center justify-around h-16 max-w-md mx-auto px-4">
+            {[
+              { 
+                path: "/", 
+                icon: Home, 
+                label: "Home", 
+                isActive: activeTab === 'home',
+                gradient: "from-primary to-primary-glow"
+              },
+              { 
+                path: "/swipe", 
+                icon: Heart, 
+                label: "Swipe", 
+                isActive: activeTab === 'swipe',
+                gradient: "from-secondary to-secondary-glow" 
+              },
+              { 
+                path: "/pairing", 
+                icon: Brain, 
+                label: "Pairing", 
+                isActive: activeTab === 'pairing',
+                gradient: "from-accent to-accent-glow"
+              },
+              { 
+                path: "/chat", 
+                icon: MessageCircle, 
+                label: "Messages", 
+                isActive: activeTab === 'chat',
+                gradient: "from-primary to-secondary"
+              },
+              { 
+                path: "/profile", 
+                icon: User, 
+                label: "Profile", 
+                isActive: activeTab === 'profile',
+                gradient: "from-secondary to-accent"
+              }
+            ].map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`genZ-nav-item touch-feedback flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-300 min-w-[60px] ${
+                  item.isActive 
+                    ? `bg-gradient-to-r ${item.gradient} text-primary-foreground shadow-glow transform scale-110` 
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+              >
+                <item.icon className={`w-5 h-5 mb-1 ${item.isActive ? 'animate-pulse-glow' : ''}`} />
+                <span className={`text-xs font-professional font-medium ${item.isActive ? 'font-bold' : ''}`}>
+                  {item.label}
                 </span>
-                <span className="text-xs sm:hidden">{tab.emoji}</span>
-              </div>
-              {activeTab === tab.id && (
-                <div className={`absolute -top-0.5 sm:-top-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r ${tab.gradient} rounded-full animate-pulse-glow`}></div>
-              )}
-            </Link>
-          ))}
+              </Link>
+            ))}
+          </div>
+        </nav>
+
+        {/* Add GhostBenchBar for debugging */}
+        <div className="fixed bottom-20 left-4 z-50 opacity-30 hover:opacity-100 transition-opacity">
+          <GhostBenchBar onChatSelected={() => {}} />
         </div>
       </div>
     </div>
