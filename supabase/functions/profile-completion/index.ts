@@ -24,7 +24,21 @@ serve(async (req) => {
       dateOfBirth,
       gender,
       university,
-      qcsScore
+      yearOfStudy,
+      fieldOfStudy,
+      height,
+      bodyType,
+      skinTone,
+      personalityType,
+      values,
+      mindset,
+      relationshipGoals,
+      interests,
+      bio,
+      profileImages,
+      isProfilePublic,
+      qcsScore,
+      preferences
     } = await req.json();
 
     if (!userId) {
@@ -43,6 +57,19 @@ serve(async (req) => {
         date_of_birth: dateOfBirth,
         gender: gender,
         university: university,
+        year_of_study: yearOfStudy ?? null,
+        field_of_study: fieldOfStudy ?? null,
+        height: height ?? null,
+        body_type: bodyType ?? null,
+        skin_tone: skinTone ?? null,
+        personality_type: personalityType ?? null,
+        values: values ?? null,
+        mindset: mindset ?? null,
+        relationship_goals: relationshipGoals ?? [],
+        interests: interests ?? [],
+        bio: bio ?? null,
+        profile_images: profileImages ?? [],
+        is_profile_public: isProfilePublic ?? true,
         verification_status: 'verified',
         is_active: true,
         last_active: new Date().toISOString(),
@@ -56,6 +83,26 @@ serve(async (req) => {
       console.error('Error upserting profile:', upsertError);
       throw upsertError;
     }
+
+    // Optionally upsert partner preferences if provided
+    if (preferences) {
+      const { preferredGender, ageRangeMin, ageRangeMax, preferredRelationshipGoals } = preferences;
+      const { error: prefError } = await supabase
+        .from('partner_preferences')
+        .upsert({
+          user_id: userId,
+          preferred_gender: preferredGender ?? [],
+          age_range_min: ageRangeMin ?? 18,
+          age_range_max: ageRangeMax ?? 30,
+          preferred_relationship_goal: preferredRelationshipGoals ?? []
+        }, { onConflict: 'user_id' });
+
+      if (prefError) {
+        console.error('Error upserting partner preferences:', prefError);
+        throw prefError;
+      }
+    }
+
 
     console.log('Successfully completed profile for user:', userId);
 

@@ -210,7 +210,26 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
           dateOfBirth: profileData.dateOfBirth,
           gender: profileData.gender,
           university: profileData.university,
-          qcsScore: totalScore
+          yearOfStudy: profileData.yearOfStudy ? Number(profileData.yearOfStudy) : null,
+          fieldOfStudy: profileData.fieldOfStudy,
+          height: profileData.height ? Number(profileData.height) : null,
+          bodyType: profileData.bodyType,
+          skinTone: profileData.skinTone,
+          personalityType: profileData.personalityType,
+          values: profileData.values,
+          mindset: profileData.mindset,
+          relationshipGoals: profileData.relationshipGoals,
+          interests: profileData.interests,
+          bio: profileData.bio,
+          profileImages: imageUrls,
+          isProfilePublic: profileData.isProfilePublic,
+          qcsScore: totalScore,
+          preferences: {
+            preferredGender: profileData.preferredGender,
+            ageRangeMin: profileData.ageRangeMin,
+            ageRangeMax: profileData.ageRangeMax,
+            preferredRelationshipGoals: profileData.preferredRelationshipGoals
+          }
         }
       });
 
