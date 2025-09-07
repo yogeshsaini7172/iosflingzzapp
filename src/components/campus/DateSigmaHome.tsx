@@ -388,9 +388,9 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
       </div>
 
       {/* Threads Section */}
-      <div className="bg-white/60 backdrop-blur-sm border-b border-rose-200/50 p-4">
+      <div className="bg-card/80 backdrop-blur-md border-b border-border/50 p-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-display font-bold text-rose-700">Threads</h2>
+          <h2 className="text-lg font-display font-bold text-foreground">Community Threads</h2>
         </div>
         <div className="flex space-x-3 overflow-x-auto scrollbar-hide pb-2">
           {/* Add Today's Thread Option OR User's Thread Management */}
@@ -403,18 +403,18 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
                 <Dialog open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
                   <DialogTrigger asChild>
                     <div className="flex-shrink-0 w-64">
-                      <Card className="p-4 bg-gradient-to-r from-rose-400 to-pink-500 text-white border-0 hover:from-rose-500 hover:to-pink-600 transition-colors cursor-pointer">
+                      <Card className="p-4 bg-gradient-primary text-primary-foreground border-0 hover:shadow-glow transition-all cursor-pointer">
                         <div className="flex items-center justify-center space-x-2 mb-3">
                           <Plus className="w-5 h-5" />
-                          <span className="font-semibold text-sm">Add Today's Thread</span>
+                          <span className="font-semibold text-sm">Share Your Thoughts</span>
                         </div>
-                        <p className="text-xs text-white/90 text-center">Share what's on your mind today</p>
+                        <p className="text-xs text-primary-foreground/90 text-center">What's on your mind today?</p>
                       </Card>
                     </div>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                      <DialogTitle className="text-rose-700">Share Your Thoughts</DialogTitle>
+                      <DialogTitle className="text-foreground">Share Your Thoughts</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
                       <div className="space-y-2">
@@ -424,10 +424,10 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
                           placeholder="Share your thoughts, experiences, or advice with the community..."
                           value={newThreadContent}
                           onChange={(e) => setNewThreadContent(e.target.value)}
-                          className="min-h-[100px] border-rose-200 focus:border-rose-400"
+                          className="min-h-[100px]"
                           maxLength={280}
                         />
-                        <div className="text-right text-xs text-rose-500">
+                        <div className="text-right text-xs text-muted-foreground">
                           {newThreadContent.length}/280 characters
                         </div>
                       </div>
@@ -435,13 +435,11 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
                         <Button 
                           variant="outline" 
                           onClick={() => setIsPostModalOpen(false)}
-                          className="border-rose-200 text-rose-600 hover:bg-rose-50"
                         >
                           Cancel
                         </Button>
                         <Button 
                           onClick={handlePostThread}
-                          className="bg-gradient-to-r from-rose-400 to-pink-500 hover:from-rose-500 hover:to-pink-600"
                           disabled={!newThreadContent.trim()}
                         >
                           <Send className="w-4 h-4 mr-2" />
@@ -457,28 +455,28 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
               const latestUserThread = userThreads[0];
               return (
                 <div className="flex-shrink-0 w-64">
-                  <Card className="p-4 bg-gradient-to-r from-purple-500 to-indigo-600 text-white border-0">
+                  <Card className="p-4 bg-gradient-secondary text-secondary-foreground border-0">
                     <div className="space-y-3">
                       <div className="text-center">
                         <div className="flex items-center justify-center space-x-2 mb-2">
                           <User className="w-4 h-4" />
                           <span className="font-semibold text-sm">Your Thread</span>
                         </div>
-                        <p className="text-xs text-white/90 line-clamp-2">{latestUserThread.content}</p>
+                        <p className="text-xs text-secondary-foreground/90 line-clamp-2">{latestUserThread.content}</p>
                       </div>
                       <div className="flex space-x-2">
                         <Button 
                           size="sm" 
                           variant="ghost" 
-                          className="flex-1 text-white hover:bg-white/20 border border-white/30"
+                          className="flex-1 text-secondary-foreground hover:bg-secondary-foreground/20"
                           onClick={() => handleRewriteThread(latestUserThread)}
                         >
-                          <span className="text-xs">Rewrite</span>
+                          <span className="text-xs">Edit</span>
                         </Button>
                         <Button 
                           size="sm" 
                           variant="ghost" 
-                          className="flex-1 text-white hover:bg-red-500/50 border border-white/30"
+                          className="flex-1 text-secondary-foreground hover:bg-destructive/20"
                           onClick={() => handleDeleteThread(latestUserThread.id)}
                         >
                           <span className="text-xs">Delete</span>
@@ -498,34 +496,34 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
             
             return (
               <div key={thread.id} className="flex-shrink-0 w-72">
-                <Card className="p-4 bg-white/80 backdrop-blur-sm border-rose-200/50 hover:bg-white/90 transition-colors h-full">
+                <Card className="p-4 bg-card/80 backdrop-blur-sm border-border/50 hover:bg-card transition-colors h-full">
                   <div className="flex space-x-3 mb-3">
                     <Avatar className="w-8 h-8">
                       <AvatarImage src={thread.avatar} alt={thread.author} />
-                      <AvatarFallback className="bg-rose-100 text-rose-600 text-xs font-semibold">
+                      <AvatarFallback className="bg-muted text-muted-foreground text-xs font-semibold">
                         {thread.author.split(' ').map(n => n[0]).join('')}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2 mb-1">
-                        <span className="font-semibold text-sm text-rose-700 truncate flex items-center">
+                        <span className="font-semibold text-sm text-foreground truncate flex items-center">
                           {thread.author}
                           {isOwnThread && (
-                            <Badge variant="secondary" className="ml-2 text-xs bg-rose-100 text-rose-600">
+                            <Badge variant="secondary" className="ml-2 text-xs">
                               You
                             </Badge>
                           )}
                         </span>
-                        <span className="text-xs text-rose-400 flex-shrink-0">{thread.time}</span>
+                        <span className="text-xs text-muted-foreground flex-shrink-0">{thread.time}</span>
                       </div>
                     </div>
                   </div>
-                  <p className="text-sm text-rose-600 leading-relaxed mb-3 line-clamp-3">{thread.content}</p>
+                  <p className="text-sm text-foreground leading-relaxed mb-3 line-clamp-3">{thread.content}</p>
                   <div className="flex items-center justify-between text-xs">
                     <div className="flex space-x-3">
                       <button 
-                        className={`flex items-center space-x-1 hover:text-rose-600 transition-colors ${
-                          isLiked ? 'text-red-500' : 'text-rose-400'
+                        className={`flex items-center space-x-1 hover:text-primary transition-colors ${
+                          isLiked ? 'text-primary' : 'text-muted-foreground'
                         }`}
                         onClick={() => handleLikeThread(thread.id)}
                       >
@@ -535,7 +533,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
                       
                       {!isOwnThread && (
                         <button 
-                          className="flex items-center space-x-1 text-rose-400 hover:text-rose-600 transition-colors"
+                          className="flex items-center space-x-1 text-muted-foreground hover:text-primary transition-colors"
                           onClick={() => handleReplyToThread(thread)}
                         >
                           <MessageCircle className="w-3 h-3" />
@@ -543,7 +541,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
                         </button>
                       )}
                     </div>
-                    <span className="text-rose-400">{thread.replies} replies</span>
+                    <span className="text-muted-foreground">{thread.replies} replies</span>
                   </div>
                 </Card>
               </div>
@@ -646,19 +644,19 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
         {loading ? (
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center space-y-4">
-              <div className="w-16 h-16 border-4 border-rose-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
-              <p className="text-rose-600 font-medium">Loading profiles...</p>
+              <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <p className="text-foreground font-medium">Loading profiles...</p>
             </div>
           </div>
         ) : currentIndex >= profiles.length ? (
           <div className="flex items-center justify-center min-h-[60vh] p-6">
             <div className="text-center space-y-6">
-              <div className="w-24 h-24 bg-gradient-to-r from-rose-400 to-pink-500 rounded-full flex items-center justify-center mx-auto shadow-lg">
-                <Heart className="w-12 h-12 text-white" />
+              <div className="w-24 h-24 bg-gradient-primary rounded-full flex items-center justify-center mx-auto shadow-glow">
+                <Heart className="w-12 h-12 text-primary-foreground" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-2xl font-display font-bold text-rose-700">All profiles explored!</h3>
-                <p className="text-rose-500">
+                <h3 className="text-2xl font-display font-bold text-foreground">All profiles explored!</h3>
+                <p className="text-muted-foreground">
                   Check back later for new profiles.
                 </p>
               </div>
@@ -667,7 +665,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
                   setCurrentIndex(0);
                   setSwipeCount(0);
                 }}
-                className="bg-gradient-to-r from-rose-400 to-pink-500 hover:from-rose-500 hover:to-pink-600 text-white shadow-lg"
+                className="bg-gradient-primary text-primary-foreground shadow-glow"
               >
                 Explore Again
               </Button>
@@ -676,7 +674,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
         ) : (
           <div className="max-w-sm mx-auto space-y-4">
             {/* Profile Card */}
-            <Card className="overflow-hidden shadow-2xl border-0 bg-white/90 backdrop-blur-sm rounded-3xl">
+            <Card className="overflow-hidden shadow-premium border-0 bg-card/90 backdrop-blur-sm rounded-3xl">
               <div className="relative">
                 <div className="aspect-[3/4] relative overflow-hidden">
                   {/* Tinder-style Progress Bars */}
@@ -736,8 +734,8 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
                   </div>
                   
                   {/* Age Badge with Modern Design */}
-                  <div className="absolute top-4 right-4 px-4 py-2 bg-white/90 backdrop-blur-md rounded-full border border-white/50 shadow-lg">
-                    <span className="text-rose-600 font-bold text-sm">
+                  <div className="absolute top-4 right-4 px-4 py-2 bg-card/90 backdrop-blur-md rounded-full border border-border shadow-soft">
+                    <span className="text-foreground font-bold text-sm">
                       {currentProfile ? calculateAge(currentProfile.date_of_birth) : ''}
                     </span>
                   </div>
@@ -760,7 +758,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-3">
                             {currentProfile?.total_qcs && (
-                              <div className="px-3 py-1 bg-gradient-to-r from-rose-500/90 to-pink-500/90 rounded-full border border-white/30 backdrop-blur-sm">
+                              <div className="px-3 py-1 bg-gradient-primary/90 rounded-full border border-white/30 backdrop-blur-sm">
                                 <div className="flex items-center space-x-1">
                                   <Shield className="w-4 h-4" />
                                   <span className="text-sm font-semibold">QCS: {currentProfile.total_qcs}</span>
@@ -778,11 +776,11 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
                 </div>
               </div>
 
-              <CardContent className="p-6 space-y-5 bg-gradient-to-b from-white to-rose-50/50">
+              <CardContent className="p-6 space-y-5 bg-gradient-to-b from-card to-muted/50">
                 {currentProfile?.bio && (
                   <div className="relative">
-                    <div className="absolute -top-2 left-0 w-8 h-1 bg-gradient-to-r from-rose-400 to-pink-500 rounded-full"></div>
-                    <p className="text-rose-700 leading-relaxed text-sm pt-3 font-medium">
+                    <div className="absolute -top-2 left-0 w-8 h-1 bg-gradient-primary rounded-full"></div>
+                    <p className="text-foreground leading-relaxed text-sm pt-3 font-medium">
                       "{currentProfile.bio}"
                     </p>
                   </div>
@@ -790,21 +788,21 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
 
                 {currentProfile?.interests && currentProfile.interests.length > 0 && (
                   <div className="space-y-3">
-                    <h4 className="font-bold text-rose-700 flex items-center">
-                      <div className="w-2 h-2 bg-rose-400 rounded-full mr-2"></div>
+                    <h4 className="font-bold text-foreground flex items-center">
+                      <div className="w-2 h-2 bg-primary rounded-full mr-2"></div>
                       Interests
                     </h4>
                     <div className="flex flex-wrap gap-2">
                       {currentProfile.interests.slice(0, 4).map((interest, index) => (
                         <div
                           key={index}
-                          className="px-3 py-1 bg-gradient-to-r from-rose-100 to-pink-100 text-rose-600 border border-rose-200 rounded-full text-xs font-medium hover:shadow-md transition-shadow duration-300"
+                          className="px-3 py-1 bg-secondary text-secondary-foreground border border-border rounded-full text-xs font-medium hover:shadow-soft transition-shadow duration-300"
                         >
                           {interest}
                         </div>
                       ))}
                       {currentProfile.interests.length > 4 && (
-                        <div className="px-3 py-1 bg-rose-500 text-white rounded-full text-xs font-bold">
+                        <div className="px-3 py-1 bg-primary text-primary-foreground rounded-full text-xs font-bold">
                           +{currentProfile.interests.length - 4}
                         </div>
                       )}
@@ -813,16 +811,16 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
                 )}
 
                 {/* Compatibility Score */}
-                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-rose-50 to-pink-50 rounded-2xl border border-rose-200/50">
+                <div className="flex items-center justify-between p-4 bg-secondary/50 rounded-2xl border border-border">
                   <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-gradient-to-r from-rose-400 to-pink-500 rounded-full flex items-center justify-center">
-                      <Star className="w-4 h-4 text-white" />
+                    <div className="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center">
+                      <Star className="w-4 h-4 text-primary-foreground" />
                     </div>
-                    <span className="font-semibold text-rose-700">Compatibility</span>
+                    <span className="font-semibold text-foreground">Compatibility</span>
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-rose-600">95%</div>
-                    <div className="text-xs text-rose-400">Great Match!</div>
+                    <div className="text-2xl font-bold text-primary">95%</div>
+                    <div className="text-xs text-muted-foreground">Great Match!</div>
                   </div>
                 </div>
               </CardContent>
@@ -832,31 +830,31 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
             <div className="flex justify-center space-x-8 mt-8">
               <button
                 onClick={() => handleSwipe('left')}
-                className="group relative w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 border-2 border-red-100"
+                className="group relative w-16 h-16 bg-card rounded-full flex items-center justify-center shadow-premium hover:shadow-glow transition-all duration-300 hover:scale-110 border-2 border-border"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-red-400 to-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <X className="w-7 h-7 text-red-500 group-hover:text-white relative z-10 transition-colors duration-300" />
+                <div className="absolute inset-0 bg-gradient-to-r from-destructive/20 to-destructive rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <X className="w-7 h-7 text-destructive group-hover:text-destructive-foreground relative z-10 transition-colors duration-300" />
                 <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <span className="text-xs font-semibold text-red-500 bg-white px-2 py-1 rounded-full shadow-lg">Pass</span>
+                  <span className="text-xs font-semibold text-destructive bg-card px-2 py-1 rounded-full shadow-soft">Pass</span>
                 </div>
               </button>
               
               <button
                 onClick={() => handleSwipe('right')}
-                className="group relative w-20 h-20 bg-gradient-to-r from-rose-400 to-pink-500 rounded-full flex items-center justify-center shadow-2xl hover:shadow-rose-500/25 transition-all duration-300 hover:scale-110 border-2 border-white"
+                className="group relative w-20 h-20 bg-gradient-primary rounded-full flex items-center justify-center shadow-premium hover:shadow-glow transition-all duration-300 hover:scale-110 border-2 border-primary-foreground/20"
               >
-                <Heart className="w-8 h-8 text-white fill-current" />
-                <div className="absolute inset-0 rounded-full bg-white/20"></div>
+                <Heart className="w-8 h-8 text-primary-foreground fill-current" />
+                <div className="absolute inset-0 rounded-full bg-primary-foreground/20"></div>
                 <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <span className="text-xs font-semibold text-rose-600 bg-white px-3 py-1 rounded-full shadow-lg">Like</span>
+                  <span className="text-xs font-semibold text-primary bg-card px-3 py-1 rounded-full shadow-soft">Like</span>
                 </div>
               </button>
 
-              <button className="group relative w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 border-2 border-yellow-100">
-                <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <Star className="w-6 h-6 text-yellow-500 group-hover:text-white relative z-10 transition-colors duration-300" />
+              <button className="group relative w-14 h-14 bg-card rounded-full flex items-center justify-center shadow-soft hover:shadow-premium transition-all duration-300 hover:scale-110 border-2 border-border">
+                <div className="absolute inset-0 bg-gradient-to-r from-accent/20 to-accent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <Star className="w-6 h-6 text-accent group-hover:text-accent-foreground relative z-10 transition-colors duration-300" />
                 <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <span className="text-xs font-semibold text-yellow-600 bg-white px-2 py-1 rounded-full shadow-lg">Super</span>
+                  <span className="text-xs font-semibold text-accent bg-card px-2 py-1 rounded-full shadow-soft">Super</span>
                 </div>
               </button>
             </div>
@@ -865,16 +863,16 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-rose-200/50 z-50 shadow-lg">
+      <div className="fixed bottom-0 left-0 right-0 bg-card/90 backdrop-blur-lg border-t border-border z-50 shadow-premium">
         <div className="flex justify-around items-center py-2 px-4">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => onNavigate('home')}
-            className="flex-col h-auto py-2 px-3 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+            className="flex-col h-auto py-2 px-3 text-primary hover:text-primary hover:bg-primary/10"
           >
-            <div className="w-6 h-6 bg-gradient-to-r from-rose-400 to-pink-500 rounded-lg flex items-center justify-center mb-1">
-              <Heart className="w-4 h-4 text-white" />
+            <div className="w-6 h-6 bg-gradient-primary rounded-lg flex items-center justify-center mb-1">
+              <Heart className="w-4 h-4 text-primary-foreground" />
             </div>
             <span className="text-xs font-medium">Home</span>
           </Button>
@@ -883,7 +881,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
             variant="ghost"
             size="sm"
             onClick={() => onNavigate('pairing')}
-            className="flex-col h-auto py-2 px-3 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+            className="flex-col h-auto py-2 px-3 text-foreground hover:text-primary hover:bg-primary/10"
           >
             <Users className="w-6 h-6 mb-1" />
             <span className="text-xs font-medium">Pairing</span>
@@ -893,7 +891,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
             variant="ghost"
             size="sm"
             onClick={() => onNavigate('blind-date')}
-            className="flex-col h-auto py-2 px-3 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+            className="flex-col h-auto py-2 px-3 text-foreground hover:text-primary hover:bg-primary/10"
           >
             <Sparkles className="w-6 h-6 mb-1" />
             <span className="text-xs font-medium">Blind Date</span>
@@ -903,7 +901,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
             variant="ghost"
             size="sm"
             onClick={() => onNavigate('profile')}
-            className="flex-col h-auto py-2 px-3 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+            className="flex-col h-auto py-2 px-3 text-foreground hover:text-primary hover:bg-primary/10"
           >
             <User className="w-6 h-6 mb-1" />
             <span className="text-xs font-medium">Profile</span>
@@ -913,7 +911,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
             variant="ghost"
             size="sm"
             onClick={() => onNavigate('subscription')}
-            className="flex-col h-auto py-2 px-3 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+            className="flex-col h-auto py-2 px-3 text-foreground hover:text-primary hover:bg-primary/10"
           >
             <Crown className="w-6 h-6 mb-1" />
             <span className="text-xs font-medium">Premium</span>
