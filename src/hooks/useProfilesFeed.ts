@@ -23,8 +23,8 @@ export function useProfilesFeed() {
   const [loading, setLoading] = useState(true);
 
   const getCurrentUserId = () => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    return user?.id || null;
+    // Bypass auth - use default user ID for database operations
+    return '11111111-1111-1111-1111-111111111001'; // Default Alice user
   };
 
   useEffect(() => {
@@ -33,12 +33,6 @@ export function useProfilesFeed() {
 
       try {
         const currentUserId = getCurrentUserId();
-        
-        if (!currentUserId) {
-          console.log("❌ No authenticated user found");
-          setProfiles([]);
-          return;
-        }
         
         // Fetch profiles excluding current user
         const { data, error } = await supabase

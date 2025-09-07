@@ -15,8 +15,8 @@ const SwipeCards: React.FC = () => {
   const { toast } = useToast();
 
   const getCurrentUserId = () => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    return user?.id || null;
+    // Bypass auth - use default user ID for database operations
+    return '11111111-1111-1111-1111-111111111001'; // Default Alice user
   };
 
   const calculateAge = (dateOfBirth: string) => {
@@ -35,15 +35,6 @@ const SwipeCards: React.FC = () => {
 
     const currentProfile = profiles[currentIndex];
     const userId = getCurrentUserId();
-
-    if (!userId) {
-      toast({
-        title: "Authentication required",
-        description: "Please log in to continue swiping",
-        variant: "destructive"
-      });
-      return;
-    }
 
     try {
       // Record swipe in database

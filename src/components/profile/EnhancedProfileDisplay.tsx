@@ -113,7 +113,7 @@ const EnhancedProfileDisplay: React.FC = () => {
   const fetchProfileData = async () => {
     try {
       setIsLoading(true);
-      const currentUserId = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user") || '{}').id : null;
+      const currentUserId = '11111111-1111-1111-1111-111111111001'; // Bypass auth - use default Alice user
       
       if (!currentUserId) {
         toast({

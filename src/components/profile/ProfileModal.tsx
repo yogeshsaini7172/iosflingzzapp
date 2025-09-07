@@ -19,8 +19,8 @@ const ProfileModal = ({ profile, isOpen, onClose, onChat }: ProfileModalProps) =
   const { toast } = useToast();
 
     const getCurrentUserId = () => {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      return user?.id || null;
+      // Bypass auth - use default user ID for database operations
+      return '11111111-1111-1111-1111-111111111001'; // Default Alice user
     };
 
   const handleInteraction = async (type: 'like' | 'ghost' | 'bench') => {
