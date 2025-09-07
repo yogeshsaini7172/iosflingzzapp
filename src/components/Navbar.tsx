@@ -42,10 +42,10 @@ const Navbar = () => {
     <NavLink
       to={to}
       className={({ isActive }) =>
-        `flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200 hover:bg-white/10 ${
+        `flex items-center space-x-2 px-3 py-2 rounded-xl transition-all duration-200 hover:bg-rose-100 ${
           isActiveRoute(to)
-            ? 'bg-white/20 text-white font-semibold shadow-lg' 
-            : 'text-white/80 hover:text-white'
+            ? 'bg-rose-200 text-rose-700 font-semibold shadow-sm' 
+            : 'text-rose-600 hover:text-rose-700'
         } ${mobile ? 'w-full justify-center' : ''}`
       }
       onClick={() => mobile && setIsOpen(false)}
@@ -56,15 +56,15 @@ const Navbar = () => {
   );
 
   return (
-    <nav className="sticky top-0 z-50 bg-black/90 backdrop-blur-lg border-b border-white/10">
+    <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-rose-200/50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-r from-rose-400 to-pink-500 rounded-xl flex items-center justify-center shadow-sm">
               <Heart className="h-4 w-4 text-white" />
             </div>
-            <NavLink to="/" className="text-xl font-bold text-white hover:text-purple-300 transition-colors">
+            <NavLink to="/" className="text-xl font-display font-bold text-rose-600 hover:text-rose-700 transition-colors">
               DateSigma
             </NavLink>
           </div>
@@ -82,19 +82,19 @@ const Navbar = () => {
             <Button
               variant="ghost"
               size="sm"
-              className="text-white/80 hover:text-white hover:bg-white/10 relative"
+              className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 relative"
             >
               <Bell className="h-4 w-4" />
-              <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs bg-red-500 border-0">
+              <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs bg-rose-500 text-white border-0">
                 3
               </Badge>
             </Button>
 
             {/* Profile Avatar */}
             <NavLink to="/profile">
-              <Avatar className="h-8 w-8 border-2 border-purple-400/50 hover:border-purple-300 transition-colors cursor-pointer">
+              <Avatar className="h-8 w-8 border-2 border-rose-300 hover:border-rose-400 transition-colors cursor-pointer">
                 <AvatarImage src="/api/placeholder/32/32" />
-                <AvatarFallback className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm">
+                <AvatarFallback className="bg-gradient-to-r from-rose-400 to-pink-500 text-white text-sm font-semibold">
                   AW
                 </AvatarFallback>
               </Avatar>
@@ -107,24 +107,24 @@ const Navbar = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-white/80 hover:text-white hover:bg-white/10"
+                    className="text-rose-600 hover:text-rose-700 hover:bg-rose-50"
                   >
                     <Menu className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-64 bg-black/95 backdrop-blur-lg border-l border-white/10">
+                <SheetContent side="right" className="w-64 bg-white/95 backdrop-blur-lg border-l border-rose-200">
                   <div className="flex flex-col space-y-4 mt-8">
                     {/* Profile section in mobile */}
-                    <div className="flex items-center space-x-3 p-4 bg-white/5 rounded-lg">
-                      <Avatar className="h-10 w-10 border-2 border-purple-400/50">
+                    <div className="flex items-center space-x-3 p-4 bg-rose-50 rounded-xl">
+                      <Avatar className="h-10 w-10 border-2 border-rose-300">
                         <AvatarImage src="/api/placeholder/40/40" />
-                        <AvatarFallback className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+                        <AvatarFallback className="bg-gradient-to-r from-rose-400 to-pink-500 text-white font-semibold">
                           AW
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="text-white font-semibold text-sm">Andrew Williams</p>
-                        <p className="text-white/60 text-xs">University of Texas</p>
+                        <p className="text-rose-700 font-semibold text-sm">Andrew Williams</p>
+                        <p className="text-rose-500 text-xs">University of Texas</p>
                       </div>
                     </div>
 
@@ -136,10 +136,10 @@ const Navbar = () => {
                     </div>
 
                     {/* Settings */}
-                    <div className="pt-4 border-t border-white/10">
+                    <div className="pt-4 border-t border-rose-200">
                       <Button
                         variant="ghost"
-                        className="w-full justify-start text-white/80 hover:text-white hover:bg-white/10"
+                        className="w-full justify-start text-rose-600 hover:text-rose-700 hover:bg-rose-50"
                       >
                         <Settings className="h-4 w-4 mr-2" />
                         Settings

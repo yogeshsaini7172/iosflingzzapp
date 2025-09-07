@@ -103,24 +103,24 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
   const currentProfile = profiles[currentIndex];
 
   return (
-    <div className="min-h-screen bg-gradient-soft pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-rose-100 pb-20">
       {/* Stories/Threads Section */}
-      <div className="bg-card border-b border-border p-4">
+      <div className="bg-white/60 backdrop-blur-sm border-b border-rose-200/50 p-4">
         <div className="flex space-x-4 overflow-x-auto scrollbar-hide">
           {mockStories.map((story) => (
             <div key={story.id} className="flex flex-col items-center space-y-2 min-w-[60px]">
-              <div className={`relative ${story.isOwn ? 'ring-2 ring-primary ring-offset-2' : 'ring-2 ring-gray-300'} rounded-full p-1`}>
+              <div className={`relative ${story.isOwn ? 'ring-2 ring-rose-400 ring-offset-2' : 'ring-2 ring-rose-200'} rounded-full p-1`}>
                 <Avatar className="w-12 h-12">
                   <AvatarImage src={story.image} alt={story.name} />
-                  <AvatarFallback>{story.name[0]}</AvatarFallback>
+                  <AvatarFallback className="bg-rose-100 text-rose-600 font-semibold">{story.name[0]}</AvatarFallback>
                 </Avatar>
                 {story.isOwn && (
-                  <div className="absolute -bottom-1 -right-1 bg-primary rounded-full p-1">
+                  <div className="absolute -bottom-1 -right-1 bg-rose-500 rounded-full p-1">
                     <Plus className="w-3 h-3 text-white" />
                   </div>
                 )}
               </div>
-              <span className="text-xs text-center text-foreground/70 max-w-[60px] truncate">
+              <span className="text-xs text-center text-rose-600 max-w-[60px] truncate font-medium">
                 {story.name}
               </span>
             </div>
@@ -133,19 +133,19 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
         {loading ? (
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center space-y-4">
-              <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-              <p className="text-foreground/70">Loading profiles...</p>
+              <div className="w-16 h-16 border-4 border-rose-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <p className="text-rose-600 font-medium">Loading profiles...</p>
             </div>
           </div>
         ) : currentIndex >= profiles.length ? (
           <div className="flex items-center justify-center min-h-[60vh] p-6">
             <div className="text-center space-y-6">
-              <div className="w-24 h-24 bg-gradient-primary rounded-full flex items-center justify-center mx-auto">
+              <div className="w-24 h-24 bg-gradient-to-r from-rose-400 to-pink-500 rounded-full flex items-center justify-center mx-auto shadow-lg">
                 <Heart className="w-12 h-12 text-white" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-2xl font-bold">All profiles explored!</h3>
-                <p className="text-foreground/70">
+                <h3 className="text-2xl font-display font-bold text-rose-700">All profiles explored!</h3>
+                <p className="text-rose-500">
                   Check back later for new profiles.
                 </p>
               </div>
@@ -154,7 +154,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
                   setCurrentIndex(0);
                   setSwipeCount(0);
                 }}
-                className="bg-gradient-primary"
+                className="bg-gradient-to-r from-rose-400 to-pink-500 hover:from-rose-500 hover:to-pink-600 text-white shadow-lg"
               >
                 Explore Again
               </Button>
@@ -163,7 +163,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
         ) : (
           <div className="max-w-sm mx-auto space-y-4">
             {/* Profile Card */}
-            <Card className="overflow-hidden shadow-lg">
+            <Card className="overflow-hidden shadow-lg border border-rose-200/50 bg-white/80 backdrop-blur-sm">
               <div className="relative">
                 <div className="aspect-[3/4] relative">
                   <img
@@ -177,7 +177,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
                   <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="text-2xl font-bold">
+                        <h3 className="text-2xl font-display font-bold">
                           {currentProfile?.first_name}, {currentProfile ? calculateAge(currentProfile.date_of_birth) : ''}
                         </h3>
                         <div className="flex items-center space-x-1 text-white/90 mt-1">
@@ -186,9 +186,9 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Shield className="w-5 h-5 text-accent" />
+                        <Shield className="w-5 h-5 text-rose-300" />
                         {currentProfile?.total_qcs && (
-                          <Badge className="bg-accent text-accent-foreground">
+                          <Badge className="bg-rose-500/90 text-white border-0">
                             QCS: {currentProfile.total_qcs}
                           </Badge>
                         )}
@@ -201,7 +201,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
               <CardContent className="p-4 space-y-4">
                 {currentProfile?.bio && (
                   <div>
-                    <p className="text-sm text-foreground/80 leading-relaxed">
+                    <p className="text-sm text-rose-700 leading-relaxed">
                       {currentProfile.bio}
                     </p>
                   </div>
@@ -209,13 +209,12 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
 
                 {currentProfile?.interests && currentProfile.interests.length > 0 && (
                   <div>
-                    <h4 className="font-semibold mb-2 text-sm">Interests</h4>
+                    <h4 className="font-semibold mb-2 text-sm text-rose-700">Interests</h4>
                     <div className="flex flex-wrap gap-2">
                       {currentProfile.interests.slice(0, 4).map((interest, index) => (
                         <Badge 
                           key={index} 
-                          variant="secondary" 
-                          className="text-xs"
+                          className="text-xs bg-rose-100 text-rose-600 border-rose-200 hover:bg-rose-200"
                         >
                           {interest}
                         </Badge>
@@ -232,7 +231,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
                 onClick={() => handleSwipe('left')}
                 variant="outline"
                 size="lg"
-                className="w-16 h-16 rounded-full border-red-300 hover:bg-red-50 hover:border-red-400"
+                className="w-16 h-16 rounded-full border-red-300 hover:bg-red-50 hover:border-red-400 bg-white/80"
               >
                 <X className="w-6 h-6 text-red-500" />
               </Button>
@@ -240,7 +239,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
               <Button
                 onClick={() => handleSwipe('right')}
                 size="lg"
-                className="w-16 h-16 rounded-full bg-gradient-primary"
+                className="w-16 h-16 rounded-full bg-gradient-to-r from-rose-400 to-pink-500 hover:from-rose-500 hover:to-pink-600 shadow-lg"
               >
                 <Heart className="w-6 h-6 text-white" />
               </Button>
@@ -250,48 +249,48 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border z-50">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-rose-200/50 z-50 shadow-lg">
         <div className="flex justify-around items-center py-2 px-4">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => onNavigate('home')}
-            className="flex-col h-auto py-2 px-3"
+            className="flex-col h-auto py-2 px-3 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
           >
-            <div className="w-6 h-6 bg-gradient-primary rounded-lg flex items-center justify-center mb-1">
+            <div className="w-6 h-6 bg-gradient-to-r from-rose-400 to-pink-500 rounded-lg flex items-center justify-center mb-1">
               <Heart className="w-4 h-4 text-white" />
             </div>
-            <span className="text-xs">Home</span>
+            <span className="text-xs font-medium">Home</span>
           </Button>
           
           <Button
             variant="ghost"
             size="sm"
             onClick={() => onNavigate('pairing')}
-            className="flex-col h-auto py-2 px-3"
+            className="flex-col h-auto py-2 px-3 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
           >
             <Users className="w-6 h-6 mb-1" />
-            <span className="text-xs">Pairing</span>
+            <span className="text-xs font-medium">Pairing</span>
           </Button>
           
           <Button
             variant="ghost"
             size="sm"
             onClick={() => onNavigate('blind-date')}
-            className="flex-col h-auto py-2 px-3"
+            className="flex-col h-auto py-2 px-3 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
           >
             <Sparkles className="w-6 h-6 mb-1" />
-            <span className="text-xs">Blind Date</span>
+            <span className="text-xs font-medium">Blind Date</span>
           </Button>
           
           <Button
             variant="ghost"
             size="sm"
             onClick={() => onNavigate('profile')}
-            className="flex-col h-auto py-2 px-3"
+            className="flex-col h-auto py-2 px-3 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
           >
             <User className="w-6 h-6 mb-1" />
-            <span className="text-xs">Profile</span>
+            <span className="text-xs font-medium">Profile</span>
           </Button>
         </div>
       </div>

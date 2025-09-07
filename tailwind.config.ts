@@ -97,9 +97,10 @@ export default {
 				sm: 'calc(var(--radius) - 4px)'
 			},
 			fontFamily: {
-				'professional': ['Inter', 'system-ui', 'sans-serif'],
-				'sans': ['Poppins', 'Inter', 'system-ui', 'sans-serif'],
-				'display': ['Poppins', 'sans-serif']
+				'clean': ['Inter', 'system-ui', 'sans-serif'],
+				'sans': ['Inter', 'system-ui', 'sans-serif'],
+				'display': ['Outfit', 'Inter', 'sans-serif'],
+				'modern': ['Poppins', 'Inter', 'sans-serif']
 			},
 			keyframes: {
 				'accordion-down': {

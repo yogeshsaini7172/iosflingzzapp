@@ -2,24 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Professional Typography */
+/* Modern Clean Typography for Dating App */
 @layer base {
   body {
-    font-family: 'Poppins', 'Inter', system-ui, sans-serif;
+    font-family: 'Inter', 'system-ui', sans-serif;
+    font-weight: 400;
   }
   
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Outfit', 'Inter', sans-serif;
+    font-weight: 600;
   }
 }
 
 @layer utilities {
-  .font-professional {
+  .font-clean {
     font-family: 'Inter', system-ui, sans-serif;
   }
   
   .font-display {
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Outfit', 'Inter', sans-serif;
+  }
+  
+  .font-modern {
+    font-family: 'Poppins', 'Inter', sans-serif;
   }
 }
 
@@ -179,11 +185,12 @@
   }
 
   body {
-    @apply bg-gradient-to-br from-pink-100 via-rose-50 to-pink-200 text-foreground antialiased;
+    @apply bg-gradient-to-br from-rose-50 via-pink-50 to-rose-100 text-foreground antialiased;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     position: relative;
     overflow-x: hidden;
+    color: hsl(340 15% 15%); /* Ensuring dark text for readability */
   }
 
   /* Soft Pink Dynamic Background */
@@ -247,11 +254,12 @@
     }
   }
 
-  /* Premium Typography */
+  /* Premium Typography - Clean and Modern */
   h1, h2, h3, h4, h5, h6 {
     @apply tracking-tight;
-    font-family: 'Playfair Display', serif;
+    font-family: 'Outfit', 'Inter', sans-serif;
     font-weight: 600;
+    color: hsl(340 15% 15%); /* Dark text for readability */
   }
 
   h1 {
@@ -269,10 +277,11 @@
     letter-spacing: -0.01em;
   }
 
-  /* Elegant Body Text */
+  /* Clean Body Text */
   p {
     @apply leading-relaxed;
     font-family: 'Inter', system-ui, sans-serif;
+    color: hsl(340 25% 30%); /* Slightly lighter but still readable */
   }
 
   /* Premium Button Styles */
