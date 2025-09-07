@@ -45,13 +45,13 @@ const AuthenticatedApp = () => {
         <Sonner />
         <div id="recaptcha-container"></div>
         <Routes>
-          <Route path="/" element={<Navigate to="/app/swipe" replace />} />
-          <Route path="/app/swipe" element={<SwipePage onNavigate={(view) => {}} />} />
-          <Route path="/app/pairing" element={<PairingPage onNavigate={(view) => {}} />} />
-          <Route path="/app/matches" element={<MatchesPage onNavigate={(view) => {}} />} />
-          <Route path="/app/chat/:matchId?" element={<ChatPage onNavigate={(view) => {}} />} />
-          <Route path="/app/profile" element={<ProfilePage onNavigate={(view) => {}} />} />
-          <Route path="/app/blind-date" element={<BlindDatePage onNavigate={(view) => {}} />} />
+          <Route path="/" element={<Navigate to="/swipe" replace />} />
+          <Route path="/swipe" element={<SwipePage onNavigate={(view) => {}} />} />
+          <Route path="/pairing" element={<PairingPage onNavigate={(view) => {}} />} />
+          <Route path="/matches" element={<MatchesPage onNavigate={(view) => {}} />} />
+          <Route path="/chat/:matchId?" element={<ChatPage onNavigate={(view) => {}} />} />
+          <Route path="/profile" element={<ProfilePage onNavigate={(view) => {}} />} />
+          <Route path="/blind-date" element={<BlindDatePage onNavigate={(view) => {}} />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </GenZBackground>

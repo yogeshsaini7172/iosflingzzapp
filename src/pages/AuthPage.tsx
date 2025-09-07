@@ -4,24 +4,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Eye, EyeOff, Mail, Phone, ArrowLeft } from 'lucide-react';
+import { Phone, ArrowLeft, ArrowRight } from 'lucide-react';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 const AuthPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [authStep, setAuthStep] = useState<'login' | 'signup' | 'phone-otp' | 'verify-otp'>('login');
+  const [authStep, setAuthStep] = useState<'select' | 'phone-otp' | 'verify-otp'>('select');
   const [confirmationResult, setConfirmationResult] = useState<any>(null);
   
   const navigate = useNavigate();
-  const { user, signInWithEmail, signUpWithEmail, signInWithGoogle, signInWithPhone, verifyPhoneOTP } = useAuth();
+  const { user, signInWithGoogle, signInWithPhone, verifyPhoneOTP } = useAuth();
 
   useEffect(() => {
     if (user) {
@@ -29,30 +25,25 @@ const AuthPage = () => {
     }
   }, [user, navigate]);
 
-  const handleEmailAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !password) return;
-
-    setIsLoading(true);
-    
-    try {
-      const { error } = authStep === 'login' 
-        ? await signInWithEmail(email, password)
-        : await signUpWithEmail(email, password);
-        
-      if (!error) {
-        navigate('/');
+  // Clean up reCAPTCHA on component unmount
+  useEffect(() => {
+    return () => {
+      const recaptchaContainer = document.getElementById('recaptcha-container');
+      if (recaptchaContainer) {
+        recaptchaContainer.innerHTML = '';
       }
-    } catch (error) {
-      console.error('Auth error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
+  }, []);
 
   const handlePhoneAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!phone) return;
+
+    // Clear any existing reCAPTCHA
+    const recaptchaContainer = document.getElementById('recaptcha-container');
+    if (recaptchaContainer) {
+      recaptchaContainer.innerHTML = '';
+    }
 
     setIsLoading(true);
     
@@ -110,7 +101,11 @@ const AuthPage = () => {
               variant="ghost"
               size="icon"
               className="absolute top-4 left-4"
-              onClick={() => setAuthStep('phone-otp')}
+              onClick={() => {
+                setAuthStep('select');
+                setOtp('');
+                setConfirmationResult(null);
+              }}
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
@@ -161,150 +156,172 @@ const AuthPage = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle>Welcome to CampusConnect</CardTitle>
-          <CardDescription>
-            Sign in to your account or create a new one
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={authStep === 'phone-otp' ? 'phone' : 'email'} onValueChange={(value) => {
-            if (value === 'email') setAuthStep('login');
-            else if (value === 'phone') setAuthStep('phone-otp');
-          }}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="email" className="flex items-center gap-2">
-                <Mail className="h-4 w-4" />
-                Email
-              </TabsTrigger>
-              <TabsTrigger value="phone" className="flex items-center gap-2">
-                <Phone className="h-4 w-4" />
-                Phone
-              </TabsTrigger>
-            </TabsList>
+  if (authStep === 'select') {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background to-muted">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-2xl">💫</span>
+            </div>
+            <CardTitle>Welcome to CampusConnect</CardTitle>
+            <CardDescription>
+              Choose your preferred sign-in method
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button 
+              variant="outline" 
+              onClick={handleGoogleAuth}
+              disabled={isLoading}
+              className="w-full h-12 text-base"
+            >
+              <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              {isLoading ? 'Connecting...' : 'Continue with Google'}
+            </Button>
             
-            <TabsContent value="email" className="space-y-4">
-              <form onSubmit={handleEmailAuth} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="Enter your password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="flex gap-2">
-                  <Button 
-                    type="submit" 
-                    disabled={isLoading}
-                    variant={authStep === 'login' ? 'default' : 'outline'}
-                    onClick={() => setAuthStep('login')}
-                    className="flex-1"
-                  >
-                    {isLoading && authStep === 'login' ? 'Signing in...' : 'Sign In'}
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    disabled={isLoading}
-                    variant={authStep === 'signup' ? 'default' : 'outline'}
-                    onClick={() => setAuthStep('signup')}
-                    className="flex-1"
-                  >
-                    {isLoading && authStep === 'signup' ? 'Signing up...' : 'Sign Up'}
-                  </Button>
-                </div>
-              </form>
-            </TabsContent>
-            
-            <TabsContent value="phone" className="space-y-4">
-              <form onSubmit={handlePhoneAuth} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="+1 (555) 123-4567"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    required
-                  />
-                </div>
-                
-                <Button type="submit" disabled={isLoading} className="w-full">
-                  {isLoading ? 'Sending Code...' : 'Send Verification Code'}
-                </Button>
-                
-                <div id="recaptcha-container"></div>
-              </form>
-            </TabsContent>
-          </Tabs>
-          
-          <div className="mt-6 space-y-4">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                  Or continue with
-                </span>
+                <span className="bg-background px-2 text-muted-foreground">Or</span>
               </div>
             </div>
             
             <Button 
-              variant="outline" 
-              onClick={handleGoogleAuth}
-              disabled={isLoading}
-              className="w-full"
+              variant="outline"
+              onClick={() => setAuthStep('phone-otp')}
+              className="w-full h-12 text-base"
             >
-              Continue with Google
+              <Phone className="w-5 h-5 mr-3" />
+              Continue with Phone
             </Button>
+            
+            <p className="text-center text-sm text-muted-foreground">
+              By continuing, you agree to our{' '}
+              <a href="#" className="underline underline-offset-4 hover:text-primary">
+                Terms of Service
+              </a>{' '}
+              and{' '}
+              <a href="#" className="underline underline-offset-4 hover:text-primary">
+                Privacy Policy
+              </a>
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (authStep === 'phone-otp') {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background to-muted">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-0 left-0"
+              onClick={() => setAuthStep('select')}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <CardTitle>Phone Number</CardTitle>
+            <CardDescription>
+              Enter your phone number to receive a verification code
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handlePhoneAuth} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="+91 98765 43210"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  Include country code (e.g., +91 for India)
+                </p>
+              </div>
+              
+              <Button type="submit" disabled={isLoading || !phone} className="w-full">
+                {isLoading ? 'Sending Code...' : 'Send Verification Code'}
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+              
+              <div id="recaptcha-container"></div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background to-muted">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center relative">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-0 left-0"
+            onClick={() => {
+              setAuthStep('select');
+              setOtp('');
+              setConfirmationResult(null);
+            }}
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <CardTitle>Verify Phone Number</CardTitle>
+          <CardDescription>
+            Enter the 6-digit code sent to your phone
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex justify-center">
+            <InputOTP
+              maxLength={6}
+              value={otp}
+              onChange={setOtp}
+            >
+              <InputOTPGroup>
+                <InputOTPSlot index={0} />
+                <InputOTPSlot index={1} />
+                <InputOTPSlot index={2} />
+                <InputOTPSlot index={3} />
+                <InputOTPSlot index={4} />
+                <InputOTPSlot index={5} />
+              </InputOTPGroup>
+            </InputOTP>
           </div>
           
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            By continuing, you agree to our{' '}
-            <a href="#" className="underline underline-offset-4 hover:text-primary">
-              Terms of Service
-            </a>{' '}
-            and{' '}
-            <a href="#" className="underline underline-offset-4 hover:text-primary">
-              Privacy Policy
-            </a>
-          </p>
+          <Button 
+            onClick={handleOTPVerification}
+            disabled={otp.length !== 6 || isLoading}
+            className="w-full"
+          >
+            {isLoading ? 'Verifying...' : 'Verify Code'}
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            onClick={() => handlePhoneAuth(new Event('submit') as any)}
+            disabled={isLoading}
+            className="w-full"
+          >
+            Resend Code
+          </Button>
         </CardContent>
       </Card>
     </div>

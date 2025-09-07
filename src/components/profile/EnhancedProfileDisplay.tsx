@@ -20,7 +20,8 @@ import {
   EyeOff,
   Sparkles,
   Target,
-  Coffee
+  Coffee,
+  LogOut
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -73,6 +74,37 @@ const EnhancedProfileDisplay: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { toast } = useToast();
+
+  // Logout function using Firebase auth
+  const handleLogout = async () => {
+    try {
+      // Import Firebase auth for logout
+      const { auth } = await import('@/integrations/firebase/config');
+      const { signOut } = await import('firebase/auth');
+      
+      await signOut(auth);
+      
+      toast({
+        title: "Logged out successfully",
+        description: "You have been signed out"
+      });
+      
+      // Clear any stored demo data
+      localStorage.removeItem('demoProfile');
+      localStorage.removeItem('demoPreferences');
+      localStorage.removeItem('demoUserId');
+      localStorage.removeItem('demoQCS');
+      
+      // Navigate back to welcome/login page
+      window.location.href = '/';
+    } catch (error: any) {
+      toast({
+        title: "Logout error",
+        description: error.message || "Failed to logout",
+        variant: "destructive"
+      });
+    }
+  };
 
   useEffect(() => {
     fetchProfileData();
@@ -235,6 +267,16 @@ const EnhancedProfileDisplay: React.FC = () => {
             <Button variant="outline" size="sm" className="border-white/20 bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 text-xs px-2 py-1 h-7">
               <Edit3 className="w-3 h-3 mr-1" />
               Edit
+            </Button>
+
+            <Button 
+              onClick={handleLogout}
+              variant="outline" 
+              size="sm" 
+              className="border-white/20 bg-red-500/20 text-red-300 hover:bg-red-500/30 text-xs px-2 py-1 h-7"
+            >
+              <LogOut className="w-3 h-3 mr-1" />
+              Logout
             </Button>
           </div>
         </div>

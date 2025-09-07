@@ -37,7 +37,8 @@ interface InstagramUIProps {
 
 const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
   const location = useLocation();
-  const activeTab = location.pathname === '/' ? 'home' : location.pathname.substring(1);
+  // Fix active tab detection for new routing
+  const activeTab = location.pathname === '/swipe' ? 'home' : location.pathname.substring(1);
   const { toast } = useToast();
 
   // ✅ Profiles feed from Supabase (only for Swipe tab)
@@ -46,18 +47,14 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
   // ✅ Paired profiles (only for Pairing tab)
   const { pairedProfiles = [], loading: pairingLoading } = usePairing();
 
-  // Handle logout
+  // Handle logout with Firebase
   const handleLogout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        toast({
-          title: "Logout failed",
-          description: error.message,
-          variant: "destructive"
-        });
-        return;
-      }
+      // Import Firebase auth for logout
+      const { auth } = await import('@/integrations/firebase/config');
+      const { signOut } = await import('firebase/auth');
+      
+      await signOut(auth);
       
       toast({
         title: "Logged out successfully",
@@ -75,7 +72,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
     } catch (error: any) {
       toast({
         title: "Logout error",
-        description: error.message,
+        description: error.message || "Failed to logout",
         variant: "destructive"
       });
     }
@@ -131,6 +128,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
   const renderContent = () => {
     switch (activeTab) {
       case "home":
+      case "swipe":
         return (
           <div className="flex-1 overflow-y-auto bg-background min-h-screen scroll-smooth relative">
             {/* Instagram-style responsive header */}
@@ -454,6 +452,36 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
           </div>
         );
 
+      case "matches":
+        return (
+          <div className="flex-1 overflow-y-auto min-h-screen bg-background">
+            <div className="max-w-4xl mx-auto p-4">
+              <h2 className="text-2xl font-display font-bold text-center mb-6 bg-gradient-primary bg-clip-text text-transparent">
+                Your Matches ✨
+              </h2>
+              <div className="text-center text-muted-foreground font-professional">
+                <p>Matches feature coming soon! 💕</p>
+                <p className="mt-2 text-sm">Keep swiping to find your perfect match</p>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "pairing":
+        return (
+          <div className="flex-1 overflow-y-auto min-h-screen bg-background">
+            <div className="max-w-4xl mx-auto p-4">
+              <h2 className="text-2xl font-display font-bold text-center mb-6 bg-gradient-primary bg-clip-text text-transparent">
+                AI Pairing ✨
+              </h2>
+              <div className="text-center text-muted-foreground font-professional">
+                <p>AI Pairing feature coming soon! 🤖</p>
+                <p className="mt-2 text-sm">Our AI will find your perfect matches</p>
+              </div>
+            </div>
+          </div>
+        );
+
       case "chat":
         return (
           <div className="flex-1 overflow-y-auto min-h-screen bg-background">
@@ -498,17 +526,17 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
           <div className="flex items-center justify-around h-16 max-w-md mx-auto px-4">
             {[
               { 
-                path: "/", 
+                path: "/swipe", 
                 icon: Home, 
                 label: "Home", 
-                isActive: activeTab === 'home',
+                isActive: activeTab === 'home' || activeTab === 'swipe',
                 gradient: "from-primary to-primary-glow"
               },
               { 
-                path: "/swipe", 
+                path: "/matches", 
                 icon: Heart, 
-                label: "Swipe", 
-                isActive: activeTab === 'swipe',
+                label: "Matches", 
+                isActive: activeTab === 'matches',
                 gradient: "from-secondary to-secondary-glow" 
               },
               { 

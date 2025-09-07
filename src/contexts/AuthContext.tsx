@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, signOut as firebaseSignOut, sendEmailVerification, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
+import { User, onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
 import { auth, googleProvider, createRecaptchaVerifier } from '@/integrations/firebase/config';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -7,9 +7,6 @@ import { toast } from 'sonner';
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  // Email/Password Auth
-  signUpWithEmail: (email: string, password: string) => Promise<{ error?: any }>;
-  signInWithEmail: (email: string, password: string) => Promise<{ error?: any }>;
   // Phone OTP
   signInWithPhone: (phone: string) => Promise<{ error?: any; confirmationResult?: ConfirmationResult }>;
   verifyPhoneOTP: (confirmationResult: ConfirmationResult, otp: string) => Promise<{ error?: any }>;
@@ -92,32 +89,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const signUpWithEmail = async (email: string, password: string) => {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      await sendEmailVerification(userCredential.user);
-      toast.success('Account created! Please check your email for verification.');
-      return {};
-    } catch (error: any) {
-      console.error('Sign up error:', error);
-      toast.error(error.message);
-      return { error };
-    }
-  };
-
-  const signInWithEmail = async (email: string, password: string) => {
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      return {};
-    } catch (error: any) {
-      console.error('Sign in error:', error);
-      toast.error(error.message);
-      return { error };
-    }
-  };
-
   const signInWithPhone = async (phone: string) => {
     try {
+      // Clear any existing reCAPTCHA first
+      const recaptchaContainer = document.getElementById('recaptcha-container');
+      if (recaptchaContainer) {
+        recaptchaContainer.innerHTML = '';
+      }
+
       // Create reCAPTCHA verifier
       const recaptchaVerifier = createRecaptchaVerifier('recaptcha-container');
       const confirmationResult = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
@@ -168,8 +147,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const value = {
     user,
     isLoading,
-    signUpWithEmail,
-    signInWithEmail,
     signInWithPhone,
     verifyPhoneOTP,
     signInWithGoogle,
