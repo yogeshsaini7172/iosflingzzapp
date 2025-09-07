@@ -609,29 +609,6 @@
     }
   }
 
-  /* Instagram-like Floating Elements with GPU Acceleration */
-  .genZ-floating-element {
-    position: fixed;
-    pointer-events: none;
-    z-index: 1;
-    opacity: 0.4;
-    transform: translateZ(0);
-    will-change: transform;
-    animation: floatRandom 8s ease-in-out infinite;
-  }
-  
-  /* Reduce animations on mobile for performance */
-  @media (max-width: 767px) {
-    .genZ-floating-element {
-      opacity: 0.2;
-      animation: floatRandom 12s ease-in-out infinite;
-    }
-  }
-
-  @keyframes floatRandom {
-    0%, 100% { 
-      transform: translate(0, 0) rotate(0deg) scale(1);
-    }
     25% { 
       transform: translate(20px, -30px) rotate(90deg) scale(1.1);
     }
