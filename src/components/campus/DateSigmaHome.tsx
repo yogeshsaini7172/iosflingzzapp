@@ -32,6 +32,7 @@ import ChatRequestsModal from '@/components/notifications/ChatRequestsModal';
 import { useSwipeRealtime, useLikeRealtime, useNotificationRealtime } from '@/hooks/useRealtime';
 import QCSFixer from '@/components/debug/QCSFixer';
 import UserSelector from '@/components/debug/UserSelector';
+import DeterministicPairingTest from '@/components/debug/DeterministicPairingTest';
 
 interface Thread {
   id: number;
@@ -958,6 +959,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
       <div className="p-4 space-y-4">
         <QCSFixer />
         <UserSelector />
+        <DeterministicPairingTest />
       </div>
 
       {/* Who Liked Me Modal */}
