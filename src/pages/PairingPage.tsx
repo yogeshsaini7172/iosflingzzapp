@@ -377,10 +377,10 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                       <div className="flex items-center justify-between text-sm font-medium">
                         <span className="flex items-center">
                           <Star className="h-4 w-4 mr-1 text-yellow-500" />
-                          Overall
+                          Matching Score
                         </span>
-                        <span className={getCompatibilityColor(match.compatibility_score || 0).split(' ')[0]}>
-                          {getCompatibilityText(match.compatibility_score || 0)}
+                        <span className={`font-bold ${getCompatibilityColor(match.compatibility_score || 0).split(' ')[0]}`}>
+                          {match.compatibility_score || 0}%
                         </span>
                       </div>
                     </div>
