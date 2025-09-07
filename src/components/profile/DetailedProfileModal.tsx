@@ -115,15 +115,11 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md mx-auto max-h-[90vh] overflow-y-auto p-0 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950">
-        {/* Header */}
         <DialogHeader className="p-4 pb-0">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
               Profile Details
             </DialogTitle>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="w-5 h-5" />
-            </Button>
           </div>
         </DialogHeader>
 
