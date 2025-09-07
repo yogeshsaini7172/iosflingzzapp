@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProfileData {
   user_id: string;
@@ -75,14 +76,11 @@ const EnhancedProfileDisplay: React.FC = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { toast } = useToast();
 
-  // Logout function using Firebase auth
+  // Logout function using Supabase auth
   const handleLogout = async () => {
     try {
-      // Import Firebase auth for logout
-      const { auth } = await import('@/integrations/firebase/config');
-      const { signOut } = await import('firebase/auth');
-      
-      await signOut(auth);
+      const { signOut } = useAuth();
+      await signOut();
       
       toast({
         title: "Logged out successfully",

@@ -29,6 +29,7 @@ import SwipeCards from "@/components/swipe/SwipeCards";
 import PairingMatches from "@/components/pairing/PairingMatches";
 import GhostBenchBar from "@/components/ui/ghost-bench-bar";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import EnhancedProfileDisplay from "@/components/profile/EnhancedProfileDisplay";
 
 interface InstagramUIProps {
@@ -47,14 +48,11 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
   // ✅ Paired profiles (only for Pairing tab)
   const { pairedProfiles = [], loading: pairingLoading } = usePairing();
 
-  // Handle logout with Firebase
+  // Handle logout with Supabase
   const handleLogout = async () => {
     try {
-      // Import Firebase auth for logout
-      const { auth } = await import('@/integrations/firebase/config');
-      const { signOut } = await import('firebase/auth');
-      
-      await signOut(auth);
+      const { signOut } = useAuth();
+      await signOut();
       
       toast({
         title: "Logged out successfully",

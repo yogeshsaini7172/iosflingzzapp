@@ -28,22 +28,50 @@ const queryClient = new QueryClient({
 });
 
 const AuthenticatedApp = () => {
-  // Bypass auth - always show app content
-  const [hasProfile, setHasProfile] = useState(true); // Always true for bypass
-  const [checkingProfile, setCheckingProfile] = useState(false);
+  const { user, isLoading } = useAuth();
+  const [hasProfile, setHasProfile] = useState(false);
+  const [checkingProfile, setCheckingProfile] = useState(true);
 
-  // Mock user object for bypassed auth
-  const user = { uid: '11111111-1111-1111-1111-111111111001' };
-  const isLoading = false;
+  // Function to check if user has completed profile
+  const checkUserProfile = async (userId: string) => {
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
 
-  // Add a function to recheck profile status
-  const recheckProfile = async () => {
-    // Bypass auth - always return true
-    return true;
+      return profile && profile.first_name && profile.university;
+    } catch (error) {
+      console.error('Error checking profile:', error);
+      return false;
+    }
   };
 
-  // Bypass loading states
-  if (false) { // Never loading
+  // Function to recheck profile status
+  const recheckProfile = async () => {
+    if (!user) return false;
+    
+    const profileComplete = await checkUserProfile(user.id);
+    setHasProfile(!!profileComplete);
+    return !!profileComplete;
+  };
+
+  useEffect(() => {
+    const checkProfile = async () => {
+      if (user) {
+        const profileComplete = await checkUserProfile(user.id);
+        setHasProfile(!!profileComplete);
+      }
+      setCheckingProfile(false);
+    };
+
+    if (!isLoading) {
+      checkProfile();
+    }
+  }, [user, isLoading]);
+
+  if (isLoading || checkingProfile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -51,8 +79,19 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Bypass auth checks - always show app content
-  // No user or profile checks needed
+  // Show authentication/profile setup flow if user not authenticated or profile incomplete
+  if (!user || !hasProfile) {
+    return (
+      <TooltipProvider>
+        <GenZBackground variant="app">
+          <Toaster />
+          <Sonner />
+          <div id="recaptcha-container"></div>
+          <Index onProfileComplete={recheckProfile} />
+        </GenZBackground>
+      </TooltipProvider>
+    );
+  }
 
   return (
     <TooltipProvider>

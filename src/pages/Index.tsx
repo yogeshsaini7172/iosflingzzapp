@@ -25,7 +25,7 @@ const Index = ({ onProfileComplete }: IndexProps) => {
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
-        .eq('user_id', user.uid)
+        .eq('user_id', user.id)
         .maybeSingle();
 
       if (!profile || !profile.first_name || !profile.university) {
@@ -56,7 +56,7 @@ const Index = ({ onProfileComplete }: IndexProps) => {
   // Handle different steps
   switch (currentStep) {
     case 'auth':
-      return <AuthPage />;
+      return <AuthPage onComplete={() => setCurrentStep('profile')} />;
 
     case 'splash':
       return (
@@ -85,7 +85,7 @@ const Index = ({ onProfileComplete }: IndexProps) => {
       );
 
     default:
-      return <AuthPage />;
+      return <AuthPage onComplete={() => setCurrentStep('profile')} />;
   }
 };
 

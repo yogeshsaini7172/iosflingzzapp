@@ -1,16 +1,14 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
-import { auth, googleProvider, createRecaptchaVerifier } from '@/integrations/firebase/config';
+import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface AuthContextType {
   user: User | null;
+  session: Session | null;
   isLoading: boolean;
-  // Phone OTP
-  signInWithPhone: (phone: string) => Promise<{ error?: any; confirmationResult?: ConfirmationResult }>;
-  verifyPhoneOTP: (confirmationResult: ConfirmationResult, otp: string) => Promise<{ error?: any }>;
-  // OAuth
+  signInWithEmail: (email: string, password: string) => Promise<{ error?: any }>;
+  signUpWithEmail: (email: string, password: string, metadata?: any) => Promise<{ error?: any }>;
   signInWithGoogle: () => Promise<{ error?: any }>;
   signOut: () => Promise<{ error?: any }>;
 }
@@ -31,132 +29,129 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
 
   useEffect(() => {
-    // Set up Firebase auth state listener
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      console.log('Firebase auth state changed:', firebaseUser?.email);
-      setUser(firebaseUser);
-      setIsLoading(false);
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('Supabase auth state changed:', event, session?.user?.email);
+        setSession(session);
+        setUser(session?.user ?? null);
+        setIsLoading(false);
 
-      // Sync with Supabase when user signs in
-      if (firebaseUser) {
-        // Create or update profile in Supabase
-        await syncUserProfile(firebaseUser);
-        toast.success('Successfully signed in!');
-      } else {
-        toast.success('Successfully signed out');
+        // Show toast messages for auth events
+        if (event === 'SIGNED_IN') {
+          toast.success('Successfully signed in!');
+        } else if (event === 'SIGNED_OUT') {
+          toast.success('Successfully signed out');
+        }
       }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => subscription.unsubscribe();
   }, []);
 
-  const syncUserProfile = async (firebaseUser: User) => {
+  const signInWithEmail = async (email: string, password: string) => {
     try {
-      // Profile creation is now handled by the profile-completion edge function
-      // This prevents RLS violations since edge functions use service role
-      console.log('User profile will be created during profile completion flow');
-    } catch (error) {
-      console.error('Error syncing user profile:', error);
-    }
-  };
-
-  const signInWithPhone = async (phone: string) => {
-    try {
-      // Format phone number for India
-      let formattedPhone = phone.trim();
-      if (formattedPhone.startsWith('91') && !formattedPhone.startsWith('+')) {
-        formattedPhone = '+' + formattedPhone;
-      } else if (formattedPhone.startsWith('0')) {
-        formattedPhone = '+91' + formattedPhone.substring(1);
-      } else if (!formattedPhone.startsWith('+91') && formattedPhone.length === 10) {
-        formattedPhone = '+91' + formattedPhone;
-      }
-
-      console.log('Attempting phone auth with:', formattedPhone);
-
-      // Clear any existing reCAPTCHA first
-      const recaptchaContainer = document.getElementById('recaptcha-container');
-      if (recaptchaContainer) {
-        recaptchaContainer.innerHTML = '';
-      }
-
-      // Wait a bit for DOM to be ready
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      // Create reCAPTCHA verifier with better configuration for Indian users
-      const recaptchaVerifier = createRecaptchaVerifier('recaptcha-container');
-      
-      // Add error handling for reCAPTCHA failures
-      recaptchaVerifier.verify().catch((error) => {
-        console.error('reCAPTCHA verification failed:', error);
-        toast.error('Verification failed. Please try again.');
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
-      const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, recaptchaVerifier);
-      setConfirmationResult(confirmationResult);
-      toast.success('OTP sent to your phone!');
-      return { confirmationResult };
-    } catch (error: any) {
-      console.error('Phone sign-in error:', error);
-      
-      // Provide more specific error messages
-      if (error.code === 'auth/invalid-phone-number') {
-        toast.error('Invalid phone number. Please include country code (+91 for India)');
-      } else if (error.code === 'auth/too-many-requests') {
-        toast.error('Too many attempts. Please try again later.');
-      } else if (error.code === 'auth/captcha-check-failed') {
-        toast.error('Verification failed. Please refresh and try again.');
-      } else {
-        toast.error(error.message || 'Failed to send OTP. Please try again.');
+      if (error) {
+        toast.error(error.message);
+        return { error };
       }
-      
+
+      return { data };
+    } catch (error: any) {
+      console.error('Email sign-in error:', error);
+      toast.error('Failed to sign in');
       return { error };
     }
   };
 
-  const verifyPhoneOTP = async (confirmationResult: ConfirmationResult, otp: string) => {
+  const signUpWithEmail = async (email: string, password: string, metadata?: any) => {
     try {
-      await confirmationResult.confirm(otp);
-      toast.success('Phone verified successfully!');
-      return {};
+      const redirectUrl = `${window.location.origin}/`;
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: metadata || {}
+        }
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return { error };
+      }
+
+      toast.success('Check your email for verification link!');
+      return { data };
     } catch (error: any) {
-      console.error('OTP verification error:', error);
-      toast.error(error.message);
+      console.error('Email sign-up error:', error);
+      toast.error('Failed to sign up');
       return { error };
     }
   };
 
   const signInWithGoogle = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
-      return {};
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`
+        }
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return { error };
+      }
+
+      return { data };
     } catch (error: any) {
-      console.error('Google sign in error:', error);
-      toast.error(error.message);
+      console.error('Google sign-in error:', error);
+      toast.error('Failed to sign in with Google');
       return { error };
     }
   };
 
   const signOut = async () => {
     try {
-      await firebaseSignOut(auth);
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        toast.error(error.message);
+        return { error };
+      }
+
       return {};
     } catch (error: any) {
       console.error('Sign out error:', error);
-      toast.error(error.message);
+      toast.error('Failed to sign out');
       return { error };
     }
   };
 
   const value = {
     user,
+    session,
     isLoading,
-    signInWithPhone,
-    verifyPhoneOTP,
+    signInWithEmail,
+    signUpWithEmail,
     signInWithGoogle,
     signOut,
   };
