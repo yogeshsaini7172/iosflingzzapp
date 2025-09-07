@@ -114,10 +114,10 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto max-h-[90vh] overflow-y-auto p-0 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950">
+      <DialogContent className="max-w-md mx-auto max-h-[90vh] overflow-y-auto p-0 bg-gradient-card dark:bg-card">
         <DialogHeader className="p-4 pb-0">
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <DialogTitle className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
               Profile Details
             </DialogTitle>
           </div>
@@ -125,7 +125,7 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
 
         {/* Profile Images Carousel */}
         <div className="relative">
-          <div className="h-96 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 flex items-center justify-center relative overflow-hidden">
+          <div className="h-96 bg-gradient-subtle dark:bg-card flex items-center justify-center relative overflow-hidden">
             {images.length > 0 ? (
               <>
                 <img 

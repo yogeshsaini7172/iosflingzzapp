@@ -37,7 +37,7 @@ const SubscriptionPage = ({ onNavigate }: SubscriptionPageProps) => {
       ],
       icon: Heart,
       popular: false,
-      gradient: 'from-blue-400 to-blue-500'
+      gradient: 'from-primary to-secondary'
     },
     {
       id: 'plus',
@@ -54,7 +54,7 @@ const SubscriptionPage = ({ onNavigate }: SubscriptionPageProps) => {
       ],
       icon: Crown,
       popular: true,
-      gradient: 'from-yellow-400 to-orange-500'
+      gradient: 'from-accent to-primary'
     },
     {
       id: 'pro',
@@ -72,7 +72,7 @@ const SubscriptionPage = ({ onNavigate }: SubscriptionPageProps) => {
       ],
       icon: Zap,
       popular: false,
-      gradient: 'from-purple-400 to-purple-600'
+      gradient: 'from-secondary to-accent'
     }
   ];
 
@@ -105,26 +105,26 @@ const SubscriptionPage = ({ onNavigate }: SubscriptionPageProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-rose-100 pb-20">
+    <div className="min-h-screen bg-gradient-hero pb-20">
       {/* Header */}
-      <div className="bg-white/60 backdrop-blur-sm border-b border-rose-200/50 p-4">
+      <div className="bg-card/60 backdrop-blur-sm border-b border-border/50 p-4">
         <div className="flex items-center space-x-3">
           <Button 
             variant="ghost" 
             size="sm"
             onClick={() => onNavigate('home')}
-            className="text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+            className="text-foreground hover:text-foreground hover:bg-muted"
           >
             <ArrowLeft className="w-4 h-4" />
           </Button>
-          <h1 className="text-xl font-display font-bold text-rose-700">Subscription Plans</h1>
+          <h1 className="text-xl font-display font-bold text-foreground">Subscription Plans</h1>
         </div>
       </div>
 
       {/* Content */}
       <div className="p-4 space-y-6">
         {/* Hero Section */}
-        <Card className="text-center p-6 bg-gradient-to-r from-rose-400 to-pink-500 text-white border-0 shadow-lg">
+        <Card className="text-center p-6 bg-gradient-primary text-primary-foreground border-0 shadow-glow">
           <div className="space-y-4">
             <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto">
               <Sparkles className="w-8 h-8" />

@@ -219,8 +219,8 @@ const EnhancedProfileDisplay: React.FC = () => {
   if (!profileData) {
     return (
       <div className="text-center space-y-6 py-12">
-        <div className="w-20 h-20 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full flex items-center justify-center mx-auto border border-purple-400/30">
-          <User className="w-10 h-10 text-purple-400" />
+        <div className="w-20 h-20 bg-gradient-subtle rounded-full flex items-center justify-center mx-auto border border-border/30">
+          <User className="w-10 h-10 text-muted-foreground" />
         </div>
         <div>
           <h3 className="text-xl font-bold mb-2 text-white">Profile Not Found</h3>
@@ -315,7 +315,7 @@ const EnhancedProfileDisplay: React.FC = () => {
           {/* Mobile-Optimized Profile Photo */}
           <div className="genZ-glass-card p-4 rounded-2xl border border-white/20">
             <div className="relative">
-              <div className="aspect-[3/4] bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl overflow-hidden border border-white/10 max-w-sm mx-auto">
+              <div className="aspect-[3/4] bg-gradient-card rounded-2xl overflow-hidden border border-border/10 max-w-sm mx-auto">
                 {profileImage ? (
                   <img 
                     src={profileImage} 
@@ -404,7 +404,7 @@ const EnhancedProfileDisplay: React.FC = () => {
 
                 {profileData.location && (
                   <div className="flex items-center space-x-2">
-                    <MapPin className="w-4 h-4 text-pink-400" />
+                    <MapPin className="w-4 h-4 text-muted-foreground" />
                     <p className="text-white text-sm truncate">{profileData.location}</p>
                   </div>
                 )}
@@ -469,7 +469,7 @@ const EnhancedProfileDisplay: React.FC = () => {
                 {profileData.relationship_goals.map((goal, index) => (
                   <Badge 
                     key={index} 
-                    className="bg-pink-500/20 text-pink-300 border-pink-400/30 py-0.5 px-2 text-xs"
+                    className="bg-primary/20 text-primary border-primary/30 py-0.5 px-2 text-xs"
                   >
                     {goal}
                   </Badge>
@@ -498,7 +498,7 @@ const EnhancedProfileDisplay: React.FC = () => {
               {profileData.values && (
                 <div className="genZ-glass-card p-2 rounded-xl border border-white/20">
                   <h5 className="font-semibold text-white mb-1 flex items-center text-sm">
-                    <Heart className="w-3 h-3 mr-1 text-pink-400" />
+                    <Heart className="w-3 h-3 mr-1 text-primary" />
                     Values
                   </h5>
                   <p className="text-white/80 capitalize text-xs">{profileData.values.replace(/_/g, ' ')}</p>
@@ -653,7 +653,7 @@ const EnhancedProfileDisplay: React.FC = () => {
                     <p className="text-white/70 text-xs mb-1">Seeking:</p>
                     <div className="flex flex-wrap gap-1">
                       {preferences.preferred_relationship_goal.map((goal, index) => (
-                        <Badge key={index} className="bg-pink-500/20 text-pink-300 border-pink-400/30 text-xs py-0.5 px-2">
+                        <Badge key={index} className="bg-primary/20 text-primary border-primary/30 text-xs py-0.5 px-2">
                           {goal}
                         </Badge>
                       ))}

@@ -37,7 +37,7 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
       price: '$9.99',
       period: '/month',
       description: 'Enhanced features for better matches',
-      icon: <Zap className="w-6 h-6 text-blue-500" />,
+      icon: <Zap className="w-6 h-6 text-primary" />,
       features: [
         'Unlimited swipes',
         '10 pairing requests per day',
@@ -48,7 +48,7 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
       ],
       buttonText: 'Start Basic Plan',
       popular: true,
-      color: 'border-blue-200 bg-blue-50/50'
+      color: 'border-primary/50 bg-primary/10'
     },
     {
       id: 'premium',
@@ -56,7 +56,7 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
       price: '$19.99',
       period: '/month',
       description: 'Ultimate dating experience',
-      icon: <Crown className="w-6 h-6 text-purple-500" />,
+      icon: <Crown className="w-6 h-6 text-secondary" />,
       features: [
         'Everything in Basic',
         'Unlimited pairing requests',
@@ -69,7 +69,7 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
       ],
       buttonText: 'Go Premium',
       popular: false,
-      color: 'border-purple-200 bg-purple-50/50'
+      color: 'border-secondary/50 bg-secondary/10'
     }
   ];
 
@@ -102,10 +102,10 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 flex items-center justify-center p-3 sm:p-6">
+    <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-3 sm:p-6">
       <div className="w-full max-w-6xl">
         <div className="text-center mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent mb-3 sm:mb-4">
+          <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-3 sm:mb-4">
             Choose Your Plan
           </h1>
           <p className="text-base sm:text-lg text-muted-foreground mb-4 sm:mb-6 px-4">
@@ -130,7 +130,7 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
               onClick={() => setSelectedPlan(plan.id)}
             >
               {plan.popular && (
-                <Badge className="absolute -top-2 sm:-top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs sm:text-sm">
+                <Badge className="absolute -top-2 sm:-top-3 left-1/2 transform -translate-x-1/2 bg-gradient-primary text-primary-foreground text-xs sm:text-sm">
                   Most Popular
                 </Badge>
               )}

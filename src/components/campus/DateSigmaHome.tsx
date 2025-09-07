@@ -363,13 +363,13 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
   return (
     <div className="min-h-screen bg-gradient-hero pb-20">
       {/* Company Header & Chat Section */}
-      <div className="bg-white/80 backdrop-blur-md border-b border-rose-100/50 px-4 py-2">
+      <div className="bg-card/80 backdrop-blur-md border-b border-border/50 px-4 py-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-rose-400 to-pink-500 rounded-lg flex items-center justify-center shadow-sm">
-              <span className="text-white font-bold text-sm">DS</span>
+            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center shadow-sm">
+              <span className="text-primary-foreground font-bold text-sm">DS</span>
             </div>
-            <h1 className="text-base font-display font-bold text-rose-700">DateSigma</h1>
+            <h1 className="text-base font-display font-bold text-foreground">DateSigma</h1>
           </div>
           <div className="flex items-center space-x-2">
             <ChatNotificationBadge 

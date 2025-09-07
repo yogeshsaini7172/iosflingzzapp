@@ -190,7 +190,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-soft flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Loading your profile...</p>
@@ -1155,24 +1155,24 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-rose-100 pb-20">
+    <div className="min-h-screen bg-gradient-hero pb-20">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-lg border-b border-rose-200/50">
+      <div className="sticky top-0 z-40 bg-background/90 backdrop-blur-lg border-b border-border/50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => onNavigate('home')} className="text-rose-600 hover:text-rose-700 hover:bg-rose-50">
+            <Button variant="ghost" size="sm" onClick={() => onNavigate('home')} className="text-foreground hover:text-foreground hover:bg-muted">
               <ArrowLeft className="w-4 h-4" />
             </Button>
             <div>
-              <h1 className="text-xl font-bold text-rose-700">Edit Profile</h1>
-              <p className="text-sm text-rose-500">Make yourself shine ✨</p>
+              <h1 className="text-xl font-bold text-foreground">Edit Profile</h1>
+              <p className="text-sm text-muted-foreground">Make yourself shine ✨</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button className="bg-gradient-to-r from-rose-400 to-pink-500 hover:from-rose-500 hover:to-pink-600" onClick={handleSaveChanges}>
+            <Button className="bg-gradient-primary text-primary-foreground" onClick={handleSaveChanges}>
               Save Changes
             </Button>
-            <Button variant="outline" size="sm" onClick={handleLogout} className="text-rose-600 border-rose-200 hover:bg-rose-50">
+            <Button variant="outline" size="sm" onClick={handleLogout} className="text-foreground border-border hover:bg-muted">
               <LogOut className="w-4 h-4" />
             </Button>
           </div>
@@ -1181,8 +1181,8 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
 
       <div className="container mx-auto px-4 py-6 max-w-2xl pb-24">
         {/* Profile Summary Card */}
-        <Card className="mb-6 shadow-lg border-rose-200/50 overflow-hidden bg-white/80 backdrop-blur-sm">
-          <div className="bg-gradient-to-r from-rose-400 to-pink-500 p-6 text-white">
+        <Card className="mb-6 shadow-glow border-border/50 overflow-hidden bg-card/80 backdrop-blur-sm">
+          <div className="bg-gradient-primary p-6 text-primary-foreground">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white/20">
                 {formData.profileImages[0] ? (
@@ -1219,7 +1219,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
         </Card>
 
         {/* Tabs */}
-        <Card className="mb-6 shadow-lg border-rose-200/50 bg-white/80 backdrop-blur-sm">
+        <Card className="mb-6 shadow-glow border-border/50 bg-card/80 backdrop-blur-sm">
           <div className="flex overflow-x-auto">
             {tabs.map(({ id, label, icon: Icon }) => (
               <Button
@@ -1228,8 +1228,8 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
                 onClick={() => setActiveTab(id as any)}
                 className={`flex-1 rounded-none border-b-2 text-xs sm:text-sm ${
                   activeTab === id 
-                    ? 'border-rose-400 bg-rose-50 text-rose-700' 
-                    : 'border-transparent hover:bg-rose-50 text-rose-600'
+                    ? 'border-primary bg-muted text-foreground' 
+                    : 'border-transparent hover:bg-muted text-foreground'
                 }`}
               >
                 <Icon className="w-4 h-4 mr-1" />
@@ -1240,9 +1240,9 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
         </Card>
 
         {/* Content */}
-        <Card className="shadow-lg border-rose-200/50 bg-white/80 backdrop-blur-sm">
+        <Card className="shadow-glow border-border/50 bg-card/80 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="capitalize text-rose-700">{activeTab.replace('-', ' ')} Settings</CardTitle>
+            <CardTitle className="capitalize text-foreground">{activeTab.replace('-', ' ')} Settings</CardTitle>
           </CardHeader>
           <CardContent>
             {activeTab === 'basic' && renderBasicInfo()}
@@ -1293,7 +1293,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
             onClick={() => onNavigate('profile')}
             className="flex-col h-auto py-2 px-3 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
           >
-            <div className="w-6 h-6 bg-gradient-to-r from-rose-400 to-pink-500 rounded-lg flex items-center justify-center mb-1">
+            <div className="w-6 h-6 bg-gradient-primary rounded-lg flex items-center justify-center mb-1">
               <GraduationCap className="w-4 h-4 text-white" />
             </div>
             <span className="text-xs font-medium">Profile</span>
