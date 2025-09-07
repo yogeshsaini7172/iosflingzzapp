@@ -31,13 +31,13 @@ const GenZBackground: React.FC<GenZBackgroundProps> = ({ children, variant = 'de
   const getVariantStyles = () => {
     switch (variant) {
       case 'auth':
-        return 'bg-gradient-to-br from-purple-900 via-pink-900 to-indigo-900';
+        return 'bg-gradient-hero';
       case 'setup':
-        return 'bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900';
+        return 'bg-gradient-subtle';
       case 'app':
-        return 'bg-gradient-to-br from-black via-purple-950 to-pink-950';
+        return 'bg-background';
       default:
-        return 'bg-gradient-to-br from-purple-900 via-pink-900 to-black';
+        return 'bg-gradient-hero';
     }
   };
 
@@ -45,11 +45,11 @@ const GenZBackground: React.FC<GenZBackgroundProps> = ({ children, variant = 'de
     <div className={`genZ-app-container ${getVariantStyles()} relative min-h-screen overflow-hidden`}>
       {/* Animated background gradients */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-20 right-1/4 w-80 h-80 bg-pink-500/10 rounded-full blur-3xl animate-pulse-glow delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-blue-500/10 rounded-full blur-2xl animate-bounce-slow delay-500"></div>
-        <div className="absolute top-10 right-10 w-48 h-48 bg-yellow-500/10 rounded-full blur-xl animate-float delay-2000"></div>
-        <div className="absolute bottom-10 left-10 w-56 h-56 bg-green-500/10 rounded-full blur-2xl animate-pulse-glow delay-1500"></div>
+        <div className="absolute top-20 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute bottom-20 right-1/4 w-80 h-80 bg-secondary/10 rounded-full blur-3xl animate-pulse-glow delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-accent/10 rounded-full blur-2xl animate-bounce-slow delay-500"></div>
+        <div className="absolute top-10 right-10 w-48 h-48 bg-primary-light/10 rounded-full blur-xl animate-float delay-2000"></div>
+        <div className="absolute bottom-10 left-10 w-56 h-56 bg-secondary-light/10 rounded-full blur-2xl animate-pulse-glow delay-1500"></div>
       </div>
 
       {/* Floating emoji elements */}
@@ -70,11 +70,11 @@ const GenZBackground: React.FC<GenZBackgroundProps> = ({ children, variant = 'de
 
       {/* Geometric shapes */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/6 w-4 h-4 bg-purple-400/30 rotate-45 animate-spin-slow"></div>
-        <div className="absolute top-3/4 right-1/6 w-6 h-6 bg-pink-400/30 rounded-full animate-bounce-slow delay-1000"></div>
-        <div className="absolute top-1/2 left-1/3 w-3 h-12 bg-blue-400/30 rotate-12 animate-wiggle delay-500"></div>
-        <div className="absolute bottom-1/4 right-1/3 w-8 h-8 bg-yellow-400/30 rotate-45 animate-float delay-2000"></div>
-        <div className="absolute top-1/6 right-1/2 w-5 h-5 bg-green-400/30 rounded-full animate-pulse-glow delay-1500"></div>
+        <div className="absolute top-1/4 left-1/6 w-4 h-4 bg-primary/30 rotate-45 animate-spin-slow"></div>
+        <div className="absolute top-3/4 right-1/6 w-6 h-6 bg-secondary/30 rounded-full animate-bounce-slow delay-1000"></div>
+        <div className="absolute top-1/2 left-1/3 w-3 h-12 bg-accent/30 rotate-12 animate-wiggle delay-500"></div>
+        <div className="absolute bottom-1/4 right-1/3 w-8 h-8 bg-primary-light/30 rotate-45 animate-float delay-2000"></div>
+        <div className="absolute top-1/6 right-1/2 w-5 h-5 bg-secondary-light/30 rounded-full animate-pulse-glow delay-1500"></div>
       </div>
 
       {/* Content */}

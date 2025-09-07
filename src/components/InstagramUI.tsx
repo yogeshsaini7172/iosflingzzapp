@@ -161,34 +161,34 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
     switch (activeTab) {
       case "home":
         return (
-          <div className="flex-1 overflow-y-auto bg-black min-h-screen scroll-smooth relative">
+          <div className="flex-1 overflow-y-auto bg-background min-h-screen scroll-smooth relative">
             {/* Instagram-style responsive header */}
-            <header className="sticky top-0 z-20 backdrop-blur-xl bg-black/40 border-b border-white/10 safe-area-top">
+            <header className="sticky top-0 z-20 backdrop-blur-xl bg-background/80 border-b border-border safe-area-top">
               <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-glow">
                     <span className="text-white font-bold text-lg sm:text-xl">💕</span>
                   </div>
-                  <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-purple-400 via-pink-500 to-blue-500 bg-clip-text text-transparent">
+                  <h1 className="text-lg sm:text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
                     datingSigma
                   </h1>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3">
                   <button 
-                    className="touch-feedback genZ-hover-lift p-2 sm:p-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 min-w-[44px] min-h-[44px]"
+                    className="touch-feedback genZ-hover-lift p-2 sm:p-3 rounded-xl bg-card/50 backdrop-blur-sm border border-border text-foreground hover:bg-card/70 min-w-[44px] min-h-[44px]"
                     aria-label="Notifications"
                   >
                     <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5z" />
                     </svg>
                   </button>
-                  <span className="text-xs sm:text-sm text-white/80 font-medium hidden sm:block">GenZ Dating 🔥</span>
+                  <span className="text-xs sm:text-sm text-muted-foreground font-medium hidden sm:block">GenZ Dating 🔥</span>
                 </div>
               </div>
             </header>
 
             {/* Stories Section - Enhanced GenZ Theme */}
-            <div className="px-4 py-6 border-b border-white/10 bg-transparent">
+            <div className="px-4 py-6 border-b border-border bg-transparent">
               <div className="flex space-x-4 overflow-x-auto scrollbar-hide pb-4">
                 {/* Horizontal Small Cards */}
                 {[
@@ -198,7 +198,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                     content: "late night thoughts hit different...",
                     likes: "247",
                     avatar: "🌙",
-                    gradient: "from-purple-600/30 to-pink-600/30"
+                    gradient: "from-primary/30 to-secondary/30"
                   },
                   {
                     user: "coffee_addict_22", 
@@ -206,7 +206,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                     content: "looking for someone who gets my 3am energy...",
                     likes: "189",
                     avatar: "☕",
-                    gradient: "from-pink-600/30 to-red-600/30"
+                    gradient: "from-secondary/30 to-accent/30"
                   },
                   {
                     user: "aesthetic_soul",
@@ -214,7 +214,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                     content: "manifesting a connection that feels like home...",
                     likes: "312",
                     avatar: "✨",
-                    gradient: "from-blue-600/30 to-cyan-600/30"
+                    gradient: "from-accent/30 to-primary/30"
                   },
                   {
                     user: "vibe_check",
@@ -222,40 +222,40 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                     content: "anyone else obsessed with late night drives...",
                     likes: "156",
                     avatar: "🚗",
-                    gradient: "from-green-600/30 to-teal-600/30"
+                    gradient: "from-muted/30 to-secondary/30"
                   }
                 ].map((post, index) => (
                   <div 
                     key={post.user}
-                    className={`flex-shrink-0 w-72 bg-gradient-to-br ${post.gradient} border border-white/10 rounded-2xl p-4 backdrop-blur-sm animate-fade-in`}
+                    className={`flex-shrink-0 w-72 bg-gradient-to-br ${post.gradient} border border-border rounded-2xl p-4 backdrop-blur-sm animate-fade-in`}
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
                     {/* Card Header */}
                     <div className="flex items-center space-x-3 mb-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-lg">
+                      <div className="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center text-lg">
                         {post.avatar}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-white font-semibold text-xs truncate">@{post.user}</p>
-                        <p className="text-white/60 text-xs">{post.time} ago</p>
+                        <p className="text-foreground font-semibold text-xs truncate">@{post.user}</p>
+                        <p className="text-muted-foreground text-xs">{post.time} ago</p>
                       </div>
                     </div>
                     
                     {/* Card Content */}
-                    <p className="text-white/90 text-xs leading-relaxed mb-3 line-clamp-2">
+                    <p className="text-foreground/90 text-xs leading-relaxed mb-3 line-clamp-2">
                       {post.content}
                     </p>
                     
                     {/* Card Actions */}
                     <div className="flex items-center justify-between">
-                      <button className="flex items-center space-x-1 text-white/60 hover:text-pink-400 transition-colors">
+                      <button className="flex items-center space-x-1 text-muted-foreground hover:text-primary transition-colors">
                         <Heart className="w-3 h-3" />
                         <span className="text-xs">{post.likes}</span>
                       </button>
-                      <button className="text-white/60 hover:text-blue-400 transition-colors">
+                      <button className="text-muted-foreground hover:text-secondary transition-colors">
                         <MessageCircle className="w-3 h-3" />
                       </button>
-                      <button className="text-white/60 hover:text-green-400 transition-colors">
+                      <button className="text-muted-foreground hover:text-accent transition-colors">
                         <Send className="w-3 h-3" />
                       </button>
                     </div>
@@ -302,7 +302,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                         bio: "Coffee enthusiast ☕ | Night owl 🌙 | Looking for genuine connections",
                         image: "🌸",
                         interests: ["Photography", "Music", "Travel"],
-                        gradient: "from-purple-500/80 to-pink-500/80",
+                        gradient: "from-primary/80 to-secondary/80",
                         zIndex: 3
                       },
                       {
@@ -313,7 +313,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                         bio: "Adventure seeker 🏔️ | Dog lover 🐕 | Weekend hiker",
                         image: "🌺",
                         interests: ["Hiking", "Dogs", "Cooking"],
-                        gradient: "from-blue-500/80 to-cyan-500/80",
+                        gradient: "from-secondary/80 to-accent/80",
                         zIndex: 2
                       },
                       {
@@ -324,7 +324,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                         bio: "Artist at heart 🎨 | Vinyl collector 📼 | Seeking creativity",
                         image: "🌻",
                         interests: ["Art", "Music", "Books"],
-                        gradient: "from-pink-500/80 to-red-500/80",
+                        gradient: "from-accent/80 to-primary/80",
                         zIndex: 1
                       }
                     ].map((profile, index) => (
@@ -336,31 +336,31 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                           transform: `translateY(${index * 4}px) scale(${1 - index * 0.02})`
                         }}
                       >
-                        <div className={`w-full h-full bg-gradient-to-br ${profile.gradient} rounded-3xl overflow-hidden shadow-2xl border border-white/20 backdrop-blur-sm animate-fade-in`}>
+                        <div className={`w-full h-full bg-gradient-to-br ${profile.gradient} rounded-3xl overflow-hidden shadow-elegant border border-border/50 backdrop-blur-sm animate-fade-in`}>
                           {/* Profile Image Area */}
-                          <div className="h-2/3 relative bg-black/20 flex items-center justify-center">
+                          <div className="h-2/3 relative bg-background/20 flex items-center justify-center">
                             <div className="text-8xl animate-pulse-glow">{profile.image}</div>
                             
                             {/* Distance Badge */}
-                            <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1">
-                              <span className="text-white text-xs font-medium">📍 {profile.distance}</span>
+                            <div className="absolute top-4 right-4 bg-background/70 backdrop-blur-sm rounded-full px-3 py-1">
+                              <span className="text-foreground text-xs font-medium">📍 {profile.distance}</span>
                             </div>
                           </div>
 
                           {/* Profile Info */}
-                          <div className="h-1/3 p-6 bg-black/30 backdrop-blur-sm">
+                          <div className="h-1/3 p-6 bg-background/30 backdrop-blur-sm">
                             <div className="flex items-center justify-between mb-2">
                               <div>
-                                <h3 className="text-2xl font-bold text-white">{profile.name}, {profile.age}</h3>
+                                <h3 className="text-2xl font-bold text-foreground">{profile.name}, {profile.age}</h3>
                               </div>
-                              <div className="w-6 h-6 bg-green-500 rounded-full animate-pulse-glow"></div>
+                              <div className="w-6 h-6 bg-primary rounded-full animate-pulse-glow"></div>
                             </div>
                             
-                            <p className="text-white/90 text-sm mb-3 line-clamp-2">{profile.bio}</p>
+                            <p className="text-foreground/90 text-sm mb-3 line-clamp-2">{profile.bio}</p>
                             
                             <div className="flex gap-2 flex-wrap">
                               {profile.interests.map((interest, idx) => (
-                                <span key={idx} className="px-3 py-1 bg-white/20 rounded-full text-white text-xs font-medium">
+                                <span key={idx} className="px-3 py-1 bg-card/50 rounded-full text-foreground text-xs font-medium">
                                   {interest}
                                 </span>
                               ))}
@@ -373,31 +373,31 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
 
                   {/* Swipe Actions */}
                   <div className="flex justify-center items-center space-x-6 mt-8">
-                    <button className="w-16 h-16 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all duration-300 hover:shadow-red-500/30">
-                      <span className="text-white text-2xl">❌</span>
+                    <button className="w-16 h-16 bg-gradient-to-r from-destructive to-destructive/80 rounded-full flex items-center justify-center shadow-elegant hover:scale-110 transition-all duration-300 hover:shadow-glow">
+                      <span className="text-destructive-foreground text-2xl">❌</span>
                     </button>
                     
-                    <button className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all duration-300 hover:shadow-blue-500/30">
-                      <Star className="w-6 h-6 text-white" />
+                    <button className="w-12 h-12 bg-gradient-to-r from-secondary to-secondary/80 rounded-full flex items-center justify-center shadow-elegant hover:scale-110 transition-all duration-300 hover:shadow-glow">
+                      <Star className="w-6 h-6 text-secondary-foreground" />
                     </button>
                     
-                    <button className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all duration-300 hover:shadow-green-500/30">
-                      <Heart className="w-8 h-8 text-white" fill="currentColor" />
+                    <button className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center shadow-elegant hover:scale-110 transition-all duration-300 hover:shadow-glow">
+                      <Heart className="w-8 h-8 text-primary-foreground" fill="currentColor" />
                     </button>
                   </div>
 
                   {/* Quick Stats */}
                   <div className="grid grid-cols-3 gap-4 mt-8">
-                    <div className="text-center bg-white/10 rounded-2xl p-4 backdrop-blur-sm">
-                      <div className="text-2xl font-bold text-white">47</div>
-                      <div className="text-white/70 text-sm">Likes Today</div>
+                    <div className="text-center bg-card/50 rounded-2xl p-4 backdrop-blur-sm">
+                      <div className="text-2xl font-bold text-foreground">47</div>
+                      <div className="text-muted-foreground text-sm">Likes Today</div>
                     </div>
-                    <div className="text-center bg-white/10 rounded-2xl p-4 backdrop-blur-sm">
-                      <div className="text-2xl font-bold text-white">12</div>
-                      <div className="text-white/70 text-sm">Matches</div>
+                    <div className="text-center bg-card/50 rounded-2xl p-4 backdrop-blur-sm">
+                      <div className="text-2xl font-bold text-foreground">12</div>
+                      <div className="text-muted-foreground text-sm">Matches</div>
                     </div>
-                    <div className="text-center bg-white/10 rounded-2xl p-4 backdrop-blur-sm">
-                      <div className="text-2xl font-bold text-white">3</div>
+                    <div className="text-center bg-card/50 rounded-2xl p-4 backdrop-blur-sm">
+                      <div className="text-2xl font-bold text-foreground">3</div>
                       <div className="text-white/70 text-sm">Super Likes</div>
                     </div>
                   </div>
