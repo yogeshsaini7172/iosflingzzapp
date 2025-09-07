@@ -129,14 +129,25 @@ const PairingMatches: React.FC = () => {
           >
             <CardContent className="p-0">
               <div 
-                className="flex items-center p-4 space-x-3"
+                className="flex items-center p-3 space-x-3"
                 onClick={() => openProfileModal(match)}
               >
                 {/* Profile Image & Status */}
                 <div className="relative flex-shrink-0">
-                  <Avatar className="w-16 h-16 md:w-20 md:h-20 border-3 border-purple-400/50 shadow-lg transition-transform group-hover:scale-110">
-                    <AvatarImage src={match.profile_images?.[0]} />
-                    <AvatarFallback className="bg-gradient-to-br from-purple-600/80 to-pink-600/80 text-white text-lg md:text-xl font-bold">
+                  <Avatar className="w-14 h-14 md:w-16 md:h-16 border-2 border-purple-400/50 shadow-lg transition-transform group-hover:scale-110">
+                    <AvatarImage 
+                      src={
+                        match.profile_images?.[0] 
+                          ? (match.profile_images[0].startsWith('blob:') || match.profile_images[0].startsWith('http') 
+                              ? match.profile_images[0] 
+                              : `${supabase.storage.from('profile-photos').getPublicUrl(match.profile_images[0]).data.publicUrl}`)
+                          : undefined
+                      }
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400';
+                      }}
+                    />
+                    <AvatarFallback className="bg-gradient-to-br from-purple-600/80 to-pink-600/80 text-white text-sm md:text-lg font-bold">
                       {match.first_name[0]}
                     </AvatarFallback>
                   </Avatar>
@@ -232,57 +243,6 @@ const PairingMatches: React.FC = () => {
                 </div>
               </div>
 
-              {/* Enhanced Bio Preview - Mobile Optimized */}
-              {match.bio && (
-                <div className="px-4 pb-3">
-                  <div className="bg-black/40 backdrop-blur-sm rounded-xl p-3 border border-white/10">
-                    <p className="text-xs md:text-sm text-white/80 line-clamp-2 leading-relaxed italic">
-                      "{match.bio}"
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Enhanced Quick Actions Footer - Mobile Optimized */}
-              <div className="border-t border-white/10 bg-black/30 backdrop-blur-sm px-4 py-3">
-                <div className="flex justify-between items-center">
-                  <div className="flex space-x-2">
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAction(match.user_id, 'ghost');
-                      }}
-                      className="text-red-400 hover:text-red-300 hover:bg-red-500/20 transition-all duration-200 text-xs px-2 py-1 border-0"
-                    >
-                      👻 <span className="hidden sm:inline ml-1">Ghost</span>
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAction(match.user_id, 'bench');
-                      }}
-                      className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/20 transition-all duration-200 text-xs px-2 py-1 border-0"
-                    >
-                      ⏸️ <span className="hidden sm:inline ml-1">Bench</span>
-                    </Button>
-                  </div>
-                  
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => openProfileModal(match)}
-                    className="text-purple-300 hover:text-purple-200 hover:bg-purple-500/20 font-semibold transition-all duration-200 text-xs px-2 py-1 border-0"
-                  >
-                    <span className="hidden sm:inline">View Full Profile</span>
-                    <span className="sm:hidden">View Profile</span>
-                    <ChevronRight className="w-3 h-3 md:w-4 md:h-4 ml-1" />
-                  </Button>
-                </div>
-              </div>
             </CardContent>
           </Card>
         ))}

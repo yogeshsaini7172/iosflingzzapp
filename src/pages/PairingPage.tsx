@@ -325,114 +325,74 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
             {matches.map((match, index) => (
               <Card key={match.user_id} className="bg-gradient-card border-border/50 hover-elegant shadow-card">
                 <CardContent className="p-0">
-                  {/* Profile Image */}
-                  <div className="relative h-48 overflow-hidden rounded-t-lg">
+                  {/* Profile Image - Shorter */}
+                  <div className="relative h-32 overflow-hidden rounded-t-lg">
                     <img 
-                      src={match.profile_images?.[0] || '/api/placeholder/300/200'}
+                      src={
+                        match.profile_images?.[0] 
+                          ? (match.profile_images[0].startsWith('blob:') || match.profile_images[0].startsWith('http') 
+                              ? match.profile_images[0] 
+                              : `${supabase.storage.from('profile-photos').getPublicUrl(match.profile_images[0]).data.publicUrl}`)
+                          : 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400'
+                      }
                       alt={`${match.first_name} ${match.last_name}`}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400';
+                      }}
                     />
-                    <div className="absolute top-3 right-3">
-                      <Badge className={`${getCompatibilityColor(match.compatibility_score || 0)} border-0`}>
+                    <div className="absolute top-2 right-2">
+                      <Badge className={`${getCompatibilityColor(match.compatibility_score || 0)} border-0 text-xs`}>
                         {match.compatibility_score || 0}%
                       </Badge>
                     </div>
-                    <div className="absolute top-3 left-3">
-                      <Badge variant="secondary" className="bg-black/50 text-white border-0">
+                    <div className="absolute top-2 left-2">
+                      <Badge variant="secondary" className="bg-black/50 text-white border-0 text-xs">
                         #{index + 1}
                       </Badge>
                     </div>
                   </div>
 
-                  <div className="p-4 space-y-4">
-                    {/* Basic Info */}
+                  <div className="p-3 space-y-3">
+                    {/* Basic Info - Compact */}
                     <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-lg font-semibold">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="text-base font-semibold truncate">
                           {match.first_name} {match.last_name}
                         </h3>
-                        <span className="text-sm text-muted-foreground">
-                          {match.age} years
+                        <span className="text-xs text-muted-foreground">
+                          {match.age}y
                         </span>
                       </div>
-                      <div className="flex items-center text-sm text-muted-foreground mb-2">
-                        <GraduationCap className="h-4 w-4 mr-1" />
-                        {match.university}
-                      </div>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {match.bio}
-                      </p>
-                    </div>
-
-                    {/* Compatibility Scores */}
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="flex items-center">
-                          <Heart className="h-4 w-4 mr-1 text-red-500" />
-                          Physical
-                        </span>
-                        <span className="font-medium">{match.physical_score || 0}%</span>
-                      </div>
-                      <Progress value={match.physical_score || 0} className="h-2" />
-
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="flex items-center">
-                          <Brain className="h-4 w-4 mr-1 text-blue-500" />
-                          Mental
-                        </span>
-                        <span className="font-medium">{match.mental_score || 0}%</span>
-                      </div>
-                      <Progress value={match.mental_score || 0} className="h-2" />
-
-                      <div className="flex items-center justify-between text-sm font-medium">
-                        <span className="flex items-center">
-                          <Star className="h-4 w-4 mr-1 text-yellow-500" />
-                          Matching Score
-                        </span>
-                        <span className={`font-bold ${getCompatibilityColor(match.compatibility_score || 0).split(' ')[0]}`}>
-                          {match.compatibility_score || 0}%
-                        </span>
+                      <div className="flex items-center text-xs text-muted-foreground mb-1">
+                        <GraduationCap className="h-3 w-3 mr-1" />
+                        <span className="truncate">{match.university}</span>
                       </div>
                     </div>
 
-                    {/* QCS Score */}
-                    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                      <span className="text-sm font-medium">QCS Score</span>
-                      <div className="flex items-center space-x-2">
-                        <Badge variant="outline" className="font-bold">
-                          {match.total_qcs}
-                        </Badge>
-                        {(match.compatibility_score || 0) > 80 && (
-                          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" title="High compatibility - Direct chat available!"></div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Interests */}
-                    {match.interests && match.interests.length > 0 && (
-                      <div>
-                        <p className="text-sm font-medium mb-2">Interests</p>
-                        <div className="flex flex-wrap gap-1">
-                          {match.interests.slice(0, 3).map((interest, i) => (
-                            <Badge key={i} variant="secondary" className="text-xs">
-                              {interest}
-                            </Badge>
-                          ))}
-                          {match.interests.length > 3 && (
-                            <Badge variant="secondary" className="text-xs">
-                              +{match.interests.length - 3}
-                            </Badge>
-                          )}
+                    {/* Compact Scores */}
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center space-x-3">
+                        <div className="flex items-center">
+                          <Heart className="h-3 w-3 mr-1 text-red-500" />
+                          <span>{match.physical_score || 0}%</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Brain className="h-3 w-3 mr-1 text-blue-500" />
+                          <span>{match.mental_score || 0}%</span>
                         </div>
                       </div>
-                    )}
+                      <Badge variant="outline" className="text-xs font-bold">
+                        QCS: {match.total_qcs}
+                      </Badge>
+                    </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex space-x-2 pt-2">
+                    {/* Action Buttons - Compact */}
+                    <div className="flex space-x-2">
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="flex-1 hover:bg-muted/80"
+                        className="flex-1 hover:bg-muted/80 text-xs py-1"
                         onClick={() => setSelectedProfile(match)}
                       >
                         View Profile
