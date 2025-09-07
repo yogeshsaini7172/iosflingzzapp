@@ -268,7 +268,15 @@ const EnhancedChatSystem = ({ onNavigate, selectedChatId }: EnhancedChatSystemPr
 
   return (
     <Card className="h-[600px]">
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center space-y-0 pb-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onNavigate('home')}
+          className="mr-3"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </Button>
         <CardTitle>Chats</CardTitle>
       </CardHeader>
       <CardContent>

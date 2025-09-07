@@ -79,7 +79,9 @@ const AuthenticatedApp = () => {
             if (view === 'subscription') window.location.href = '/subscription';
           }} />} />
           <Route path="/matches" element={<MatchesPage onNavigate={(view) => {}} />} />
-          <Route path="/chat/:matchId?" element={<ChatPage onNavigate={(view) => {}} />} />
+          <Route path="/chat/:matchId?" element={<ChatPage onNavigate={(view) => {
+            if (view === 'home') window.location.href = '/';
+          }} />} />
           <Route path="/profile" element={<ProfilePage onNavigate={(view) => {
             if (view === 'home') window.location.href = '/';
             if (view === 'pairing') window.location.href = '/pairing';
