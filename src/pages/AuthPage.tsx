@@ -18,6 +18,8 @@ const AuthPage = () => {
   
   const navigate = useNavigate();
   const { user, signInWithGoogle, signInWithPhone, verifyPhoneOTP } = useAuth();
+  const digits = phone.replace(/\D/g, '');
+  const isValidPhone = digits.length === 10 || (/^\+91\d{10}$/.test(phone.replace(/\s/g, ''))) || (digits.length === 12 && digits.startsWith('91'));
 
   useEffect(() => {
     if (user) {
@@ -37,7 +39,10 @@ const AuthPage = () => {
 
   const handlePhoneAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!phone) return;
+    if (!isValidPhone) {
+      toast.error('Enter a valid Indian mobile number');
+      return;
+    }
 
     // Clear any existing reCAPTCHA
     const recaptchaContainer = document.getElementById('recaptcha-container');
@@ -46,7 +51,6 @@ const AuthPage = () => {
     }
 
     setIsLoading(true);
-    
     try {
       const { error, confirmationResult: result } = await signInWithPhone(phone);
       if (!error && result) {
@@ -250,11 +254,11 @@ const AuthPage = () => {
                   required
                 />
                 <p className="text-xs text-muted-foreground">
-                  Include country code (e.g., +91 for India)
+                  Enter 10-digit number; we auto-apply +91 for India
                 </p>
               </div>
               
-              <Button type="submit" disabled={isLoading || !phone} className="w-full">
+              <Button type="submit" disabled={isLoading || !isValidPhone} className="w-full">
                 {isLoading ? 'Sending Code...' : 'Send Verification Code'}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>

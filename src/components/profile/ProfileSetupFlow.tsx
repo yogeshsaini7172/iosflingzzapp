@@ -10,6 +10,7 @@ import UploadPhotosStep from "./steps/UploadPhotosStep";
 import IDVerificationStep from "./steps/IDVerificationStep";
 import ProgressIndicator from "./steps/ProgressIndicator";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ProfileSetupFlowProps {
   onComplete: () => void;
@@ -20,6 +21,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<'idle' | 'pending' | 'verified' | 'failed'>('idle');
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Profile Data State
   const [profileData, setProfileData] = useState({
@@ -93,8 +95,13 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
     try {
       setIsLoading(true);
       
-      // Create mock user ID
-      const mockUserId = `demo_user_${Date.now()}`;
+      // Require authenticated user
+      if (!user) {
+        toast({ title: "Please sign in first", description: "Login before completing your profile.", variant: "destructive" });
+        setIsLoading(false);
+        return;
+      }
+      const userId = user.uid;
       
       // Create mock image URLs for demo
       const imageUrls: string[] = profileData.profileImages.map((_, index) => 
@@ -103,7 +110,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
 
       // Store complete profile data
       const completeProfile = {
-        user_id: mockUserId,
+        user_id: userId,
         // Basic info
         first_name: profileData.firstName,
         last_name: profileData.lastName,
@@ -133,9 +140,9 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         swipes_left: 10
       };
 
-      // Store partner preferences
+      // Store partner preferences (optional, kept in localStorage for demo)
       const preferences = {
-        user_id: mockUserId,
+        user_id: userId,
         preferred_gender: profileData.preferredGender,
         age_range_min: profileData.ageRangeMin,
         age_range_max: profileData.ageRangeMax,
@@ -148,10 +155,9 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         preferred_relationship_goal: profileData.preferredRelationshipGoals
       };
 
-      // Save to localStorage
-      localStorage.setItem('demoProfile', JSON.stringify(completeProfile));
       localStorage.setItem('demoPreferences', JSON.stringify(preferences));
-      localStorage.setItem('demoUserId', mockUserId);
+      localStorage.setItem('demoProfile', JSON.stringify(completeProfile));
+      localStorage.setItem('demoUserId', userId);
 
       // Guard: ensure verification was successful
       if (verificationStatus !== 'verified') {
@@ -168,6 +174,22 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       completeProfile.verification_status = 'verified';
       localStorage.setItem('demoProfile', JSON.stringify(completeProfile));
 
+      // Update Supabase profile so app recognizes completion
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          first_name: profileData.firstName,
+          last_name: profileData.lastName,
+          date_of_birth: profileData.dateOfBirth,
+          gender: profileData.gender as 'male' | 'female' | 'non_binary' | 'prefer_not_to_say',
+          university: profileData.university,
+          verification_status: 'verified',
+          is_active: true,
+          last_active: new Date().toISOString()
+        })
+        .eq('user_id', userId);
+      if (updateError) throw updateError;
+
       // Calculate QCS via Edge Function (uses profile data)
       toast({ title: "Calculating QCS Score... 📊", description: "Analyzing your profile" });
 
@@ -176,7 +198,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       const description = profileData.bio || 'No description available';
 
       const { data: qcsResponse, error: qcsError } = await supabase.functions.invoke('qcs-scoring', {
-        body: { user_id: mockUserId, physical, mental, description }
+        body: { user_id: userId, physical, mental, description }
       });
 
       if (qcsError) {
@@ -185,7 +207,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
 
       const totalScore = qcsResponse?.qcs_score ?? 0;
       const qcsScore = {
-        user_id: mockUserId,
+        user_id: userId,
         profile_score: Math.floor(totalScore * 0.4),
         college_tier: 85,
         personality_depth: Math.floor(totalScore * 0.3),
