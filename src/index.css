@@ -34,153 +34,153 @@
 
 @layer base {
   :root {
-    /* Romantic Golden Magic Theme - Inspired by Hearts & Golden Sparkles */
+    /* Bold Vibrant Theme - Thick Saturated Colors */
     
-    /* Base Colors - Warm Golden Tones */
-    --background: 45 20% 96%;
-    --foreground: 30 15% 15%;
+    /* Base Colors - Rich Deep Tones */
+    --background: 270 15% 12%;
+    --foreground: 0 0% 98%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 30 15% 15%;
+    --card: 270 20% 15%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 30 15% 15%;
+    --popover: 270 20% 15%;
+    --popover-foreground: 0 0% 98%;
 
-    /* Primary - Romantic Coral Pink */
-    --primary: 15 85% 70%;
+    /* Primary - Electric Purple */
+    --primary: 280 100% 60%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 25 90% 80%;
-    --primary-variant: 10 80% 75%;
+    --primary-glow: 280 100% 70%;
+    --primary-variant: 275 95% 65%;
 
-    /* Secondary - Warm Golden */
-    --secondary: 35 70% 65%;
-    --secondary-foreground: 30 15% 15%;
-    --secondary-glow: 40 80% 75%;
+    /* Secondary - Vibrant Magenta */
+    --secondary: 320 100% 55%;
+    --secondary-foreground: 0 0% 100%;
+    --secondary-glow: 320 100% 65%;
 
-    /* Accent - Deep Golden Rose */
-    --accent: 20 75% 60%;
+    /* Accent - Electric Blue */
+    --accent: 210 100% 50%;
     --accent-foreground: 0 0% 100%;
-    --accent-glow: 30 85% 70%;
+    --accent-glow: 210 100% 60%;
 
-    /* Success - Soft Green */
-    --success: 120 40% 55%;
+    /* Success - Neon Green */
+    --success: 120 100% 45%;
     --success-foreground: 0 0% 100%;
 
-    /* Destructive - Warm Red */
-    --destructive: 0 70% 65%;
+    /* Destructive - Hot Pink */
+    --destructive: 340 100% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Muted Tones - Warm Neutrals */
-    --muted: 45 15% 92%;
-    --muted-foreground: 35 25% 50%;
+    /* Muted Tones - Dark with Purple Tint */
+    --muted: 270 25% 20%;
+    --muted-foreground: 270 15% 70%;
 
     /* Borders & Inputs */
-    --border: 45 20% 88%;
-    --input: 45 25% 90%;
-    --ring: 15 85% 70%;
+    --border: 270 30% 25%;
+    --input: 270 25% 18%;
+    --ring: 280 100% 60%;
 
-    /* Border Radius - More elegant */
-    --radius: 1.5rem;
+    /* Border Radius - Bold */
+    --radius: 1.2rem;
 
-    /* Romantic Golden Magic Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(15 85% 70%), hsl(25 90% 80%));
-    --gradient-secondary: linear-gradient(135deg, hsl(35 70% 65%), hsl(40 80% 75%));
-    --gradient-royal: linear-gradient(135deg, hsl(15 85% 70%), hsl(35 70% 65%), hsl(25 90% 80%));
-    --gradient-elegant: linear-gradient(145deg, hsl(15 85% 70%), hsl(25 90% 80%), hsl(20 75% 60%));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(45 30% 98%));
-    --gradient-subtle: linear-gradient(180deg, hsl(45 20% 96%), hsl(40 25% 94%));
-    --gradient-gold: linear-gradient(135deg, hsl(35 70% 65%), hsl(40 80% 75%));
-    --gradient-rose: linear-gradient(135deg, hsl(15 85% 70%), hsl(10 80% 75%));
-    --gradient-hero: linear-gradient(135deg, hsl(15 85% 70%), hsl(35 70% 65%), hsl(25 90% 80%));
-    --gradient-magic: radial-gradient(ellipse at center, hsl(25 90% 80% / 0.4), transparent 70%);
+    /* Bold Vibrant Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(280 100% 60%), hsl(320 100% 55%));
+    --gradient-secondary: linear-gradient(135deg, hsl(320 100% 55%), hsl(280 100% 60%));
+    --gradient-royal: linear-gradient(135deg, hsl(280 100% 60%), hsl(210 100% 50%), hsl(320 100% 55%));
+    --gradient-elegant: linear-gradient(145deg, hsl(280 100% 60%), hsl(275 95% 65%), hsl(320 100% 55%));
+    --gradient-card: linear-gradient(145deg, hsl(270 20% 15%), hsl(270 25% 20%));
+    --gradient-subtle: linear-gradient(180deg, hsl(270 15% 12%), hsl(270 20% 15%));
+    --gradient-gold: linear-gradient(135deg, hsl(210 100% 50%), hsl(280 100% 60%));
+    --gradient-rose: linear-gradient(135deg, hsl(320 100% 55%), hsl(340 100% 60%));
+    --gradient-hero: linear-gradient(135deg, hsl(280 100% 60%), hsl(320 100% 55%), hsl(210 100% 50%));
+    --gradient-magic: radial-gradient(ellipse at center, hsl(280 100% 60% / 0.4), transparent 70%);
 
-    /* Magical Golden Shadows */
-    --shadow-elegant: 0 25px 50px -12px hsl(15 85% 70% / 0.3);
-    --shadow-royal: 0 20px 40px -8px hsl(15 85% 70% / 0.35);
-    --shadow-gold: 0 10px 30px -5px hsl(35 70% 65% / 0.4);
-    --shadow-soft: 0 8px 32px -8px hsl(25 90% 80% / 0.3);
-    --shadow-medium: 0 16px 64px -12px hsl(25 90% 80% / 0.4);
-    --shadow-card: 0 4px 24px -4px hsl(25 90% 80% / 0.25);
-    --shadow-glow: 0 0 64px hsl(25 90% 80% / 0.6);
-    --shadow-premium: 0 32px 80px -16px hsl(15 85% 70% / 0.35);
-    --shadow-romantic: 0 8px 25px hsl(15 85% 70% / 0.4);
+    /* Bold Neon Shadows */
+    --shadow-elegant: 0 25px 50px -12px hsl(280 100% 60% / 0.5);
+    --shadow-royal: 0 20px 40px -8px hsl(280 100% 60% / 0.6);
+    --shadow-gold: 0 10px 30px -5px hsl(210 100% 50% / 0.5);
+    --shadow-soft: 0 8px 32px -8px hsl(280 100% 60% / 0.4);
+    --shadow-medium: 0 16px 64px -12px hsl(280 100% 60% / 0.5);
+    --shadow-card: 0 4px 24px -4px hsl(280 100% 60% / 0.3);
+    --shadow-glow: 0 0 64px hsl(280 100% 70% / 0.8);
+    --shadow-premium: 0 32px 80px -16px hsl(280 100% 60% / 0.6);
+    --shadow-romantic: 0 8px 25px hsl(320 100% 55% / 0.5);
 
-    /* Smooth Romantic Animations */
+    /* Smooth Bold Animations */
     --transition-luxury: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     --transition-elegant: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     --transition-magic: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
-    /* Sidebar - Golden Theme */
-    --sidebar-background: 45 25% 96%;
-    --sidebar-foreground: 30 15% 15%;
-    --sidebar-primary: 15 85% 70%;
+    /* Sidebar - Bold Theme */
+    --sidebar-background: 270 20% 10%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 280 100% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 45 20% 92%;
-    --sidebar-accent-foreground: 30 15% 15%;
-    --sidebar-border: 45 20% 88%;
-    --sidebar-ring: 15 85% 70%;
+    --sidebar-accent: 270 25% 20%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 270 30% 25%;
+    --sidebar-ring: 280 100% 60%;
   }
 
   .dark {
-    /* Dark Mode - Romantic Golden Magic */
-    --background: 30 25% 8%;
-    --foreground: 45 40% 95%;
+    /* Dark Mode - Bold Vibrant Theme */
+    --background: 270 25% 8%;
+    --foreground: 0 0% 98%;
 
-    --card: 30 20% 12%;
-    --card-foreground: 45 40% 95%;
+    --card: 270 30% 12%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 30 20% 10%;
-    --popover-foreground: 45 40% 95%;
+    --popover: 270 30% 10%;
+    --popover-foreground: 0 0% 98%;
 
-    /* Primary - Warm Golden Coral */
-    --primary: 15 80% 65%;
+    /* Primary - Electric Purple Dark */
+    --primary: 280 95% 65%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 25 85% 75%;
+    --primary-glow: 280 100% 75%;
 
-    /* Secondary - Deep Gold */
-    --secondary: 35 60% 40%;
-    --secondary-foreground: 45 40% 95%;
+    /* Secondary - Vibrant Magenta Dark */
+    --secondary: 320 90% 60%;
+    --secondary-foreground: 0 0% 100%;
 
-    /* Accent - Rich Golden Rose */
-    --accent: 20 70% 55%;
+    /* Accent - Electric Blue Dark */
+    --accent: 210 95% 55%;
     --accent-foreground: 0 0% 100%;
 
-    /* Success - Soft Green Dark */
-    --success: 120 35% 50%;
+    /* Success - Neon Green Dark */
+    --success: 120 90% 50%;
     --success-foreground: 0 0% 100%;
 
-    /* Destructive - Warm Red Dark */
-    --destructive: 0 65% 60%;
+    /* Destructive - Hot Pink Dark */
+    --destructive: 340 95% 65%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Muted - Dark Golden */
-    --muted: 30 20% 18%;
-    --muted-foreground: 35 25% 70%;
+    /* Muted - Dark Purple */
+    --muted: 270 30% 18%;
+    --muted-foreground: 270 20% 75%;
 
     /* Borders & Inputs */
-    --border: 30 25% 25%;
-    --input: 30 20% 20%;
-    --ring: 15 80% 65%;
+    --border: 270 35% 30%;
+    --input: 270 30% 22%;
+    --ring: 280 95% 65%;
 
-    /* Dark Gradients - Golden themed */
-    --gradient-primary: linear-gradient(135deg, hsl(15 80% 65%), hsl(25 85% 75%));
-    --gradient-secondary: linear-gradient(135deg, hsl(35 60% 40%), hsl(40 70% 50%));
-    --gradient-royal: linear-gradient(135deg, hsl(15 80% 65%), hsl(35 60% 40%), hsl(25 85% 75%));
-    --gradient-elegant: linear-gradient(145deg, hsl(15 80% 65%), hsl(25 85% 75%), hsl(20 70% 55%));
-    --gradient-card: linear-gradient(145deg, hsl(30 20% 12%), hsl(30 25% 18%));
-    --gradient-subtle: linear-gradient(180deg, hsl(30 25% 10%), hsl(30 20% 12%));
-    --gradient-hero: linear-gradient(135deg, hsl(15 80% 65%), hsl(35 60% 40%), hsl(25 85% 75%));
+    /* Dark Gradients - Bold themed */
+    --gradient-primary: linear-gradient(135deg, hsl(280 95% 65%), hsl(320 90% 60%));
+    --gradient-secondary: linear-gradient(135deg, hsl(320 90% 60%), hsl(280 95% 65%));
+    --gradient-royal: linear-gradient(135deg, hsl(280 95% 65%), hsl(210 95% 55%), hsl(320 90% 60%));
+    --gradient-elegant: linear-gradient(145deg, hsl(280 95% 65%), hsl(280 100% 75%), hsl(320 90% 60%));
+    --gradient-card: linear-gradient(145deg, hsl(270 30% 12%), hsl(270 35% 18%));
+    --gradient-subtle: linear-gradient(180deg, hsl(270 25% 10%), hsl(270 30% 12%));
+    --gradient-hero: linear-gradient(135deg, hsl(280 95% 65%), hsl(320 90% 60%), hsl(210 95% 55%));
 
     /* Sidebar Dark */
-    --sidebar-background: 30 25% 6%;
-    --sidebar-foreground: 45 40% 95%;
-    --sidebar-primary: 15 80% 65%;
+    --sidebar-background: 270 30% 6%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 280 95% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 30 20% 15%;
-    --sidebar-accent-foreground: 45 40% 95%;
-    --sidebar-border: 30 25% 20%;
-    --sidebar-ring: 15 80% 65%;
+    --sidebar-accent: 270 30% 15%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 270 35% 25%;
+    --sidebar-ring: 280 95% 65%;
   }
 }
 
@@ -190,15 +190,15 @@
   }
 
   body {
-    @apply bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 text-foreground antialiased;
+    @apply bg-gradient-to-br from-purple-900 via-violet-900 to-indigo-900 text-foreground antialiased;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     position: relative;
     overflow-x: hidden;
-    color: hsl(30 15% 15%); /* Ensuring dark text for readability */
+    color: hsl(0 0% 98%); /* Ensuring white text for readability */
   }
 
-  /* Romantic Golden Magic Dynamic Background */
+  /* Bold Vibrant Neon Background */
   body::before {
     content: '';
     position: fixed;
@@ -208,14 +208,14 @@
     bottom: 0;
     z-index: -2;
     background: 
-      radial-gradient(circle at 20% 80%, rgba(255, 204, 153, 0.4) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(255, 183, 128, 0.3) 0%, transparent 50%),
-      radial-gradient(circle at 40% 40%, rgba(255, 225, 204, 0.2) 0%, transparent 50%),
-      linear-gradient(135deg, #fff8f0 0%, #fff0e6 25%, #ffe8d6 50%, #ffedd4 75%, #fdf2f8 100%);
-    animation: goldenBackgroundShift 20s ease-in-out infinite;
+      radial-gradient(circle at 20% 80%, rgba(138, 43, 226, 0.6) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255, 20, 147, 0.5) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(0, 191, 255, 0.4) 0%, transparent 50%),
+      linear-gradient(135deg, #1a0033 0%, #2d0066 25%, #4b0082 50%, #6a0d83 75%, #8b008b 100%);
+    animation: neonBackgroundShift 20s ease-in-out infinite;
   }
 
-  /* Floating Golden Sparkles */
+  /* Floating Neon Sparkles */
   body::after {
     content: '';
     position: fixed;
@@ -225,32 +225,32 @@
     bottom: 0;
     z-index: -1;
     background-image: 
-      radial-gradient(2px 2px at 20px 30px, rgba(255, 204, 153, 0.4), transparent),
-      radial-gradient(2px 2px at 40px 70px, rgba(255, 183, 128, 0.5), transparent),
-      radial-gradient(1px 1px at 90px 40px, rgba(255, 225, 204, 0.3), transparent),
-      radial-gradient(1px 1px at 130px 80px, rgba(255, 183, 128, 0.4), transparent),
-      radial-gradient(2px 2px at 160px 30px, rgba(255, 255, 255, 0.3), transparent);
+      radial-gradient(3px 3px at 20px 30px, rgba(138, 43, 226, 0.8), transparent),
+      radial-gradient(3px 3px at 40px 70px, rgba(255, 20, 147, 0.7), transparent),
+      radial-gradient(2px 2px at 90px 40px, rgba(0, 191, 255, 0.6), transparent),
+      radial-gradient(2px 2px at 130px 80px, rgba(138, 43, 226, 0.8), transparent),
+      radial-gradient(3px 3px at 160px 30px, rgba(255, 255, 255, 0.4), transparent);
     background-repeat: repeat;
     background-size: 200px 100px;
-    animation: magicalSparkles 15s linear infinite;
+    animation: neonSparkles 15s linear infinite;
   }
 
-  @keyframes goldenBackgroundShift {
+  @keyframes neonBackgroundShift {
     0%, 100% { 
       filter: hue-rotate(0deg) brightness(1);
     }
     25% { 
-      filter: hue-rotate(15deg) brightness(1.1);
+      filter: hue-rotate(30deg) brightness(1.2);
     }
     50% { 
-      filter: hue-rotate(30deg) brightness(0.9);
+      filter: hue-rotate(60deg) brightness(0.8);
     }
     75% { 
-      filter: hue-rotate(45deg) brightness(1.1);
+      filter: hue-rotate(90deg) brightness(1.2);
     }
   }
 
-  @keyframes magicalSparkles {
+  @keyframes neonSparkles {
     0% { 
       transform: translateY(0px) rotate(0deg);
     }
@@ -259,12 +259,12 @@
     }
   }
 
-  /* Premium Typography - Clean and Modern with Golden Warmth */
+  /* Bold Typography - Vibrant Theme */
   h1, h2, h3, h4, h5, h6 {
     @apply tracking-tight;
     font-family: 'Outfit', 'Inter', sans-serif;
     font-weight: 600;
-    color: hsl(30 15% 15%); /* Dark warm text for readability */
+    color: hsl(0 0% 98%); /* Bright white text for contrast */
   }
 
   h1 {
@@ -282,11 +282,11 @@
     letter-spacing: -0.01em;
   }
 
-  /* Clean Body Text with Warm Tones */
+  /* Clean Body Text with High Contrast */
   p {
     @apply leading-relaxed;
     font-family: 'Inter', system-ui, sans-serif;
-    color: hsl(35 25% 30%); /* Warm brown-golden for body text */
+    color: hsl(270 15% 85%); /* Light purple-grey for body text */
   }
 
   /* Premium Button Styles */
