@@ -62,11 +62,7 @@ const AuthenticatedApp = () => {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AuthProvider>
-          <AuthenticatedApp />
-        </AuthProvider>
-      </BrowserRouter>
+      <AuthenticatedApp />
     </QueryClientProvider>
   );
 }
