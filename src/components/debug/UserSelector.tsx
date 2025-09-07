@@ -1,136 +1,153 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { User, RefreshCw } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-interface Profile {
-  user_id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  university?: string;
-  total_qcs?: number;
+interface PairingDebugProps {
+  userId: string;
 }
 
-const UserSelector: React.FC = () => {
-  const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [selectedUserId, setSelectedUserId] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(true);
+const PairingDebug: React.FC<PairingDebugProps> = ({ userId }) => {
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
 
-  const fetchProfiles = async () => {
-    setIsLoading(true);
+  const debugPairing = async () => {
+    setLoading(true);
     try {
-      const { data, error } = await supabase
+      // First get the user's profile
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('user_id, first_name, last_name, email, university, total_qcs')
-        .order('first_name');
+        .select('*')
+        .eq('user_id', userId)
+        .single();
 
-      if (error) throw error;
-      
-      setProfiles(data || []);
-      
-      // Set current user or default to first profile
-      const currentUserId = localStorage.getItem("demoUserId");
-      if (currentUserId && data?.find(p => p.user_id === currentUserId)) {
-        setSelectedUserId(currentUserId);
-      } else if (data && data.length > 0) {
-        setSelectedUserId(data[0].user_id);
-        localStorage.setItem("demoUserId", data[0].user_id);
+      if (profileError) {
+        toast.error(`Profile error: ${profileError.message}`);
+        return;
       }
-    } catch (error) {
-      console.error('Error fetching profiles:', error);
+
+      setUserProfile(profile);
+
+      // Call the pairing function
+      const { data, error } = await supabase.functions.invoke('pairing-matches', {
+        body: { 
+          user_id: userId,
+          limit: 5
+        }
+      });
+
+      if (error) {
+        toast.error(`Pairing error: ${error.message}`);
+        console.error('Pairing error:', error);
+        return;
+      }
+
+      setResults(data);
+      toast.success('Pairing debug completed');
+    } catch (error: any) {
+      toast.error(`Debug failed: ${error.message}`);
+      console.error('Debug error:', error);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleUserChange = (userId: string) => {
-    setSelectedUserId(userId);
-    localStorage.setItem("demoUserId", userId);
-    // Trigger page refresh to update all components
-    window.location.reload();
-  };
-
-  useEffect(() => {
-    fetchProfiles();
-  }, []);
-
-  const selectedProfile = profiles.find(p => p.user_id === selectedUserId);
-
-  if (isLoading) {
-    return (
-      <Card className="w-full max-w-md">
-        <CardContent className="p-6 text-center">
-          <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">Loading profiles...</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full">
       <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <User className="w-5 h-5" />
-          <span>Test User Selection</span>
-        </CardTitle>
-        <CardDescription>
-          Switch between test profiles to test the app
-        </CardDescription>
+        <CardTitle>Pairing Debug for User: {userId}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Select Test User:</label>
-          <Select value={selectedUserId} onValueChange={handleUserChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Choose a user..." />
-            </SelectTrigger>
-            <SelectContent>
-              {profiles.map((profile) => (
-                <SelectItem key={profile.user_id} value={profile.user_id}>
-                  <div className="flex items-center space-x-2">
-                    <span>{profile.first_name} {profile.last_name}</span>
-                    <Badge variant="outline" className="text-xs">
-                      {profile.university || 'Unknown'}
-                    </Badge>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <Button onClick={debugPairing} disabled={loading}>
+          {loading ? 'Debugging...' : 'Debug Pairing Calculations'}
+        </Button>
 
-        {selectedProfile && (
-          <div className="p-3 bg-muted rounded-lg space-y-2">
-            <h4 className="font-semibold text-sm">Current User:</h4>
-            <div className="space-y-1 text-sm">
-              <p><span className="font-medium">Name:</span> {selectedProfile.first_name} {selectedProfile.last_name}</p>
-              <p><span className="font-medium">Email:</span> {selectedProfile.email}</p>
-              <p><span className="font-medium">University:</span> {selectedProfile.university || 'Not set'}</p>
-              <div className="flex items-center space-x-2">
-                <span className="font-medium">QCS Score:</span>
-                <Badge variant={selectedProfile.total_qcs ? 'default' : 'secondary'}>
-                  {selectedProfile.total_qcs || 'Not calculated'}
-                </Badge>
-              </div>
+        {userProfile && (
+          <div className="space-y-2">
+            <h3 className="font-semibold">User Profile:</h3>
+            <div className="text-sm bg-muted p-3 rounded">
+              <div><strong>Name:</strong> {userProfile.first_name} {userProfile.last_name}</div>
+              <div><strong>QCS:</strong> {userProfile.total_qcs || 'Not set'}</div>
+              <div><strong>Qualities:</strong> {JSON.stringify(userProfile.qualities, null, 2)}</div>
+              <div><strong>Requirements:</strong> {JSON.stringify(userProfile.requirements, null, 2)}</div>
+              <div><strong>Pairing Requests Left:</strong> {userProfile.pairing_requests_left}</div>
             </div>
           </div>
         )}
 
-        <Button 
-          onClick={() => window.location.reload()} 
-          variant="outline" 
-          className="w-full"
-        >
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Refresh App
-        </Button>
+        {results && (
+          <div className="space-y-2">
+            <h3 className="font-semibold">Pairing Results:</h3>
+            <div className="text-sm bg-muted p-3 rounded">
+              <pre>{JSON.stringify(results, null, 2)}</pre>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
+  );
+};
+
+const UserSelector: React.FC = () => {
+  const [userId, setUserId] = useState('bj3OacFNVwWjm1XQTWGM0luVg0r2');
+  const [allUsers, setAllUsers] = useState<any[]>([]);
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const loadUsers = async () => {
+    const { data: users } = await supabase
+      .from('profiles')
+      .select('user_id, first_name, last_name, total_qcs')
+      .limit(20);
+    
+    setAllUsers(users || []);
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>User Selection</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">User ID:</label>
+            <Input 
+              value={userId} 
+              onChange={(e) => setUserId(e.target.value)}
+              placeholder="Enter user ID"
+            />
+          </div>
+          
+          <div>
+            <h3 className="font-semibold mb-2">Available Users:</h3>
+            <div className="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto">
+              {allUsers.map(user => (
+                <div 
+                  key={user.user_id}
+                  className="flex justify-between items-center p-2 bg-muted rounded cursor-pointer hover:bg-muted/80"
+                  onClick={() => setUserId(user.user_id)}
+                >
+                  <span className="text-sm">
+                    {user.first_name} {user.last_name}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    QCS: {user.total_qcs || 'N/A'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {userId && <PairingDebug userId={userId} />}
+    </div>
   );
 };
 
