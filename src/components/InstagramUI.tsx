@@ -48,7 +48,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
   // ✅ Paired profiles (only for Pairing tab)
   const { pairedProfiles = [], loading: pairingLoading } = usePairing();
 
-  // Handle logout with Supabase
+  // Handle logout with Firebase
   const handleLogout = async () => {
     try {
       const { signOut } = useAuth();

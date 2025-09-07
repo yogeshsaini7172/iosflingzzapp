@@ -70,9 +70,9 @@ export const useProfileData = () => {
   const { user } = useAuth();
 
   const getCurrentUserId = () => {
-    // Get user ID directly from Supabase auth
-    if (user?.id) {
-      return user.id;
+    // Get user ID directly from Firebase auth
+    if (user?.uid) {
+      return user.uid;
     }
     
     // Fallback for backward compatibility during migration

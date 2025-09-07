@@ -52,7 +52,7 @@ const AuthenticatedApp = () => {
   const recheckProfile = async () => {
     if (!user) return false;
     
-    const profileComplete = await checkUserProfile(user.id);
+    const profileComplete = await checkUserProfile(user.uid);
     setHasProfile(!!profileComplete);
     return !!profileComplete;
   };
@@ -60,7 +60,7 @@ const AuthenticatedApp = () => {
   useEffect(() => {
     const checkProfile = async () => {
       if (user) {
-        const profileComplete = await checkUserProfile(user.id);
+        const profileComplete = await checkUserProfile(user.uid);
         setHasProfile(!!profileComplete);
       }
       setCheckingProfile(false);
@@ -148,9 +148,11 @@ const AuthenticatedApp = () => {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <AuthenticatedApp />
-      </AuthProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <AuthenticatedApp />
+        </AuthProvider>
+      </BrowserRouter>
     </QueryClientProvider>
   );
 }

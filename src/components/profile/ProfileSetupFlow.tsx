@@ -101,7 +101,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         setIsLoading(false);
         return;
       }
-      const userId = user.id;
+      const userId = user.uid;
       
       // Create mock image URLs for demo
       const imageUrls: string[] = profileData.profileImages.map((_, index) => 

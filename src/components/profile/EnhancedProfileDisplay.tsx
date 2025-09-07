@@ -76,7 +76,7 @@ const EnhancedProfileDisplay: React.FC = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { toast } = useToast();
 
-  // Logout function using Supabase auth
+  // Logout function using Firebase auth
   const handleLogout = async () => {
     try {
       const { signOut } = useAuth();

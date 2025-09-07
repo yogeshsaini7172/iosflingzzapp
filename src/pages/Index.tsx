@@ -25,7 +25,7 @@ const Index = ({ onProfileComplete }: IndexProps) => {
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', user.uid)
         .maybeSingle();
 
       if (!profile || !profile.first_name || !profile.university) {
