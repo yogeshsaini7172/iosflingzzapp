@@ -23,7 +23,12 @@ import {
   Users,
   Target,
   LogOut,
-  GraduationCap
+  GraduationCap,
+  ChevronLeft,
+  ChevronRight,
+  Move,
+  X,
+  MoreHorizontal
 } from 'lucide-react';
 import { useProfileData } from '@/hooks/useProfileData';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,6 +40,9 @@ interface EnhancedProfileManagementProps {
 const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProps) => {
   const { profile, preferences, isLoading, updateProfile, updatePreferences } = useProfileData();
   const [activeTab, setActiveTab] = useState<'basic' | 'what-you-are' | 'who-you-want' | 'photos' | 'privacy'>('basic');
+  const [showPhotoViewer, setShowPhotoViewer] = useState(false);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
 
   // Local state for form management - Initialize with empty values initially
   const [formData, setFormData] = useState({
@@ -726,7 +734,10 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       console.log("🚀 handlePhotoUpload function called!");
       const files = event.target.files;
       console.log("📁 Files received:", files?.length);
-      if (!files) return;
+      if (!files || files.length === 0) {
+        console.log("❌ No files selected");
+        return;
+      }
 
       try {
         console.log("📸 Starting photo upload...", files.length, "files");
@@ -734,7 +745,11 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
         
         for (let i = 0; i < Math.min(files.length, 6 - formData.profileImages.length); i++) {
           const file = files[i];
-          console.log("📸 Uploading file:", file.name, file.size, "bytes");
+          console.log("📸 Uploading file:", file.name, file.size, "bytes", file.type);
+          
+          // Compress image before upload
+          const compressedFile = await compressImage(file);
+          console.log("📸 Compressed from", file.size, "to", compressedFile.size, "bytes");
           
           const fileExt = file.name.split('.').pop();
           const fileName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
@@ -745,7 +760,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
 
           const { data, error } = await supabase.storage
             .from('profile-images')
-            .upload(filePath, file, {
+            .upload(filePath, compressedFile, {
               cacheControl: '3600',
               upsert: false
             });
@@ -786,6 +801,43 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       }
     };
 
+    const compressImage = (file: File): Promise<File> => {
+      return new Promise((resolve) => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d')!;
+        const img = new Image();
+        
+        img.onload = () => {
+          // Calculate new dimensions (max 1080px)
+          const maxSize = 1080;
+          let { width, height } = img;
+          
+          if (width > height) {
+            if (width > maxSize) {
+              height = (height * maxSize) / width;
+              width = maxSize;
+            }
+          } else {
+            if (height > maxSize) {
+              width = (width * maxSize) / height;
+              height = maxSize;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          // Draw and compress
+          ctx.drawImage(img, 0, 0, width, height);
+          canvas.toBlob((blob) => {
+            resolve(new File([blob!], file.name, { type: 'image/jpeg' }));
+          }, 'image/jpeg', 0.8);
+        };
+        
+        img.src = URL.createObjectURL(file);
+      });
+    };
+
     const removePhoto = async (index: number) => {
       const newImages = formData.profileImages.filter((_, i) => i !== index);
       setFormData(prev => ({ ...prev, profileImages: newImages }));
@@ -795,82 +847,238 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       });
     };
 
+    const reorderImages = async (fromIndex: number, toIndex: number) => {
+      const newImages = [...formData.profileImages];
+      const [movedImage] = newImages.splice(fromIndex, 1);
+      newImages.splice(toIndex, 0, movedImage);
+      
+      setFormData(prev => ({ ...prev, profileImages: newImages }));
+      await updateProfile({ profile_images: newImages });
+    };
+
+    const handleDragStart = (e: React.DragEvent, index: number) => {
+      setDraggedImageIndex(index);
+      e.dataTransfer.effectAllowed = 'move';
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    };
+
+    const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+      e.preventDefault();
+      if (draggedImageIndex !== null && draggedImageIndex !== dropIndex) {
+        reorderImages(draggedImageIndex, dropIndex);
+      }
+      setDraggedImageIndex(null);
+    };
+
+    const openPhotoViewer = (index: number) => {
+      setCurrentPhotoIndex(index);
+      setShowPhotoViewer(true);
+    };
+
     return (
-      <div className="space-y-6">
-        <div className="text-center">
-          <h3 className="text-lg font-semibold mb-2">Your Photos</h3>
-          <p className="text-muted-foreground text-sm mb-6">
-            Add up to 6 photos to show your personality. The first photo will be your main profile picture.
-          </p>
-        </div>
+      <>
+        <div className="space-y-6">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold mb-2">Your Photos</h3>
+            <p className="text-muted-foreground text-sm mb-2">
+              Add up to 6 photos to show your personality. Drag to reorder.
+            </p>
+            <p className="text-xs text-muted-foreground mb-6">
+              The first photo will be your main profile picture that others see first.
+            </p>
+          </div>
 
-        <div className="grid grid-cols-3 gap-4">
-          {formData.profileImages.map((image, index) => (
-            <div key={index} className="aspect-square relative group overflow-hidden rounded-xl border-2 border-primary/20">
-              <img
-                src={image}
-                alt={`Profile ${index + 1}`}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                <Button variant="secondary" size="sm" onClick={() => removePhoto(index)}>
-                  ×
-                </Button>
+          {/* Photo Grid */}
+          <div className="grid grid-cols-3 gap-4">
+            {formData.profileImages.map((image, index) => (
+              <div 
+                key={`${image}-${index}`}
+                draggable
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, index)}
+                className={`aspect-square relative group overflow-hidden rounded-xl border-2 transition-all duration-300 cursor-pointer ${
+                  draggedImageIndex === index 
+                    ? 'border-primary scale-95 opacity-50' 
+                    : 'border-primary/20 hover:border-primary/60'
+                }`}
+                onClick={() => openPhotoViewer(index)}
+              >
+                <img
+                  src={image}
+                  alt={`Profile ${index + 1}`}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                
+                {/* Overlay Controls */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="absolute top-2 right-2 flex gap-1">
+                    <Button 
+                      variant="secondary" 
+                      size="sm" 
+                      className="w-8 h-8 p-0 bg-black/50 hover:bg-black/70"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removePhoto(index);
+                      }}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  
+                  <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
+                    <Move className="w-4 h-4 text-white/80" />
+                    <span className="text-xs text-white/80">Click to view • Drag to reorder</span>
+                  </div>
+                </div>
+
+                {/* Position Indicators */}
+                {index === 0 && (
+                  <Badge className="absolute top-2 left-2 bg-primary text-white border-0 shadow-md">
+                    Main Photo
+                  </Badge>
+                )}
+                
+                <div className="absolute bottom-2 right-2 bg-black/50 rounded-full w-6 h-6 flex items-center justify-center">
+                  <span className="text-white text-xs font-medium">{index + 1}</span>
+                </div>
               </div>
-              {index === 0 && (
-                <Badge className="absolute top-2 left-2 bg-primary text-white border-0">
-                  Main
-                </Badge>
-              )}
+            ))}
+            
+            {/* Empty Slots */}
+            {Array.from({ length: 6 - formData.profileImages.length }).map((_, index) => (
+              <label
+                key={`empty-${index}`}
+                className="aspect-square border-2 border-dashed border-primary/30 rounded-xl flex items-center justify-center hover:border-primary/60 transition-colors cursor-pointer group bg-muted/20"
+              >
+                <div className="text-center">
+                  <Camera className="w-8 h-8 text-primary/60 group-hover:text-primary transition-colors mx-auto mb-2" />
+                  <span className="text-xs text-muted-foreground">Add Photo</span>
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                />
+              </label>
+            ))}
+          </div>
+
+          {/* Empty State */}
+          {formData.profileImages.length === 0 && (
+            <div className="text-center py-12 bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg border border-primary/20">
+              <Camera className="w-20 h-20 mx-auto mb-4 text-primary/60" />
+              <h4 className="text-lg font-semibold mb-2">Add Your First Photo</h4>
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                Photos are the most important part of your profile. Add at least 3 photos to get better matches.
+              </p>
+              <label className="inline-flex items-center gap-3 px-6 py-3 bg-primary text-white rounded-lg cursor-pointer hover:bg-primary/90 transition-colors shadow-lg">
+                <Camera className="w-5 h-5" />
+                Choose Your First Photo
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                />
+              </label>
             </div>
-          ))}
-          
-          {Array.from({ length: 6 - formData.profileImages.length }).map((_, index) => (
-            <label
-              key={`empty-${index}`}
-              className="aspect-square border-2 border-dashed border-primary/30 rounded-xl flex items-center justify-center hover:border-primary/60 transition-colors cursor-pointer group"
-            >
-              <div className="text-center">
-                <Camera className="w-8 h-8 text-primary/60 group-hover:text-primary transition-colors mx-auto mb-2" />
-                <span className="text-xs text-muted-foreground">Add Photo</span>
-              </div>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  console.log("🔥 File input triggered!", e.target.files?.length, "files selected");
-                  handlePhotoUpload(e);
-                  // Clear the input so same file can be selected again
-                  e.target.value = '';
-                }}
-                className="hidden"
-              />
-            </label>
-          ))}
+          )}
+
+          {/* Photo Tips */}
+          {formData.profileImages.length > 0 && (
+            <div className="bg-muted/50 rounded-lg p-4">
+              <h4 className="font-medium mb-2">📸 Photo Tips</h4>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• Use high-quality, well-lit photos</li>
+                <li>• Show your face clearly in the first photo</li>
+                <li>• Include variety: close-ups, full body, activities</li>
+                <li>• Smile and look confident</li>
+                <li>• Avoid group photos as your main picture</li>
+              </ul>
+            </div>
+          )}
         </div>
 
-        {formData.profileImages.length === 0 && (
-          <div className="text-center py-8 bg-muted/50 rounded-lg">
-            <Camera className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground mb-4">No photos uploaded yet</p>
-            <label className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md cursor-pointer hover:bg-primary/90 transition-colors">
-              <Camera className="w-4 h-4" />
-              Upload Your First Photo
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  console.log("🔥 File input triggered (first photo)!", e.target.files?.length, "files selected");
-                  handlePhotoUpload(e);
-                  // Clear the input so same file can be selected again
-                  e.target.value = '';
-                }}
-                className="hidden"
-              />
-            </label>
+        {/* Photo Viewer Modal */}
+        {showPhotoViewer && (
+          <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+            <div className="relative w-full max-w-2xl">
+              {/* Close Button */}
+              <Button
+                variant="secondary"
+                size="sm"
+                className="absolute -top-12 right-0 bg-black/50 hover:bg-black/70 text-white"
+                onClick={() => setShowPhotoViewer(false)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+
+              {/* Progress Indicators */}
+              <div className="flex justify-center gap-1 mb-4">
+                {formData.profileImages.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`h-1 rounded-full transition-all duration-300 ${
+                      index === currentPhotoIndex 
+                        ? 'bg-white w-8' 
+                        : 'bg-white/30 w-4'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              {/* Photo Container */}
+              <div className="relative aspect-[4/5] bg-black rounded-lg overflow-hidden">
+                <img
+                  src={formData.profileImages[currentPhotoIndex]}
+                  alt={`Profile photo ${currentPhotoIndex + 1}`}
+                  className="w-full h-full object-cover"
+                />
+
+                {/* Navigation Arrows */}
+                {formData.profileImages.length > 1 && (
+                  <>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white"
+                      onClick={() => setCurrentPhotoIndex((prev) => 
+                        prev === 0 ? formData.profileImages.length - 1 : prev - 1
+                      )}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white"
+                      onClick={() => setCurrentPhotoIndex((prev) => 
+                        prev === formData.profileImages.length - 1 ? 0 : prev + 1
+                      )}
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </>
+                )}
+              </div>
+
+              {/* Photo Info */}
+              <div className="text-center mt-4 text-white">
+                <p className="text-sm opacity-70">
+                  Photo {currentPhotoIndex + 1} of {formData.profileImages.length}
+                  {currentPhotoIndex === 0 && " • Main Photo"}
+                </p>
+              </div>
+            </div>
           </div>
         )}
-      </div>
+      </>
     );
   };
 
