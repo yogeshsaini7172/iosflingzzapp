@@ -12,7 +12,7 @@ import MatchesPage from "./pages/MatchesPage";
 import ChatPage from "./pages/ChatPage";
 import ProfilePage from "./pages/ProfilePage";
 import BlindDatePage from "./pages/BlindDatePage";
-import HomePage from "./pages/HomePage";
+import CampusConnectHome from "./components/campus/CampusConnectHome";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 import GenZBackground from "./components/ui/genZ-background";
@@ -130,7 +130,15 @@ const AuthenticatedApp = () => {
         <Sonner />
         <div id="recaptcha-container"></div>
         <Routes>
-          <Route path="/" element={<HomePage onNavigate={(view) => {}} />} />
+          <Route path="/" element={<CampusConnectHome onNavigate={(view) => {
+            // Handle navigation from home page
+            if (view === 'discover') window.location.href = '/swipe';
+            if (view === 'blind-date') window.location.href = '/blind-date';
+            if (view === 'pairing') window.location.href = '/pairing';
+            if (view === 'matches') window.location.href = '/matches';
+            if (view === 'chat') window.location.href = '/chat';
+            if (view === 'profile') window.location.href = '/profile';
+          }} />} />
           <Route path="/swipe" element={<SwipePage onNavigate={(view) => {}} />} />
           <Route path="/pairing" element={<PairingPage onNavigate={(view) => {}} />} />
           <Route path="/matches" element={<MatchesPage onNavigate={(view) => {}} />} />
