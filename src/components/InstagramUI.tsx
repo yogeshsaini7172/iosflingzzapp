@@ -7,6 +7,7 @@ import {
   Heart,
   MessageCircle,
   User,
+  Users,
   Zap,
   Coffee,
   Shield,
@@ -536,6 +537,13 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                 label: "Matches", 
                 isActive: activeTab === 'matches',
                 gradient: "from-secondary to-secondary-glow" 
+              },
+              { 
+                path: "/feed", 
+                icon: Users, 
+                label: "Feed", 
+                isActive: activeTab === 'feed',
+                gradient: "from-purple-500 to-pink-500"
               },
               { 
                 path: "/pairing", 

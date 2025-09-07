@@ -1070,7 +1070,45 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      candidate_profiles: {
+        Row: {
+          age: number | null
+          bio: string | null
+          created_at: string | null
+          display_name: string | null
+          gender: Database["public"]["Enums"]["gender"] | null
+          interests: string[] | null
+          location: string | null
+          photos: string[] | null
+          profile_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          age?: never
+          bio?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          gender?: Database["public"]["Enums"]["gender"] | null
+          interests?: string[] | null
+          location?: string | null
+          photos?: string[] | null
+          profile_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          age?: never
+          bio?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          gender?: Database["public"]["Enums"]["gender"] | null
+          interests?: string[] | null
+          location?: string | null
+          photos?: string[] | null
+          profile_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       calculate_compatibility: {

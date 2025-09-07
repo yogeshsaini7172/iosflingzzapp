@@ -12,6 +12,7 @@ import MatchesPage from "./pages/MatchesPage";
 import ChatPage from "./pages/ChatPage";
 import ProfilePage from "./pages/ProfilePage";
 import BlindDatePage from "./pages/BlindDatePage";
+import FeedPage from "./pages/FeedPage";
 import DateSigmaHome from "./components/campus/DateSigmaHome";
 import SubscriptionPage from "./components/subscription/SubscriptionPage";
 import NotFound from "./pages/NotFound";
@@ -135,8 +136,14 @@ const AuthenticatedApp = () => {
             if (view === 'profile') window.location.href = '/profile';
             if (view === 'subscription') window.location.href = '/subscription';
             if (view === 'chat') window.location.href = '/chat';
+            if (view === 'feed') window.location.href = '/feed';
           }} />} />
           <Route path="/swipe" element={<SwipePage onNavigate={(view) => {}} />} />
+          <Route path="/feed" element={<FeedPage onNavigate={(view) => {
+            if (view === 'home') window.location.href = '/';
+            if (view === 'pairing') window.location.href = '/pairing';
+            if (view === 'profile') window.location.href = '/profile';
+          }} />} />
           <Route path="/pairing" element={<PairingPage onNavigate={(view) => {
             if (view === 'home') window.location.href = '/';
             if (view === 'pairing') window.location.href = '/pairing';
