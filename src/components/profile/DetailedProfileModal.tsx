@@ -77,15 +77,26 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
     pets: "Love dogs"
   };
 
-  const images = profile.profile_images || [];
-  const totalImages = Math.max(images.length, 3); // Show at least 3 placeholder images
+  const images = profile.profile_images && profile.profile_images.length > 0 
+    ? profile.profile_images 
+    : [];
+  const totalImages = images.length;
+
+  // Reset image index when modal opens or profile changes
+  React.useEffect(() => {
+    setCurrentImageIndex(0);
+  }, [profile.user_id]);
 
   const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % totalImages);
+    if (totalImages > 1) {
+      setCurrentImageIndex((prev) => (prev + 1) % totalImages);
+    }
   };
 
   const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + totalImages) % totalImages);
+    if (totalImages > 1) {
+      setCurrentImageIndex((prev) => (prev - 1 + totalImages) % totalImages);
+    }
   };
 
   const getInterestIcon = (interest: string) => {
@@ -120,56 +131,57 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
         <div className="relative">
           <div className="h-96 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 flex items-center justify-center relative overflow-hidden">
             {images.length > 0 ? (
-              <img 
-                src={images[currentImageIndex]} 
-                alt={`${profile.first_name}'s photo`}
-                className="w-full h-full object-cover"
-              />
+              <>
+                <img 
+                  src={images[currentImageIndex]} 
+                  alt={`${profile.first_name}'s photo ${currentImageIndex + 1}`}
+                  className="w-full h-full object-cover"
+                />
+                
+                {/* Tinder-style Progress Bars */}
+                <div className="absolute top-3 left-3 right-3 flex gap-1">
+                  {images.map((_, index) => (
+                    <div 
+                      key={index}
+                      className="flex-1 h-1 bg-black/20 rounded-full overflow-hidden"
+                    >
+                      <div 
+                        className={`h-full bg-white rounded-full transition-all duration-300 ${
+                          index === currentImageIndex ? 'w-full' : index < currentImageIndex ? 'w-full' : 'w-0'
+                        }`}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Invisible tap areas for navigation */}
+                {images.length > 1 && (
+                  <>
+                    <div 
+                      className="absolute left-0 top-0 w-1/2 h-full cursor-pointer z-10"
+                      onClick={prevImage}
+                    />
+                    <div 
+                      className="absolute right-0 top-0 w-1/2 h-full cursor-pointer z-10"
+                      onClick={nextImage}
+                    />
+                  </>
+                )}
+
+                {/* Photo count indicator */}
+                <div className="absolute top-4 right-4 bg-black/50 text-white text-sm px-2 py-1 rounded-full backdrop-blur-sm">
+                  {currentImageIndex + 1}/{images.length}
+                </div>
+              </>
             ) : (
-              <div className="text-8xl animate-pulse-glow">
-                {currentImageIndex === 0 ? '🌸' : currentImageIndex === 1 ? '🌺' : '🌻'}
+              <div className="text-center space-y-4">
+                <div className="text-8xl animate-pulse">👤</div>
+                <p className="text-muted-foreground">No photos available</p>
               </div>
             )}
             
-            {/* Image Navigation */}
-            {totalImages > 1 && (
-              <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={prevImage}
-                  className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white backdrop-blur-sm rounded-full"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={nextImage}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white backdrop-blur-sm rounded-full"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </Button>
-              </>
-            )}
-
-            {/* Image Indicators */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-              {Array.from({ length: totalImages }).map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentImageIndex(index)}
-                  className={`w-2 h-2 rounded-full transition-all ${
-                    index === currentImageIndex 
-                      ? 'bg-white scale-125' 
-                      : 'bg-white/50 hover:bg-white/75'
-                  }`}
-                />
-              ))}
-            </div>
-
             {/* Verification Badge */}
-            <div className="absolute top-4 right-4 bg-blue-500 rounded-full p-2">
+            <div className="absolute bottom-4 left-4 bg-blue-500 rounded-full p-2 z-20">
               <Shield className="w-4 h-4 text-white" />
             </div>
           </div>
