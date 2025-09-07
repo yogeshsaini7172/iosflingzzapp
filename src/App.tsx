@@ -39,15 +39,18 @@ const AuthenticatedApp = () => {
 
       setCheckingProfile(true);
       try {
-        // Check if user has completed profile setup
         const { data: profile } = await supabase
           .from('profiles')
-          .select('*')
+          .select('first_name, university, verification_status, total_qcs')
           .eq('user_id', user.uid)
           .maybeSingle();
 
-        const profileComplete = profile && profile.first_name && profile.university;
-        setHasProfile(!!profileComplete);
+        const profileComplete = !!profile && (
+          profile.verification_status === 'verified' ||
+          (!!profile.first_name && !!profile.university) ||
+          (typeof profile.total_qcs === 'number' && profile.total_qcs > 0)
+        );
+        setHasProfile(profileComplete);
         
         console.log('Profile check:', { 
           userId: user.uid, 
@@ -78,12 +81,16 @@ const AuthenticatedApp = () => {
         
         const { data: profile } = await supabase
           .from('profiles')
-          .select('*')
+          .select('first_name, university, verification_status, total_qcs')
           .eq('user_id', user.uid)
           .maybeSingle();
 
-        const profileComplete = profile && profile.first_name && profile.university;
-        setHasProfile(!!profileComplete);
+        const profileComplete = !!profile && (
+          profile.verification_status === 'verified' ||
+          (!!profile.first_name && !!profile.university) ||
+          (typeof profile.total_qcs === 'number' && profile.total_qcs > 0)
+        );
+        setHasProfile(profileComplete);
         
         console.log('Profile recheck result:', { 
           userId: user.uid, 
