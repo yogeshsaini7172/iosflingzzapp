@@ -174,21 +174,6 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       completeProfile.verification_status = 'verified';
       localStorage.setItem('demoProfile', JSON.stringify(completeProfile));
 
-      // Update Supabase profile so app recognizes completion
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({
-          first_name: profileData.firstName,
-          last_name: profileData.lastName,
-          date_of_birth: profileData.dateOfBirth,
-          gender: profileData.gender as 'male' | 'female' | 'non_binary' | 'prefer_not_to_say',
-          university: profileData.university,
-          verification_status: 'verified',
-          is_active: true,
-          last_active: new Date().toISOString()
-        })
-        .eq('user_id', userId);
-      if (updateError) throw updateError;
 
       // Calculate QCS via Edge Function (uses profile data)
       toast({ title: "Calculating QCS Score... 📊", description: "Analyzing your profile" });
@@ -216,6 +201,21 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       };
 
       localStorage.setItem('demoQCS', JSON.stringify(qcsScore));
+      // After QCS success, update profile so app recognizes completion
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          first_name: profileData.firstName,
+          last_name: profileData.lastName,
+          date_of_birth: profileData.dateOfBirth,
+          gender: profileData.gender as 'male' | 'female' | 'non_binary' | 'prefer_not_to_say',
+          university: profileData.university,
+          verification_status: 'verified',
+          is_active: true,
+          last_active: new Date().toISOString()
+        })
+        .eq('user_id', userId);
+      if (updateError) throw updateError;
 
       toast({ title: "Profile Setup Complete! 🎉", description: `Your QCS score: ${totalScore}/100. Ready to start!` });
 

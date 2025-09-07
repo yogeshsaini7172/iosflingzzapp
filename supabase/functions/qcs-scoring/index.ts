@@ -288,8 +288,7 @@ serve(async (req) => {
         profile_score: Math.floor(finalScore * 0.4),
         college_tier: 85, // Default tier score
         personality_depth: Math.floor(finalScore * 0.3),
-        behavior_score: Math.floor(finalScore * 0.3),
-        total_score: finalScore
+        behavior_score: Math.floor(finalScore * 0.3)
       });
 
     if (qcsError) {
