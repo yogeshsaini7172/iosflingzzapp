@@ -33,10 +33,11 @@ serve(async (req) => {
 
     console.log('Completing profile for user:', userId);
 
-    // Update profile with service role (bypasses RLS)
-    const { error: updateError } = await supabase
+    // Upsert profile with service role (bypasses RLS) - creates if doesn't exist
+    const { error: upsertError } = await supabase
       .from('profiles')
-      .update({
+      .upsert({
+        user_id: userId,
         first_name: firstName,
         last_name: lastName,
         date_of_birth: dateOfBirth,
@@ -45,13 +46,15 @@ serve(async (req) => {
         verification_status: 'verified',
         is_active: true,
         last_active: new Date().toISOString(),
-        total_qcs: qcsScore || 0
-      })
-      .eq('user_id', userId);
+        total_qcs: qcsScore || 0,
+        email: '' // Default empty email for Firebase users
+      }, {
+        onConflict: 'user_id'
+      });
 
-    if (updateError) {
-      console.error('Error updating profile:', updateError);
-      throw updateError;
+    if (upsertError) {
+      console.error('Error upserting profile:', upsertError);
+      throw upsertError;
     }
 
     console.log('Successfully completed profile for user:', userId);

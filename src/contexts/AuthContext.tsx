@@ -56,34 +56,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const syncUserProfile = async (firebaseUser: User) => {
     try {
-      // Check if profile exists
-      const { data: existingProfile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', firebaseUser.uid)
-        .maybeSingle();
-
-      if (!existingProfile) {
-        // Create new profile
-        const { error } = await supabase
-          .from('profiles')
-          .insert({
-            user_id: firebaseUser.uid,
-            first_name: firebaseUser.displayName?.split(' ')[0] || '',
-            last_name: firebaseUser.displayName?.split(' ').slice(1).join(' ') || '',
-            email: firebaseUser.email || '',
-            date_of_birth: new Date().toISOString().split('T')[0],
-            gender: 'prefer_not_to_say',
-            university: '',
-            verification_status: 'pending',
-            is_active: true,
-            last_active: new Date().toISOString()
-          });
-
-        if (error) {
-          console.error('Error creating profile:', error);
-        }
-      }
+      // Profile creation is now handled by the profile-completion edge function
+      // This prevents RLS violations since edge functions use service role
+      console.log('User profile will be created during profile completion flow');
     } catch (error) {
       console.error('Error syncing user profile:', error);
     }
