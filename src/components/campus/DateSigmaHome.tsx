@@ -131,38 +131,49 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
       <div className="bg-white/60 backdrop-blur-sm border-b border-rose-200/50 p-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-display font-bold text-rose-700">Threads</h2>
-          <Button variant="ghost" size="sm" className="text-rose-600 hover:text-rose-700 hover:bg-rose-50">
-            <Plus className="w-4 h-4" />
-          </Button>
         </div>
-        <div className="space-y-4 max-h-80 overflow-y-auto">
+        <div className="flex space-x-3 overflow-x-auto scrollbar-hide pb-2">
+          {/* Add Today's Thread Option */}
+          <div className="flex-shrink-0 w-64">
+            <Card className="p-4 bg-gradient-to-r from-rose-400 to-pink-500 text-white border-0 hover:from-rose-500 hover:to-pink-600 transition-colors cursor-pointer">
+              <div className="flex items-center justify-center space-x-2 mb-3">
+                <Plus className="w-5 h-5" />
+                <span className="font-semibold text-sm">Add Today's Thread</span>
+              </div>
+              <p className="text-xs text-white/90 text-center">Share what's on your mind today</p>
+            </Card>
+          </div>
+
+          {/* Thread Cards - Horizontal */}
           {mockThreads.map((thread) => (
-            <Card key={thread.id} className="p-3 bg-white/80 backdrop-blur-sm border-rose-200/50 hover:bg-white/90 transition-colors">
-              <div className="flex space-x-3">
-                <Avatar className="w-10 h-10">
-                  <AvatarImage src={thread.avatar} alt={thread.author} />
-                  <AvatarFallback className="bg-rose-100 text-rose-600 text-sm font-semibold">
-                    {thread.author.split(' ').map(n => n[0]).join('')}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-semibold text-sm text-rose-700">{thread.author}</span>
-                    <span className="text-xs text-rose-400">{thread.time}</span>
-                  </div>
-                  <p className="text-sm text-rose-600 leading-relaxed">{thread.content}</p>
-                  <div className="flex items-center space-x-4 text-xs text-rose-400">
-                    <button className="flex items-center space-x-1 hover:text-rose-600 transition-colors">
-                      <Heart className="w-4 h-4" />
-                      <span>{thread.likes}</span>
-                    </button>
-                    <button className="flex items-center space-x-1 hover:text-rose-600 transition-colors">
-                      <span>{thread.replies} replies</span>
-                    </button>
+            <div key={thread.id} className="flex-shrink-0 w-72">
+              <Card className="p-4 bg-white/80 backdrop-blur-sm border-rose-200/50 hover:bg-white/90 transition-colors h-full">
+                <div className="flex space-x-3 mb-3">
+                  <Avatar className="w-8 h-8">
+                    <AvatarImage src={thread.avatar} alt={thread.author} />
+                    <AvatarFallback className="bg-rose-100 text-rose-600 text-xs font-semibold">
+                      {thread.author.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <span className="font-semibold text-sm text-rose-700 truncate">{thread.author}</span>
+                      <span className="text-xs text-rose-400 flex-shrink-0">{thread.time}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Card>
+                <p className="text-sm text-rose-600 leading-relaxed mb-3 line-clamp-3">{thread.content}</p>
+                <div className="flex items-center justify-between text-xs text-rose-400">
+                  <button className="flex items-center space-x-1 hover:text-rose-600 transition-colors">
+                    <Heart className="w-3 h-3" />
+                    <span>{thread.likes}</span>
+                  </button>
+                  <button className="hover:text-rose-600 transition-colors">
+                    {thread.replies} replies
+                  </button>
+                </div>
+              </Card>
+            </div>
           ))}
         </div>
       </div>
