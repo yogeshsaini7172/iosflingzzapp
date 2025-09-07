@@ -106,6 +106,37 @@ serve(async (req) => {
       });
     }
 
+    // Get blocked/ghosted users to exclude
+    const { data: blockedUsers, error: blockError } = await supabaseClient
+      .from('user_interactions')
+      .select('target_user_id, interaction_type, expires_at')
+      .eq('user_id', user.id)
+      .in('interaction_type', ['ghost', 'bench']);
+
+    const activeBlockedUserIds = (blockedUsers || []).filter(interaction => {
+      if (interaction.interaction_type === 'bench') {
+        return true; // Bench is permanent
+      }
+      if (interaction.interaction_type === 'ghost' && interaction.expires_at) {
+        return new Date(interaction.expires_at) > new Date(); // Ghost is active if not expired
+      }
+      return false;
+    }).map(interaction => interaction.target_user_id);
+
+    // Get already swiped users to exclude
+    const { data: swipedUsers, error: swipeError } = await supabaseClient
+      .from('enhanced_swipes')
+      .select('target_user_id')
+      .eq('user_id', user.id);
+
+    // Build exclusion list
+    const excludedIds = [
+      user.id,
+      ...activeBlockedUserIds,
+      ...(swipedUsers?.map(s => s.target_user_id) || []),
+      ...seen_ids
+    ];
+
     // Get potential candidates (excluding blocked users, already swiped, etc.)
     let candidatesQuery = supabaseClient
       .from('profiles')
@@ -117,12 +148,8 @@ serve(async (req) => {
         personality_type, humor_type, love_language,
         total_qcs, qualities, requirements
       `)
-      .neq('user_id', user.id)
-      .eq('is_active', true);
-
-    if (seen_ids.length > 0) {
-      candidatesQuery = candidatesQuery.not('user_id', 'in', `(${seen_ids.join(',')})`);
-    }
+      .eq('is_active', true)
+      .not('user_id', 'in', `(${excludedIds.join(',')})`);
 
     const { data: candidates, error: candidatesError } = await candidatesQuery.limit(limit * 2);
 

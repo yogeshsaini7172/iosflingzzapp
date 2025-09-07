@@ -67,10 +67,19 @@ serve(async (req) => {
     // Get blocked/ghosted users (exclude from feed)
     const { data: blockedUsers, error: blockError } = await supabaseClient
       .from('user_interactions')
-      .select('target_user_id')
+      .select('target_user_id, interaction_type, expires_at')
       .eq('user_id', user_id)
-      .eq('interaction_type', 'ghost')
-      .gt('expires_at', new Date().toISOString())
+      .in('interaction_type', ['ghost', 'bench'])
+
+    const activeBlockedUsers = (blockedUsers || []).filter(user => {
+      if (user.interaction_type === 'bench') {
+        return true; // Bench is permanent
+      }
+      if (user.interaction_type === 'ghost' && user.expires_at) {
+        return new Date(user.expires_at) > new Date(); // Ghost is active if not expired
+      }
+      return false;
+    }).map(user => user.target_user_id)
 
     if (blockError) {
       console.error('Error fetching blocked users:', blockError)
@@ -80,7 +89,7 @@ serve(async (req) => {
     const excludedIds = [
       user_id,
       ...(swipedUsers?.map(s => s.target_user_id) || []),
-      ...(blockedUsers?.map(b => b.target_user_id) || [])
+      ...activeBlockedUsers
     ]
 
     // Build query with filters
