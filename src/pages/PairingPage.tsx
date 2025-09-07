@@ -58,78 +58,43 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
     try {
       console.log("🔍 Loading matches for user:", userId);
 
-      // Call the swipe-feed function (updated to new system)
-      const { data, error } = await supabase.functions.invoke('swipe-feed', {
-        body: { 
-          user_id: userId,  // Pass user_id directly since no auth
-          limit: 10,
-          filters: {
-            ageMin: 18,
-            ageMax: 30
-          }
-        }
+      // Compute REAL compatibility first; only show profiles after scoring
+      const { data: pairingResults, error } = await supabase.functions.invoke('deterministic-pairing', {
+        body: { user_id: userId }
       });
 
-      console.log("📊 Function response:", { data, error });
-
       if (error) {
-        console.error('Error fetching matches:', error);
-        // Fallback: show suggested profiles when limit reached or function fails
-        const { data: fallback } = await supabase
-          .from('profiles')
-          .select('user_id, first_name, last_name, university, bio, profile_images, interests, total_qcs')
-          .neq('user_id', userId)
-          .eq('is_active', true)
-          .limit(10);
-
-        if (fallback) {
-          const formattedMatches = fallback.map((p: any) => ({
-            user_id: p.user_id,
-            first_name: p.first_name,
-            last_name: p.last_name,
-            university: p.university,
-            bio: p.bio || 'No bio available',
-            profile_images: p.profile_images || [],
-            age: 22,
-            interests: p.interests || [],
-            total_qcs: p.total_qcs || (750 + Math.floor(Math.random() * 200)),
-            compatibility_score: Math.min(100, Math.max(50, Math.round((p.total_qcs || 800) / 10))),
-            physical_score:  Math.round(Math.random() * 40) + 60,
-            mental_score:    Math.round(Math.random() * 40) + 60,
-          }));
-          setMatches(formattedMatches);
-          toast.success('Showing suggested profiles');
-          return;
-        }
-
-        toast.error('Failed to load matches');
+        console.error('Error computing deterministic pairing:', error);
+        toast.error('Pairing unavailable right now');
+        setMatches([]);
         return;
       }
 
-      // Updated to match the new swipe-feed response structure
-      if (data?.success && data?.profiles) {
-        const formattedMatches = data.profiles.map((profile: any) => {
+      const candidates = pairingResults?.top_candidates || [];
+      const valid = candidates.filter((c: any) => Number.isFinite(Number(c?.final_score)));
+      const formattedMatches = valid
+        .map((c: any) => {
+          const [first, ...rest] = (c.candidate_name || '').split(' ');
+          const score = Math.round(Number(c.final_score));
           return {
-            user_id: profile.user_id,
-            first_name: profile.first_name,
-            last_name: profile.last_name,
-            university: profile.university || 'University', 
-            bio: profile.bio || 'No bio available',
-            profile_images: profile.profile_images || [],
-            age: profile.age || 22,
-            interests: profile.interests || [],
-            total_qcs: profile.total_qcs || (750 + Math.floor(Math.random() * 200)),
-            compatibility_score: Math.min(100, Math.max(50, Math.round((profile.total_qcs || 800) / 10))),
-            physical_score: Math.round(Math.random() * 40) + 60,
-            mental_score: Math.round(Math.random() * 40) + 60
+            user_id: c.candidate_id,
+            first_name: first || 'User',
+            last_name: rest.join(' '),
+            university: c.candidate_university || 'University',
+            bio: c.candidate_bio || 'No bio available',
+            profile_images: c.candidate_images || [],
+            age: c.candidate_age || 0,
+            interests: c.candidate_interests || [],
+            total_qcs: c.candidate_qcs || 0,
+            compatibility_score: score,
+            physical_score: undefined,
+            mental_score: undefined,
           };
-        });
-        setMatches(formattedMatches);
-        toast.success(`Found ${formattedMatches.length} compatible matches!`);
-      } else {
-        console.log('No profiles returned or function failed, using fallback');
-        // Already handled by fallback above
-      }
+        })
+        .sort((a: any, b: any) => (b.compatibility_score || 0) - (a.compatibility_score || 0));
+
+      setMatches(formattedMatches);
+      toast.success(`Found ${formattedMatches.length} calculated matches`);
     } catch (error) {
       console.error('Error:', error);
       toast.error('Failed to load matches');

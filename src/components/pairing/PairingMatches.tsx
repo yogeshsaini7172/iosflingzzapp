@@ -47,9 +47,12 @@ const PairingMatches: React.FC = () => {
 
         // Map candidates to UI model and enrich from pairedProfiles when possible
         const candidates = pairingResults?.top_candidates || [];
-        const enriched: PairingMatch[] = candidates.map((c: any) => {
+        // Only keep candidates with a real, computed score
+        const valid = candidates.filter((c: any) => Number.isFinite(Number(c?.final_score)));
+        const enriched: PairingMatch[] = valid.map((c: any) => {
           const fromFeed = pairedProfiles.find(p => p.user_id === c.candidate_id);
           const [first, ...rest] = (c.candidate_name || '').split(' ');
+          const score = Math.round(Number(c.final_score));
           return {
             user_id: c.candidate_id,
             first_name: first || fromFeed?.first_name || 'User',
@@ -58,8 +61,8 @@ const PairingMatches: React.FC = () => {
             profile_images: fromFeed?.profile_images || [],
             bio: fromFeed?.bio,
             total_qcs: c.candidate_qcs,
-            compatibility_score: Math.round(c.final_score),
-            can_chat: Math.round(c.final_score) >= 85,
+            compatibility_score: score,
+            can_chat: score >= 85,
           };
         });
 
