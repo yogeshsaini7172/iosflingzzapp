@@ -36,15 +36,15 @@
   :root {
     /* Premium Color Palette - Royal & Elegant */
     
-    /* Base Colors - GenZ Black Theme */
-    --background: 0 0% 4%;
-    --foreground: 0 0% 95%;
+    /* Base Colors - Soft Pink Theme */
+    --background: 340 40% 98%;
+    --foreground: 340 15% 15%;
 
-    --card: 0 0% 8%;
-    --card-foreground: 0 0% 95%;
+    --card: 0 0% 100%;
+    --card-foreground: 340 15% 15%;
 
-    --popover: 0 0% 6%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 340 15% 15%;
 
     /* Primary - Soft Rose Pink */
     --primary: 340 75% 65%;
@@ -185,15 +185,15 @@
   }
 
   body {
-    @apply bg-gradient-to-br from-black via-gray-950 to-zinc-900 text-white antialiased;
+    @apply bg-gradient-to-br from-rose-50 via-pink-50 to-rose-100 text-foreground antialiased;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     position: relative;
     overflow-x: hidden;
-    color: hsl(0 0% 95%); /* Light text for readability on dark */
+    color: hsl(340 15% 15%); /* Ensuring dark text for readability */
   }
 
-  /* GenZ Black Dynamic Background */
+  /* Soft Pink Dynamic Background */
   body::before {
     content: '';
     position: fixed;
@@ -203,14 +203,14 @@
     bottom: 0;
     z-index: -2;
     background: 
-      radial-gradient(circle at 20% 80%, rgba(139, 69, 255, 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(255, 20, 147, 0.08) 0%, transparent 50%),
-      radial-gradient(circle at 40% 40%, rgba(0, 255, 255, 0.06) 0%, transparent 50%),
-      linear-gradient(135deg, #000000 0%, #0a0a0a 25%, #111111 50%, #0d0d0d 75%, #050505 100%);
+      radial-gradient(circle at 20% 80%, rgba(255, 182, 193, 0.4) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255, 192, 203, 0.3) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(255, 182, 193, 0.2) 0%, transparent 50%),
+      linear-gradient(135deg, #fff0f5 0%, #ffe4e8 25%, #ffeef2 50%, #fdf2f8 75%, #fcf7ff 100%);
     animation: backgroundShift 20s ease-in-out infinite;
   }
 
-  /* Floating Neon Elements */
+  /* Floating Pink Elements */
   body::after {
     content: '';
     position: fixed;
@@ -220,11 +220,11 @@
     bottom: 0;
     z-index: -1;
     background-image: 
-      radial-gradient(2px 2px at 20px 30px, rgba(139, 69, 255, 0.2), transparent),
-      radial-gradient(2px 2px at 40px 70px, rgba(255, 20, 147, 0.15), transparent),
-      radial-gradient(1px 1px at 90px 40px, rgba(0, 255, 255, 0.1), transparent),
-      radial-gradient(1px 1px at 130px 80px, rgba(255, 69, 0, 0.12), transparent),
-      radial-gradient(2px 2px at 160px 30px, rgba(255, 255, 255, 0.05), transparent);
+      radial-gradient(2px 2px at 20px 30px, rgba(255, 192, 203, 0.3), transparent),
+      radial-gradient(2px 2px at 40px 70px, rgba(255, 182, 193, 0.4), transparent),
+      radial-gradient(1px 1px at 90px 40px, rgba(255, 192, 203, 0.2), transparent),
+      radial-gradient(1px 1px at 130px 80px, rgba(255, 182, 193, 0.3), transparent),
+      radial-gradient(2px 2px at 160px 30px, rgba(255, 255, 255, 0.2), transparent);
     background-repeat: repeat;
     background-size: 200px 100px;
     animation: floatingDots 15s linear infinite;
@@ -259,7 +259,7 @@
     @apply tracking-tight;
     font-family: 'Outfit', 'Inter', sans-serif;
     font-weight: 600;
-    color: hsl(0 0% 95%); /* Light text for readability on dark */
+    color: hsl(340 15% 15%); /* Dark text for readability */
   }
 
   h1 {
@@ -281,7 +281,7 @@
   p {
     @apply leading-relaxed;
     font-family: 'Inter', system-ui, sans-serif;
-    color: hsl(0 0% 80%); /* Light gray for readability on dark */
+    color: hsl(340 25% 30%); /* Slightly lighter but still readable */
   }
 
   /* Premium Button Styles */
