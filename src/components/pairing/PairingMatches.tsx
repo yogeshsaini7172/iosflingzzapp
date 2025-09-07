@@ -47,16 +47,55 @@ const PairingMatches: React.FC = () => {
   }, [pairedProfiles]);
 
   const handleChatRequest = async (matchId: string, canChat: boolean) => {
-    if (canChat) {
+    const userId = getCurrentUserId();
+    
+    try {
+      if (canChat) {
+        // Direct chat - create chat room immediately
+        const { data: roomResp, error: fnError } = await supabase.functions.invoke('chat-management', {
+          body: {
+            action: 'create_room',
+            user_id: userId,
+            other_user_id: matchId,
+          }
+        });
+
+        if (fnError) {
+          console.error('Chat room creation failed:', fnError);
+          throw fnError;
+        }
+
+        toast({
+          title: "Chat opened! 💬",
+          description: "You can now start messaging each other",
+        });
+
+        // Navigate to chat
+        setMatchedChatId(roomResp?.data?.id || matchId);
+      } else {
+        // Send chat request
+        const { data, error } = await supabase.functions.invoke('chat-request-handler', {
+          body: {
+            action: 'send_request',
+            recipient_id: matchId,
+            message: 'Hi! I would love to chat with you 😊'
+          }
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "Chat request sent! ⏳",
+          description: "They'll be notified of your request",
+          variant: "default"
+        });
+      }
+    } catch (error: any) {
+      console.error('Error handling chat request:', error);
       toast({
-        title: "Chat opened! 💬",
-        description: "You can now start messaging each other",
-      });
-    } else {
-      toast({
-        title: "Chat request sent! ⏳",
-        description: "Waiting for them to accept your request",
-        variant: "default"
+        title: "Error",
+        description: "Failed to send chat request. Please try again.",
+        variant: "destructive"
       });
     }
   };

@@ -119,6 +119,9 @@ const SubscriptionPage = ({ onNavigate }: SubscriptionPageProps) => {
           >
             <ArrowLeft className="w-4 h-4" />
           </Button>
+          <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center shadow-sm">
+            <span className="text-primary-foreground font-bold text-sm">DS</span>
+          </div>
           <h1 className="text-xl font-display font-bold text-foreground">Subscription Plans</h1>
         </div>
       </div>

@@ -28,6 +28,8 @@ import { supabase } from '@/integrations/supabase/client';
 import ChatNotificationBadge from '@/components/ui/chat-notification-badge';
 import HeartNotificationBadge from '@/components/ui/heart-notification-badge';
 import WhoLikedMeModal from '@/components/likes/WhoLikedMeModal';
+import ChatRequestsModal from '@/components/notifications/ChatRequestsModal';
+import { useSwipeRealtime, useLikeRealtime, useNotificationRealtime } from '@/hooks/useRealtime';
 
 interface Thread {
   id: number;
@@ -97,17 +99,8 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
     return savedLikes ? new Set(JSON.parse(savedLikes)) : new Set();
   });
   const [showWhoLikedMe, setShowWhoLikedMe] = useState(false);
+  const [showChatRequests, setShowChatRequests] = useState(false);
   const { toast } = useToast();
-
-  // Save threads to localStorage whenever threads change
-  useEffect(() => {
-    localStorage.setItem('userThreads', JSON.stringify(threads));
-  }, [threads]);
-
-  // Save liked threads to localStorage whenever likes change
-  useEffect(() => {
-    localStorage.setItem('likedThreads', JSON.stringify(Array.from(likedThreads)));
-  }, [likedThreads]);
 
   const getCurrentUserId = () => {
     // Bypass auth - use default user ID for database operations
@@ -120,6 +113,43 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
       avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150'
     };
   };
+
+  // Set up realtime listeners
+  const userId = getCurrentUserId();
+  
+  // Listen for new matches
+  useSwipeRealtime(userId, (match) => {
+    toast({
+      title: "New Match! 💕",
+      description: "You have a new mutual match!",
+    });
+  });
+
+  // Listen for new likes
+  useLikeRealtime(userId, (like) => {
+    toast({
+      title: "Someone liked you! ❤️",
+      description: "Check your likes to see who it is!",
+    });
+  });
+
+  // Listen for notifications
+  useNotificationRealtime(userId, (notification) => {
+    toast({
+      title: notification.title,
+      description: notification.message,
+    });
+  });
+
+  // Save threads to localStorage whenever threads change
+  useEffect(() => {
+    localStorage.setItem('userThreads', JSON.stringify(threads));
+  }, [threads]);
+
+  // Save liked threads to localStorage whenever likes change
+  useEffect(() => {
+    localStorage.setItem('likedThreads', JSON.stringify(Array.from(likedThreads)));
+  }, [likedThreads]);
 
   const handlePostThread = () => {
     if (!newThreadContent.trim()) {
@@ -380,7 +410,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
               onClick={() => setShowWhoLikedMe(true)}
             />
             <ChatNotificationBadge 
-              onClick={() => onNavigate('chat')}
+              onClick={() => setShowChatRequests(true)}
             />
           </div>
         </div>
@@ -924,8 +954,18 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
       />
       {/* Who Liked Me Modal */}
       <WhoLikedMeModal 
-        isOpen={showWhoLikedMe} 
-        onClose={() => setShowWhoLikedMe(false)} 
+        isOpen={showWhoLikedMe}
+        onClose={() => setShowWhoLikedMe(false)}
+      />
+
+      {/* Chat Requests Modal */}
+      <ChatRequestsModal 
+        isOpen={showChatRequests}
+        onClose={() => setShowChatRequests(false)}
+        onChatCreated={(chatId) => {
+          setShowChatRequests(false);
+          onNavigate('chat');
+        }}
       />
     </div>
   );
