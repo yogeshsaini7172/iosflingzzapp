@@ -928,11 +928,23 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
           <div className="bg-gradient-to-r from-rose-400 to-pink-500 p-6 text-white">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white/20">
-                <img
-                  src={formData.profileImages[0] || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400'}
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                />
+                {formData.profileImages[0] ? (
+                  <img
+                    src={formData.profileImages[0].startsWith('blob:') || formData.profileImages[0].startsWith('http') 
+                      ? formData.profileImages[0] 
+                      : `${supabase.storage.from('profile-photos').getPublicUrl(formData.profileImages[0]).data.publicUrl}`
+                    }
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400';
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full bg-white/20 flex items-center justify-center">
+                    <User className="w-8 h-8 text-white/60" />
+                  </div>
+                )}
               </div>
               <div>
                 <h2 className="text-xl font-bold">{formData.firstName} {formData.lastName}</h2>
