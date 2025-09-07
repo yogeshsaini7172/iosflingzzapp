@@ -34,148 +34,153 @@
 
 @layer base {
   :root {
-    /* Premium Color Palette - Royal & Elegant */
+    /* Romantic Golden Magic Theme - Inspired by Hearts & Golden Sparkles */
     
-    /* Base Colors - Soft Pink Theme */
-    --background: 340 40% 98%;
-    --foreground: 340 15% 15%;
+    /* Base Colors - Warm Golden Tones */
+    --background: 45 20% 96%;
+    --foreground: 30 15% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 340 15% 15%;
+    --card-foreground: 30 15% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 340 15% 15%;
+    --popover-foreground: 30 15% 15%;
 
-    /* Primary - Soft Rose Pink */
-    --primary: 340 75% 65%;
+    /* Primary - Romantic Coral Pink */
+    --primary: 15 85% 70%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 340 85% 75%;
-    --primary-variant: 335 70% 70%;
+    --primary-glow: 25 90% 80%;
+    --primary-variant: 10 80% 75%;
 
-    /* Secondary - Blush Pink */
-    --secondary: 345 60% 80%;
-    --secondary-foreground: 340 15% 15%;
-    --secondary-glow: 345 70% 85%;
+    /* Secondary - Warm Golden */
+    --secondary: 35 70% 65%;
+    --secondary-foreground: 30 15% 15%;
+    --secondary-glow: 40 80% 75%;
 
-    /* Accent - Deep Rose */
-    --accent: 350 70% 60%;
+    /* Accent - Deep Golden Rose */
+    --accent: 20 75% 60%;
     --accent-foreground: 0 0% 100%;
-    --accent-glow: 350 80% 75%;
+    --accent-glow: 30 85% 70%;
 
     /* Success - Soft Green */
     --success: 120 40% 55%;
     --success-foreground: 0 0% 100%;
 
-    /* Destructive - Coral Red */
+    /* Destructive - Warm Red */
     --destructive: 0 70% 65%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Muted Tones */
-    --muted: 340 20% 95%;
-    --muted-foreground: 340 25% 50%;
+    /* Muted Tones - Warm Neutrals */
+    --muted: 45 15% 92%;
+    --muted-foreground: 35 25% 50%;
 
     /* Borders & Inputs */
-    --border: 340 25% 85%;
-    --input: 340 25% 90%;
-    --ring: 340 75% 65%;
+    --border: 45 20% 88%;
+    --input: 45 25% 90%;
+    --ring: 15 85% 70%;
 
     /* Border Radius - More elegant */
     --radius: 1.5rem;
 
-    /* Soft Pink Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(340 75% 65%), hsl(340 85% 75%));
-    --gradient-secondary: linear-gradient(135deg, hsl(345 60% 80%), hsl(345 70% 85%));
-    --gradient-royal: linear-gradient(135deg, hsl(340 75% 65%), hsl(350 70% 60%), hsl(345 60% 80%));
-    --gradient-elegant: linear-gradient(145deg, hsl(340 75% 65%), hsl(340 85% 75%), hsl(350 70% 60%));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(340 30% 98%));
-    --gradient-subtle: linear-gradient(180deg, hsl(340 40% 98%), hsl(340 30% 96%));
-    --gradient-gold: linear-gradient(135deg, hsl(350 70% 60%), hsl(340 75% 65%));
-    --gradient-rose: linear-gradient(135deg, hsl(340 75% 65%), hsl(350 80% 70%));
+    /* Romantic Golden Magic Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(15 85% 70%), hsl(25 90% 80%));
+    --gradient-secondary: linear-gradient(135deg, hsl(35 70% 65%), hsl(40 80% 75%));
+    --gradient-royal: linear-gradient(135deg, hsl(15 85% 70%), hsl(35 70% 65%), hsl(25 90% 80%));
+    --gradient-elegant: linear-gradient(145deg, hsl(15 85% 70%), hsl(25 90% 80%), hsl(20 75% 60%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(45 30% 98%));
+    --gradient-subtle: linear-gradient(180deg, hsl(45 20% 96%), hsl(40 25% 94%));
+    --gradient-gold: linear-gradient(135deg, hsl(35 70% 65%), hsl(40 80% 75%));
+    --gradient-rose: linear-gradient(135deg, hsl(15 85% 70%), hsl(10 80% 75%));
+    --gradient-hero: linear-gradient(135deg, hsl(15 85% 70%), hsl(35 70% 65%), hsl(25 90% 80%));
+    --gradient-magic: radial-gradient(ellipse at center, hsl(25 90% 80% / 0.4), transparent 70%);
 
-    /* Soft Pink Shadows */
-    --shadow-elegant: 0 25px 50px -12px hsl(340 75% 65% / 0.2);
-    --shadow-royal: 0 20px 40px -8px hsl(340 75% 65% / 0.25);
-    --shadow-gold: 0 10px 30px -5px hsl(350 70% 60% / 0.3);
-    --shadow-soft: 0 8px 32px -8px hsl(340 25% 85% / 0.4);
-    --shadow-medium: 0 16px 64px -12px hsl(340 25% 85% / 0.5);
-    --shadow-card: 0 4px 24px -4px hsl(340 25% 85% / 0.3);
-    --shadow-glow: 0 0 64px hsl(var(--primary-glow) / 0.4);
-    --shadow-premium: 0 32px 80px -16px hsl(340 75% 65% / 0.25);
+    /* Magical Golden Shadows */
+    --shadow-elegant: 0 25px 50px -12px hsl(15 85% 70% / 0.3);
+    --shadow-royal: 0 20px 40px -8px hsl(15 85% 70% / 0.35);
+    --shadow-gold: 0 10px 30px -5px hsl(35 70% 65% / 0.4);
+    --shadow-soft: 0 8px 32px -8px hsl(25 90% 80% / 0.3);
+    --shadow-medium: 0 16px 64px -12px hsl(25 90% 80% / 0.4);
+    --shadow-card: 0 4px 24px -4px hsl(25 90% 80% / 0.25);
+    --shadow-glow: 0 0 64px hsl(25 90% 80% / 0.6);
+    --shadow-premium: 0 32px 80px -16px hsl(15 85% 70% / 0.35);
+    --shadow-romantic: 0 8px 25px hsl(15 85% 70% / 0.4);
 
-    /* Premium Animations */
+    /* Smooth Romantic Animations */
     --transition-luxury: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     --transition-elegant: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --transition-magic: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
-    /* Sidebar */
-    --sidebar-background: 340 35% 96%;
-    --sidebar-foreground: 340 15% 15%;
-    --sidebar-primary: 340 75% 65%;
+    /* Sidebar - Golden Theme */
+    --sidebar-background: 45 25% 96%;
+    --sidebar-foreground: 30 15% 15%;
+    --sidebar-primary: 15 85% 70%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 340 25% 92%;
-    --sidebar-accent-foreground: 340 15% 15%;
-    --sidebar-border: 340 25% 88%;
-    --sidebar-ring: 340 75% 65%;
+    --sidebar-accent: 45 20% 92%;
+    --sidebar-accent-foreground: 30 15% 15%;
+    --sidebar-border: 45 20% 88%;
+    --sidebar-ring: 15 85% 70%;
   }
 
   .dark {
-    /* Dark Mode - Soft Pink Dark */
-    --background: 340 25% 8%;
-    --foreground: 340 40% 95%;
+    /* Dark Mode - Romantic Golden Magic */
+    --background: 30 25% 8%;
+    --foreground: 45 40% 95%;
 
-    --card: 340 20% 12%;
-    --card-foreground: 340 40% 95%;
+    --card: 30 20% 12%;
+    --card-foreground: 45 40% 95%;
 
-    --popover: 340 20% 10%;
-    --popover-foreground: 340 40% 95%;
+    --popover: 30 20% 10%;
+    --popover-foreground: 45 40% 95%;
 
-    /* Primary - Soft Rose Dark */
-    --primary: 340 70% 60%;
+    /* Primary - Warm Golden Coral */
+    --primary: 15 80% 65%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 340 80% 75%;
+    --primary-glow: 25 85% 75%;
 
-    /* Secondary - Blush Dark */
-    --secondary: 345 50% 35%;
-    --secondary-foreground: 340 40% 95%;
+    /* Secondary - Deep Gold */
+    --secondary: 35 60% 40%;
+    --secondary-foreground: 45 40% 95%;
 
-    /* Accent - Deep Rose Dark */
-    --accent: 350 65% 55%;
+    /* Accent - Rich Golden Rose */
+    --accent: 20 70% 55%;
     --accent-foreground: 0 0% 100%;
 
     /* Success - Soft Green Dark */
     --success: 120 35% 50%;
     --success-foreground: 0 0% 100%;
 
-    /* Destructive - Coral Dark */
+    /* Destructive - Warm Red Dark */
     --destructive: 0 65% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Muted - Dark Pink */
-    --muted: 340 20% 18%;
-    --muted-foreground: 340 25% 70%;
+    /* Muted - Dark Golden */
+    --muted: 30 20% 18%;
+    --muted-foreground: 35 25% 70%;
 
     /* Borders & Inputs */
-    --border: 340 25% 25%;
-    --input: 340 20% 20%;
-    --ring: 340 70% 60%;
+    --border: 30 25% 25%;
+    --input: 30 20% 20%;
+    --ring: 15 80% 65%;
 
-    /* Dark Gradients - Pink themed */
-    --gradient-primary: linear-gradient(135deg, hsl(340 70% 60%), hsl(340 80% 75%));
-    --gradient-secondary: linear-gradient(135deg, hsl(345 50% 35%), hsl(345 60% 45%));
-    --gradient-royal: linear-gradient(135deg, hsl(340 70% 60%), hsl(350 65% 55%), hsl(345 50% 35%));
-    --gradient-elegant: linear-gradient(145deg, hsl(340 70% 60%), hsl(340 80% 75%), hsl(350 65% 55%));
-    --gradient-card: linear-gradient(145deg, hsl(340 20% 12%), hsl(340 25% 18%));
-    --gradient-subtle: linear-gradient(180deg, hsl(340 25% 10%), hsl(340 20% 12%));
+    /* Dark Gradients - Golden themed */
+    --gradient-primary: linear-gradient(135deg, hsl(15 80% 65%), hsl(25 85% 75%));
+    --gradient-secondary: linear-gradient(135deg, hsl(35 60% 40%), hsl(40 70% 50%));
+    --gradient-royal: linear-gradient(135deg, hsl(15 80% 65%), hsl(35 60% 40%), hsl(25 85% 75%));
+    --gradient-elegant: linear-gradient(145deg, hsl(15 80% 65%), hsl(25 85% 75%), hsl(20 70% 55%));
+    --gradient-card: linear-gradient(145deg, hsl(30 20% 12%), hsl(30 25% 18%));
+    --gradient-subtle: linear-gradient(180deg, hsl(30 25% 10%), hsl(30 20% 12%));
+    --gradient-hero: linear-gradient(135deg, hsl(15 80% 65%), hsl(35 60% 40%), hsl(25 85% 75%));
 
     /* Sidebar Dark */
-    --sidebar-background: 340 25% 6%;
-    --sidebar-foreground: 340 40% 95%;
-    --sidebar-primary: 340 70% 60%;
+    --sidebar-background: 30 25% 6%;
+    --sidebar-foreground: 45 40% 95%;
+    --sidebar-primary: 15 80% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 340 20% 15%;
-    --sidebar-accent-foreground: 340 40% 95%;
-    --sidebar-border: 340 25% 20%;
-    --sidebar-ring: 340 70% 60%;
+    --sidebar-accent: 30 20% 15%;
+    --sidebar-accent-foreground: 45 40% 95%;
+    --sidebar-border: 30 25% 20%;
+    --sidebar-ring: 15 80% 65%;
   }
 }
 
@@ -185,15 +190,15 @@
   }
 
   body {
-    @apply bg-gradient-to-br from-rose-50 via-pink-50 to-rose-100 text-foreground antialiased;
+    @apply bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 text-foreground antialiased;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     position: relative;
     overflow-x: hidden;
-    color: hsl(340 15% 15%); /* Ensuring dark text for readability */
+    color: hsl(30 15% 15%); /* Ensuring dark text for readability */
   }
 
-  /* Soft Pink Dynamic Background */
+  /* Romantic Golden Magic Dynamic Background */
   body::before {
     content: '';
     position: fixed;
@@ -203,14 +208,14 @@
     bottom: 0;
     z-index: -2;
     background: 
-      radial-gradient(circle at 20% 80%, rgba(255, 182, 193, 0.4) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, rgba(255, 192, 203, 0.3) 0%, transparent 50%),
-      radial-gradient(circle at 40% 40%, rgba(255, 182, 193, 0.2) 0%, transparent 50%),
-      linear-gradient(135deg, #fff0f5 0%, #ffe4e8 25%, #ffeef2 50%, #fdf2f8 75%, #fcf7ff 100%);
-    animation: backgroundShift 20s ease-in-out infinite;
+      radial-gradient(circle at 20% 80%, rgba(255, 204, 153, 0.4) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255, 183, 128, 0.3) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(255, 225, 204, 0.2) 0%, transparent 50%),
+      linear-gradient(135deg, #fff8f0 0%, #fff0e6 25%, #ffe8d6 50%, #ffedd4 75%, #fdf2f8 100%);
+    animation: goldenBackgroundShift 20s ease-in-out infinite;
   }
 
-  /* Floating Pink Elements */
+  /* Floating Golden Sparkles */
   body::after {
     content: '';
     position: fixed;
@@ -220,32 +225,32 @@
     bottom: 0;
     z-index: -1;
     background-image: 
-      radial-gradient(2px 2px at 20px 30px, rgba(255, 192, 203, 0.3), transparent),
-      radial-gradient(2px 2px at 40px 70px, rgba(255, 182, 193, 0.4), transparent),
-      radial-gradient(1px 1px at 90px 40px, rgba(255, 192, 203, 0.2), transparent),
-      radial-gradient(1px 1px at 130px 80px, rgba(255, 182, 193, 0.3), transparent),
-      radial-gradient(2px 2px at 160px 30px, rgba(255, 255, 255, 0.2), transparent);
+      radial-gradient(2px 2px at 20px 30px, rgba(255, 204, 153, 0.4), transparent),
+      radial-gradient(2px 2px at 40px 70px, rgba(255, 183, 128, 0.5), transparent),
+      radial-gradient(1px 1px at 90px 40px, rgba(255, 225, 204, 0.3), transparent),
+      radial-gradient(1px 1px at 130px 80px, rgba(255, 183, 128, 0.4), transparent),
+      radial-gradient(2px 2px at 160px 30px, rgba(255, 255, 255, 0.3), transparent);
     background-repeat: repeat;
     background-size: 200px 100px;
-    animation: floatingDots 15s linear infinite;
+    animation: magicalSparkles 15s linear infinite;
   }
 
-  @keyframes backgroundShift {
+  @keyframes goldenBackgroundShift {
     0%, 100% { 
       filter: hue-rotate(0deg) brightness(1);
     }
     25% { 
-      filter: hue-rotate(30deg) brightness(1.1);
+      filter: hue-rotate(15deg) brightness(1.1);
     }
     50% { 
-      filter: hue-rotate(60deg) brightness(0.9);
+      filter: hue-rotate(30deg) brightness(0.9);
     }
     75% { 
-      filter: hue-rotate(90deg) brightness(1.1);
+      filter: hue-rotate(45deg) brightness(1.1);
     }
   }
 
-  @keyframes floatingDots {
+  @keyframes magicalSparkles {
     0% { 
       transform: translateY(0px) rotate(0deg);
     }
@@ -254,12 +259,12 @@
     }
   }
 
-  /* Premium Typography - Clean and Modern */
+  /* Premium Typography - Clean and Modern with Golden Warmth */
   h1, h2, h3, h4, h5, h6 {
     @apply tracking-tight;
     font-family: 'Outfit', 'Inter', sans-serif;
     font-weight: 600;
-    color: hsl(340 15% 15%); /* Dark text for readability */
+    color: hsl(30 15% 15%); /* Dark warm text for readability */
   }
 
   h1 {
@@ -277,11 +282,11 @@
     letter-spacing: -0.01em;
   }
 
-  /* Clean Body Text */
+  /* Clean Body Text with Warm Tones */
   p {
     @apply leading-relaxed;
     font-family: 'Inter', system-ui, sans-serif;
-    color: hsl(340 25% 30%); /* Slightly lighter but still readable */
+    color: hsl(35 25% 30%); /* Warm brown-golden for body text */
   }
 
   /* Premium Button Styles */
