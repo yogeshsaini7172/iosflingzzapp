@@ -16,7 +16,6 @@ import DateSigmaHome from "./components/campus/DateSigmaHome";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 import GenZBackground from "./components/ui/genZ-background";
-import Navbar from "./components/Navbar";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -57,7 +56,6 @@ const AuthenticatedApp = () => {
   return (
     <TooltipProvider>
       <GenZBackground variant="app">
-        <Navbar />
         <Toaster />
         <Sonner />
         <div id="recaptcha-container"></div>
