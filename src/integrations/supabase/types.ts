@@ -1123,6 +1123,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      create_enhanced_match_if_not_exists: {
+        Args: { uid_a: string; uid_b: string }
+        Returns: undefined
+      }
       increment_reports_count: {
         Args: { user_id: string }
         Returns: undefined
