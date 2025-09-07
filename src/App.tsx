@@ -70,11 +70,29 @@ const AuthenticatedApp = () => {
             if (view === 'subscription') window.location.href = '/subscription';
           }} />} />
           <Route path="/swipe" element={<SwipePage onNavigate={(view) => {}} />} />
-          <Route path="/pairing" element={<PairingPage onNavigate={(view) => {}} />} />
+          <Route path="/pairing" element={<PairingPage onNavigate={(view) => {
+            if (view === 'home') window.location.href = '/';
+            if (view === 'pairing') window.location.href = '/pairing';
+            if (view === 'blind-date') window.location.href = '/blind-date';
+            if (view === 'profile') window.location.href = '/profile';
+            if (view === 'subscription') window.location.href = '/subscription';
+          }} />} />
           <Route path="/matches" element={<MatchesPage onNavigate={(view) => {}} />} />
           <Route path="/chat/:matchId?" element={<ChatPage onNavigate={(view) => {}} />} />
-          <Route path="/profile" element={<ProfilePage onNavigate={(view) => {}} />} />
-          <Route path="/blind-date" element={<BlindDatePage onNavigate={(view) => {}} />} />
+          <Route path="/profile" element={<ProfilePage onNavigate={(view) => {
+            if (view === 'home') window.location.href = '/';
+            if (view === 'pairing') window.location.href = '/pairing';
+            if (view === 'blind-date') window.location.href = '/blind-date';
+            if (view === 'profile') window.location.href = '/profile';
+            if (view === 'subscription') window.location.href = '/subscription';
+          }} />} />
+          <Route path="/blind-date" element={<BlindDatePage onNavigate={(view) => {
+            if (view === 'home') window.location.href = '/';
+            if (view === 'pairing') window.location.href = '/pairing';
+            if (view === 'blind-date') window.location.href = '/blind-date';
+            if (view === 'profile') window.location.href = '/profile';
+            if (view === 'subscription') window.location.href = '/subscription';
+          }} />} />
           <Route path="/subscription" element={<SubscriptionPage onNavigate={(view) => {
             if (view === 'home') window.location.href = '/';
           }} />} />
