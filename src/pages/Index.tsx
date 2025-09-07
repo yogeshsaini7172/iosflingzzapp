@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
 interface IndexProps {
-  onProfileComplete?: () => void;
+  onProfileComplete?: () => Promise<boolean>;
 }
 
 const Index = ({ onProfileComplete }: IndexProps) => {
@@ -68,9 +68,18 @@ const Index = ({ onProfileComplete }: IndexProps) => {
     case 'profile':
       return (
         <ProfileSetupFlow 
-          onComplete={() => {
+          onComplete={async () => {
+            console.log('Profile setup complete, triggering recheck...');
             setHasProfile(true);
-            onProfileComplete?.(); // Trigger recheck in App.tsx
+            
+            // Trigger parent recheck and wait for it
+            if (onProfileComplete) {
+              const profileCompleted = await onProfileComplete();
+              console.log('Parent recheck completed:', profileCompleted);
+              
+              // If recheck confirms profile is complete, the parent App will handle navigation
+              // No need for page refresh as App.tsx will re-render with hasProfile = true
+            }
           }}
         />
       );

@@ -69,9 +69,13 @@ const AuthenticatedApp = () => {
 
   // Add a function to recheck profile status
   const recheckProfile = async () => {
+    console.log('Rechecking profile status...');
     if (user) {
       setCheckingProfile(true);
       try {
+        // Add a small delay to ensure database has been updated
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         const { data: profile } = await supabase
           .from('profiles')
           .select('*')
@@ -81,16 +85,21 @@ const AuthenticatedApp = () => {
         const profileComplete = profile && profile.first_name && profile.university;
         setHasProfile(!!profileComplete);
         
-        console.log('Profile recheck:', { 
+        console.log('Profile recheck result:', { 
           userId: user.uid, 
-          hasProfile: !!profileComplete 
+          hasProfile: !!profileComplete,
+          profileData: profile
         });
+        
+        return !!profileComplete;
       } catch (error) {
         console.error('Error rechecking profile:', error);
+        return false;
       } finally {
         setCheckingProfile(false);
       }
     }
+    return false;
   };
 
   if (isLoading || checkingProfile) {

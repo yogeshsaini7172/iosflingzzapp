@@ -202,7 +202,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
 
       localStorage.setItem('demoQCS', JSON.stringify(qcsScore));
       // After QCS success, update profile via Edge Function (service role)
-      const { error: profileError } = await supabase.functions.invoke('profile-completion', {
+      const { data: profileResult, error: profileError } = await supabase.functions.invoke('profile-completion', {
         body: {
           userId,
           firstName: profileData.firstName,
@@ -219,12 +219,11 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         throw new Error('Failed to complete profile setup');
       }
 
+      console.log('Profile completion successful:', profileResult);
       toast({ title: "Profile Setup Complete! 🎉", description: `Your QCS score: ${totalScore}/100. Ready to start!` });
 
-      // Force a slight delay to ensure database is updated
-      setTimeout(() => {
-        onComplete();
-      }, 500);
+      // Immediately call onComplete to trigger navigation
+      onComplete();
     } catch (error: any) {
       console.error('Profile creation error:', error);
       toast({
