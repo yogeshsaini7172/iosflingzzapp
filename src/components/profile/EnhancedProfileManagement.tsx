@@ -733,7 +733,8 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
           const file = files[i];
           const fileExt = file.name.split('.').pop();
           const fileName = `${Date.now()}-${i}.${fileExt}`;
-          const filePath = `${profile?.user_id}/${fileName}`;
+          const userFolder = profile?.user_id || 'anon';
+          const filePath = `${userFolder}/${fileName}`;
 
           const { error } = await supabase.storage
             .from('profile-images')
