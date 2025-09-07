@@ -206,7 +206,7 @@ const handleSubmitVerification = async () => {
           <div className="text-center space-y-4">
             <div className="flex items-center justify-center space-x-2">
               <FileCheck className="w-6 h-6 text-primary" />
-              <h4 className="font-medium">Government ID (Optional)</h4>
+              <h4 className="font-medium">Government ID (Required)</h4>
               {govtIdFile && (
                 <Badge className="bg-success text-success-foreground">
                   <CheckCircle className="w-3 h-3 mr-1" />
@@ -234,7 +234,7 @@ const handleSubmitVerification = async () => {
             ) : (
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  Driver's license, passport, or national ID card
+                  Driver's license, passport, or national ID card (required for verification)
                 </p>
                 <label className="cursor-pointer">
                   <input
@@ -275,7 +275,7 @@ const handleSubmitVerification = async () => {
       </Card>
 
       {/* Submit Button */}
-      {(collegeIdFile || govtIdFile) && (
+      {govtIdFile && (
         <Card className="border-primary/20 bg-gradient-card">
           <CardContent className="p-4 text-center">
              <Button
@@ -286,7 +286,7 @@ const handleSubmitVerification = async () => {
               {isUploading ? (
                 <div className="flex items-center space-x-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Submitting Documents...</span>
+                  <span>Verifying Documents...</span>
                 </div>
               ) : (
                 <div className="flex items-center space-x-2">
@@ -296,7 +296,7 @@ const handleSubmitVerification = async () => {
               )}
             </Button>
             <p className="text-xs text-muted-foreground mt-2">
-              You can continue using the app while we review your documents
+              Processing usually takes 10-30 seconds
             </p>
           </CardContent>
         </Card>

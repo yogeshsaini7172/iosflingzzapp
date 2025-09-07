@@ -136,6 +136,8 @@ serve(async (req) => {
       throw new Error('Government ID is required');
     }
 
+    console.log('Processing verification for:', { userId, hasGovtId: !!govtId, hasSecondary: !!secondaryId, signupName, signupDob });
+
     // Extract details from government ID
     const govtBytes = new Uint8Array(await govtId.arrayBuffer());
     const govtDetails = await extractIdDetails(govtBytes);
@@ -192,6 +194,7 @@ serve(async (req) => {
 
     // Update verification status in database if successful
     if (result.status === 'verified' && userId) {
+      console.log('Updating verification status for user:', userId);
       const { error } = await supabase
         .from('profiles')
         .update({ verification_status: 'verified' })
@@ -199,8 +202,12 @@ serve(async (req) => {
 
       if (error) {
         console.error('Error updating verification status:', error);
+      } else {
+        console.log('Successfully updated verification status');
       }
     }
+
+    console.log('Final verification result:', result);
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
