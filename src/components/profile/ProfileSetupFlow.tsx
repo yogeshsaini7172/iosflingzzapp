@@ -55,9 +55,13 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
     heightRangeMin: 150,
     heightRangeMax: 200,
     preferredBodyTypes: [] as string[],
+    preferredSkinTone: [] as string[],
+    preferredFaceType: [] as string[],
     preferredValues: [] as string[],
     preferredMindset: [] as string[],
     preferredPersonality: [] as string[],
+    preferredLoveLanguage: [] as string[],
+    preferredLifestyle: [] as string[],
     preferredRelationshipGoals: [] as string[],
     
     // Photos
@@ -155,7 +159,10 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         preferred_values: profileData.preferredValues,
         preferred_mindset: profileData.preferredMindset,
         preferred_personality: profileData.preferredPersonality,
-        preferred_relationship_goal: profileData.preferredRelationshipGoals
+        preferred_skin_tone: profileData.preferredSkinTone,
+        preferred_face_type: profileData.preferredFaceType,
+        preferred_love_language: profileData.preferredLoveLanguage,
+        preferred_lifestyle: profileData.preferredLifestyle,
       };
 
       localStorage.setItem('demoPreferences', JSON.stringify(preferences));
@@ -221,7 +228,8 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
           faceType: profileData.faceType,
           personalityType: profileData.personalityType,
           values: profileData.values,
-          mindset: profileData.mindset,
+          loveLanguage: profileData.loveLanguage,
+          lifestyle: profileData.lifestyle,
           relationshipGoals: profileData.relationshipGoals,
           interests: profileData.interests,
           bio: profileData.bio,
@@ -236,7 +244,10 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
             // Add physical preferences for requirements matching
             heightRangeMin: profileData.heightRangeMin,
             heightRangeMax: profileData.heightRangeMax, 
-            preferredBodyTypes: profileData.preferredBodyTypes,
+            preferredSkinTone: profileData.preferredSkinTone,
+            preferredFaceType: profileData.preferredFaceType,
+            preferredLoveLanguage: profileData.preferredLoveLanguage,
+            preferredLifestyle: profileData.preferredLifestyle,
             preferredValues: profileData.preferredValues,
             preferredMindset: profileData.preferredMindset,
             preferredPersonality: profileData.preferredPersonality
