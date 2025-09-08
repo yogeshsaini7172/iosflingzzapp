@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
 import { Profile } from "@/hooks/useProfileData";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,20 +25,20 @@ export const usePairing = () => {
       setLoading(true);
 
       // Use data-management function for pairing feed
-      const { data, error } = await supabase.functions.invoke("data-management", {
-        headers: { Authorization: `Bearer firebase-${userId}` },
-        body: { 
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/data-management', {
+        method: 'POST',
+        body: JSON.stringify({ 
           action: 'get_pairing_feed',
-          user_id: userId, 
           limit: 10,
           filters: {
             ageMin: 18,
             ageMax: 30
           }
-        }
+        })
       });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to fetch pairing feed');
+      const data = await response.json();
 
       const profiles = (data?.data?.profiles || []).map((profile: any) => ({
         ...profile,

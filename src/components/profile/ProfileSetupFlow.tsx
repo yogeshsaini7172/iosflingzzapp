@@ -10,6 +10,7 @@ import WhoYouWantStep from "./steps/WhoYouWantStep";
 import UploadPhotosStep from "./steps/UploadPhotosStep";
 import IDVerificationStep from "./steps/IDVerificationStep";
 import ProgressIndicator from "./steps/ProgressIndicator";
+import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -199,15 +200,19 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       const mental = `${profileData.personalityType || 'calm'} ${profileData.interests?.includes('fitness') ? 'ambitious' : 'logical'}`.trim();
       const description = profileData.bio || 'No description available';
 
-      const { data: qcsResponse, error: qcsError } = await supabase.functions.invoke('qcs-scoring', {
-        body: { user_id: userId, physical, mental, description }
+      const qcsResponse = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/qcs-scoring', {
+        method: 'POST',
+        body: JSON.stringify({ physical, mental, description })
       });
 
-      if (qcsError) {
-        throw qcsError;
+      if (!qcsResponse.ok) {
+        const errorData = await qcsResponse.json();
+        throw new Error(errorData?.error || 'Failed to calculate QCS');
       }
 
-      const totalScore = qcsResponse?.qcs_score ?? 0;
+      const qcsData = await qcsResponse.json();
+
+      const totalScore = qcsData?.qcs_score ?? 0;
       const qcsScore = {
         user_id: userId,
         profile_score: Math.floor(totalScore * 0.4),

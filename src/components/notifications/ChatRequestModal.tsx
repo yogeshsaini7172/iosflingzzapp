@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useRequiredAuth } from '@/hooks/useRequiredAuth';
 import { toast } from '@/hooks/use-toast';
@@ -36,16 +37,17 @@ const ChatRequestModal = ({ isOpen, onClose, profile }: ChatRequestModalProps) =
 
     setSending(true);
     try {
-      const { data, error } = await supabase.functions.invoke('chat-request-handler', {
-        body: {
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-request-handler', {
+        method: 'POST',
+        body: JSON.stringify({
           action: 'send_request',
           recipient_id: profile.user_id,
-          message: message.trim(),
-          user_id: userId  // Pass Firebase userId directly
-        }
+          message: message.trim()
+        })
       });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to send chat request');
+      const data = await response.json();
 
       toast({
         title: "Chat request sent! 💬",

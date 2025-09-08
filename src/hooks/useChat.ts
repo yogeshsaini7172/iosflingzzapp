@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
 import { useToast } from '@/hooks/use-toast';
 
 export interface ChatRoom {
@@ -42,11 +43,13 @@ export const useChat = (userId: string | null) => {
     try {
       console.log('🔍 Fetching chat rooms for user:', userId);
       
-      const { data, error } = await supabase.functions.invoke('chat-management', {
-        body: { action: 'list', user_id: userId }
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-management', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'list' })
       });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to fetch chat rooms');
+      const data = await response.json();
       
       if (data?.success) {
         const rooms = data.data || [];

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -81,12 +82,18 @@ export const useProfileData = () => {
   };
 
   const callDataFunction = async (action: string, payload?: any) => {
-    const userId = getCurrentUserId();
-    const { data, error } = await supabase.functions.invoke('data-management', {
-      headers: { Authorization: `Bearer firebase-${userId}` },
-      body: { action, user_id: userId, ...payload }
+    const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/data-management', {
+      method: 'POST',
+      body: JSON.stringify({ action, ...payload })
     });
-    return { data, error } as { data: any; error: any };
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      return { data: null, error: errorData };
+    }
+    
+    const data = await response.json();
+    return { data, error: null };
   };
 
   const fetchProfileData = async () => {

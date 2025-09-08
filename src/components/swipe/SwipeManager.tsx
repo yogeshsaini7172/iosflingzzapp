@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
@@ -142,20 +143,21 @@ const SwipeManager = ({ onUpgrade }: SwipeManagerProps) => {
 
     try {
       // Call the NEW enhanced-swipe-action function for ALL swipes (no auth required)
-      const { data: resp, error: invokeError } = await supabase.functions.invoke('enhanced-swipe-action', {
-        body: {
-          user_id: user.uid,
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/enhanced-swipe-action', {
+        method: 'POST',
+        body: JSON.stringify({
           target_user_id: currentCandidate.user_id,
           direction,
-        },
+        })
       });
 
-      if (invokeError) {
-        console.error('Enhanced swipe invoke error:', invokeError);
-        throw invokeError;
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Enhanced swipe error:', errorData);
+        throw new Error(errorData?.error || 'Failed to swipe');
       }
 
-      const data = resp as any;
+      const data = await response.json();
 
       // Update swipes left for free users
       if (subscriptionTier === 'free') {

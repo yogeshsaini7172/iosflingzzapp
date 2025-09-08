@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
 import { useRequiredAuth } from './useRequiredAuth';
 import { useToast } from './use-toast';
 
@@ -62,11 +63,13 @@ export const useThreads = () => {
   const fetchThreads = async () => {
     try {
       console.log('[Threads] Fetching list via edge function...');
-      const { data, error } = await supabase.functions.invoke('thread-management', {
-        body: { action: 'list' }
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/thread-management', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'list' })
       });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to fetch threads');
+      const data = await response.json();
 
       const formattedThreads = (data?.data as any[]) || [];
       console.log('[Threads] Received', formattedThreads.length, 'threads');
@@ -100,15 +103,16 @@ export const useThreads = () => {
     if (!userId || !content.trim()) return false;
 
     try {
-      const { data, error } = await supabase.functions.invoke('thread-management', {
-        body: {
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/thread-management', {
+        method: 'POST',
+        body: JSON.stringify({
           action: 'create',
-          content: content.trim(),
-          userId
-        }
+          content: content.trim()
+        })
       });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to create thread');
+      const data = await response.json();
 
       toast({
         title: "Thread posted! 🎉",
@@ -136,15 +140,16 @@ export const useThreads = () => {
     try {
       const action = isCurrentlyLiked ? 'unlike' : 'like';
       
-      const { data, error } = await supabase.functions.invoke('thread-management', {
-        body: {
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/thread-management', {
+        method: 'POST',
+        body: JSON.stringify({
           action,
-          threadId,
-          userId
-        }
+          threadId
+        })
       });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error(`Failed to ${action} thread`);
+      const data = await response.json();
 
       // Update local state optimistically
       const newLikedThreads = new Set(likedThreads);
@@ -175,16 +180,17 @@ export const useThreads = () => {
     if (!userId || !content.trim()) return false;
 
     try {
-      const { data, error } = await supabase.functions.invoke('thread-management', {
-        body: {
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/thread-management', {
+        method: 'POST',
+        body: JSON.stringify({
           action: 'reply',
           threadId,
-          content: content.trim(),
-          userId
-        }
+          content: content.trim()
+        })
       });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to reply to thread');
+      const data = await response.json();
 
       toast({
         title: "Reply posted! 💬",
@@ -208,16 +214,17 @@ export const useThreads = () => {
     if (!userId || !content.trim()) return false;
 
     try {
-      const { data, error } = await supabase.functions.invoke('thread-management', {
-        body: {
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/thread-management', {
+        method: 'POST',
+        body: JSON.stringify({
           action: 'update',
           threadId,
-          content: content.trim(),
-          userId
-        }
+          content: content.trim()
+        })
       });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to update thread');
+      const data = await response.json();
 
       toast({
         title: "Thread updated! ✏️",
@@ -241,15 +248,16 @@ export const useThreads = () => {
     if (!userId) return false;
 
     try {
-      const { data, error } = await supabase.functions.invoke('thread-management', {
-        body: {
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/thread-management', {
+        method: 'POST',
+        body: JSON.stringify({
           action: 'delete',
-          threadId,
-          userId
-        }
+          threadId
+        })
       });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to delete thread');
+      const data = await response.json();
 
       toast({
         title: "Thread deleted! 🗑️",

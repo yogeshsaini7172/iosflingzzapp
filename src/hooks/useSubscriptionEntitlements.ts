@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
 import { SUBSCRIPTION_PLANS, type PlanId, type PlanFeatures } from "@/config/subscriptionPlans";
 
 interface SubscriptionEntitlements {
@@ -47,11 +47,13 @@ export function useSubscriptionEntitlements() {
       setLoading(true);
       setError(null);
 
-      const { data, error: apiError } = await supabase.functions.invoke('subscription-entitlement', {
-        body: { action: 'check' }
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/subscription-entitlement', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'check' })
       });
 
-      if (apiError) throw apiError;
+      if (!response.ok) throw new Error('Failed to check entitlements');
+      const data = await response.json();
 
       if (data.success) {
         setEntitlements(data.data);
@@ -111,11 +113,13 @@ export function useSubscriptionEntitlements() {
 
   const upgradePlan = async (planId: PlanId) => {
     try {
-      const { data, error } = await supabase.functions.invoke('subscription-entitlement', {
-        body: { action: 'upgrade', plan_id: planId }
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/subscription-entitlement', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'upgrade', plan_id: planId })
       });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to upgrade plan');
+      const data = await response.json();
       if (!data.success) throw new Error(data.error);
 
       setEntitlements(data.data);
@@ -128,11 +132,13 @@ export function useSubscriptionEntitlements() {
 
   const downgradePlan = async (planId: PlanId) => {
     try {
-      const { data, error } = await supabase.functions.invoke('subscription-entitlement', {
-        body: { action: 'downgrade', plan_id: planId }
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/subscription-entitlement', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'downgrade', plan_id: planId })
       });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to downgrade plan');
+      const data = await response.json();
       if (!data.success) throw new Error(data.error);
 
       setEntitlements(data.data);
@@ -145,11 +151,13 @@ export function useSubscriptionEntitlements() {
 
   const requestExtraPairings = async (count: number = 1) => {
     try {
-      const { data, error } = await supabase.functions.invoke('request-extra-pairings', {
-        body: { count }
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/request-extra-pairings', {
+        method: 'POST',
+        body: JSON.stringify({ count })
       });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to request extra pairings');
+      const data = await response.json();
       if (!data.success) throw new Error(data.error);
 
       // Refresh entitlements after requesting extra pairings

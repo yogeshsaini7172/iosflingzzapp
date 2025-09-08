@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
 import { useAuth } from "@/contexts/AuthContext";
 
 export type Profile = {
@@ -41,15 +41,16 @@ export function useFeed(initialLimit = 12) {
         const token = await getIdToken();
         
         // Call the Supabase Edge Function
-        const { data: response, error } = await supabase.functions.invoke('get-feed', {
-          body: Object.fromEntries(params.entries()),
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/get-feed', {
+          method: 'POST',
+          body: JSON.stringify(Object.fromEntries(params.entries()))
         });
         
-        if (error) throw error;
+        if (!response.ok) throw new Error('Failed to fetch feed');
+        const responseData = await response.json();
         
-        const newData: Profile[] = response?.data || [];
-        const hasMoreData = response?.hasMore || false;
+        const newData: Profile[] = responseData?.data || [];
+        const hasMoreData = responseData?.hasMore || false;
         
         console.log(`📥 Fetched ${newData.length} profiles, hasMore: ${hasMoreData}`);
         
@@ -80,15 +81,16 @@ export function useFeed(initialLimit = 12) {
       const token = await getIdToken();
       
       // Call the Supabase Edge Function
-      const { data: response, error } = await supabase.functions.invoke('get-feed', {
-        body: Object.fromEntries(params.entries()),
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/get-feed', {
+        method: 'POST',
+        body: JSON.stringify(Object.fromEntries(params.entries()))
       });
       
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to refresh feed');
+      const responseData = await response.json();
       
-      const newData: Profile[] = response?.data || [];
-      const hasMoreData = response?.hasMore || false;
+      const newData: Profile[] = responseData?.data || [];
+      const hasMoreData = responseData?.hasMore || false;
       
       console.log(`🔄 Refreshed with ${newData.length} profiles`);
       
@@ -112,19 +114,20 @@ export function useFeed(initialLimit = 12) {
       const token = await getIdToken();
       
       // Call the swipe Edge Function
-      const { data: response, error } = await supabase.functions.invoke('swipe', {
-        body: { to_user_id: userId, type, from_user_id: userId },
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/swipe', {
+        method: 'POST',
+        body: JSON.stringify({ to_user_id: userId, type, from_user_id: userId })
       });
       
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to swipe');
+      const responseData = await response.json();
       
-      console.log(`✅ Swiped ${type} on profile ${profileId}`, response);
+      console.log(`✅ Swiped ${type} on profile ${profileId}`, responseData);
       
       // Optimistically remove from feed
       removeItem(profileId);
       
-      return response;
+      return responseData;
     } catch (err) {
       console.error("❌ Swipe error:", err);
       throw err;

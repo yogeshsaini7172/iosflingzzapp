@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
 import { useRequiredAuth } from './useRequiredAuth';
 import { useRealtime } from './useRealtime';
 import { toast } from '@/hooks/use-toast';
@@ -25,10 +25,12 @@ export const useNotifications = () => {
   const fetchNotifications = async () => {
     if (!userId) return;
     try {
-      const { data, error } = await supabase.functions.invoke('notifications-management', {
-        body: { action: 'list', user_id: userId }
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/notifications-management', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'list' })
       });
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to fetch notifications');
+      const data = await response.json();
       const list = (data?.data || []) as any[];
       const notifs = list.map((n) => ({
         ...n,
@@ -65,10 +67,11 @@ export const useNotifications = () => {
   // Mark notification as read via Edge Function
   const markAsRead = async (notificationId: string) => {
     try {
-      const { error } = await supabase.functions.invoke('notifications-management', {
-        body: { action: 'mark_read', user_id: userId, notification_id: notificationId }
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/notifications-management', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'mark_read', notification_id: notificationId })
       });
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to mark notification as read');
       setNotifications(prev => 
         prev.map(n => n.id === notificationId ? { ...n, read_at: new Date().toISOString() } : n)
       );
@@ -81,10 +84,11 @@ export const useNotifications = () => {
   // Mark all as read via Edge Function
   const markAllAsRead = async () => {
     try {
-      const { error } = await supabase.functions.invoke('notifications-management', {
-        body: { action: 'mark_all_read', user_id: userId }
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/notifications-management', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'mark_all_read' })
       });
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to mark all notifications as read');
       setNotifications(prev => prev.map(n => ({ ...n, read_at: n.read_at || new Date().toISOString() })));
       setUnreadCount(0);
     } catch (error) {

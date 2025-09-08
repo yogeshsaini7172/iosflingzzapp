@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Heart, X, Filter, RefreshCw, Settings, MoreHorizontal } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
 import { supabase } from "@/integrations/supabase/client";
 import DetailedProfileModal from "@/components/profile/DetailedProfileModal";
 import RebuiltChatSystem from "@/components/chat/RebuiltChatSystem";
@@ -147,18 +148,21 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
 
     try {
       // Call the enhanced-swipe-action via Supabase client (JWT not required now)
-      const { data: resp, error: invokeError } = await supabase.functions.invoke('enhanced-swipe-action', {
-        body: {
-          user_id: userId,
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/enhanced-swipe-action', {
+        method: 'POST',
+        body: JSON.stringify({
           target_user_id: currentProfile.user_id,
           direction,
-        },
+        })
       });
 
-      if (invokeError) {
-        console.error('Enhanced swipe invoke error:', invokeError);
-        throw invokeError;
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Enhanced swipe error:', errorData);
+        throw new Error(errorData?.error || 'Failed to swipe');
       }
+
+      const resp = await response.json();
 
       // Invoke succeeded; resp contains the function response
 

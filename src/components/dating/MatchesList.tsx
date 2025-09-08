@@ -7,6 +7,7 @@ import { MessageCircle, Heart, Calendar, Send, MoreVertical, MapPin } from "luci
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRequiredAuth } from "@/hooks/useRequiredAuth";
 import { useMatchNotifications } from "@/hooks/useMatchNotifications";
+import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useRealtime } from "@/hooks/useRealtime";
@@ -70,14 +71,15 @@ const MatchesList = ({ onNavigate }: MatchesListProps) => {
     
     try {
       setLoading(true);
-      const { data, error } = await supabase.functions.invoke('chat-management', {
-        body: {
-          action: 'list',
-          user_id: userId
-        }
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-management', {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'list'
+        })
       });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to fetch matches');
+      const data = await response.json();
       const rooms = data?.data || [];
       // Map rooms to Match type expected by UI
       const mapped: Match[] = rooms.map((r: any) => ({
