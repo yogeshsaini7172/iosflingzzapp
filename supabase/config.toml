@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.profile-completion]
 verify_jwt = false
+
+[functions.data-management]
+verify_jwt = false

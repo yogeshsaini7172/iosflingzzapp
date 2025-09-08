@@ -81,11 +81,11 @@ export const useProfileData = () => {
     return fallbackId;
   };
 
-  const callProfileFunction = async (action: 'get' | 'update', payload?: any) => {
+  const callDataFunction = async (action: string, payload?: any) => {
     const userId = getCurrentUserId();
-    const { data, error } = await supabase.functions.invoke('profile-management', {
-      headers: { Authorization: `Bearer dummy-token-${userId}` },
-      body: { action, user_id: userId, profile: payload }
+    const { data, error } = await supabase.functions.invoke('data-management', {
+      headers: { Authorization: `Bearer firebase-${userId}` },
+      body: { action, user_id: userId, ...payload }
     });
     return { data, error } as { data: any; error: any };
   };
@@ -97,20 +97,14 @@ export const useProfileData = () => {
     try {
       setIsLoading(true);
 
-      // Prefer edge function (service role) to bypass RLS issues
+      // Use data-management edge function with service role access
       let profileData: any = null;
-      const { data: fnData, error: fnError } = await callProfileFunction('get');
+      const { data: fnData, error: fnError } = await callDataFunction('get_profile');
       if (!fnError && fnData?.data?.profile) {
         profileData = fnData.data.profile;
-        console.log("📊 Profile from edge function:", profileData);
-      } else {
-        console.warn("⚠️ Edge function get failed, falling back to table select", fnError);
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("user_id", userId)
-          .maybeSingle();
-        if (!error) profileData = data;
+        console.log("📊 Profile from data-management function:", profileData);
+      } else if (fnError) {
+        console.warn("⚠️ Data management function failed:", fnError);
       }
 
       // Transform legacy single values to arrays for backward compatibility
@@ -148,20 +142,17 @@ export const useProfileData = () => {
         }
       }
 
-      // Fetch preferences with fallback to localStorage (RLS-safe)
-      const { data: prefData, error: prefError } = await supabase
-        .from("partner_preferences")
-        .select("*")
-        .eq("user_id", userId)
-        .maybeSingle();
-
-      if (!prefError && prefData) {
+      // Fetch preferences using data-management function
+      const { data: prefData, error: prefError } = await callDataFunction('get_preferences');
+      if (!prefError && prefData?.data?.preferences) {
         const safePrefs: PartnerPreferences = {
-          ...prefData,
-          preferred_gender: (prefData.preferred_gender || []) as Gender[],
+          ...prefData.data.preferences,
+          preferred_gender: (prefData.data.preferences.preferred_gender || []) as Gender[],
         };
         setPreferences(safePrefs);
+        console.log("📊 Preferences from data-management function:", safePrefs);
       } else {
+        console.warn("⚠️ Preferences fetch failed, using localStorage fallback:", prefError);
         const localPrefs = localStorage.getItem('demoPreferences');
         if (localPrefs) {
           setPreferences(JSON.parse(localPrefs));
@@ -199,7 +190,7 @@ export const useProfileData = () => {
       if (Array.isArray(updates.values)) delete dbUpdates.values;
       if (Array.isArray(updates.mindset)) delete dbUpdates.mindset;
 
-      const { error: fnError } = await callProfileFunction('update', dbUpdates);
+      const { error: fnError } = await callDataFunction('update_profile', { profile: dbUpdates });
       if (fnError) throw fnError;
       
       toast({
@@ -222,27 +213,8 @@ export const useProfileData = () => {
     const userId = getCurrentUserId();
     
     try {
-      // Check if a row already exists for this user (Firebase UID)
-      const { data: existing } = await supabase
-        .from("partner_preferences")
-        .select("user_id")
-        .eq("user_id", userId)
-        .maybeSingle();
-
-      let error: any = null;
-
-      if (existing) {
-        ({ error } = await supabase
-          .from("partner_preferences")
-          .update({ ...updates })
-          .eq("user_id", userId));
-      } else {
-        ({ error } = await supabase
-          .from("partner_preferences")
-          .insert({ user_id: userId, ...updates }));
-      }
-
-      if (error) throw error;
+      const { error: fnError } = await callDataFunction('update_preferences', { preferences: updates });
+      if (fnError) throw fnError;
       
       toast({
         title: "Preferences updated",
@@ -252,7 +224,7 @@ export const useProfileData = () => {
       await fetchProfileData();
     } catch (error: any) {
       console.warn("⚠️ Falling back to localStorage for preferences:", error);
-      // Fallback: store locally to keep UX smooth when RLS blocks the request
+      // Fallback: store locally to keep UX smooth when function fails
       const current = localStorage.getItem('demoPreferences');
       const merged = { ...(current ? JSON.parse(current) : {}), user_id: userId, ...updates };
       localStorage.setItem('demoPreferences', JSON.stringify(merged));

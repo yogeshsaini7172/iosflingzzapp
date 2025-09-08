@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfileData } from "@/hooks/useProfileData";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface FeedProfile {
   id: string;
@@ -19,12 +20,15 @@ export interface FeedProfile {
 
 export function useProfilesFeed() {
   const { profile, preferences } = useProfileData();
+  const { user } = useAuth();
   const [profiles, setProfiles] = useState<FeedProfile[]>([]);
   const [loading, setLoading] = useState(true);
 
   const getCurrentUserId = () => {
-    // Bypass auth - use default user ID for database operations
-    return '11111111-1111-1111-1111-111111111001'; // Default Alice user
+    if (user?.uid) {
+      return user.uid;
+    }
+    return localStorage.getItem("demoUserId") || "6e6a510a-d406-4a01-91ab-64efdbca98f2";
   };
 
   useEffect(() => {
@@ -34,18 +38,20 @@ export function useProfilesFeed() {
       try {
         const currentUserId = getCurrentUserId();
         
-        // Fetch profiles excluding current user
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .neq("user_id", currentUserId)
-          .eq("is_active", true)
-          .limit(20);
+        // Use data-management function for feed
+        const { data, error } = await supabase.functions.invoke('data-management', {
+          headers: { Authorization: `Bearer firebase-${currentUserId}` },
+          body: { 
+            action: 'get_feed',
+            user_id: currentUserId,
+            limit: 20
+          }
+        });
 
         if (error) throw error;
 
-        console.log("✅ Fetched profiles:", data?.length);
-        setProfiles(data || []);
+        console.log("✅ Fetched profiles from data-management:", data?.data?.profiles?.length);
+        setProfiles(data?.data?.profiles || []);
       } catch (err) {
         console.error("❌ Error fetching feed profiles:", err);
       } finally {

@@ -2,15 +2,19 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Profile } from "@/hooks/useProfileData";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const usePairing = () => {
   const [pairedProfiles, setPairedProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const getCurrentUserId = () => {
-    // Bypass auth - use default Alice user ID
-    return "11111111-1111-1111-1111-111111111001";
+    if (user?.uid) {
+      return user.uid;
+    }
+    return localStorage.getItem("demoUserId") || "11111111-1111-1111-1111-111111111001";
   };
 
   const fetchPairedProfiles = async () => {
@@ -19,9 +23,11 @@ export const usePairing = () => {
     try {
       setLoading(true);
 
-      // Call the swipe-feed function (new enhanced function)
-      const { data, error } = await supabase.functions.invoke("swipe-feed", {
+      // Use data-management function for pairing feed
+      const { data, error } = await supabase.functions.invoke("data-management", {
+        headers: { Authorization: `Bearer firebase-${userId}` },
         body: { 
+          action: 'get_pairing_feed',
           user_id: userId, 
           limit: 10,
           filters: {
@@ -33,46 +39,34 @@ export const usePairing = () => {
 
       if (error) throw error;
 
-      setPairedProfiles(data?.profiles || []);
+      const profiles = (data?.data?.profiles || []).map((profile: any) => ({
+        ...profile,
+        personality_traits: Array.isArray(profile.personality_traits) 
+          ? profile.personality_traits 
+          : profile.personality_type 
+            ? [profile.personality_type] 
+            : [],
+        values: Array.isArray(profile.values) 
+          ? profile.values 
+          : profile.values 
+            ? [profile.values] 
+            : [],
+        mindset: Array.isArray(profile.mindset) 
+          ? profile.mindset 
+          : profile.mindset 
+            ? [profile.mindset] 
+            : [],
+      })) as Profile[];
+
+      setPairedProfiles(profiles);
+      console.log("✅ Pairing profiles fetched:", profiles.length);
     } catch (error: any) {
       console.error("❌ Error fetching paired profiles:", error);
-      // Friendly fallback: show suggested profiles if pairing limit reached or function fails
-      try {
-        const { data: fallback } = await supabase
-          .from("profiles")
-          .select("*")
-          .neq("user_id", userId)
-          .eq("is_active", true)
-          .limit(10);
-        setPairedProfiles((fallback as any[])?.map(profile => ({
-          ...profile,
-          personality_traits: Array.isArray(profile.personality_traits) 
-            ? profile.personality_traits 
-            : profile.personality_type 
-              ? [profile.personality_type] 
-              : [],
-          values: Array.isArray(profile.values) 
-            ? profile.values 
-            : profile.values 
-              ? [profile.values] 
-              : [],
-          mindset: Array.isArray(profile.mindset) 
-            ? profile.mindset 
-            : profile.mindset 
-              ? [profile.mindset] 
-              : [],
-        })) as Profile[] || []);
-        toast({
-          title: "Showing suggested profiles",
-          description: "Pairing limit reached or temporarily unavailable.",
-        });
-      } catch (fallbackErr) {
-        toast({
-          title: "Error loading matches",
-          description: (error as any)?.message || "Please try again later.",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Error loading matches",
+        description: (error as any)?.message || "Please try again later.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
