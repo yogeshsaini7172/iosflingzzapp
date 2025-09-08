@@ -41,24 +41,33 @@ const AuthenticatedApp = () => {
   // Function to check if user has completed profile
   const checkUserProfile = async (userId: string) => {
     try {
-      // Use client-side flag first to avoid RLS issues (Firebase auth + Supabase DB)
-      const flag = localStorage.getItem('profile_complete') === 'true';
-      if (flag) return true;
+      // Fast path: client-side flag
+      if (localStorage.getItem('profile_complete') === 'true') return true;
 
-      // Fallback: infer from locally cached demo profile
-      const demo = localStorage.getItem('demoProfile');
-      if (demo) {
-        const p = JSON.parse(demo);
-        const complete = p?.user_id === userId && !!p?.first_name && !!p?.university;
-        if (complete) {
-          localStorage.setItem('profile_complete', 'true');
-          return true;
+      // Server check via Edge Function (bypasses RLS)
+      const { data, error } = await supabase.functions.invoke('profile-status', {
+        body: { user_id: userId }
+      });
+      if (error) {
+        console.error('profile-status error:', error);
+      }
+      const isComplete = !!data?.isComplete;
+      if (isComplete) localStorage.setItem('profile_complete', 'true');
+      else {
+        // Fallback: demo local profile
+        const demo = localStorage.getItem('demoProfile');
+        if (demo) {
+          const p = JSON.parse(demo);
+          const complete = p?.user_id === userId && !!p?.first_name && !!p?.university;
+          if (complete) {
+            localStorage.setItem('profile_complete', 'true');
+            return true;
+          }
         }
       }
-
-      return false;
+      return isComplete;
     } catch (error) {
-      console.error('❌ Error checking profile flag:', error);
+      console.error('❌ Error checking profile status:', error);
       return false;
     }
   };
