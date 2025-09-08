@@ -44,6 +44,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         email: firebaseUser.email,
         displayName: firebaseUser.displayName 
       } : 'null');
+      console.log('🔥 Setting user state to:', firebaseUser ? 'USER_OBJECT' : 'NULL');
       setUser(firebaseUser);
       setIsLoading(false);
 
@@ -53,9 +54,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         await syncUserProfile(firebaseUser);
         toast.success('Successfully signed in!');
       } else {
-        toast.success('Successfully signed out');
+        console.log('🔥 No user found - user signed out or no session');
+        if (firebaseUser === null) {
+          toast.success('Successfully signed out');
+        }
       }
     });
+
+    // Check current auth state immediately
+    console.log('🔥 Current auth state on mount:', auth.currentUser);
 
     return () => unsubscribe();
   }, []);
