@@ -21,91 +21,82 @@ export function useRealtimeNotifications() {
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    if (!user) return;
+    let channel: any | null = null;
+    let isMounted = true;
 
-    // Fetch initial notifications
-    const fetchNotifications = async () => {
+    (async () => {
+      if (!user) return;
+
+      // Ensure Supabase auth session exists before subscribing
+      const { data: { session } } = await supabase.auth.getSession();
+      const authedUserId = session?.user?.id;
+      if (!authedUserId) return;
+
+      // Fetch initial notifications
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
-        .eq('user_id', user.uid)
+        .eq('user_id', authedUserId)
         .order('created_at', { ascending: false })
         .limit(20);
 
-      if (!error && data) {
+      if (isMounted && !error && data) {
         setNotifications(data);
         setUnreadCount(data.filter(n => !n.read_at).length);
       }
-    };
 
-    fetchNotifications();
+      // Set up real-time subscription (only after we have a session)
+      channel = supabase
+        .channel(`notifications:${authedUserId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${authedUserId}`
+          },
+          (payload) => {
+            const newNotification = payload.new as Notification;
 
-    // Set up real-time subscription
-    const channel = supabase
-      .channel('notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.uid}`
-        },
-        (payload) => {
-          const newNotification = payload.new as Notification;
-          
-          setNotifications(prev => [newNotification, ...prev]);
-          setUnreadCount(prev => prev + 1);
+            setNotifications(prev => [newNotification, ...prev]);
+            setUnreadCount(prev => prev + 1);
 
-          // Show toast notification
-          if (newNotification.type === 'new_match') {
-            toast({
-              title: "🎉 It's a Match!",
-              description: newNotification.message,
-            });
-          } else if (newNotification.type === 'chat_request') {
-            toast({
-              title: "💬 Chat Request",
-              description: newNotification.message,
-            });
-          } else if (newNotification.type === 'chat_request_accepted') {
-            toast({
-              title: "✅ Chat Accepted",
-              description: newNotification.message,
-            });
-          } else {
-            toast({
-              title: newNotification.title,
-              description: newNotification.message,
-            });
+            if (newNotification.type === 'new_match') {
+              toast({ title: "🎉 It's a Match!", description: newNotification.message });
+            } else if (newNotification.type === 'chat_request') {
+              toast({ title: '💬 Chat Request', description: newNotification.message });
+            } else if (newNotification.type === 'chat_request_accepted') {
+              toast({ title: '✅ Chat Accepted', description: newNotification.message });
+            } else {
+              toast({ title: newNotification.title, description: newNotification.message });
+            }
           }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.uid}`
-        },
-        (payload) => {
-          const updatedNotification = payload.new as Notification;
-          
-          setNotifications(prev => 
-            prev.map(n => n.id === updatedNotification.id ? updatedNotification : n)
-          );
-          
-          // If notification was marked as read, decrease unread count
-          if (updatedNotification.read_at && !payload.old.read_at) {
-            setUnreadCount(prev => Math.max(0, prev - 1));
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${authedUserId}`
+          },
+          (payload) => {
+            const updatedNotification = payload.new as Notification;
+            setNotifications(prev => prev.map(n => n.id === updatedNotification.id ? updatedNotification : n));
+            if (updatedNotification.read_at && !payload.old.read_at) {
+              setUnreadCount(prev => Math.max(0, prev - 1));
+            }
           }
-        }
-      )
-      .subscribe();
+        )
+        .subscribe();
+    })();
 
     return () => {
-      supabase.removeChannel(channel);
+      isMounted = false;
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, [user, toast]);
 

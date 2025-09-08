@@ -109,22 +109,35 @@ export async function performEnhancedSwipe(
   direction: 'left' | 'right'
 ): Promise<{ success: boolean; matched?: boolean; chatRoomId?: string; error?: string }> {
   try {
-    const currentUser = (await supabase.auth.getUser()).data.user;
-    if (!currentUser) {
+    // Ensure we have a Supabase auth session and token
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    const currentUser = session?.user;
+
+    if (!currentUser || !token) {
       return { success: false, error: 'Not authenticated' };
     }
 
-    const { data, error } = await supabase.functions.invoke('enhanced-swipe-action', {
-      body: {
+    // Call edge function directly with Authorization header (JWT)
+    const fnUrl = 'https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/enhanced-swipe-action';
+    const res = await fetch(fnUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
         user_id: currentUser.id,
         target_user_id: targetUserId,
         direction
-      }
+      })
     });
 
-    if (error) {
-      console.error('Enhanced swipe error:', error);
-      return { success: false, error: error.message };
+    const data = await res.json().catch(() => ({ error: 'Invalid JSON response' }));
+
+    if (!res.ok) {
+      console.error('Enhanced swipe error:', res.status, data);
+      return { success: false, error: data?.error || 'Failed to perform enhanced swipe' };
     }
 
     return {
