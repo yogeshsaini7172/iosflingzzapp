@@ -209,34 +209,17 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
     const userId = user.uid;
 
     try {
-      // Use the NEW enhanced swipe system
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-      
-      if (!token) {
-        throw new Error('Not authenticated');
-      }
-
-      // Call the NEW enhanced-swipe-action function
-      const fnUrl = 'https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/enhanced-swipe-action';
-      const res = await fetch(fnUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+      // Call the enhanced-swipe-action via Supabase client (no JWT required now)
+      const { data, error: invokeError } = await supabase.functions.invoke('enhanced-swipe-action', {
+        body: {
           user_id: userId,
           target_user_id: currentProfile.user_id,
-          direction: direction
-        })
+          direction,
+        },
       });
-
-      const data = await res.json().catch(() => ({ error: 'Invalid JSON response' }));
-
-      if (!res.ok) {
-        console.error('Enhanced swipe error:', res.status, data);
-        throw new Error(data?.error || 'Failed to perform swipe');
+      if (invokeError) {
+        console.error('Enhanced swipe invoke error:', invokeError);
+        throw invokeError;
       }
 
       // Handle match result

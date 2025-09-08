@@ -141,35 +141,21 @@ const SwipeManager = ({ onUpgrade }: SwipeManagerProps) => {
     }
 
     try {
-      // Use the NEW enhanced swipe system that handles everything
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-      
-      if (!token) {
-        throw new Error('Not authenticated');
-      }
-
-      // Call the NEW enhanced-swipe-action function for ALL swipes
-      const fnUrl = 'https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/enhanced-swipe-action';
-      const res = await fetch(fnUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+      // Call the NEW enhanced-swipe-action function for ALL swipes (no auth required)
+      const { data: resp, error: invokeError } = await supabase.functions.invoke('enhanced-swipe-action', {
+        body: {
           user_id: user.uid,
           target_user_id: currentCandidate.user_id,
-          direction: direction
-        })
+          direction,
+        },
       });
 
-      const data = await res.json().catch(() => ({ error: 'Invalid JSON response' }));
-
-      if (!res.ok) {
-        console.error('Enhanced swipe error:', res.status, data);
-        throw new Error(data?.error || 'Failed to perform swipe');
+      if (invokeError) {
+        console.error('Enhanced swipe invoke error:', invokeError);
+        throw invokeError;
       }
+
+      const data = resp as any;
 
       // Update swipes left for free users
       if (subscriptionTier === 'free') {

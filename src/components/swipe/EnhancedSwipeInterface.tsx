@@ -146,35 +146,21 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
     console.log(`🎯 Processing ${direction} swipe via edge function:`, { userId, targetId: currentProfile.user_id });
 
     try {
-      // Use the NEW enhanced swipe system
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-      
-      if (!token) {
-        throw new Error('Not authenticated');
-      }
-
-      // Call the NEW enhanced-swipe-action function
-      const fnUrl = 'https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/enhanced-swipe-action';
-      const res = await fetch(fnUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+      // Call the enhanced-swipe-action via Supabase client (JWT not required now)
+      const { data: resp, error: invokeError } = await supabase.functions.invoke('enhanced-swipe-action', {
+        body: {
           user_id: userId,
           target_user_id: currentProfile.user_id,
-          direction: direction
-        })
+          direction,
+        },
       });
 
-      const resp = await res.json().catch(() => ({ error: 'Invalid JSON response' }));
-
-      if (!res.ok) {
-        console.error('Enhanced swipe error:', res.status, resp);
-        throw new Error(resp?.error || 'Failed to perform swipe');
+      if (invokeError) {
+        console.error('Enhanced swipe invoke error:', invokeError);
+        throw invokeError;
       }
+
+      // Invoke succeeded; resp contains the function response
 
       console.log('✅ Swipe recorded successfully via enhanced function:', resp);
 
@@ -197,19 +183,21 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
 
       if (direction === 'right') {
         if (resp?.isMatch) {
-          const chatRoomId = resp.chat_room_id as string | undefined;
-          console.log('🎉 Mutual match! Chat room:', chatRoomId);
-          toast({
-            title: "🎉 It's a Match!",
-            description: `You and ${currentProfile.first_name} liked each other!${chatRoomId ? ' Chat is now available.' : ''}`,
-          });
-          if (chatRoomId) setMatchedChatId(chatRoomId);
-        } else {
-          console.log('💝 Like sent, waiting for match');
-          toast({
-            title: 'Liked!',
-            description: `You liked ${currentProfile.first_name}`,
-          });
+          const chatRoomId = (resp?.chatRoomId ?? resp?.chat_room_id) as string | undefined;
+          console.log('🎉 Match result. Chat room:', chatRoomId);
+          if (resp?.matched) {
+            toast({
+              title: "🎉 It's a Match!",
+              description: `You and ${currentProfile.first_name} liked each other!${chatRoomId ? ' Chat is now available.' : ''}`,
+            });
+            if (chatRoomId) setMatchedChatId(chatRoomId);
+          } else {
+            console.log('💝 Like sent, waiting for match');
+            toast({
+              title: 'Liked!',
+              description: `You liked ${currentProfile.first_name}`,
+            });
+          }
         }
       } else {
         console.log('👋 Profile passed');
