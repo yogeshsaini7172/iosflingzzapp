@@ -542,6 +542,7 @@ export type Database = {
       profiles: {
         Row: {
           ai_insights_enabled: boolean | null
+          avatar_url: string | null
           bio: string | null
           blinddate_requests_left: number | null
           body_type: string | null
@@ -556,6 +557,7 @@ export type Database = {
           daily_swipes_reset_at: string | null
           daily_swipes_used: number | null
           date_of_birth: string
+          display_name: string | null
           education_level: string | null
           email: string
           extra_pairings_left: number | null
@@ -615,6 +617,7 @@ export type Database = {
         }
         Insert: {
           ai_insights_enabled?: boolean | null
+          avatar_url?: string | null
           bio?: string | null
           blinddate_requests_left?: number | null
           body_type?: string | null
@@ -629,6 +632,7 @@ export type Database = {
           daily_swipes_reset_at?: string | null
           daily_swipes_used?: number | null
           date_of_birth: string
+          display_name?: string | null
           education_level?: string | null
           email: string
           extra_pairings_left?: number | null
@@ -688,6 +692,7 @@ export type Database = {
         }
         Update: {
           ai_insights_enabled?: boolean | null
+          avatar_url?: string | null
           bio?: string | null
           blinddate_requests_left?: number | null
           body_type?: string | null
@@ -702,6 +707,7 @@ export type Database = {
           daily_swipes_reset_at?: string | null
           daily_swipes_used?: number | null
           date_of_birth?: string
+          display_name?: string | null
           education_level?: string | null
           email?: string
           extra_pairings_left?: number | null

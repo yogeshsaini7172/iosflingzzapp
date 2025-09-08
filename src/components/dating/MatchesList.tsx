@@ -14,10 +14,31 @@ interface MatchesListProps {
   onNavigate: (view: 'home' | 'profile' | 'swipe' | 'blind-date' | 'matches') => void;
 }
 
+interface Match {
+  id: string;
+  user1_id: string;
+  user2_id: string;
+  created_at: string;
+  chat_room_id: string;
+  profile?: {
+    first_name: string;
+    last_name: string;
+    profile_images: string[];
+    university: string;
+    major: string;
+    bio: string;
+  };
+  last_message?: {
+    message_text: string;
+    created_at: string;
+    sender_id: string;
+  };
+}
+
 const MatchesList = ({ onNavigate }: MatchesListProps) => {
   const [selectedMatch, setSelectedMatch] = useState<string | null>(null);
   const [message, setMessage] = useState('');
-  const [matches, setMatches] = useState<any[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const { userId } = useRequiredAuth();
   const { toast } = useToast();
@@ -35,6 +56,12 @@ const MatchesList = ({ onNavigate }: MatchesListProps) => {
     filter: `user1_id=eq.${userId},user2_id=eq.${userId}`,
     onInsert: () => fetchMatches(),
     onUpdate: () => fetchMatches()
+  });
+
+  useRealtime({
+    table: 'chat_messages_enhanced',
+    event: 'INSERT',
+    onInsert: () => fetchMatches() // Refresh to get latest message
   });
 
   const fetchMatches = async () => {
@@ -63,135 +90,114 @@ const MatchesList = ({ onNavigate }: MatchesListProps) => {
     }
   };
 
-  // Replace mock data with empty array since we're loading from API
-  const mockData = [
-    {
-      id: '1',
-      firstName: 'Emma',
-      lastName: 'Johnson',
-      age: 21,
-      university: 'NYU',
-      major: 'Fine Arts',
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616c57c8458?w=150&h=150&fit=crop&crop=face',
-      lastMessage: 'Hey! Thanks for the match 😊',
-      lastMessageTime: '2 hours ago',
-      isOnline: true,
-      matchedAt: '2024-01-15T10:00:00Z',
-      messages: [
-        { id: '1', senderId: '1', content: 'Hey! Thanks for the match 😊', timestamp: '2024-01-15T10:30:00Z' },
-        { id: '2', senderId: 'me', content: 'Hi Emma! Great to match with you too!', timestamp: '2024-01-15T10:35:00Z' },
-        { id: '3', senderId: '1', content: 'I saw you\'re into photography too! Do you have a favorite spot on campus?', timestamp: '2024-01-15T10:40:00Z' }
-      ]
-    },
-    {
-      id: '2',
-      firstName: 'Alex',
-      lastName: 'Chen',
-      age: 22,
-      university: 'Stanford',
-      major: 'Computer Science',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-      lastMessage: 'Want to grab coffee sometime?',
-      lastMessageTime: '1 day ago',
-      isOnline: false,
-      matchedAt: '2024-01-14T15:00:00Z',
-      messages: [
-        { id: '1', senderId: '2', content: 'Hi there! Love your profile!', timestamp: '2024-01-14T15:30:00Z' },
-        { id: '2', senderId: 'me', content: 'Thank you! Your projects look amazing', timestamp: '2024-01-14T15:35:00Z' },
-        { id: '3', senderId: '2', content: 'Want to grab coffee sometime?', timestamp: '2024-01-14T16:00:00Z' }
-      ]
-    },
-    {
-      id: '3',
-      firstName: 'Sophia',
-      lastName: 'Martinez',
-      age: 20,
-      university: 'Harvard',
-      major: 'Biology',
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-      lastMessage: 'You: That sounds fun! When are you free?',
-      lastMessageTime: '3 days ago',
-      isOnline: true,
-      matchedAt: '2024-01-12T09:00:00Z',
-      messages: [
-        { id: '1', senderId: '3', content: 'Hey! I see we both love hiking!', timestamp: '2024-01-12T09:30:00Z' },
-        { id: '2', senderId: 'me', content: 'Yes! Do you know any good trails around campus?', timestamp: '2024-01-12T09:35:00Z' },
-        { id: '3', senderId: '3', content: 'There\'s a beautiful trail about 20 minutes from Harvard. Want to check it out together?', timestamp: '2024-01-12T10:00:00Z' },
-        { id: '4', senderId: 'me', content: 'That sounds fun! When are you free?', timestamp: '2024-01-12T10:15:00Z' }
-      ]
-    }
-  ];
-
   const selectedMatchData = matches.find(m => m.id === selectedMatch);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (message.trim()) {
-      // Here you would normally send the message to your backend
-      console.log('Sending message:', message);
-      setMessage('');
+    if (message.trim() && selectedMatchData && userId) {
+      try {
+        // Send message via Supabase edge function
+        await supabase.functions.invoke('chat-management', {
+          body: {
+            action: 'send_message',
+            chat_room_id: selectedMatchData.chat_room_id,
+            message: message.trim()
+          }
+        });
+        setMessage('');
+        // Refresh matches to show new message
+        fetchMatches();
+      } catch (error) {
+        console.error('Error sending message:', error);
+        toast({
+          title: "Error sending message",
+          description: "Please try again",
+          variant: "destructive"
+        });
+      }
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-foreground font-medium">Loading matches...</p>
+        </div>
+      </div>
+    );
+  }
+
   const renderMatchesList = () => (
     <div className="space-y-3">
-      {matches.map((match) => (
-        <Card 
-          key={match.id}
-          className="cursor-pointer hover:shadow-md transition-all border-l-4 border-l-primary/20 hover:border-l-primary"
-          onClick={() => setSelectedMatch(match.id)}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <Avatar className="w-14 h-14">
-                  <AvatarImage src={match.avatar} alt={match.firstName} />
-                  <AvatarFallback>{match.firstName[0]}{match.lastName[0]}</AvatarFallback>
-                </Avatar>
-                {match.isOnline && (
+      {matches.map((match) => {
+        const otherUserId = match.user1_id === userId ? match.user2_id : match.user1_id;
+        const profile = match.profile;
+        if (!profile) return null;
+
+        return (
+          <Card 
+            key={match.id}
+            className="cursor-pointer hover:shadow-md transition-all border-l-4 border-l-primary/20 hover:border-l-primary"
+            onClick={() => setSelectedMatch(match.id)}
+          >
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <Avatar className="w-14 h-14">
+                    <AvatarImage 
+                      src={profile.profile_images?.[0] || `https://api.dicebear.com/7.x/avataaars/svg?seed=${otherUserId}`} 
+                      alt={profile.first_name} 
+                    />
+                    <AvatarFallback>{profile.first_name[0]}{profile.last_name[0]}</AvatarFallback>
+                  </Avatar>
                   <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-background rounded-full" />
-                )}
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-1">
-                  <h3 className="font-semibold text-base truncate">
-                    {match.firstName}, {match.age}
-                  </h3>
-                  <span className="text-xs text-muted-foreground flex-shrink-0">
-                    {match.lastMessageTime}
-                  </span>
                 </div>
                 
-                <div className="flex items-center gap-2 mb-2">
-                  <MapPin className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                  <span className="text-xs text-muted-foreground truncate">
-                    {match.major} at {match.university}
-                  </span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="font-semibold text-base truncate">
+                      {profile.first_name}
+                    </h3>
+                    <span className="text-xs text-muted-foreground flex-shrink-0">
+                      {match.last_message ? new Date(match.last_message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 mb-2">
+                    <MapPin className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                    <span className="text-xs text-muted-foreground truncate">
+                      {profile.major} at {profile.university}
+                    </span>
+                  </div>
+                  
+                  <p className="text-sm text-muted-foreground truncate">
+                    {match.last_message 
+                      ? (match.last_message.sender_id === userId ? 'You: ' : '') + match.last_message.message_text
+                      : 'Start a conversation!'
+                    }
+                  </p>
                 </div>
                 
-                <p className="text-sm text-muted-foreground truncate">
-                  {match.lastMessage}
-                </p>
-              </div>
-              
-              <div className="flex flex-col items-center gap-1">
-                <MessageCircle className="w-5 h-5 text-primary" />
-                {match.isOnline && (
+                <div className="flex flex-col items-center gap-1">
+                  <MessageCircle className="w-5 h-5 text-primary" />
                   <Badge variant="secondary" className="text-xs">
-                    Online
+                    Match
                   </Badge>
-                )}
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 
   const renderChat = () => {
     if (!selectedMatchData) return null;
+    const profile = selectedMatchData.profile;
+    if (!profile) return null;
 
     return (
       <div className="flex flex-col h-full">
@@ -206,14 +212,17 @@ const MatchesList = ({ onNavigate }: MatchesListProps) => {
           </Button>
           
           <Avatar className="w-10 h-10">
-            <AvatarImage src={selectedMatchData.avatar} alt={selectedMatchData.firstName} />
-            <AvatarFallback>{selectedMatchData.firstName[0]}{selectedMatchData.lastName[0]}</AvatarFallback>
+            <AvatarImage 
+              src={profile.profile_images?.[0] || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.first_name}`} 
+              alt={profile.first_name} 
+            />
+            <AvatarFallback>{profile.first_name[0]}{profile.last_name[0]}</AvatarFallback>
           </Avatar>
           
           <div className="flex-1">
-            <h3 className="font-semibold">{selectedMatchData.firstName}</h3>
+            <h3 className="font-semibold">{profile.first_name}</h3>
             <p className="text-sm text-muted-foreground">
-              {selectedMatchData.isOnline ? 'Online now' : 'Last seen recently'}
+              Online now
             </p>
           </div>
           
@@ -231,36 +240,19 @@ const MatchesList = ({ onNavigate }: MatchesListProps) => {
         <div className="bg-muted/50 p-3 text-center border-b border-border">
           <div className="flex items-center justify-center gap-2 mb-1">
             <Heart className="w-4 h-4 text-red-500" />
-            <span className="text-sm font-medium">You matched on {new Date(selectedMatchData.matchedAt).toLocaleDateString()}</span>
+            <span className="text-sm font-medium">You matched on {new Date(selectedMatchData.created_at).toLocaleDateString()}</span>
           </div>
           <p className="text-xs text-muted-foreground">
-            {selectedMatchData.major} at {selectedMatchData.university}
+            {profile.major} at {profile.university}
           </p>
         </div>
 
-        {/* Messages */}
+        {/* Messages would be loaded here via chat component */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {selectedMatchData.messages.map((msg) => (
-            <div 
-              key={msg.id}
-              className={`flex ${msg.senderId === 'me' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div 
-                className={`max-w-xs px-4 py-2 rounded-lg ${
-                  msg.senderId === 'me' 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-muted'
-                }`}
-              >
-                <p className="text-sm">{msg.content}</p>
-                <p className={`text-xs mt-1 ${
-                  msg.senderId === 'me' ? 'text-primary-foreground/70' : 'text-muted-foreground'
-                }`}>
-                  {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </p>
-              </div>
-            </div>
-          ))}
+          <div className="text-center text-muted-foreground">
+            <p>Chat messages will appear here</p>
+            <p className="text-xs">This will be integrated with the full chat system</p>
+          </div>
         </div>
 
         {/* Message Input */}
@@ -290,7 +282,7 @@ const MatchesList = ({ onNavigate }: MatchesListProps) => {
             ← Back
           </Button>
           <h1 className="text-xl font-bold">
-            {selectedMatch ? selectedMatchData?.firstName : 'Matches'}
+            {selectedMatch ? selectedMatchData?.profile?.first_name : 'Matches'}
           </h1>
           <div className="w-20" /> {/* Spacer */}
         </div>

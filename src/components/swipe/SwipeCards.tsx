@@ -13,11 +13,7 @@ const SwipeCards: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [swipeCount, setSwipeCount] = useState(0);
   const { toast } = useToast();
-
-  const getCurrentUserId = () => {
-    // Bypass auth - use default user ID for database operations
-    return '11111111-1111-1111-1111-111111111001'; // Default Alice user
-  };
+  const { userId } = useRequiredAuth();
 
   const calculateAge = (dateOfBirth: string) => {
     const today = new Date();
@@ -31,10 +27,9 @@ const SwipeCards: React.FC = () => {
   };
 
   const handleSwipe = async (direction: 'left' | 'right') => {
-    if (currentIndex >= profiles.length) return;
+    if (currentIndex >= profiles.length || !userId) return;
 
     const currentProfile = profiles[currentIndex];
-    const userId = getCurrentUserId();
 
     try {
       // Record swipe in database

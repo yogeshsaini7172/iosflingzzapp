@@ -17,12 +17,14 @@ const HeartNotificationBadge = ({ onClick, className }: HeartNotificationBadgePr
   const { userId, isAuthenticated } = useOptionalAuth();
 
   useEffect(() => {
-    fetchLikesData();
-    
-    // Refresh every 60 seconds
-    const interval = setInterval(fetchLikesData, 60000);
-    return () => clearInterval(interval);
-  }, []);
+    if (userId && isAuthenticated) {
+      fetchLikesData();
+      
+      // Refresh every 60 seconds
+      const interval = setInterval(fetchLikesData, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [userId, isAuthenticated]);
 
   const fetchLikesData = async () => {
     if (!userId || !isAuthenticated) return;

@@ -26,6 +26,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRequiredAuth } from '@/hooks/useRequiredAuth';
 
 interface ProfileData {
   user_id: string;
@@ -75,6 +76,7 @@ const EnhancedProfileDisplay: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { toast } = useToast();
+  const { userId } = useRequiredAuth();
 
   // Logout function using Firebase auth
   const handleLogout = async () => {
@@ -105,28 +107,22 @@ const EnhancedProfileDisplay: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchProfileData();
-  }, []);
+    if (userId) {
+      fetchProfileData();
+    }
+  }, [userId]);
 
   const fetchProfileData = async () => {
+    if (!userId) return;
+    
     try {
       setIsLoading(true);
-      const currentUserId = '11111111-1111-1111-1111-111111111001'; // Bypass auth - use default Alice user
       
-      if (!currentUserId) {
-        toast({
-          title: "No user selected",
-          description: "Please select a user to view profile",
-          variant: "destructive"
-        });
-        return;
-      }
-
       // Fetch profile data
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('user_id', currentUserId)
+        .eq('user_id', userId)
         .single();
 
       if (profileError) throw profileError;
@@ -135,7 +131,7 @@ const EnhancedProfileDisplay: React.FC = () => {
       const { data: prefs, error: prefsError } = await supabase
         .from('partner_preferences')
         .select('*')
-        .eq('user_id', currentUserId)
+        .eq('user_id', userId)
         .single();
 
       // Don't throw error if preferences not found, it's optional

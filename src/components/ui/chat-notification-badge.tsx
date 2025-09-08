@@ -15,12 +15,14 @@ const ChatNotificationBadge = ({ onClick, className }: ChatNotificationBadgeProp
   const { userId, isAuthenticated } = useOptionalAuth();
 
   useEffect(() => {
-    fetchChatCounts();
-    
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchChatCounts, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    if (userId && isAuthenticated) {
+      fetchChatCounts();
+      
+      // Refresh every 30 seconds
+      const interval = setInterval(fetchChatCounts, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [userId, isAuthenticated]);
 
   const fetchChatCounts = async () => {
     if (!userId || !isAuthenticated) return;
