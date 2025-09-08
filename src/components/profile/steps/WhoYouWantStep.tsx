@@ -41,6 +41,14 @@ const WhoYouWantStep = ({ data, onChange }: WhoYouWantStepProps) => {
     "Open to anything", "Long-term commitment"
   ];
 
+  const skinToneOptions = [
+    "Fair", "Light", "Medium", "Olive", "Tan", "Dark", "Any"
+  ];
+
+  const faceTypeOptions = [
+    "Oval", "Round", "Square", "Heart", "Diamond", "Long", "Any"
+  ];
+
   const toggleArrayItem = (field: string, item: string, maxItems: number = 10) => {
     const currentArray = data[field] || [];
     const newArray = currentArray.includes(item)
@@ -240,6 +248,61 @@ const WhoYouWantStep = ({ data, onChange }: WhoYouWantStepProps) => {
                     className="rounded-full text-xs"
                   >
                     {goal}
+                    {isSelected && <X className="w-3 h-3 ml-1" />}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Physical Preferences */}
+      <Card className="border-border/50">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Heart className="w-5 h-5" />
+            Physical Preferences
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Preferred Skin Tone */}
+          <div className="space-y-3">
+            <Label>Preferred Skin Tone</Label>
+            <div className="flex flex-wrap gap-2">
+              {["Fair", "Light", "Medium", "Olive", "Tan", "Dark", "Any"].map((tone) => {
+                const isSelected = data.preferredSkinTone?.includes(tone);
+                return (
+                  <Button
+                    key={tone}
+                    variant={isSelected ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => toggleArrayItem('preferredSkinTone', tone)}
+                    className="rounded-full text-xs"
+                  >
+                    {tone}
+                    {isSelected && <X className="w-3 h-3 ml-1" />}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Preferred Face Type */}
+          <div className="space-y-3">
+            <Label>Preferred Face Type</Label>
+            <div className="flex flex-wrap gap-2">
+              {["Oval", "Round", "Square", "Heart", "Diamond", "Long", "Any"].map((type) => {
+                const isSelected = data.preferredFaceType?.includes(type);
+                return (
+                  <Button
+                    key={type}
+                    variant={isSelected ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => toggleArrayItem('preferredFaceType', type)}
+                    className="rounded-full text-xs"
+                  >
+                    {type}
                     {isSelected && <X className="w-3 h-3 ml-1" />}
                   </Button>
                 );
