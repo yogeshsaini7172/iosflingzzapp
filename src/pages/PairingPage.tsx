@@ -8,7 +8,7 @@ import { Heart, Brain, Star, MapPin, GraduationCap, Sparkles, Users, RefreshCw, 
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import DetailedProfileModal from '@/components/profile/DetailedProfileModal';
-import EnhancedChatSystem from '@/components/chat/EnhancedChatSystem';
+import RebuiltChatSystem from '@/components/chat/RebuiltChatSystem';
 import { useRequiredAuth } from '@/hooks/useRequiredAuth';
 import UnifiedLayout from '@/components/layout/UnifiedLayout';
 import ProfileImageHandler from '@/components/common/ProfileImageHandler';
@@ -231,7 +231,7 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
         >
           ← Back to Pairing
         </Button>
-        <EnhancedChatSystem onNavigate={onNavigate} selectedChatId={selectedChatId} />
+        <RebuiltChatSystem onNavigate={onNavigate} selectedChatId={selectedChatId} />
       </div>
     );
   }

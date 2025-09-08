@@ -1,16 +1,11 @@
-import EnhancedChatSystem from '@/components/chat/EnhancedChatSystem';
-import UnifiedLayout from '@/components/layout/UnifiedLayout';
+import RebuiltChatSystem from '@/components/chat/RebuiltChatSystem';
 
 interface ChatPageProps {
   onNavigate: (view: string) => void;
 }
 
 const ChatPage = ({ onNavigate }: ChatPageProps) => {
-  return (
-    <UnifiedLayout title="Chat">
-      <EnhancedChatSystem onNavigate={onNavigate} />
-    </UnifiedLayout>
-  );
+  return <RebuiltChatSystem onNavigate={onNavigate} />;
 };
 
 export default ChatPage;

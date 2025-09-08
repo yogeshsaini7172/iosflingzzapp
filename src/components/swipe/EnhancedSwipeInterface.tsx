@@ -6,7 +6,7 @@ import { Heart, X, Filter, RefreshCw, Settings, MoreHorizontal } from "lucide-re
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import DetailedProfileModal from "@/components/profile/DetailedProfileModal";
-import EnhancedChatSystem from "@/components/chat/EnhancedChatSystem";
+import RebuiltChatSystem from "@/components/chat/RebuiltChatSystem";
 import { useRequiredAuth } from "@/hooks/useRequiredAuth";
 
 interface SwipeProfile {
@@ -216,7 +216,7 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
         >
           ← Back to Swiping
         </Button>
-        <EnhancedChatSystem onNavigate={onNavigate} selectedChatId={matchedChatId} />
+        <RebuiltChatSystem onNavigate={onNavigate} selectedChatId={matchedChatId} />
       </div>
     );
   }

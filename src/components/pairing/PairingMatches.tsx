@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import DetailedProfileModal from '@/components/profile/DetailedProfileModal';
 import { useRequiredAuth } from '@/hooks/useRequiredAuth';
-import EnhancedChatSystem from '@/components/chat/EnhancedChatSystem';
+import RebuiltChatSystem from '@/components/chat/RebuiltChatSystem';
 
 interface PairingMatch {
   user_id: string;
@@ -254,7 +254,7 @@ const PairingMatches: React.FC = () => {
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Pairing
         </Button>
-        <EnhancedChatSystem selectedChatId={matchedChatId} onNavigate={() => {}} />
+        <RebuiltChatSystem selectedChatId={matchedChatId} onNavigate={() => {}} />
       </div>
     );
   }
