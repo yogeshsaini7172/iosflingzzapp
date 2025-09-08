@@ -252,7 +252,8 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       console.log('Profile completion successful:', profileResult);
       toast({ title: "Profile Setup Complete! 🎉", description: `Your QCS score: ${totalScore}/100. Ready to start!` });
 
-      // Skip subscription page and go directly to app
+      // Mark profile as complete locally and go directly to app
+      localStorage.setItem('profile_complete', 'true');
       onComplete();
     } catch (error: any) {
       console.error('Profile creation error:', error);

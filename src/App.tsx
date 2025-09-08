@@ -2,10 +2,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import SwipePage from "./pages/SwipePage";
 import PairingPage from "./pages/PairingPage";
 import MatchesPage from "./pages/MatchesPage";
@@ -31,51 +30,21 @@ const queryClient = new QueryClient({
 const AuthenticatedApp = () => {
   console.log('🔒 AuthenticatedApp component rendering...');
   const { user, isLoading } = useAuth();
+  const navigate = useNavigate();
   console.log('👤 Current user state:', { user: user?.uid, isLoading });
   
   const [hasProfile, setHasProfile] = useState(false);
-  const [hasSubscription, setHasSubscription] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(true);
 
-  // Function to check if user has completed profile
-  const checkUserProfile = async (userId: string) => {
+  // Function to check if user has completed profile (client-side flag)
+  const checkUserProfile = async (_userId: string) => {
     try {
-      console.log('🔍 Checking profile for userId:', userId);
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      console.log('📊 Profile query result:', { profile, error });
-      
-      if (error) {
-        console.error('❌ Supabase profile query error:', error);
-        return false;
-      }
-
-      const isComplete = profile && profile.first_name && profile.university;
-      console.log('✅ Profile completeness:', isComplete);
-      return isComplete;
+      const flag = localStorage.getItem('profile_complete');
+      if (flag === 'true') return true;
+      const demoProfile = localStorage.getItem('demoProfile');
+      return !!demoProfile;
     } catch (error) {
-      console.error('❌ Error checking profile:', error);
-      return false;
-    }
-  };
-
-  // Function to check if user has selected a subscription
-  const checkUserSubscription = async (userId: string) => {
-    try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('subscription_tier')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      // Treat 'free' as no paid subscription selected
-      return !!(profile && profile.subscription_tier && profile.subscription_tier !== 'free');
-    } catch (error) {
-      console.error('Error checking subscription:', error);
+      console.error('❌ Error checking local profile flag:', error);
       return false;
     }
   };
@@ -83,14 +52,9 @@ const AuthenticatedApp = () => {
   // Function to recheck profile status
   const recheckProfile = async () => {
     if (!user) return false;
-    
     const profileComplete = await checkUserProfile(user.uid);
-    const subscriptionSelected = await checkUserSubscription(user.uid);
-    
     setHasProfile(!!profileComplete);
-    setHasSubscription(!!subscriptionSelected);
-    
-    return !!profileComplete && !!subscriptionSelected;
+    return !!profileComplete;
   };
 
   useEffect(() => {
@@ -99,13 +63,9 @@ const AuthenticatedApp = () => {
       console.log('📋 Checking profile for user:', user?.uid);
       if (user) {
         try {
-          console.log('🔍 Querying Supabase for profile...');
           const profileComplete = await checkUserProfile(user.uid);
-          const subscriptionSelected = await checkUserSubscription(user.uid);
-          
-          console.log('✅ Profile check results:', { profileComplete, subscriptionSelected });
+          console.log('✅ Profile check result:', { profileComplete });
           setHasProfile(!!profileComplete);
-          setHasSubscription(!!subscriptionSelected);
         } catch (error) {
           console.error('❌ Error in profile check:', error);
         }
@@ -130,12 +90,11 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Show authentication/profile setup/subscription flow if not complete
-  if (!user || !hasProfile || !hasSubscription) {
+  // Show authentication/profile setup flow if not complete
+  if (!user || !hasProfile) {
     console.log('🔑 Showing auth/setup flow...', { 
       hasUser: !!user, 
-      hasProfile, 
-      hasSubscription 
+      hasProfile
     });
     return (
       <TooltipProvider>
@@ -145,7 +104,6 @@ const AuthenticatedApp = () => {
           <div id="recaptcha-container"></div>
           <Index 
             onProfileComplete={recheckProfile}
-            showSubscription={!!user && hasProfile && !hasSubscription}
           />
         </div>
       </TooltipProvider>
@@ -161,48 +119,48 @@ const AuthenticatedApp = () => {
         <div id="recaptcha-container"></div>
         <Routes>
           <Route path="/" element={<DateSigmaHome onNavigate={(view) => {
-            // Handle navigation from home page
-            if (view === 'home') window.location.href = '/';
-            if (view === 'pairing') window.location.href = '/pairing';
-            if (view === 'blind-date') window.location.href = '/blind-date';
-            if (view === 'profile') window.location.href = '/profile';
-            if (view === 'subscription') window.location.href = '/subscription';
-            if (view === 'chat') window.location.href = '/chat';
-            if (view === 'feed') window.location.href = '/feed';
+            // SPA navigation (no full reloads)
+            if (view === 'home') navigate('/');
+            if (view === 'pairing') navigate('/pairing');
+            if (view === 'blind-date') navigate('/blind-date');
+            if (view === 'profile') navigate('/profile');
+            if (view === 'subscription') navigate('/subscription');
+            if (view === 'chat') navigate('/chat');
+            if (view === 'feed') navigate('/feed');
           }} />} />
           <Route path="/swipe" element={<SwipePage onNavigate={(view) => {}} />} />
           <Route path="/feed" element={<FeedPage onNavigate={(view) => {
-            if (view === 'home') window.location.href = '/';
-            if (view === 'pairing') window.location.href = '/pairing';
-            if (view === 'profile') window.location.href = '/profile';
+            if (view === 'home') navigate('/');
+            if (view === 'pairing') navigate('/pairing');
+            if (view === 'profile') navigate('/profile');
           }} />} />
           <Route path="/pairing" element={<PairingPage onNavigate={(view) => {
-            if (view === 'home') window.location.href = '/';
-            if (view === 'pairing') window.location.href = '/pairing';
-            if (view === 'blind-date') window.location.href = '/blind-date';
-            if (view === 'profile') window.location.href = '/profile';
-            if (view === 'subscription') window.location.href = '/subscription';
+            if (view === 'home') navigate('/');
+            if (view === 'pairing') navigate('/pairing');
+            if (view === 'blind-date') navigate('/blind-date');
+            if (view === 'profile') navigate('/profile');
+            if (view === 'subscription') navigate('/subscription');
           }} />} />
           <Route path="/matches" element={<MatchesPage onNavigate={(view) => {}} />} />
           <Route path="/chat/:matchId?" element={<ChatPage onNavigate={(view) => {
-            if (view === 'home') window.location.href = '/';
+            if (view === 'home') navigate('/');
           }} />} />
           <Route path="/profile" element={<ProfilePage onNavigate={(view) => {
-            if (view === 'home') window.location.href = '/';
-            if (view === 'pairing') window.location.href = '/pairing';
-            if (view === 'blind-date') window.location.href = '/blind-date';
-            if (view === 'profile') window.location.href = '/profile';
-            if (view === 'subscription') window.location.href = '/subscription';
+            if (view === 'home') navigate('/');
+            if (view === 'pairing') navigate('/pairing');
+            if (view === 'blind-date') navigate('/blind-date');
+            if (view === 'profile') navigate('/profile');
+            if (view === 'subscription') navigate('/subscription');
           }} />} />
           <Route path="/blind-date" element={<BlindDatePage onNavigate={(view) => {
-            if (view === 'home') window.location.href = '/';
-            if (view === 'pairing') window.location.href = '/pairing';
-            if (view === 'blind-date') window.location.href = '/blind-date';
-            if (view === 'profile') window.location.href = '/profile';
-            if (view === 'subscription') window.location.href = '/subscription';
+            if (view === 'home') navigate('/');
+            if (view === 'pairing') navigate('/pairing');
+            if (view === 'blind-date') navigate('/blind-date');
+            if (view === 'profile') navigate('/profile');
+            if (view === 'subscription') navigate('/subscription');
           }} />} />
           <Route path="/subscription" element={<SubscriptionPage onNavigate={(view) => {
-            if (view === 'home') window.location.href = '/';
+            if (view === 'home') navigate('/');
           }} />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

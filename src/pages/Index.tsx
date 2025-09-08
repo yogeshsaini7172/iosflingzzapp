@@ -1,7 +1,7 @@
 import AuthPage from "@/pages/AuthPage";
 import SplashScreen from "@/components/onboarding/SplashScreen";
 import ProfileSetupFlow from "@/components/profile/ProfileSetupFlow";
-import SubscriptionSelectionPage from '@/components/subscription/SubscriptionSelectionPage';
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
