@@ -1,46 +1,23 @@
 import { getAuth } from 'firebase/auth';
 import { auth } from '@/integrations/firebase/config';
 
-// Decode Firebase JWT to extract user ID
-function decodeFirebaseToken(token: string): string | null {
-  try {
-    const parts = token.split('.');
-    if (parts.length !== 3) return null;
-    
-    const payload = JSON.parse(atob(parts[1]));
-    return payload.user_id || payload.sub || null;
-  } catch (error) {
-    console.error('Error decoding Firebase token:', error);
-    return null;
-  }
-}
-
 export async function fetchWithFirebaseAuth(input: RequestInfo | URL, init: RequestInit = {}) {
   const user = auth.currentUser;
   const headers = new Headers(init.headers || {});
   
-  // Set JSON content type
-  headers.set('Content-Type', 'application/json');
-  
-  let body = init.body;
-  
+  // Add Firebase ID token to Authorization header
   if (user) {
     try {
       const token = await user.getIdToken();
-      const userId = decodeFirebaseToken(token);
-      
-      if (userId) {
-        // Add user_id to request body
-        if (body && typeof body === 'string') {
-          const existingData = JSON.parse(body);
-          body = JSON.stringify({ ...existingData, user_id: userId });
-        } else {
-          body = JSON.stringify({ user_id: userId });
-        }
-      }
+      headers.set('Authorization', `Bearer ${token}`);
     } catch (error) {
-      console.error('Error processing Firebase token:', error);
+      console.error('Error getting Firebase token:', error);
     }
+  }
+  
+  // Ensure JSON content type if sending JSON
+  if (!headers.get('Content-Type') && init.body && typeof init.body === 'string') {
+    headers.set('Content-Type', 'application/json');
   }
   
   // Convert function URLs to direct Supabase function calls
@@ -54,11 +31,10 @@ export async function fetchWithFirebaseAuth(input: RequestInfo | URL, init: Requ
     
     return fetch(directUrl, { 
       ...init, 
-      body,
       headers,
-      credentials: 'omit' // No credentials needed for public functions
+      credentials: 'same-origin'
     });
   }
   
-  return fetch(input, { ...init, body, headers, credentials: 'same-origin' });
+  return fetch(input, { ...init, headers, credentials: 'same-origin' });
 }
