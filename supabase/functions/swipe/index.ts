@@ -27,22 +27,30 @@ serve(async (req) => {
     const authHeader = req.headers.get("authorization") || "";
     const token = authHeader.replace("Bearer ", "");
     
-    // For demo purposes, use default user ID if no token or explicit from_user_id
-    let userId = "11111111-1111-1111-1111-111111111001"; // Default Alice user
+    // Get user ID from request body (Firebase Auth) or token (Supabase Auth)
+    const body = await req.json();
+    const { to_user_id, type, from_user_id } = body;
     
-    if (token) {
+    let userId = from_user_id; // Prefer explicit user ID from Firebase
+    
+    if (!userId && token) {
       const { data: user, error: userErr } = await supabase.auth.getUser(token);
       if (user?.user) {
         userId = user.user.id;
       }
     }
-    // Allow explicit Firebase user id passthrough when not using Supabase Auth
-    if (from_user_id) {
-      userId = from_user_id;
+    
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ error: "User authentication required" }), 
+        { 
+          status: 401,
+          headers: { ...corsHeaders, "content-type": "application/json" }
+        }
+      );
     }
 
-    const body = await req.json();
-    const { to_user_id, type, from_user_id } = body;
+    // Request body already parsed above
     
     if (!to_user_id || !["like", "pass"].includes(type)) {
       return new Response(

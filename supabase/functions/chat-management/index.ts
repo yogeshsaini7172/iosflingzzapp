@@ -7,12 +7,13 @@ const corsHeaders = {
 };
 
 interface ChatRequest {
-  action: 'create' | 'send' | 'history' | 'list' | 'create_room';
+  action: 'create' | 'send' | 'history' | 'list' | 'create_room' | 'send_message';
   candidate_id?: string;
   match_id?: string;
   message?: string;
   user_id?: string;
   other_user_id?: string;
+  chat_room_id?: string;
 }
 
 serve(async (req) => {
@@ -27,7 +28,7 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const { action, candidate_id, match_id, message, user_id }: ChatRequest = await req.json();
+    const { action, candidate_id, match_id, message, user_id, chat_room_id }: ChatRequest = await req.json();
 
     // Optional auth: try JWT, but allow unauthenticated for 'list' with explicit user_id
     const authHeader = req.headers.get('Authorization') || '';
@@ -263,6 +264,46 @@ serve(async (req) => {
         }
 
         return new Response(JSON.stringify({ success: true, data: enriched }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        });
+
+      case 'send_message':
+        if (!chat_room_id || !message || !user_id) {
+          throw new Error('chat_room_id, message, and user_id are required');
+        }
+
+        // Verify user is part of this chat room
+        const { data: chatRoom } = await supabaseClient
+          .from('chat_rooms')
+          .select('user1_id, user2_id')
+          .eq('id', chat_room_id)
+          .single();
+
+        if (!chatRoom || (chatRoom.user1_id !== user_id && chatRoom.user2_id !== user_id)) {
+          throw new Error('Unauthorized: You are not part of this chat room');
+        }
+
+        // Send message to enhanced chat
+        const { data: sentMessage, error: messageError } = await supabaseClient
+          .from('chat_messages_enhanced')
+          .insert({
+            chat_room_id,
+            sender_id: user_id,
+            message_text: message,
+            created_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+
+        if (messageError) throw messageError;
+
+        console.log(`Message sent to chat room ${chat_room_id} from ${user_id}`);
+        return new Response(JSON.stringify({
+          success: true,
+          data: sentMessage,
+          message: 'Message sent'
+        }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200,
         });

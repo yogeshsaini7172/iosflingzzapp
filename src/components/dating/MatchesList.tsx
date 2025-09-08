@@ -122,7 +122,8 @@ const MatchesList = ({ onNavigate }: MatchesListProps) => {
           body: {
             action: 'send_message',
             chat_room_id: selectedMatchData.chat_room_id,
-            message: message.trim()
+            message: message.trim(),
+            user_id: userId
           }
         });
         setMessage('');
