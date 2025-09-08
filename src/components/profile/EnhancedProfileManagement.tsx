@@ -33,6 +33,8 @@ import {
 } from 'lucide-react';
 import { useProfileData } from '@/hooks/useProfileData';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface EnhancedProfileManagementProps {
   onNavigate: (view: string) => void;
@@ -40,11 +42,17 @@ interface EnhancedProfileManagementProps {
 
 const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProps) => {
   const { profile, preferences, isLoading, updateProfile, updatePreferences } = useProfileData();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<'basic' | 'what-you-are' | 'who-you-want' | 'photos' | 'privacy'>('basic');
   const [showPhotoViewer, setShowPhotoViewer] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
+
+  // Helper function to get current user ID
+  const getCurrentUserId = () => {
+    return user?.uid || localStorage.getItem("demoUserId") || "6e6a510a-d406-4a01-91ab-64efdbca98f2";
+  };
 
   // Local state for form management - Initialize with empty values initially
   const [formData, setFormData] = useState({
@@ -741,18 +749,53 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       const files = Array.from(event.target.files || []);
       if (!files.length) return;
       
-      console.log(`📸 Starting upload of ${files.length} file(s)`);
+      const maxFiles = 6 - formData.profileImages.length;
+      const filesToProcess = files.slice(0, maxFiles);
+      
+      console.log(`📸 Starting upload of ${filesToProcess.length} file(s)`);
       
       try {
         const uploadedUrls: string[] = [];
+        const userId = getCurrentUserId();
         
-        for (let i = 0; i < files.length; i++) {
-          const file = files[i];
+        for (let i = 0; i < filesToProcess.length; i++) {
+          const file = filesToProcess[i];
           console.log(`📸 Processing file ${i + 1}:`, file.name, file.size);
           
-          // Create a simple URL for demo purposes
-          const imageUrl = URL.createObjectURL(file);
-          uploadedUrls.push(imageUrl);
+          // Validate file
+          if (file.size > 5 * 1024 * 1024) { // 5MB limit
+            throw new Error(`File ${file.name} is too large. Maximum size is 5MB.`);
+          }
+          
+          if (!file.type.startsWith('image/')) {
+            throw new Error(`File ${file.name} is not an image. Please select image files only.`);
+          }
+          
+          // Create unique filename
+          const timestamp = Date.now();
+          const fileExt = file.name.split('.').pop()?.toLowerCase();
+          const fileName = `${userId}/${timestamp}_${i}.${fileExt}`;
+          
+          // Upload to Supabase Storage
+          const { data, error } = await supabase.storage
+            .from('profile-images')
+            .upload(fileName, file, {
+              cacheControl: '3600',
+              upsert: false
+            });
+            
+          if (error) {
+            console.error('Storage upload error:', error);
+            throw new Error(`Failed to upload ${file.name}: ${error.message}`);
+          }
+          
+          // Get public URL
+          const { data: urlData } = supabase.storage
+            .from('profile-images')
+            .getPublicUrl(data.path);
+            
+          uploadedUrls.push(urlData.publicUrl);
+          console.log(`✅ Uploaded ${file.name} to:`, urlData.publicUrl);
         }
 
         // Update local state immediately
@@ -762,9 +805,19 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
         console.log("✅ Photos uploaded successfully:", uploadedUrls);
         console.log("📸 Total images now:", newImages.length);
         
+        // Show success message
+        toast({
+          title: "Photos uploaded",
+          description: `Successfully uploaded ${uploadedUrls.length} photo${uploadedUrls.length > 1 ? 's' : ''}`,
+        });
+        
       } catch (error: any) {
         console.error('❌ Error uploading photos:', error);
-        alert(`Upload error: ${error.message || 'Please try again.'}`);
+        toast({
+          title: "Upload failed",
+          description: error.message || "Failed to upload photos. Please try again.",
+          variant: "destructive",
+        });
       }
     };
 

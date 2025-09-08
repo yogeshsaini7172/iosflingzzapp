@@ -556,6 +556,7 @@ export type Database = {
           daily_swipes_reset_at: string | null
           daily_swipes_used: number | null
           date_of_birth: string
+          education_level: string | null
           email: string
           extra_pairings_left: number | null
           face_type: string | null
@@ -580,11 +581,13 @@ export type Database = {
           major: string | null
           mindset: string | null
           pairing_requests_left: number | null
+          personality_traits: string[] | null
           personality_type: string | null
           plan_expires_at: string | null
           plan_id: string | null
           plan_started_at: string | null
           priority_score: number | null
+          profession: string | null
           profile_completion_percentage: number | null
           profile_images: string[] | null
           qualities: Json | null
@@ -605,6 +608,7 @@ export type Database = {
           updated_at: string
           user_id: string
           values: string | null
+          values_array: string[] | null
           verification_status: string | null
           verified_at: string | null
           year_of_study: number | null
@@ -625,6 +629,7 @@ export type Database = {
           daily_swipes_reset_at?: string | null
           daily_swipes_used?: number | null
           date_of_birth: string
+          education_level?: string | null
           email: string
           extra_pairings_left?: number | null
           face_type?: string | null
@@ -649,11 +654,13 @@ export type Database = {
           major?: string | null
           mindset?: string | null
           pairing_requests_left?: number | null
+          personality_traits?: string[] | null
           personality_type?: string | null
           plan_expires_at?: string | null
           plan_id?: string | null
           plan_started_at?: string | null
           priority_score?: number | null
+          profession?: string | null
           profile_completion_percentage?: number | null
           profile_images?: string[] | null
           qualities?: Json | null
@@ -674,6 +681,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           values?: string | null
+          values_array?: string[] | null
           verification_status?: string | null
           verified_at?: string | null
           year_of_study?: number | null
@@ -694,6 +702,7 @@ export type Database = {
           daily_swipes_reset_at?: string | null
           daily_swipes_used?: number | null
           date_of_birth?: string
+          education_level?: string | null
           email?: string
           extra_pairings_left?: number | null
           face_type?: string | null
@@ -718,11 +727,13 @@ export type Database = {
           major?: string | null
           mindset?: string | null
           pairing_requests_left?: number | null
+          personality_traits?: string[] | null
           personality_type?: string | null
           plan_expires_at?: string | null
           plan_id?: string | null
           plan_started_at?: string | null
           priority_score?: number | null
+          profession?: string | null
           profile_completion_percentage?: number | null
           profile_images?: string[] | null
           qualities?: Json | null
@@ -743,6 +754,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           values?: string | null
+          values_array?: string[] | null
           verification_status?: string | null
           verified_at?: string | null
           year_of_study?: number | null
