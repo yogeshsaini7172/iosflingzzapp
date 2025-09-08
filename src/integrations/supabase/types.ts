@@ -665,6 +665,7 @@ export type Database = {
           extra_pairings_left: number | null
           face_type: string | null
           field_of_study: string | null
+          firebase_uid: string | null
           first_name: string
           gender: Database["public"]["Enums"]["gender"]
           govt_id_url: string | null
@@ -740,6 +741,7 @@ export type Database = {
           extra_pairings_left?: number | null
           face_type?: string | null
           field_of_study?: string | null
+          firebase_uid?: string | null
           first_name: string
           gender: Database["public"]["Enums"]["gender"]
           govt_id_url?: string | null
@@ -815,6 +817,7 @@ export type Database = {
           extra_pairings_left?: number | null
           face_type?: string | null
           field_of_study?: string | null
+          firebase_uid?: string | null
           first_name?: string
           gender?: Database["public"]["Enums"]["gender"]
           govt_id_url?: string | null
@@ -1262,6 +1265,22 @@ export type Database = {
       create_match_and_chat: {
         Args: { p_a: string; p_actor_id: string; p_b: string }
         Returns: Json
+      }
+      get_profile_by_firebase_uid: {
+        Args: { uid: string }
+        Returns: {
+          bio: string
+          created_at: string
+          email: string
+          firebase_uid: string
+          first_name: string
+          id: string
+          last_name: string
+          profile_images: string[]
+          university: string
+          updated_at: string
+          user_id: string
+        }[]
       }
       increment_reports_count: {
         Args: { user_id: string }
