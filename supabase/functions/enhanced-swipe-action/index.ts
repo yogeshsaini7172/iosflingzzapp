@@ -29,6 +29,16 @@ serve(async (req) => {
 
     const { user_id, target_user_id, direction }: SwipeRequest = await req.json()
 
+    console.log(`📝 Function invocation: enhanced-swipe-action`, { user_id, target_user_id, direction });
+
+    // Log function invocation for observability
+    await supabaseClient.from('function_invocations').insert({
+      function_name: 'enhanced-swipe-action',
+      payload: { user_id, target_user_id, direction },
+      user_id,
+      status: 'started'
+    }).then(r => console.log('Logged invocation:', r.error || 'success'));
+
     if (!user_id || !target_user_id || !direction) {
       return new Response(
         JSON.stringify({ error: 'Missing required fields' }),
@@ -210,6 +220,14 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Unexpected error:', error)
+    
+    // Log error
+    await supabaseClient.from('function_invocations').insert({
+      function_name: 'enhanced-swipe-action',
+      status: 'error',
+      error: error.message
+    }).catch(() => {}); // Ignore logging errors
+
     return new Response(
       JSON.stringify({ 
         error: 'Internal server error',

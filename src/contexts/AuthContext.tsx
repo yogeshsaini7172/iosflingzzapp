@@ -16,6 +16,8 @@ interface AuthContextType {
   // OAuth
   signInWithGoogle: () => Promise<{ error?: any }>;
   signOut: () => Promise<{ error?: any }>;
+  // Supabase session management
+  getSupabaseSession: () => Promise<any>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,6 +40,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
+
+  // Get current Supabase session
+  const getSupabaseSession = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      return session;
+    } catch (error) {
+      console.error('Error getting Supabase session:', error);
+      return null;
+    }
+  };
 
   useEffect(() => {
     console.log('🔥 Setting up Firebase auth listener...');
@@ -190,6 +203,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     verifyPhoneOTP,
     signInWithGoogle,
     signOut,
+    getSupabaseSession,
   };
 
   return (

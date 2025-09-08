@@ -269,6 +269,13 @@ export type Database = {
             referencedRelation: "enhanced_matches"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_chat_rooms_match_enhanced"
+            columns: ["match_id"]
+            isOneToOne: true
+            referencedRelation: "enhanced_matches"
+            referencedColumns: ["id"]
+          },
         ]
       }
       colleges: {
