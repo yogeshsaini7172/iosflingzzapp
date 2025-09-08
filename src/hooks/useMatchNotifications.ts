@@ -7,7 +7,7 @@ import { toast } from '@/hooks/use-toast';
 export const useMatchNotifications = () => {
   const { userId } = useRequiredAuth();
 
-  // Listen for new matches (split filters to avoid unsupported OR)
+  // Listen for new matches - use two separate subscriptions to cover both user1_id and user2_id positions
   useRealtime({
     table: 'enhanced_matches',
     event: 'INSERT',
@@ -16,6 +16,7 @@ export const useMatchNotifications = () => {
       const match = payload.new;
       const isMine = match.user1_id === userId || match.user2_id === userId;
       if (!isMine) return;
+      
       const otherUserId = match.user1_id === userId ? match.user2_id : match.user1_id;
       try {
         const { data: profile } = await supabase
@@ -23,14 +24,8 @@ export const useMatchNotifications = () => {
           .select('first_name, last_name, profile_images')
           .eq('user_id', otherUserId)
           .single();
+        
         if (profile) {
-          await supabase.from('notifications').insert({
-            user_id: userId,
-            type: 'new_match',
-            title: 'New Match! 💕',
-            message: `You matched with ${profile.first_name}! Start chatting now.`,
-            data: { match_id: match.id, other_user_id: otherUserId, chat_room_id: match.chat_room_id }
-          });
           toast({
             title: "It's a Match! 💕",
             description: `You and ${profile.first_name} liked each other!`,
@@ -38,7 +33,7 @@ export const useMatchNotifications = () => {
           });
         }
       } catch (error) {
-        console.error('Error creating match notification:', error);
+        console.error('Error handling match notification:', error);
       }
     }
   });
@@ -51,6 +46,7 @@ export const useMatchNotifications = () => {
       const match = payload.new;
       const isMine = match.user1_id === userId || match.user2_id === userId;
       if (!isMine) return;
+      
       const otherUserId = match.user1_id === userId ? match.user2_id : match.user1_id;
       try {
         const { data: profile } = await supabase
@@ -58,14 +54,8 @@ export const useMatchNotifications = () => {
           .select('first_name, last_name, profile_images')
           .eq('user_id', otherUserId)
           .single();
+        
         if (profile) {
-          await supabase.from('notifications').insert({
-            user_id: userId,
-            type: 'new_match',
-            title: 'New Match! 💕',
-            message: `You matched with ${profile.first_name}! Start chatting now.`,
-            data: { match_id: match.id, other_user_id: otherUserId, chat_room_id: match.chat_room_id }
-          });
           toast({
             title: "It's a Match! 💕",
             description: `You and ${profile.first_name} liked each other!`,
@@ -73,7 +63,7 @@ export const useMatchNotifications = () => {
           });
         }
       } catch (error) {
-        console.error('Error creating match notification:', error);
+        console.error('Error handling match notification:', error);
       }
     }
   });
@@ -104,21 +94,7 @@ export const useMatchNotifications = () => {
               .single();
 
             if (senderProfile) {
-              // Create notification in database
-              await supabase
-                .from('notifications')
-                .insert({
-                  user_id: userId,
-                  type: 'new_message',
-                  title: 'New Message 💬',
-                  message: `${senderProfile.first_name}: ${message.message_text.slice(0, 50)}${message.message_text.length > 50 ? '...' : ''}`,
-                  data: { 
-                    chat_room_id: message.chat_room_id,
-                    sender_id: message.sender_id
-                  }
-                });
-
-              // Show immediate toast
+              // Show immediate toast (notification insert handled by edge function)
               toast({
                 title: `New message from ${senderProfile.first_name}`,
                 description: message.message_text.slice(0, 100),

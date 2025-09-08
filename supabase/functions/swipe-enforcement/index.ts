@@ -171,19 +171,114 @@ serve(async (req) => {
       if (reciprocalSwipe) {
         logStep("Match found! Creating match record");
         
-        // Create match
-        const { error: matchError } = await supabaseClient
-          .from('enhanced_matches')
-          .insert({
-            user1_id: user.id,
-            user2_id: candidate_id,
-            user1_swiped: true,
-            user2_swiped: true,
-            status: 'matched'
-          });
+        // Create deterministic ordering for user1/user2 to avoid duplicates
+        const user1_id = user.id < candidate_id ? user.id : candidate_id
+        const user2_id = user.id < candidate_id ? candidate_id : user.id
 
-        if (!matchError) {
-          logStep("Match created successfully");
+        // Check if match already exists
+        const { data: existingMatch } = await supabaseClient
+          .from('enhanced_matches')
+          .select('id, chat_room_id')
+          .or(`and(user1_id.eq.${user1_id},user2_id.eq.${user2_id}),and(user1_id.eq.${user2_id},user2_id.eq.${user1_id})`)
+          .maybeSingle();
+
+        if (!existingMatch) {
+          try {
+            // 1) Create enhanced match
+            const { data: newEnhancedMatch, error: matchError } = await supabaseClient
+              .from('enhanced_matches')
+              .insert({
+                user1_id,
+                user2_id,
+                user1_swiped: true,
+                user2_swiped: true,
+                status: 'matched',
+                created_at: new Date().toISOString()
+              })
+              .select()
+              .single();
+
+            if (matchError) {
+              console.error('Failed to create enhanced match:', matchError);
+              throw matchError;
+            }
+
+            // 2) Create chat room
+            const { data: chatRoom, error: chatRoomErr } = await supabaseClient
+              .from('chat_rooms')
+              .insert({
+                match_id: newEnhancedMatch.id,
+                user1_id,
+                user2_id,
+                created_at: new Date().toISOString()
+              })
+              .select()
+              .single();
+
+            if (chatRoomErr) {
+              console.error('Chat room creation failed:', chatRoomErr);
+            }
+
+            // 3) Get profiles for notifications
+            const { data: currentProfile } = await supabaseClient
+              .from('profiles')
+              .select('first_name, last_name')
+              .eq('user_id', user.id)
+              .single();
+
+            const { data: candidateProfile } = await supabaseClient
+              .from('profiles')
+              .select('first_name, last_name')
+              .eq('user_id', candidate_id)
+              .single();
+
+            // 4) Insert notifications for both users
+            if (candidateProfile) {
+              const { error: notifErr1 } = await supabaseClient
+                .from('notifications')
+                .insert({
+                  user_id: candidate_id,
+                  type: 'new_match',
+                  title: 'It\'s a match! 🎉',
+                  message: `You and ${currentProfile?.first_name || 'someone'} liked each other!`,
+                  data: { 
+                    enhanced_match_id: newEnhancedMatch.id, 
+                    chat_room_id: chatRoom?.id || null,
+                    other_user_id: user.id
+                  },
+                  created_at: new Date().toISOString()
+                });
+
+              if (notifErr1) console.error('Notification insert failed for candidate:', notifErr1);
+            }
+
+            if (currentProfile) {
+              const { error: notifErr2 } = await supabaseClient
+                .from('notifications')
+                .insert({
+                  user_id: user.id,
+                  type: 'new_match',
+                  title: 'It\'s a match! 🎉',
+                  message: `You and ${candidateProfile?.first_name || 'someone'} liked each other!`,
+                  data: { 
+                    enhanced_match_id: newEnhancedMatch.id, 
+                    chat_room_id: chatRoom?.id || null,
+                    other_user_id: candidate_id
+                  },
+                  created_at: new Date().toISOString()
+                });
+
+              if (notifErr2) console.error('Notification insert failed for current:', notifErr2);
+            }
+
+            logStep("Match created successfully with chat room and notifications");
+
+          } catch (err) {
+            console.error('Error in match creation flow:', err);
+            logStep("Match creation failed", { error: err.message });
+          }
+        } else {
+          logStep("Match already exists", { matchId: existingMatch.id });
         }
       }
     }
