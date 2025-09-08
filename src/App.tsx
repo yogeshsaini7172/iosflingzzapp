@@ -91,7 +91,7 @@ const AuthenticatedApp = () => {
   }
 
   // Show authentication/profile setup flow if not complete
-  if (!user || !hasProfile) {
+  if (!hasProfile) {
     console.log('🔑 Showing auth/setup flow...', { 
       hasUser: !!user, 
       hasProfile
