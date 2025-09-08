@@ -3,16 +3,18 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, X, MapPin, Star, Shield, Zap } from 'lucide-react';
+import { Heart, X, MapPin, Star, Shield, Zap, MessageCircle } from 'lucide-react';
 import { useProfilesFeed, FeedProfile } from '@/hooks/useProfilesFeed';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useRequiredAuth } from '@/hooks/useRequiredAuth';
+import ChatRequestModal from '@/components/notifications/ChatRequestModal';
 
 const SwipeCards: React.FC = () => {
   const { profiles, loading } = useProfilesFeed();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [swipeCount, setSwipeCount] = useState(0);
+  const [showChatRequest, setShowChatRequest] = useState(false);
   const { toast } = useToast();
   const { userId } = useRequiredAuth();
 
@@ -237,6 +239,15 @@ const SwipeCards: React.FC = () => {
       {/* Mobile-Optimized Action Buttons */}
       <div className="flex justify-center space-x-4 mt-6">
         <Button
+          onClick={() => setShowChatRequest(true)}
+          variant="outline"
+          size="lg"
+          className="w-16 h-16 rounded-full glass-luxury border-blue-300/50 hover:bg-blue-50 hover:border-blue-400 hover:shadow-soft transition-luxury group touch-manipulation"
+        >
+          <MessageCircle className="w-7 h-7 text-blue-500 group-hover:scale-110 transition-all" />
+        </Button>
+        
+        <Button
           onClick={() => handleSwipe('left')}
           variant="outline"
           size="lg"
@@ -256,8 +267,24 @@ const SwipeCards: React.FC = () => {
 
       {/* Mobile Tips */}
       <div className="text-center text-sm text-foreground/60 font-modern mt-4 px-4">
-        Tap ✗ to pass • Tap ❤️ for premium matches
+        Tap 💬 to request chat • Tap ✗ to pass • Tap ❤️ for premium matches
       </div>
+
+      {/* Chat Request Modal */}
+      {currentProfile && (
+        <ChatRequestModal
+          isOpen={showChatRequest}
+          onClose={() => setShowChatRequest(false)}
+          profile={{
+            user_id: currentProfile.user_id,
+            first_name: currentProfile.first_name,
+            last_name: currentProfile.last_name,
+            profile_images: currentProfile.profile_images,
+            university: currentProfile.university,
+            bio: currentProfile.bio
+          }}
+        />
+      )}
     </div>
   );
 };

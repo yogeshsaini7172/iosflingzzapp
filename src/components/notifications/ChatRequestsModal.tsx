@@ -4,14 +4,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, Check, X, MapPin } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { MessageCircle, Check, X, Clock, Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { useRequiredAuth } from "@/hooks/useRequiredAuth";
+import { toast } from "@/hooks/use-toast";
+import { formatDistanceToNow } from "date-fns";
 
 interface ChatRequestsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onChatCreated?: (chatId: string) => void;
+  onNavigate?: (view: string) => void;
 }
 
 interface ChatRequest {
@@ -23,39 +26,41 @@ interface ChatRequest {
   sender: {
     user_id: string;
     first_name: string;
-    last_name: string;
+    last_name?: string;
     profile_images?: string[];
-    university: string;
+    university?: string;
   };
 }
 
-const ChatRequestsModal = ({ isOpen, onClose, onChatCreated }: ChatRequestsModalProps) => {
+const ChatRequestsModal = ({ isOpen, onClose, onNavigate }: ChatRequestsModalProps) => {
   const [requests, setRequests] = useState<ChatRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState<string | null>(null);
-  const { toast } = useToast();
+  const [responding, setResponding] = useState<string | null>(null);
+  const { userId, accessToken } = useRequiredAuth();
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && userId) {
       fetchChatRequests();
     }
-  }, [isOpen]);
+  }, [isOpen, userId]);
 
   const fetchChatRequests = async () => {
+    if (!userId) return;
+    
     try {
       setLoading(true);
       const { data, error } = await supabase.functions.invoke('chat-request-handler', {
-        body: { action: 'get_requests' }
+        body: { action: 'get_requests' },
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
       });
 
       if (error) throw error;
-
       setRequests(data?.data || []);
     } catch (error: any) {
       console.error("Error fetching chat requests:", error);
       toast({
-        title: "Error",
-        description: "Failed to load chat requests",
+        title: "Failed to load requests",
+        description: "Please try again later",
         variant: "destructive"
       });
     } finally {
@@ -64,15 +69,15 @@ const ChatRequestsModal = ({ isOpen, onClose, onChatCreated }: ChatRequestsModal
   };
 
   const handleResponse = async (requestId: string, status: 'accepted' | 'declined') => {
+    setResponding(requestId);
     try {
-      setProcessing(requestId);
-      
       const { data, error } = await supabase.functions.invoke('chat-request-handler', {
         body: {
           action: 'respond_request',
           request_id: requestId,
           status
-        }
+        },
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
       });
 
       if (error) throw error;
@@ -80,15 +85,14 @@ const ChatRequestsModal = ({ isOpen, onClose, onChatCreated }: ChatRequestsModal
       if (status === 'accepted') {
         toast({
           title: "Request accepted! 🎉",
-          description: "Chat room created. You can start messaging now!",
+          description: "Chat room created. You can now start chatting!",
         });
-        
-        // Trigger chat creation callback if provided
-        onChatCreated?.(data?.data?.id);
+        onNavigate?.('matches');
+        onClose();
       } else {
         toast({
           title: "Request declined",
-          description: "The request has been declined.",
+          description: "The request has been declined",
         });
       }
 
@@ -97,21 +101,21 @@ const ChatRequestsModal = ({ isOpen, onClose, onChatCreated }: ChatRequestsModal
     } catch (error: any) {
       console.error("Error responding to chat request:", error);
       toast({
-        title: "Error",
-        description: "Failed to respond to request",
+        title: "Failed to respond",
+        description: "Please try again later",
         variant: "destructive"
       });
     } finally {
-      setProcessing(null);
+      setResponding(null);
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <MessageCircle className="w-5 h-5 text-blue-500" />
+            <MessageCircle className="w-5 h-5 text-primary" />
             Chat Requests
             {requests.length > 0 && (
               <Badge variant="secondary">{requests.length}</Badge>
@@ -119,79 +123,89 @@ const ChatRequestsModal = ({ isOpen, onClose, onChatCreated }: ChatRequestsModal
           </DialogTitle>
         </DialogHeader>
         
-        <div className="flex-1 overflow-y-auto">
+        <ScrollArea className="max-h-96">
           {loading ? (
-            <div className="flex justify-center items-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <div className="p-8 text-center text-muted-foreground">
+              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+              Loading requests...
             </div>
           ) : requests.length === 0 ? (
-            <div className="text-center py-8">
-              <MessageCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Chat Requests</h3>
-              <p className="text-muted-foreground">
-                You don't have any pending chat requests right now.
-              </p>
+            <div className="p-8 text-center text-muted-foreground">
+              <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p className="font-medium">No chat requests</p>
+              <p className="text-sm">Chat requests will appear here when someone wants to connect with you!</p>
             </div>
           ) : (
-            <div className="grid gap-4">
+            <div className="space-y-3 p-1">
               {requests.map((request) => (
-                <Card key={request.id} className="hover:shadow-md transition-shadow">
+                <Card key={request.id} className="border-l-4 border-l-primary">
                   <CardContent className="p-4">
-                    <div className="flex items-center gap-4">
-                      <Avatar className="w-16 h-16">
+                    <div className="flex items-start gap-3">
+                      <Avatar className="w-12 h-12 flex-shrink-0">
                         <AvatarImage 
                           src={request.sender.profile_images?.[0] || `https://api.dicebear.com/7.x/avataaars/svg?seed=${request.sender.user_id}`} 
                           alt={request.sender.first_name} 
                         />
                         <AvatarFallback>
-                          {request.sender.first_name[0]}{request.sender.last_name[0]}
+                          {request.sender.first_name[0]}{request.sender.last_name?.[0] || ''}
                         </AvatarFallback>
                       </Avatar>
-                      
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold">
-                            {request.sender.first_name} {request.sender.last_name}
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <h3 className="font-semibold text-sm">
+                            {request.sender.first_name} {request.sender.last_name || ''}
                           </h3>
-                          <Badge variant="outline" className="bg-green-100 text-green-700">
-                            {request.compatibility_score}% match
-                          </Badge>
+                          <div className="flex items-center gap-1">
+                            <Heart className="w-3 h-3 text-red-500" />
+                            <span className="text-xs font-medium text-green-600">
+                              {request.compatibility_score}% match
+                            </span>
+                          </div>
                         </div>
-                        
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                          <MapPin className="w-3 h-3" />
-                          <span>{request.sender.university}</span>
-                        </div>
-                        
-                        <p className="text-sm text-muted-foreground mb-3">
+
+                        {request.sender.university && (
+                          <p className="text-xs text-muted-foreground mb-2">
+                            {request.sender.university}
+                          </p>
+                        )}
+
+                        <p className="text-sm text-foreground mb-3 bg-muted/50 rounded-lg p-2">
                           "{request.message}"
                         </p>
-                        
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(request.created_at).toLocaleDateString()} at {new Date(request.created_at).toLocaleTimeString()}
-                        </p>
-                      </div>
-                      
-                      <div className="flex flex-col gap-2">
-                        <Button
-                          size="sm"
-                          className="bg-green-500 hover:bg-green-600"
-                          onClick={() => handleResponse(request.id, 'accepted')}
-                          disabled={processing === request.id}
-                        >
-                          <Check className="w-4 h-4 mr-1" />
-                          Accept
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="border-red-300 text-red-600 hover:bg-red-50"
-                          onClick={() => handleResponse(request.id, 'declined')}
-                          disabled={processing === request.id}
-                        >
-                          <X className="w-4 h-4 mr-1" />
-                          Decline
-                        </Button>
+
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Clock className="w-3 h-3" />
+                            {formatDistanceToNow(new Date(request.created_at), { addSuffix: true })}
+                          </div>
+                          
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleResponse(request.id, 'declined')}
+                              disabled={responding === request.id}
+                              className="h-8 px-3"
+                            >
+                              <X className="w-3 h-3 mr-1" />
+                              Decline
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={() => handleResponse(request.id, 'accepted')}
+                              disabled={responding === request.id}
+                              className="h-8 px-3"
+                            >
+                              {responding === request.id ? (
+                                <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin mr-1" />
+                              ) : (
+                                <Check className="w-3 h-3 mr-1" />
+                              )}
+                              Accept
+                            </Button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
@@ -199,7 +213,7 @@ const ChatRequestsModal = ({ isOpen, onClose, onChatCreated }: ChatRequestsModal
               ))}
             </div>
           )}
-        </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

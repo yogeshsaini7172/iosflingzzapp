@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import NotificationCenter from '@/components/notifications/NotificationCenter';
 import { 
   Home, 
   Users, 
@@ -13,7 +14,6 @@ import {
   Calendar,
   Zap,
   Menu,
-  Bell,
   Settings
 } from 'lucide-react';
 
@@ -79,16 +79,7 @@ const Navbar = () => {
           {/* Right side items */}
           <div className="flex items-center space-x-3">
             {/* Notifications */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-foreground hover:text-foreground hover:bg-muted relative"
-            >
-              <Bell className="h-4 w-4" />
-              <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs bg-primary text-primary-foreground border-0">
-                3
-              </Badge>
-            </Button>
+            <NotificationCenter />
 
             {/* Profile Avatar */}
             <NavLink to="/profile">

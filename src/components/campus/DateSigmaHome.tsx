@@ -863,10 +863,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
       <ChatRequestsModal 
         isOpen={showChatRequests}
         onClose={() => setShowChatRequests(false)}
-        onChatCreated={(chatId) => {
-          setShowChatRequests(false);
-          onNavigate('chat');
-        }}
+        onNavigate={onNavigate}
       />
       
       <WhoLikedMeModal 

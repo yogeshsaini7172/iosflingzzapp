@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { MessageCircle, Heart, Calendar, Send, MoreVertical, MapPin } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRequiredAuth } from "@/hooks/useRequiredAuth";
+import { useMatchNotifications } from "@/hooks/useMatchNotifications";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useRealtime } from "@/hooks/useRealtime";
@@ -42,6 +43,9 @@ const MatchesList = ({ onNavigate }: MatchesListProps) => {
   const [loading, setLoading] = useState(true);
   const { userId } = useRequiredAuth();
   const { toast } = useToast();
+
+  // Enable match and message notifications
+  useMatchNotifications();
 
   useEffect(() => {
     if (userId) {
