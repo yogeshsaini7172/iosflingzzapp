@@ -69,20 +69,42 @@ const EnhancedChatSystem = ({ onNavigate, selectedChatId }: EnhancedChatSystemPr
     try {
       console.log("🔍 Fetching chat rooms via function for user:", userId);
 
+      // Primary path: invoke edge function via Supabase SDK
       const { data: fnData, error: fnError } = await supabase.functions.invoke('chat-management', {
         body: { action: 'list', user_id: userId }
       });
 
-      if (fnError) {
-        console.error('❌ chat-management error object:', fnError);
-        throw fnError;
+      if (fnError || !fnData?.success) {
+        console.warn('⚠️ invoke() failed or returned error, falling back to direct GET', { fnError, fnData });
+
+        // Fallback path: direct GET request to the function (verify_jwt=false)
+        const functionUrl = `https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-management?action=list&user_id=${encodeURIComponent(userId)}`;
+        const resp = await fetch(functionUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            // No Authorization needed (verify_jwt=false); keep CORS simple
+          },
+        });
+
+        if (!resp.ok) {
+          const text = await resp.text();
+          throw new Error(text || `Function HTTP ${resp.status}`);
+        }
+
+        const json = await resp.json();
+        if (!json?.success) throw new Error(json?.error || 'Chat list failed');
+
+        const roomsWithUsers = (json?.data || []) as any[];
+        console.log("✅ Chat rooms from fallback GET:", roomsWithUsers);
+        setChatRooms(roomsWithUsers as any);
+        if (roomsWithUsers.length > 0) {
+          toast({ title: 'Chats loaded', description: `You have ${roomsWithUsers.length} active conversations` });
+        }
+        return; // end after fallback success
       }
 
-      if (!fnData?.success) {
-        console.error('❌ chat-management returned failure:', fnData);
-        throw new Error(fnData?.error || 'Chat list failed');
-      }
-
+      // Normal success path
       const roomsWithUsers = (fnData?.data || []) as any[];
       console.log("✅ Chat rooms from function:", roomsWithUsers);
       setChatRooms(roomsWithUsers as any);
