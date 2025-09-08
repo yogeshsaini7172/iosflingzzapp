@@ -236,7 +236,7 @@ export type Database = {
           {
             foreignKeyName: "chat_rooms_match_id_fkey"
             columns: ["match_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "enhanced_matches"
             referencedColumns: ["id"]
           },
