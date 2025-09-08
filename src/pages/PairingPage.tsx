@@ -8,8 +8,8 @@ import { Heart, Brain, Star, MapPin, GraduationCap, Sparkles, Users, RefreshCw, 
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import DetailedProfileModal from '@/components/profile/DetailedProfileModal';
-import GhostBenchBar from '@/components/ui/ghost-bench-bar';
 import EnhancedChatSystem from '@/components/chat/EnhancedChatSystem';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Match {
   user_id: string;
@@ -37,21 +37,75 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
   const [selectedProfile, setSelectedProfile] = useState<Match | null>(null);
   const [selectedChatId, setSelectedChatId] = useState<string>("");
 
+  const { user } = useAuth();
+  const [myReq, setMyReq] = useState<any>(null);
+  const [myQual, setMyQual] = useState<any>(null);
+
+  const parseJsonSafe = (v: any) => {
+    if (!v) return null;
+    try {
+      // Handle stored strings like "\"{...}\""
+      const s = typeof v === 'string' ? v.replace(/^"|"$/g, '') : v;
+      return typeof s === 'string' ? JSON.parse(s) : s;
+    } catch {
+      return null;
+    }
+  };
+
+  const jaccard = (a?: string[] | null, b?: string[] | null) => {
+    if (!a || !b || a.length === 0 || b.length === 0) return 0;
+    const A = new Set(a);
+    const B = new Set(b);
+    const inter = [...A].filter(x => B.has(x)).length;
+    const uni = new Set([...A, ...B]).size;
+    return uni ? inter / uni : 0;
+  };
+
+  const computeScores = (candidate: any) => {
+    const req = myReq || {};
+    const cQual = parseJsonSafe(candidate.qualities) || {};
+    const cVals = Array.isArray(candidate.values) ? candidate.values : (candidate.values ? [candidate.values] : []);
+    const cMindset = Array.isArray(candidate.mindset) ? candidate.mindset : (candidate.mindset ? [candidate.mindset] : []);
+    const cPersonality = candidate.personality_type ? [candidate.personality_type] : [];
+
+    // Physical: height + body type (50/50)
+    let physical = 0;
+    if (cQual.height && req.height_range_min != null && req.height_range_max != null) {
+      if (cQual.height >= req.height_range_min && cQual.height <= req.height_range_max) physical += 50;
+    }
+    if (Array.isArray(req.preferred_body_types) && cQual.body_type) {
+      if (req.preferred_body_types.map((s: string)=>s.toLowerCase().replace(/[^a-z0-9]/g,'_')).includes(String(cQual.body_type).toLowerCase())) physical += 50;
+    }
+    physical = Math.min(100, Math.max(0, Math.round(physical)));
+
+    // Mental: values (40) + mindset (30) + personality (30)
+    const valuesSim = jaccard(req.preferred_values || [], cVals) * 100;
+    const mindsetSim = jaccard(req.preferred_mindset || [], cMindset) * 100;
+    const personalitySim = jaccard(req.preferred_personality_traits || [], cPersonality) * 100;
+    const mental = Math.min(100, Math.round(valuesSim * 0.4 + mindsetSim * 0.3 + personalitySim * 0.3));
+
+    return { physical, mental };
+  };
+
   const getCurrentUserId = () => {
-    // Bypass auth - use default Alice user ID
-    return "11111111-1111-1111-1111-111111111001";
+    if (user?.uid) return user.uid;
+    return localStorage.getItem('demoUserId') || "11111111-1111-1111-1111-111111111001";
   };
 
   useEffect(() => {
     const userId = getCurrentUserId();
-    const defaultUser = {
-      id: userId,
-      name: 'Demo User',
-      profile: { total_qcs: 850 }
-    };
-    setCurrentUser(defaultUser);
-    loadMatches(userId);
-  }, []);
+    (async () => {
+      // Fetch current user's QCS from DB
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('total_qcs')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      setCurrentUser({ id: userId, profile: { total_qcs: profile?.total_qcs || 0 } });
+      loadMatches(userId);
+    })();
+  }, [user]);
 
   const loadMatches = async (userId: string) => {
     setIsLoading(true);
@@ -202,10 +256,6 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
   return (
     <div className="h-full overflow-auto bg-gradient-subtle">
       <div className="max-w-7xl mx-auto p-6">
-        {/* Ghost/Bench Bar */}
-        <div className="mb-6">
-          <GhostBenchBar onChatSelected={setSelectedChatId} />
-        </div>
 
         {/* Header */}
         <div className="mb-8">
