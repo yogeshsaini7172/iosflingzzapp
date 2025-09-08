@@ -52,8 +52,8 @@ const EnhancedChatSystem = ({ onNavigate, selectedChatId }: EnhancedChatSystemPr
   }
 
   useEffect(() => {
-    fetchChatRooms();
-  }, []);
+    if (userId) fetchChatRooms();
+  }, [userId]);
 
   useEffect(() => {
     if (selectedChatId) {

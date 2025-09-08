@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 };
 
 interface ChatRequest {
@@ -29,13 +29,29 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    // Parse JSON body safely
+    // Support GET (query params) and POST (JSON) bodies
+    const url = new URL(req.url);
     let payload: Partial<ChatRequest> = {};
-    try {
-      payload = await req.json();
-    } catch (_e) {
-      payload = {};
+
+    if (req.method === 'GET') {
+      payload = {
+        action: (url.searchParams.get('action') as any) || undefined,
+        user_id: url.searchParams.get('user_id') || undefined,
+        match_id: url.searchParams.get('match_id') || undefined,
+        chat_room_id: url.searchParams.get('chat_room_id') || undefined,
+        message: url.searchParams.get('message') || undefined,
+        candidate_id: url.searchParams.get('candidate_id') || undefined,
+        other_user_id: url.searchParams.get('other_user_id') || undefined,
+      };
+    } else {
+      // Parse JSON body safely for POST
+      try {
+        payload = await req.json();
+      } catch (_e) {
+        payload = {};
+      }
     }
+
     const { action, candidate_id, match_id, message, user_id, other_user_id, chat_room_id }: ChatRequest = payload as ChatRequest;
 
     // Optional auth: try JWT, but allow unauthenticated for 'list' with explicit user_id
