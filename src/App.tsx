@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,6 +31,7 @@ const queryClient = new QueryClient({
 const AuthenticatedApp = () => {
   console.log('🔒 AuthenticatedApp component rendering...');
   const { user, isLoading } = useAuth();
+  const navigate = useNavigate();
   console.log('👤 Current user state:', { user: user?.uid, isLoading });
   
   const [hasProfile, setHasProfile] = useState(false);
@@ -40,25 +41,24 @@ const AuthenticatedApp = () => {
   // Function to check if user has completed profile
   const checkUserProfile = async (userId: string) => {
     try {
-      console.log('🔍 Checking profile for userId:', userId);
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
+      // Use client-side flag first to avoid RLS issues (Firebase auth + Supabase DB)
+      const flag = localStorage.getItem('profile_complete') === 'true';
+      if (flag) return true;
 
-      console.log('📊 Profile query result:', { profile, error });
-      
-      if (error) {
-        console.error('❌ Supabase profile query error:', error);
-        return false;
+      // Fallback: infer from locally cached demo profile
+      const demo = localStorage.getItem('demoProfile');
+      if (demo) {
+        const p = JSON.parse(demo);
+        const complete = p?.user_id === userId && !!p?.first_name && !!p?.university;
+        if (complete) {
+          localStorage.setItem('profile_complete', 'true');
+          return true;
+        }
       }
 
-      const isComplete = profile && profile.first_name && profile.university;
-      console.log('✅ Profile completeness:', isComplete);
-      return isComplete;
+      return false;
     } catch (error) {
-      console.error('❌ Error checking profile:', error);
+      console.error('❌ Error checking profile flag:', error);
       return false;
     }
   };
@@ -136,48 +136,48 @@ const AuthenticatedApp = () => {
         <div id="recaptcha-container"></div>
         <Routes>
           <Route path="/" element={<DateSigmaHome onNavigate={(view) => {
-            // Handle navigation from home page
-            if (view === 'home') window.location.href = '/';
-            if (view === 'pairing') window.location.href = '/pairing';
-            if (view === 'blind-date') window.location.href = '/blind-date';
-            if (view === 'profile') window.location.href = '/profile';
-            if (view === 'subscription') window.location.href = '/subscription';
-            if (view === 'chat') window.location.href = '/chat';
-            if (view === 'feed') window.location.href = '/feed';
+            // SPA navigation to avoid full reloads
+            if (view === 'home') navigate('/');
+            if (view === 'pairing') navigate('/pairing');
+            if (view === 'blind-date') navigate('/blind-date');
+            if (view === 'profile') navigate('/profile');
+            if (view === 'subscription') navigate('/subscription');
+            if (view === 'chat') navigate('/chat');
+            if (view === 'feed') navigate('/feed');
           }} />} />
           <Route path="/swipe" element={<SwipePage onNavigate={(view) => {}} />} />
           <Route path="/feed" element={<FeedPage onNavigate={(view) => {
-            if (view === 'home') window.location.href = '/';
-            if (view === 'pairing') window.location.href = '/pairing';
-            if (view === 'profile') window.location.href = '/profile';
+            if (view === 'home') navigate('/');
+            if (view === 'pairing') navigate('/pairing');
+            if (view === 'profile') navigate('/profile');
           }} />} />
           <Route path="/pairing" element={<PairingPage onNavigate={(view) => {
-            if (view === 'home') window.location.href = '/';
-            if (view === 'pairing') window.location.href = '/pairing';
-            if (view === 'blind-date') window.location.href = '/blind-date';
-            if (view === 'profile') window.location.href = '/profile';
-            if (view === 'subscription') window.location.href = '/subscription';
+            if (view === 'home') navigate('/');
+            if (view === 'pairing') navigate('/pairing');
+            if (view === 'blind-date') navigate('/blind-date');
+            if (view === 'profile') navigate('/profile');
+            if (view === 'subscription') navigate('/subscription');
           }} />} />
           <Route path="/matches" element={<MatchesPage onNavigate={(view) => {}} />} />
           <Route path="/chat/:matchId?" element={<ChatPage onNavigate={(view) => {
-            if (view === 'home') window.location.href = '/';
+            if (view === 'home') navigate('/');
           }} />} />
           <Route path="/profile" element={<ProfilePage onNavigate={(view) => {
-            if (view === 'home') window.location.href = '/';
-            if (view === 'pairing') window.location.href = '/pairing';
-            if (view === 'blind-date') window.location.href = '/blind-date';
-            if (view === 'profile') window.location.href = '/profile';
-            if (view === 'subscription') window.location.href = '/subscription';
+            if (view === 'home') navigate('/');
+            if (view === 'pairing') navigate('/pairing');
+            if (view === 'blind-date') navigate('/blind-date');
+            if (view === 'profile') navigate('/profile');
+            if (view === 'subscription') navigate('/subscription');
           }} />} />
           <Route path="/blind-date" element={<BlindDatePage onNavigate={(view) => {
-            if (view === 'home') window.location.href = '/';
-            if (view === 'pairing') window.location.href = '/pairing';
-            if (view === 'blind-date') window.location.href = '/blind-date';
-            if (view === 'profile') window.location.href = '/profile';
-            if (view === 'subscription') window.location.href = '/subscription';
+            if (view === 'home') navigate('/');
+            if (view === 'pairing') navigate('/pairing');
+            if (view === 'blind-date') navigate('/blind-date');
+            if (view === 'profile') navigate('/profile');
+            if (view === 'subscription') navigate('/subscription');
           }} />} />
           <Route path="/subscription" element={<SubscriptionPage onNavigate={(view) => {
-            if (view === 'home') window.location.href = '/';
+            if (view === 'home') navigate('/');
           }} />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
