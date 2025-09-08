@@ -60,6 +60,10 @@ export interface PartnerPreferences {
   preferred_mindset?: string[];
   preferred_personality_traits?: string[];
   preferred_relationship_goal: string[];
+  preferred_skin_tone?: string[];
+  preferred_face_type?: string[];
+  preferred_love_language?: string[];
+  preferred_lifestyle?: string[];
 }
 
 export const useProfileData = () => {

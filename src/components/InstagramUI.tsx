@@ -495,8 +495,8 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
           {renderContent()}
         </main>
 
-        {/* Bottom Navigation */}
-        <nav className="genZ-bottom-nav bg-card/80 backdrop-blur-xl border-t border-border safe-area-bottom">
+        {/* Bottom Navigation handled globally by UnifiedLayout */}
+        <div className="hidden">
           <div className="flex items-center justify-around h-16 max-w-md mx-auto px-4">
             {[
               { 
@@ -558,7 +558,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
               </Link>
             ))}
           </div>
-        </nav>
+        </div>
 
       </div>
     </div>

@@ -88,6 +88,10 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
     preferredMindset: [] as string[],
     preferredPersonalityTraits: [] as string[],
     preferredRelationshipGoal: [] as string[],
+    preferredSkinTone: [] as string[],
+    preferredFaceType: [] as string[],
+    preferredLoveLanguage: [] as string[],
+    preferredLifestyle: [] as string[],
     
     // Settings
     isVisible: true,
@@ -131,7 +135,11 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
         preferredValues: Array.isArray(preferences.preferred_values) ? preferences.preferred_values : [],
         preferredMindset: Array.isArray(preferences.preferred_mindset) ? preferences.preferred_mindset : [],
         preferredPersonalityTraits: Array.isArray(preferences.preferred_personality_traits) ? preferences.preferred_personality_traits : [],
-        preferredRelationshipGoal: Array.isArray(preferences.preferred_relationship_goal) ? preferences.preferred_relationship_goal : []
+        preferredRelationshipGoal: Array.isArray(preferences.preferred_relationship_goal) ? preferences.preferred_relationship_goal : [],
+        preferredSkinTone: Array.isArray(preferences.preferred_skin_tone) ? preferences.preferred_skin_tone : [],
+        preferredFaceType: Array.isArray(preferences.preferred_face_type) ? preferences.preferred_face_type : [],
+        preferredLoveLanguage: Array.isArray(preferences.preferred_love_language) ? preferences.preferred_love_language : [],
+        preferredLifestyle: Array.isArray(preferences.preferred_lifestyle) ? preferences.preferred_lifestyle : []
       }));
     }
   }, [profile, preferences]);
@@ -187,7 +195,11 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       preferred_values: formData.preferredValues,
       preferred_mindset: formData.preferredMindset,
       preferred_personality_traits: formData.preferredPersonalityTraits,
-      preferred_relationship_goal: formData.preferredRelationshipGoal
+      preferred_relationship_goal: formData.preferredRelationshipGoal,
+      preferred_skin_tone: formData.preferredSkinTone,
+      preferred_face_type: formData.preferredFaceType,
+      preferred_love_language: formData.preferredLoveLanguage,
+      preferred_lifestyle: formData.preferredLifestyle
     });
   };
 
@@ -261,6 +273,21 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
 
   const skinToneOptions = [
     "Very fair", "Fair", "Medium", "Olive", "Brown", "Dark"
+  ];
+
+  const faceTypeOptions = [
+    "Round", "Oval", "Square", "Heart", "Diamond", "Long"
+  ];
+
+  const loveLanguageOptions = [
+    "Words of Affirmation", "Acts of Service", "Receiving Gifts", 
+    "Quality Time", "Physical Touch"
+  ];
+
+  const lifestyleOptions = [
+    "Active", "Relaxed", "Social", "Homebody", "Adventurous", 
+    "Career-focused", "Family-oriented", "Health-conscious", 
+    "Party-goer", "Minimalist", "Creative", "Intellectual"
   ];
 
   const renderBasicInfo = () => (
@@ -734,6 +761,102 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
                     onClick={() => toggleArrayItem('preferredRelationshipGoal', goalKey)}
                   >
                     {goal}
+                  </Badge>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <Label>Preferred Skin Tone</Label>
+            <div className="flex flex-wrap gap-2">
+              {skinToneOptions.map((tone) => {
+                const toneKey = tone.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                const isSelected = formData.preferredSkinTone.includes(toneKey);
+                return (
+                  <Badge
+                    key={tone}
+                    variant={isSelected ? "default" : "outline"}
+                    className={`cursor-pointer ${
+                      isSelected 
+                        ? 'bg-gradient-primary text-white hover:opacity-90' 
+                        : 'border-primary/20 hover:border-primary'
+                    }`}
+                    onClick={() => toggleArrayItem('preferredSkinTone', toneKey)}
+                  >
+                    {tone}
+                  </Badge>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <Label>Preferred Face Type</Label>
+            <div className="flex flex-wrap gap-2">
+              {faceTypeOptions.map((face) => {
+                const faceKey = face.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                const isSelected = formData.preferredFaceType.includes(faceKey);
+                return (
+                  <Badge
+                    key={face}
+                    variant={isSelected ? "default" : "outline"}
+                    className={`cursor-pointer ${
+                      isSelected 
+                        ? 'bg-gradient-primary text-white hover:opacity-90' 
+                        : 'border-primary/20 hover:border-primary'
+                    }`}
+                    onClick={() => toggleArrayItem('preferredFaceType', faceKey)}
+                  >
+                    {face}
+                  </Badge>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <Label>Preferred Love Language</Label>
+            <div className="flex flex-wrap gap-2">
+              {loveLanguageOptions.map((language) => {
+                const languageKey = language.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                const isSelected = formData.preferredLoveLanguage.includes(languageKey);
+                return (
+                  <Badge
+                    key={language}
+                    variant={isSelected ? "default" : "outline"}
+                    className={`cursor-pointer ${
+                      isSelected 
+                        ? 'bg-gradient-primary text-white hover:opacity-90' 
+                        : 'border-primary/20 hover:border-primary'
+                    }`}
+                    onClick={() => toggleArrayItem('preferredLoveLanguage', languageKey)}
+                  >
+                    {language}
+                  </Badge>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <Label>Preferred Lifestyle</Label>
+            <div className="flex flex-wrap gap-2">
+              {lifestyleOptions.map((lifestyle) => {
+                const lifestyleKey = lifestyle.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                const isSelected = formData.preferredLifestyle.includes(lifestyleKey);
+                return (
+                  <Badge
+                    key={lifestyle}
+                    variant={isSelected ? "default" : "outline"}
+                    className={`cursor-pointer ${
+                      isSelected 
+                        ? 'bg-gradient-primary text-white hover:opacity-90' 
+                        : 'border-primary/20 hover:border-primary'
+                    }`}
+                    onClick={() => toggleArrayItem('preferredLifestyle', lifestyleKey)}
+                  >
+                    {lifestyle}
                   </Badge>
                 );
               })}

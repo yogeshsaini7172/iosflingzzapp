@@ -229,8 +229,8 @@ const ModernSwipeCards = ({ onNavigate }: ModernSwipeCardsProps) => {
         </div>
       </div>
 
-      {/* Modern Action Buttons */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card/90 backdrop-blur-lg border-t border-border shadow-soft">
+        {/* Action buttons handled by UnifiedLayout */}
+        <div className="hidden">
         <div className="container mx-auto px-4 py-6">
           <div className="flex justify-center items-center gap-6 max-w-sm mx-auto">
             <Button

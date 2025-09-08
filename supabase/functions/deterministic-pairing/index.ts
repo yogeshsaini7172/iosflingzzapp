@@ -26,8 +26,12 @@ function getDeterministicJitter(user1Id: string, user2Id: string): number {
   return (normalized - 0.5) * 4.0; // Range: -2.0 to +2.0
 }
 
-// Enhanced compatibility calculation with separate mental and physical scores
-function computeCompatibility(userA: any, userB: any): { 
+// Enhanced compatibility calculation with preferences integration
+function computeCompatibilityWithPreferences(
+  userA: any, 
+  userB: any, 
+  userAPrefs: any
+): { 
   deterministic_score: number; 
   physical_score: number;
   mental_score: number;
@@ -41,130 +45,122 @@ function computeCompatibility(userA: any, userB: any): {
   let matchCount = 0;
   
   try {
-    // Parse qualities and requirements safely
-    let userAQualities, userARequirements, userBQualities, userBRequirements;
+    debug.userA_data = { profile: userA, preferences: userAPrefs };
+    debug.userB_data = { profile: userB };
     
-    try {
-      userAQualities = typeof userA.qualities === 'string' ? JSON.parse(userA.qualities) : (userA.qualities || {});
-      userARequirements = typeof userA.requirements === 'string' ? JSON.parse(userA.requirements) : (userA.requirements || {});
-      userBQualities = typeof userB.qualities === 'string' ? JSON.parse(userB.qualities) : (userB.qualities || {});
-      userBRequirements = typeof userB.requirements === 'string' ? JSON.parse(userB.requirements) : (userB.requirements || {});
-    } catch (parseError) {
+    if (!userAPrefs) {
       parsing_issue = true;
-      debug.parsing_error = parseError.message;
-      return { deterministic_score: 50.0, physical_score: 0, mental_score: 0, parsing_issue, debug };
-    }
-    
-    debug.userA_data = { qualities: userAQualities, requirements: userARequirements };
-    debug.userB_data = { qualities: userBQualities, requirements: userBRequirements };
-    
-    // Check if we have meaningful data
-    const hasUserAReqs = userARequirements && Object.keys(userARequirements).length > 0;
-    const hasUserBQualities = userBQualities && Object.keys(userBQualities).length > 0;
-    const hasUserBReqs = userBRequirements && Object.keys(userBRequirements).length > 0;
-    const hasUserAQualities = userAQualities && Object.keys(userAQualities).length > 0;
-    
-    if (!hasUserAReqs || !hasUserBQualities) {
-      parsing_issue = true;
-      debug.issue = "Missing requirements or qualities data";
+      debug.issue = "Missing user preferences data";
       return { deterministic_score: 50.0, physical_score: 0, mental_score: 0, parsing_issue, debug };
     }
     
     // Physical scoring (50 points max)
-    // Height compatibility (25 points)
-    if (userARequirements.height_range_min && userARequirements.height_range_max) {
-      const userBHeight = userBQualities.height || userB.height;
-      if (userBHeight) {
-        const heightMatch = userBHeight >= userARequirements.height_range_min && 
-                           userBHeight <= userARequirements.height_range_max;
-        if (heightMatch) {
-          physicalScore += 25;
-          matchCount++;
-          debug.matches.push("height_match");
-        }
+    // Height compatibility (12 points)
+    if (userAPrefs.height_range_min && userAPrefs.height_range_max && userB.height) {
+      const heightMatch = userB.height >= userAPrefs.height_range_min && 
+                         userB.height <= userAPrefs.height_range_max;
+      if (heightMatch) {
+        physicalScore += 12;
+        matchCount++;
+        debug.matches.push("height_match");
       }
     }
     
-    // Body type compatibility (25 points)
-    if (userARequirements.preferred_body_types?.length > 0) {
-      const userBBodyType = userBQualities.body_type || userB.body_type;
-      if (userBBodyType) {
-        const bodyMatch = userARequirements.preferred_body_types.includes(userBBodyType) ||
-                         userARequirements.preferred_body_types.includes('Any');
-        if (bodyMatch) {
-          physicalScore += 25;
-          matchCount++;
-          debug.matches.push("body_type_match");
-        }
+    // Body type compatibility (12 points)
+    if (userAPrefs.preferred_body_types?.length > 0 && userB.body_type) {
+      const bodyMatch = userAPrefs.preferred_body_types.includes(userB.body_type);
+      if (bodyMatch) {
+        physicalScore += 12;
+        matchCount++;
+        debug.matches.push("body_type_match");
+      }
+    }
+    
+    // Skin tone compatibility (13 points)
+    if (userAPrefs.preferred_skin_tone?.length > 0 && userB.skin_tone) {
+      const skinMatch = userAPrefs.preferred_skin_tone.includes(userB.skin_tone);
+      if (skinMatch) {
+        physicalScore += 13;
+        matchCount++;
+        debug.matches.push("skin_tone_match");
+      }
+    }
+    
+    // Face type compatibility (13 points)
+    if (userAPrefs.preferred_face_type?.length > 0 && userB.face_type) {
+      const faceMatch = userAPrefs.preferred_face_type.includes(userB.face_type);
+      if (faceMatch) {
+        physicalScore += 13;
+        matchCount++;
+        debug.matches.push("face_type_match");
       }
     }
     
     // Mental scoring (50 points max)
-    // Values compatibility (20 points)
-    if (userARequirements.preferred_values?.length > 0) {
-      const userBValues = userBQualities.values || userB.values;
-      if (userBValues) {
-        const valuesMatch = userARequirements.preferred_values.includes(userBValues);
-        if (valuesMatch) {
-          mentalScore += 20;
+    // Values compatibility (15 points)
+    if (userAPrefs.preferred_values?.length > 0 && userB.values) {
+      const valuesMatch = Array.isArray(userB.values) 
+        ? userB.values.some((v: string) => userAPrefs.preferred_values.includes(v))
+        : userAPrefs.preferred_values.includes(userB.values);
+      if (valuesMatch) {
+        mentalScore += 15;
+        matchCount++;
+        debug.matches.push("values_match");
+      }
+    }
+    
+    // Mindset compatibility (10 points)
+    if (userAPrefs.preferred_mindset?.length > 0 && userB.mindset) {
+      const mindsetMatch = Array.isArray(userB.mindset)
+        ? userB.mindset.some((m: string) => userAPrefs.preferred_mindset.includes(m))
+        : userAPrefs.preferred_mindset.includes(userB.mindset);
+      if (mindsetMatch) {
+        mentalScore += 10;
+        matchCount++;
+        debug.matches.push("mindset_match");
+      }
+    }
+    
+    // Personality compatibility (10 points)
+    if (userAPrefs.preferred_personality_traits?.length > 0 && userB.personality_traits) {
+      const personalityMatch = Array.isArray(userB.personality_traits)
+        ? userB.personality_traits.some((p: string) => userAPrefs.preferred_personality_traits.includes(p))
+        : userAPrefs.preferred_personality_traits.includes(userB.personality_type);
+      if (personalityMatch) {
+        mentalScore += 10;
+        matchCount++;
+        debug.matches.push("personality_match");
+      }
+    }
+    
+    // Love language compatibility (8 points)
+    if (userAPrefs.preferred_love_language?.length > 0 && userB.love_language) {
+      const loveLanguageMatch = userAPrefs.preferred_love_language.includes(userB.love_language);
+      if (loveLanguageMatch) {
+        mentalScore += 8;
+        matchCount++;
+        debug.matches.push("love_language_match");
+      }
+    }
+    
+    // Lifestyle compatibility (7 points)
+    if (userAPrefs.preferred_lifestyle?.length > 0) {
+      const userBLifestyle = userB.lifestyle ? 
+        (typeof userB.lifestyle === 'string' ? JSON.parse(userB.lifestyle) : userB.lifestyle) : null;
+      if (userBLifestyle) {
+        const lifestyleMatch = userAPrefs.preferred_lifestyle.some((pref: string) => 
+          Object.keys(userBLifestyle).includes(pref) || Object.values(userBLifestyle).includes(pref)
+        );
+        if (lifestyleMatch) {
+          mentalScore += 7;
           matchCount++;
-          debug.matches.push("values_match");
+          debug.matches.push("lifestyle_match");
         }
       }
     }
     
-    // Mindset compatibility (15 points)
-    if (userARequirements.preferred_mindset?.length > 0) {
-      const userBMindset = userBQualities.mindset || userB.mindset;
-      if (userBMindset) {
-        const mindsetMatch = userARequirements.preferred_mindset.includes(userBMindset);
-        if (mindsetMatch) {
-          mentalScore += 15;
-          matchCount++;
-          debug.matches.push("mindset_match");
-        }
-      }
-    }
-    
-    // Personality compatibility (15 points)
-    if (userARequirements.preferred_personality_traits?.length > 0) {
-      const userBPersonality = userBQualities.personality_type || userB.personality_type;
-      if (userBPersonality) {
-        const personalityMatch = userARequirements.preferred_personality_traits.includes(userBPersonality);
-        if (personalityMatch) {
-          mentalScore += 15;
-          matchCount++;
-          debug.matches.push("personality_match");
-        }
-      }
-    }
-    
-    // Mutual compatibility (User B wants User A)
-    if (hasUserBReqs && hasUserAQualities) {
-      // Reverse height check
-      if (userBRequirements.height_range_min && userBRequirements.height_range_max && userAQualities.height) {
-        const reverseHeightMatch = userAQualities.height >= userBRequirements.height_range_min && 
-                                  userAQualities.height <= userBRequirements.height_range_max;
-        if (reverseHeightMatch) {
-          totalScore += 5;
-          matchCount++;
-          debug.matches.push("reverse_height_match");
-        }
-      }
-      
-      // Reverse values check
-      if (userBRequirements.preferred_values?.length > 0 && userAQualities.values) {
-        const reverseValuesMatch = userBRequirements.preferred_values.includes(userAQualities.values);
-        if (reverseValuesMatch) {
-          totalScore += 5;
-          matchCount++;
-          debug.matches.push("reverse_values_match");
-        }
-      }
-    }
-    
-    // Calculate overall compatibility (average of physical and mental)
-    const overallScore = Math.round((physicalScore + mentalScore) / 2 + 50); // Base 50 + weighted average
+    // Calculate overall compatibility
+    const overallScore = Math.round((physicalScore + mentalScore) + 50); // Base 50 + weighted scores
     
     debug.match_count = matchCount;
     debug.physical_score = physicalScore;
@@ -212,7 +208,7 @@ serve(async (req) => {
 
     console.log(`Starting deterministic pairing for user: ${user_id}`);
 
-    // Get USER1 profile
+    // Get USER1 profile and preferences
     const { data: user1Profile, error: user1Error } = await supabaseClient
       .from('profiles')
       .select('*')
@@ -231,6 +227,15 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    // Get USER1 partner preferences
+    const { data: user1Preferences, error: prefsError } = await supabaseClient
+      .from('partner_preferences')
+      .select('*')
+      .eq('user_id', user_id)
+      .maybeSingle();
+
+    if (prefsError) console.warn('Preferences fetch error:', prefsError);
 
     const user1QCS = user1Profile.total_qcs || 0;
     const qcsRangeMin = user1QCS - 10;
@@ -282,10 +287,14 @@ serve(async (req) => {
       });
     }
 
-    // Calculate deterministic compatibility for each candidate
+    // Calculate deterministic compatibility for each candidate using new preferences
     const results = [];
     for (const candidate of candidates) {
-      const { deterministic_score, physical_score, mental_score, parsing_issue, debug } = computeCompatibility(user1Profile, candidate);
+      const { deterministic_score, physical_score, mental_score, parsing_issue, debug } = computeCompatibilityWithPreferences(
+        user1Profile, 
+        candidate, 
+        user1Preferences
+      );
       
       // Apply deterministic jitter
       const jitter_applied = getDeterministicJitter(user_id, candidate.user_id);
