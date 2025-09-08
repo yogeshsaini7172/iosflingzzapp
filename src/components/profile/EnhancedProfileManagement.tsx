@@ -32,7 +32,7 @@ import {
   MoreHorizontal
 } from 'lucide-react';
 import { useProfileData } from '@/hooks/useProfileData';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface EnhancedProfileManagementProps {
   onNavigate: (view: string) => void;
@@ -40,6 +40,7 @@ interface EnhancedProfileManagementProps {
 
 const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProps) => {
   const { profile, preferences, isLoading, updateProfile, updatePreferences } = useProfileData();
+  const { signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<'basic' | 'what-you-are' | 'who-you-want' | 'photos' | 'privacy'>('basic');
   const [showPhotoViewer, setShowPhotoViewer] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
@@ -129,14 +130,18 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
 
   const handleLogout = async () => {
     try {
+      // Clear Firebase auth
+      await signOut();
+      
       // Clear local storage
       localStorage.removeItem('demoProfile');
-      localStorage.removeItem('demoPreferences');
+      localStorage.removeItem('demoPreferences');  
       localStorage.removeItem('demoUserId');
       localStorage.removeItem('demoQCS');
       localStorage.removeItem('subscription_plan');
+      localStorage.removeItem('profile_complete');
       
-      // Navigate to home
+      // Navigate to home 
       onNavigate('home');
     } catch (error) {
       console.error('Logout error:', error);
