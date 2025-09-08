@@ -8,7 +8,7 @@ import { toast } from 'sonner';
  * Redirects to auth page if not authenticated
  */
 export const useRequiredAuth = () => {
-  const { user, isLoading, isAuthenticated, userId, accessToken } = useAuth();
+  const { user, isLoading, isAuthenticated, userId } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,7 +24,6 @@ export const useRequiredAuth = () => {
     return {
       user: null,
       userId: null,
-      accessToken: null,
       isLoading,
       isAuthenticated: false,
     };
@@ -37,7 +36,6 @@ export const useRequiredAuth = () => {
   return {
     user,
     userId,
-    accessToken,
     isLoading: false,
     isAuthenticated: true,
   };
@@ -48,12 +46,11 @@ export const useRequiredAuth = () => {
  * Returns null values if not authenticated
  */
 export const useOptionalAuth = () => {
-  const { user, isLoading, isAuthenticated, userId, accessToken } = useAuth();
+  const { user, isLoading, isAuthenticated, userId } = useAuth();
 
   return {
     user: isAuthenticated ? user : null,
     userId: isAuthenticated ? userId : null,
-    accessToken: isAuthenticated ? accessToken : null,
     isLoading,
     isAuthenticated,
   };

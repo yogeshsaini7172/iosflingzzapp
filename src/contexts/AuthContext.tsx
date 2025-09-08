@@ -1,21 +1,19 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { getAuth, onAuthStateChanged, signInWithPhoneNumber, RecaptchaVerifier, signOut as firebaseSignOut, GoogleAuthProvider, signInWithPopup, ConfirmationResult } from 'firebase/auth';
 import { auth, googleProvider, createRecaptchaVerifier } from '@/integrations/firebase/config';
 import { toast } from 'sonner';
 
-interface AuthContextType {
-  user: User | null;
+type AuthContextType = {
+  user: any | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  userId: string | null; // Firebase UID only
-  accessToken: string | null;
-  // Phone OTP
+  userId: string | null;
+  getIdToken: () => Promise<string | null>;
   signInWithPhone: (phone: string) => Promise<{ error?: any; confirmationResult?: ConfirmationResult }>;
   verifyPhoneOTP: (confirmationResult: ConfirmationResult, otp: string) => Promise<{ error?: any }>;
-  // OAuth
   signInWithGoogle: () => Promise<{ error?: any }>;
   signOut: () => Promise<{ error?: any }>;
-}
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -27,20 +25,13 @@ export const useAuth = () => {
   return context;
 };
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export const AuthProvider = ({ children }: AuthProviderProps) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   console.log('🔐 AuthProvider initializing...');
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
 
   useEffect(() => {
     console.log('🔥 Setting up Firebase auth listener...');
-    // Set up Firebase auth state listener
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       console.log('🔥 Firebase auth state changed:', firebaseUser ? { 
         uid: firebaseUser.uid, 
@@ -50,19 +41,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       setUser(firebaseUser);
       
-      // Get access token for API requests
       if (firebaseUser) {
-        try {
-          const token = await firebaseUser.getIdToken();
-          setAccessToken(token);
-          console.log('🔑 Firebase token acquired');
-          toast.success('Successfully signed in!');
-        } catch (error) {
-          console.error('❌ Error getting Firebase token:', error);
-          setAccessToken(null);
-        }
+        console.log('🔑 Firebase user authenticated');
+        toast.success('Successfully signed in!');
       } else {
-        setAccessToken(null);
         console.log('🔥 No user found - user signed out or no session');
         if (firebaseUser === null) {
           toast.success('Successfully signed out');
@@ -74,6 +56,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     return () => unsubscribe();
   }, []);
+
+  const getIdToken = async () => {
+    if (!auth.currentUser) return null;
+    try {
+      return await auth.currentUser.getIdToken();
+    } catch (error) {
+      console.error('Error getting Firebase token:', error);
+      return null;
+    }
+  };
 
   const signInWithPhone = async (phone: string) => {
     try {
@@ -102,7 +94,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const recaptchaVerifier = createRecaptchaVerifier('recaptcha-container');
       
       const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, recaptchaVerifier);
-      setConfirmationResult(confirmationResult);
       toast.success('OTP sent to your phone!');
       return { confirmationResult };
     } catch (error: any) {
@@ -136,7 +127,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signInWithGoogle = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
       return {};
     } catch (error: any) {
       console.error('Google sign in error:', error);
@@ -148,6 +140,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const signOut = async () => {
     try {
       await firebaseSignOut(auth);
+      setUser(null);
       return {};
     } catch (error: any) {
       console.error('Sign out error:', error);
@@ -160,8 +153,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     user,
     isLoading,
     isAuthenticated: !!user,
-    userId: user?.uid || null, // Firebase UID only
-    accessToken,
+    userId: user?.uid || null,
+    getIdToken,
     signInWithPhone,
     verifyPhoneOTP,
     signInWithGoogle,

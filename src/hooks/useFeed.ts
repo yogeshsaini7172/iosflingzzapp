@@ -19,7 +19,7 @@ export function useFeed(initialLimit = 12) {
   const [items, setItems] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const { accessToken } = useAuth();
+  const { getIdToken } = useAuth();
 
   const fetchNext = useCallback(
     async (limit = initialLimit, filters: { ageMin?: number; ageMax?: number; gender?: string } = {}) => {
@@ -38,7 +38,7 @@ export function useFeed(initialLimit = 12) {
         if (filters.gender && filters.gender !== "all") params.set("gender", filters.gender);
         
         // Get Firebase token
-        const token = accessToken;
+        const token = await getIdToken();
         
         // Call the Supabase Edge Function
         const { data: response, error } = await supabase.functions.invoke('get-feed', {
@@ -77,7 +77,7 @@ export function useFeed(initialLimit = 12) {
       if (filters.gender && filters.gender !== "all") params.set("gender", filters.gender);
       
       // Get Firebase token
-      const token = accessToken;
+      const token = await getIdToken();
       
       // Call the Supabase Edge Function
       const { data: response, error } = await supabase.functions.invoke('get-feed', {
@@ -109,7 +109,7 @@ export function useFeed(initialLimit = 12) {
   const swipeProfile = useCallback(async (profileId: string, userId: string, type: "like" | "pass") => {
     try {
       // Get Firebase token
-      const token = accessToken;
+      const token = await getIdToken();
       
       // Call the swipe Edge Function
       const { data: response, error } = await supabase.functions.invoke('swipe', {
@@ -129,7 +129,7 @@ export function useFeed(initialLimit = 12) {
       console.error("❌ Swipe error:", err);
       throw err;
     }
-  }, [removeItem, accessToken]);
+  }, [removeItem, getIdToken]);
 
   return {
     items,

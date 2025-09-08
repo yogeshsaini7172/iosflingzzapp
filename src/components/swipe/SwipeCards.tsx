@@ -8,6 +8,7 @@ import { useProfilesFeed, FeedProfile } from '@/hooks/useProfilesFeed';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useRequiredAuth } from '@/hooks/useRequiredAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import ChatRequestModal from '@/components/notifications/ChatRequestModal';
 
 const SwipeCards: React.FC = () => {
@@ -16,7 +17,8 @@ const SwipeCards: React.FC = () => {
   const [swipeCount, setSwipeCount] = useState(0);
   const [showChatRequest, setShowChatRequest] = useState(false);
   const { toast } = useToast();
-  const { userId, accessToken } = useRequiredAuth();
+  const { userId } = useRequiredAuth();
+  const { getIdToken } = useAuth();
 
   const calculateAge = (dateOfBirth: string) => {
     const today = new Date();
@@ -36,7 +38,7 @@ const SwipeCards: React.FC = () => {
 
     try {
       // Use Firebase token directly
-      const token = accessToken;
+      const token = await getIdToken();
       
       if (!token) {
         throw new Error('Not authenticated');
