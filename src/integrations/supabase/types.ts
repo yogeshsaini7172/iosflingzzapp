@@ -1193,6 +1193,10 @@ export type Database = {
         Args: { uid_a: string; uid_b: string }
         Returns: undefined
       }
+      create_match_and_chat: {
+        Args: { p_a: string; p_actor_id: string; p_b: string }
+        Returns: Json
+      }
       increment_reports_count: {
         Args: { user_id: string }
         Returns: undefined

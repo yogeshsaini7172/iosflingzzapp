@@ -61,6 +61,7 @@ serve(async (req) => {
 
     let isMatch = false
     let chatRoomId = null
+    let matchResult = null
 
     // If right swipe, check for match
     if (direction === 'right') {
@@ -75,138 +76,30 @@ serve(async (req) => {
       if (matchError) {
         console.error('Error checking for match:', matchError)
       } else if (otherSwipe) {
-        // Create deterministic ordering for user1/user2 to avoid duplicates
-        const user1_id = user_id < target_user_id ? user_id : target_user_id
-        const user2_id = user_id < target_user_id ? target_user_id : user_id
-
+        // Use the stored procedure for atomic match creation
         try {
-          // 1) Insert into enhanced_matches with conflict resolution
-          const { data: newEnhancedMatch, error: emError } = await supabaseClient
-            .from('enhanced_matches')
-            .upsert({
-              user1_id,
-              user2_id,
-              status: 'matched',
-              user1_swiped: true,
-              user2_swiped: true,
-              created_at: new Date().toISOString()
-            }, {
-              onConflict: 'user1_id,user2_id'
-            })
-            .select()
-            .single()
+          const { data, error: rpcError } = await supabaseClient.rpc('create_match_and_chat', {
+            p_actor_id: user_id,
+            p_a: user_id,
+            p_b: target_user_id
+          })
 
-          if (emError) {
-            console.error('Failed to upsert enhanced_match:', emError)
-            throw emError
+          if (rpcError) {
+            console.error('RPC error:', rpcError)
+            throw rpcError
           }
 
-          const matchId = newEnhancedMatch.id
-          isMatch = true
-
-          // 2) Create a chat room linked to this match (idempotent)
-          const { data: existingChatRoom } = await supabaseClient
-            .from('chat_rooms')
-            .select('id')
-            .eq('match_id', matchId)
-            .maybeSingle()
-
-          let chatRoomId = existingChatRoom?.id
-
-          if (!existingChatRoom) {
-            const { data: chatRoom, error: chatRoomErr } = await supabaseClient
-              .from('chat_rooms')
-              .insert({
-                match_id: matchId,
-                user1_id,
-                user2_id,
-                created_at: new Date().toISOString()
-              })
-              .select()
-              .single()
-
-            if (chatRoomErr) {
-              console.error('Chat room creation failed:', chatRoomErr)
-            } else {
-              chatRoomId = chatRoom.id
-            }
+          if (data) {
+            matchResult = data
+            isMatch = true
+            chatRoomId = data.chat_room_id
+            console.log(`🎉 Match created atomically between users ${user_id} and ${target_user_id}`, data)
           }
-
-          // 3) Insert notifications for both users (idempotent check)
-          const { data: targetProfile } = await supabaseClient
-            .from('profiles')
-            .select('first_name, last_name')
-            .eq('user_id', target_user_id)
-            .maybeSingle()
-
-          const { data: currentProfile } = await supabaseClient
-            .from('profiles')
-            .select('first_name, last_name')
-            .eq('user_id', user_id)
-            .maybeSingle()
-
-          // Check if notifications already exist before creating
-          const { data: existingNotifTarget } = await supabaseClient
-            .from('notifications')
-            .select('id')
-            .eq('user_id', target_user_id)
-            .eq('type', 'new_match')
-            .eq('data->>enhanced_match_id', matchId)
-            .maybeSingle()
-
-          const { data: existingNotifCurrent } = await supabaseClient
-            .from('notifications')
-            .select('id')
-            .eq('user_id', user_id)
-            .eq('type', 'new_match')
-            .eq('data->>enhanced_match_id', matchId)
-            .maybeSingle()
-
-          // Notify target user (if not already notified)
-          if (targetProfile && !existingNotifTarget) {
-            const { error: notifErr1 } = await supabaseClient
-              .from('notifications')
-              .insert({
-                user_id: target_user_id,
-                type: 'new_match',
-                title: 'It\'s a match! 🎉',
-                message: `You and ${currentProfile?.first_name || 'someone'} liked each other!`,
-                data: { 
-                  enhanced_match_id: matchId, 
-                  chat_room_id: chatRoomId || null,
-                  other_user_id: user_id
-                },
-                created_at: new Date().toISOString()
-              })
-
-            if (notifErr1) console.error('Notification insert failed for target:', notifErr1)
-          }
-
-          // Notify current user (if not already notified)
-          if (currentProfile && !existingNotifCurrent) {
-            const { error: notifErr2 } = await supabaseClient
-              .from('notifications')
-              .insert({
-                user_id: user_id,
-                type: 'new_match',
-                title: 'It\'s a match! 🎉',
-                message: `You and ${targetProfile?.first_name || 'someone'} liked each other!`,
-                data: { 
-                  enhanced_match_id: matchId, 
-                  chat_room_id: chatRoomId || null,
-                  other_user_id: target_user_id
-                },
-                created_at: new Date().toISOString()
-              })
-
-            if (notifErr2) console.error('Notification insert failed for current:', notifErr2)
-          }
-
-          console.log(`🎉 Match processed between users ${user_id} and ${target_user_id}, chat room: ${chatRoomId}`)
 
         } catch (err) {
-          console.error('Error in match creation flow:', err)
-          // Don't throw here, let the response continue with isMatch = false
+          console.error('Error in atomic match creation:', err)
+          // Fallback: still indicate match detected but may not have completed server setup
+          isMatch = true
         }
       }
     }
