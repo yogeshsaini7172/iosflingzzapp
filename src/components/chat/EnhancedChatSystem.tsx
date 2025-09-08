@@ -81,10 +81,8 @@ const EnhancedChatSystem = ({ onNavigate, selectedChatId }: EnhancedChatSystemPr
         const functionUrl = `https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-management?action=list&user_id=${encodeURIComponent(userId)}`;
         const resp = await fetch(functionUrl, {
           method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            // No Authorization needed (verify_jwt=false); keep CORS simple
-          },
+          // No headers to keep it a simple CORS request
+          mode: 'cors',
         });
 
         if (!resp.ok) {

@@ -320,7 +320,7 @@ serve(async (req) => {
         console.log(`🔍 Listing chat rooms for user: ${user_id}`);
         
         // List chat rooms for a user and enrich with other user and last message
-        const { data: rooms, error: roomsError } = await supabaseClient
+        const { data: roomsRaw, error: roomsError } = await supabaseClient
           .from('chat_rooms')
           .select('id, match_id, user1_id, user2_id, updated_at, created_at')
           .or(`user1_id.eq.${user_id},user2_id.eq.${user_id}`)
@@ -331,7 +331,71 @@ serve(async (req) => {
           throw roomsError;
         }
         
-        console.log(`📋 Found ${rooms?.length || 0} chat rooms:`, rooms);
+        let rooms = roomsRaw || [];
+        console.log(`📋 Found ${rooms.length} chat rooms:`, rooms);
+
+        // Auto-heal: if no rooms, ensure rooms exist for matches
+        if (!rooms || rooms.length === 0) {
+          console.log('🛠️ No chat rooms found, ensuring rooms exist for matches...');
+
+          // Enhanced matches first
+          const { data: ematches, error: emErr } = await supabaseClient
+            .from('enhanced_matches')
+            .select('id, user1_id, user2_id')
+            .or(`user1_id.eq.${user_id},user2_id.eq.${user_id}`);
+          if (emErr) console.warn('⚠️ Unable to read enhanced_matches:', emErr);
+
+          for (const m of ematches || []) {
+            const { data: existingR } = await supabaseClient
+              .from('chat_rooms')
+              .select('id')
+              .eq('match_id', m.id)
+              .maybeSingle();
+            if (!existingR) {
+              console.log('➕ Creating room for enhanced_match', m.id);
+              await supabaseClient.from('chat_rooms').insert({
+                match_id: m.id,
+                user1_id: m.user1_id,
+                user2_id: m.user2_id,
+              });
+            }
+          }
+
+          // Legacy matches fallback
+          const { data: legacy, error: legacyErr } = await supabaseClient
+            .from('matches')
+            .select('id, liker_id, liked_id')
+            .or(`liker_id.eq.${user_id},liked_id.eq.${user_id}`);
+          if (legacyErr) console.warn('⚠️ Unable to read legacy matches:', legacyErr);
+
+          for (const lm of legacy || []) {
+            const { data: existingR2 } = await supabaseClient
+              .from('chat_rooms')
+              .select('id')
+              .eq('match_id', lm.id)
+              .maybeSingle();
+            if (!existingR2) {
+              // Order users to keep consistency
+              const a = lm.liker_id <= lm.liked_id ? lm.liker_id : lm.liked_id;
+              const b = lm.liker_id <= lm.liked_id ? lm.liked_id : lm.liker_id;
+              console.log('➕ Creating room for legacy match', lm.id);
+              await supabaseClient.from('chat_rooms').insert({
+                match_id: lm.id,
+                user1_id: a,
+                user2_id: b,
+              });
+            }
+          }
+
+          // Re-fetch rooms after ensuring
+          const { data: roomsAfter } = await supabaseClient
+            .from('chat_rooms')
+            .select('id, match_id, user1_id, user2_id, updated_at, created_at')
+            .or(`user1_id.eq.${user_id},user2_id.eq.${user_id}`)
+            .order('updated_at', { ascending: false });
+          rooms = roomsAfter || [];
+          console.log(`🔁 After ensuring, rooms count: ${rooms.length}`);
+        }
 
         const enriched = [] as any[];
         for (const room of rooms || []) {
