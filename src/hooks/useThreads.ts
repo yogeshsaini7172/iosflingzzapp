@@ -111,12 +111,13 @@ export const useThreads = () => {
     if (!userId || !content.trim()) return false;
 
     try {
-      const { error } = await supabase
-        .from('threads')
-        .insert({
-          user_id: userId,
-          content: content.trim()
-        });
+      const { data, error } = await supabase.functions.invoke('thread-management', {
+        body: {
+          action: 'create',
+          content: content.trim(),
+          userId
+        }
+      });
 
       if (error) throw error;
 
@@ -144,26 +145,17 @@ export const useThreads = () => {
     const isCurrentlyLiked = likedThreads.has(threadId);
 
     try {
-      if (isCurrentlyLiked) {
-        // Unlike
-        const { error } = await supabase
-          .from('thread_likes')
-          .delete()
-          .eq('thread_id', threadId)
-          .eq('user_id', userId);
+      const action = isCurrentlyLiked ? 'unlike' : 'like';
+      
+      const { data, error } = await supabase.functions.invoke('thread-management', {
+        body: {
+          action,
+          threadId,
+          userId
+        }
+      });
 
-        if (error) throw error;
-      } else {
-        // Like
-        const { error } = await supabase
-          .from('thread_likes')
-          .insert({
-            thread_id: threadId,
-            user_id: userId
-          });
-
-        if (error) throw error;
-      }
+      if (error) throw error;
 
       // Update local state optimistically
       const newLikedThreads = new Set(likedThreads);
@@ -194,13 +186,14 @@ export const useThreads = () => {
     if (!userId || !content.trim()) return false;
 
     try {
-      const { error } = await supabase
-        .from('thread_replies')
-        .insert({
-          thread_id: threadId,
-          user_id: userId,
-          content: content.trim()
-        });
+      const { data, error } = await supabase.functions.invoke('thread-management', {
+        body: {
+          action: 'reply',
+          threadId,
+          content: content.trim(),
+          userId
+        }
+      });
 
       if (error) throw error;
 
@@ -226,14 +219,14 @@ export const useThreads = () => {
     if (!userId || !content.trim()) return false;
 
     try {
-      const { error } = await supabase
-        .from('threads')
-        .update({ 
+      const { data, error } = await supabase.functions.invoke('thread-management', {
+        body: {
+          action: 'update',
+          threadId,
           content: content.trim(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', threadId)
-        .eq('user_id', userId);
+          userId
+        }
+      });
 
       if (error) throw error;
 
@@ -259,11 +252,13 @@ export const useThreads = () => {
     if (!userId) return false;
 
     try {
-      const { error } = await supabase
-        .from('threads')
-        .delete()
-        .eq('id', threadId)
-        .eq('user_id', userId);
+      const { data, error } = await supabase.functions.invoke('thread-management', {
+        body: {
+          action: 'delete',
+          threadId,
+          userId
+        }
+      });
 
       if (error) throw error;
 
