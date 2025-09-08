@@ -80,61 +80,90 @@ serve(async (req) => {
         const user2_id = user_id < target_user_id ? target_user_id : user_id
 
         try {
-          // 1) Insert into enhanced_matches
+          // 1) Insert into enhanced_matches with conflict resolution
           const { data: newEnhancedMatch, error: emError } = await supabaseClient
             .from('enhanced_matches')
-            .insert({
+            .upsert({
               user1_id,
               user2_id,
               status: 'matched',
               user1_swiped: true,
               user2_swiped: true,
               created_at: new Date().toISOString()
+            }, {
+              onConflict: 'user1_id,user2_id'
             })
             .select()
             .single()
 
           if (emError) {
-            console.error('Failed to insert enhanced_match:', emError)
+            console.error('Failed to upsert enhanced_match:', emError)
             throw emError
           }
 
           const matchId = newEnhancedMatch.id
           isMatch = true
 
-          // 2) Create a chat room linked to this match
-          const { data: chatRoom, error: chatRoomErr } = await supabaseClient
+          // 2) Create a chat room linked to this match (idempotent)
+          const { data: existingChatRoom } = await supabaseClient
             .from('chat_rooms')
-            .insert({
-              match_id: matchId,
-              user1_id,
-              user2_id,
-              created_at: new Date().toISOString()
-            })
-            .select()
-            .single()
+            .select('id')
+            .eq('match_id', matchId)
+            .maybeSingle()
 
-          if (chatRoomErr) {
-            console.error('Chat room creation failed:', chatRoomErr)
-          } else {
-            chatRoomId = chatRoom.id
+          let chatRoomId = existingChatRoom?.id
+
+          if (!existingChatRoom) {
+            const { data: chatRoom, error: chatRoomErr } = await supabaseClient
+              .from('chat_rooms')
+              .insert({
+                match_id: matchId,
+                user1_id,
+                user2_id,
+                created_at: new Date().toISOString()
+              })
+              .select()
+              .single()
+
+            if (chatRoomErr) {
+              console.error('Chat room creation failed:', chatRoomErr)
+            } else {
+              chatRoomId = chatRoom.id
+            }
           }
 
-          // 3) Insert notifications for both users
+          // 3) Insert notifications for both users (idempotent check)
           const { data: targetProfile } = await supabaseClient
             .from('profiles')
             .select('first_name, last_name')
             .eq('user_id', target_user_id)
-            .single()
+            .maybeSingle()
 
           const { data: currentProfile } = await supabaseClient
             .from('profiles')
             .select('first_name, last_name')
             .eq('user_id', user_id)
-            .single()
+            .maybeSingle()
 
-          // Notify target user
-          if (targetProfile) {
+          // Check if notifications already exist before creating
+          const { data: existingNotifTarget } = await supabaseClient
+            .from('notifications')
+            .select('id')
+            .eq('user_id', target_user_id)
+            .eq('type', 'new_match')
+            .eq('data->>enhanced_match_id', matchId)
+            .maybeSingle()
+
+          const { data: existingNotifCurrent } = await supabaseClient
+            .from('notifications')
+            .select('id')
+            .eq('user_id', user_id)
+            .eq('type', 'new_match')
+            .eq('data->>enhanced_match_id', matchId)
+            .maybeSingle()
+
+          // Notify target user (if not already notified)
+          if (targetProfile && !existingNotifTarget) {
             const { error: notifErr1 } = await supabaseClient
               .from('notifications')
               .insert({
@@ -144,7 +173,7 @@ serve(async (req) => {
                 message: `You and ${currentProfile?.first_name || 'someone'} liked each other!`,
                 data: { 
                   enhanced_match_id: matchId, 
-                  chat_room_id: chatRoom?.id || null,
+                  chat_room_id: chatRoomId || null,
                   other_user_id: user_id
                 },
                 created_at: new Date().toISOString()
@@ -153,8 +182,8 @@ serve(async (req) => {
             if (notifErr1) console.error('Notification insert failed for target:', notifErr1)
           }
 
-          // Notify current user  
-          if (currentProfile) {
+          // Notify current user (if not already notified)
+          if (currentProfile && !existingNotifCurrent) {
             const { error: notifErr2 } = await supabaseClient
               .from('notifications')
               .insert({
@@ -164,7 +193,7 @@ serve(async (req) => {
                 message: `You and ${targetProfile?.first_name || 'someone'} liked each other!`,
                 data: { 
                   enhanced_match_id: matchId, 
-                  chat_room_id: chatRoom?.id || null,
+                  chat_room_id: chatRoomId || null,
                   other_user_id: target_user_id
                 },
                 created_at: new Date().toISOString()
@@ -173,7 +202,7 @@ serve(async (req) => {
             if (notifErr2) console.error('Notification insert failed for current:', notifErr2)
           }
 
-          console.log(`🎉 Match created between users ${user_id} and ${target_user_id}, chat room: ${chatRoomId}`)
+          console.log(`🎉 Match processed between users ${user_id} and ${target_user_id}, chat room: ${chatRoomId}`)
 
         } catch (err) {
           console.error('Error in match creation flow:', err)
