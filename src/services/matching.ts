@@ -219,40 +219,44 @@ export async function getMatches(userId: string, limit: number = 10): Promise<Ma
 
 export async function createMatch(likerId: string, likedId: string): Promise<boolean> {
   try {
-    // Check if there's already a match between these users
-    const { data: existingMatch } = await supabase
-      .from("matches")
-      .select("*")
+    // Normalize ordering so we always query with user1=userMin user2=userMax
+    const u1 = likerId < likedId ? likerId : likedId;
+    const u2 = likerId < likedId ? likedId : likerId;
+
+    // try enhanced_matches first
+    const { data: existingEnhanced } = await supabase
+      .from('enhanced_matches')
+      .select('*')
+      .eq('user1_id', u1)
+      .eq('user2_id', u2)
+      .maybeSingle();
+
+    if (existingEnhanced) {
+      // if the status is not matched but both swiped = true, consider matched
+      if (existingEnhanced.status !== 'matched' &&
+          existingEnhanced.user1_swiped && existingEnhanced.user2_swiped) {
+        await supabase
+          .from('enhanced_matches')
+          .update({ status: 'matched' })
+          .eq('id', existingEnhanced.id);
+        return true;
+      }
+      return existingEnhanced.status === 'matched';
+    }
+
+    // fallback: (optional) check legacy matches table if you still have data there
+    const { data: legacyMatch } = await supabase
+      .from('matches')
+      .select('*')
       .or(`and(liker_id.eq.${likerId},liked_id.eq.${likedId}),and(liker_id.eq.${likedId},liked_id.eq.${likerId})`)
       .maybeSingle();
 
-    if (existingMatch) {
-      // If the other person already liked us, it's a mutual match
-      if (existingMatch.liker_id === likedId && existingMatch.liked_id === likerId) {
-        await supabase
-          .from("matches")
-          .update({ status: 'matched' })
-          .eq("id", existingMatch.id);
-        return true;
-      }
-      return false;
+    if (legacyMatch) {
+      // Optionally migrate to enhanced_matches or call server to reconcile
+      return legacyMatch.status === 'matched';
     }
 
-    // Create new match with the correct status value
-    const { error } = await supabase
-      .from("matches")
-      .insert({
-        liker_id: likerId,
-        liked_id: likedId,
-        status: 'liked' as const
-      });
-
-    if (error) {
-      console.error("Error creating match:", error);
-      return false;
-    }
-
-    return true;
+    return false;
   } catch (error) {
     console.error("Error in createMatch:", error);
     return false;
@@ -261,48 +265,90 @@ export async function createMatch(likerId: string, likedId: string): Promise<boo
 
 export async function getUserMatches(userId: string): Promise<MatchCandidate[]> {
   try {
-    // Get matches where this user is involved and status is matched
-    const { data: matches, error } = await supabase
+    // Get matches from enhanced_matches where this user is involved and status is matched
+    const { data: enhancedMatches, error } = await supabase
+      .from("enhanced_matches")
+      .select("*")
+      .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
+      .eq("status", "matched");
+
+    if (error) {
+      console.error("Error fetching enhanced matches:", error);
+      return [];
+    }
+
+    const matchProfiles: MatchCandidate[] = [];
+
+    // Process enhanced matches
+    if (enhancedMatches) {
+      for (const match of enhancedMatches) {
+        // Get the other user's profile
+        const otherUserId = match.user1_id === userId ? match.user2_id : match.user1_id;
+        
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("user_id", otherUserId)
+          .single();
+
+        if (profileError || !profile) {
+          console.error("Error fetching match profile:", profileError);
+          continue;
+        }
+
+        if (profile.date_of_birth) {
+          const age = calculateAge(profile.date_of_birth);
+          
+          matchProfiles.push({
+            ...profile,
+            age,
+            compatibility_score: 0, // Could be calculated if needed
+            physical_score: 0,
+            mental_score: 0,
+            qcs_score: 0
+          });
+        }
+      }
+    }
+
+    // Fallback: also check legacy matches table for backward compatibility
+    const { data: legacyMatches } = await supabase
       .from("matches")
       .select("*")
       .or(`liker_id.eq.${userId},liked_id.eq.${userId}`)
       .eq("status", "matched");
 
-    if (error) {
-      console.error("Error fetching user matches:", error);
-      return [];
-    }
-
-    if (!matches) return [];
-
-    const matchProfiles: MatchCandidate[] = [];
-
-    for (const match of matches) {
-      // Get the other user's profile
-      const otherUserId = match.liker_id === userId ? match.liked_id : match.liker_id;
-      
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", otherUserId)
-        .single();
-
-      if (profileError || !profile) {
-        console.error("Error fetching match profile:", profileError);
-        continue;
-      }
-
-      if (profile.date_of_birth) {
-        const age = calculateAge(profile.date_of_birth);
+    if (legacyMatches) {
+      for (const match of legacyMatches) {
+        // Get the other user's profile (avoid duplicates)
+        const otherUserId = match.liker_id === userId ? match.liked_id : match.liker_id;
         
-        matchProfiles.push({
-          ...profile,
-          age,
-          compatibility_score: 0, // Could be calculated if needed
-          physical_score: 0,
-          mental_score: 0,
-          qcs_score: 0
-        });
+        // Skip if we already have this user from enhanced matches
+        if (matchProfiles.some(p => p.user_id === otherUserId)) continue;
+        
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("user_id", otherUserId)
+          .single();
+
+        if (profileError || !profile) {
+          console.error("Error fetching legacy match profile:", profileError);
+          continue;
+        }
+
+        if (profile.date_of_birth) {
+          const age = calculateAge(profile.date_of_birth);
+          
+          matchProfiles.push({
+            ...profile,
+            age,
+            compatibility_score: 0, // Could be calculated if needed
+            physical_score: 0,
+            mental_score: 0,
+            qcs_score: 0
+          });
+        }
       }
     }
 

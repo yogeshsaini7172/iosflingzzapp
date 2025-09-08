@@ -174,19 +174,44 @@ const SwipeManager = ({ onUpgrade }: SwipeManagerProps) => {
           .single();
 
         if (reciprocalSwipe) {
-          // It's a match! Create match record
-          const { error: matchError } = await supabase
-            .from('matches')
-            .insert({
-              liker_id: user.uid,
-              liked_id: currentCandidate.user_id,
-              status: 'matched' as const
-            });
+          // It's a match — ask server to finalize match creation (enhanced_matches, chat_rooms, notifications)
+          try {
+            // call server-side edge function that handles match creation atomically
+            const { data: fnData, error: fnError } = await supabase.functions.invoke(
+              'enhanced-swipe-action',
+              {
+                body: {
+                  user_id: user.uid,
+                  target_user_id: currentCandidate.user_id,
+                  direction: 'right',
+                }
+              }
+            );
 
-          if (!matchError) {
+            if (fnError) {
+              console.error('enhanced-swipe-action error:', fnError);
+              // fallback: show a friendly message but don't write legacy matches client-side
+              toast({
+                title: "Match detected",
+                description: `You and ${currentCandidate.first_name} liked each other! (server processing)`,
+              });
+            } else {
+              // server handled the match — show toast & optionally use returned data
+              toast({
+                title: "🎉 It's a Match!",
+                description: `You and ${currentCandidate.first_name} liked each other!`,
+              });
+
+              // if the function returns match & chat_room, you can optionally redirect user to chat:
+              // const match = fnData?.match;
+              // const chatRoom = fnData?.chat_room;
+              // navigate to chatRoom if you want immediate chat open
+            }
+          } catch (err) {
+            console.error('Error invoking enhanced-swipe-action:', err);
             toast({
-              title: "🎉 It's a Match!",
-              description: `You and ${currentCandidate.first_name} liked each other!`
+              title: "Match detected",
+              description: `You and ${currentCandidate.first_name} liked each other!`,
             });
           }
         } else {
