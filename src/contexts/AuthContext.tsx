@@ -1,15 +1,13 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut, signInWithPhoneNumber, ConfirmationResult } from 'firebase/auth';
 import { auth, googleProvider, createRecaptchaVerifier } from '@/integrations/firebase/config';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  userId: string | null; // Firebase UID
-  supabaseUserId: string | null; // Supabase Auth user id (UUID)
+  userId: string | null; // Firebase UID only
   accessToken: string | null;
   // Phone OTP
   signInWithPhone: (phone: string) => Promise<{ error?: any; confirmationResult?: ConfirmationResult }>;
@@ -17,8 +15,6 @@ interface AuthContextType {
   // OAuth
   signInWithGoogle: () => Promise<{ error?: any }>;
   signOut: () => Promise<{ error?: any }>;
-  // Supabase session management
-  getSupabaseSession: () => Promise<any>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -41,18 +37,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [supabaseUserId, setSupabaseUserId] = useState<string | null>(null);
-
-  // Get current Supabase session
-  const getSupabaseSession = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      return session;
-    } catch (error) {
-      console.error('Error getting Supabase session:', error);
-      return null;
-    }
-  };
 
   useEffect(() => {
     console.log('🔥 Setting up Firebase auth listener...');
@@ -63,55 +47,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         email: firebaseUser.email,
         displayName: firebaseUser.displayName 
       } : 'null');
-      console.log('🔥 Setting user state to:', firebaseUser ? 'USER_OBJECT' : 'NULL');
+      
       setUser(firebaseUser);
       
-      // Get access token for Supabase requests and sync Supabase session
+      // Get access token for API requests
       if (firebaseUser) {
         try {
           const token = await firebaseUser.getIdToken();
           setAccessToken(token);
-          console.log('🔑 Firebase token acquired for Supabase requests');
-
-          // If Supabase already has a session, reuse it
-          const { data: existing } = await supabase.auth.getSession();
-          const existingUid = existing?.session?.user?.id ?? null;
-          if (existingUid) {
-            setSupabaseUserId(existingUid);
-            console.log('♻️ Reusing existing Supabase session:', existingUid);
-          } else {
-            // Bridge Firebase -> Supabase only for supported providers
-            const providers = (firebaseUser.providerData || []).map(p => p.providerId);
-            if (providers.includes('google.com')) {
-              const { data: sbSession, error: sbError } = await supabase.auth.signInWithIdToken({
-                provider: 'google',
-                token,
-              });
-              if (sbError) {
-                console.error('❌ Supabase signInWithIdToken (google) failed:', sbError);
-              } else {
-                const sbUid = sbSession?.user?.id ?? sbSession?.session?.user?.id ?? null;
-                setSupabaseUserId(sbUid);
-                console.log('✅ Supabase session established:', sbUid);
-              }
-            } else {
-              console.warn('⚠️ Non-google provider detected; skipping Supabase bridge.');
-            }
-          }
-
-          // Any profile sync/creation is handled later in profile flow
-          await syncUserProfile(firebaseUser);
+          console.log('🔑 Firebase token acquired');
           toast.success('Successfully signed in!');
         } catch (error) {
-          console.error('❌ Error getting Firebase token or syncing Supabase:', error);
+          console.error('❌ Error getting Firebase token:', error);
           setAccessToken(null);
-          // Do not clear supabaseUserId here to avoid race with a valid session
         }
       } else {
         setAccessToken(null);
-        setSupabaseUserId(null);
-        // Ensure Supabase session is cleared when Firebase signs out
-        try { await supabase.auth.signOut(); } catch (e) { /* no-op */ }
         console.log('🔥 No user found - user signed out or no session');
         if (firebaseUser === null) {
           toast.success('Successfully signed out');
@@ -121,21 +72,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setIsLoading(false);
     });
 
-    // Check current auth state immediately
-    console.log('🔥 Current auth state on mount:', auth.currentUser);
-
     return () => unsubscribe();
   }, []);
-
-  const syncUserProfile = async (firebaseUser: User) => {
-    try {
-      // Profile creation is now handled by the profile-completion edge function
-      // This prevents RLS violations since edge functions use service role
-      console.log('User profile will be created during profile completion flow');
-    } catch (error) {
-      console.error('Error syncing user profile:', error);
-    }
-  };
 
   const signInWithPhone = async (phone: string) => {
     try {
@@ -160,15 +98,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       // Wait a bit for DOM to be ready
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Create reCAPTCHA verifier with better configuration for Indian users
+      // Create reCAPTCHA verifier
       const recaptchaVerifier = createRecaptchaVerifier('recaptcha-container');
       
-      // Add error handling for reCAPTCHA failures
-      recaptchaVerifier.verify().catch((error) => {
-        console.error('reCAPTCHA verification failed:', error);
-        toast.error('Verification failed. Please try again.');
-      });
-
       const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, recaptchaVerifier);
       setConfirmationResult(confirmationResult);
       toast.success('OTP sent to your phone!');
@@ -176,7 +108,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } catch (error: any) {
       console.error('Phone sign-in error:', error);
       
-      // Provide more specific error messages
       if (error.code === 'auth/invalid-phone-number') {
         toast.error('Invalid phone number. Please include country code (+91 for India)');
       } else if (error.code === 'auth/too-many-requests') {
@@ -205,31 +136,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signInWithGoogle = async () => {
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-
-      // Obtain Google ID token from Firebase credential and establish Supabase session
-      // Note: credential may be null in some browsers; guard accordingly
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const credential: any = (await import('firebase/auth')).GoogleAuthProvider.credentialFromResult(result);
-      const idToken = credential?.idToken as string | undefined;
-
-      if (idToken) {
-        const { data: sbSession, error: sbError } = await supabase.auth.signInWithIdToken({
-          provider: 'google',
-          token: idToken,
-        });
-        if (sbError) {
-          console.error('❌ Supabase signInWithIdToken (google) failed:', sbError);
-          setSupabaseUserId(null);
-        } else {
-          const sbUid = sbSession?.user?.id ?? sbSession?.session?.user?.id ?? null;
-          setSupabaseUserId(sbUid);
-          console.log('✅ Supabase session established via Google:', sbUid);
-        }
-      } else {
-        console.warn('⚠️ Google credential missing idToken; Supabase session may not be created.');
-      }
-
+      await signInWithPopup(auth, googleProvider);
       return {};
     } catch (error: any) {
       console.error('Google sign in error:', error);
@@ -240,12 +147,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signOut = async () => {
     try {
-      // Sign out from both Firebase and Supabase
-      await Promise.allSettled([
-        firebaseSignOut(auth),
-        supabase.auth.signOut()
-      ]);
-      setSupabaseUserId(null);
+      await firebaseSignOut(auth);
       return {};
     } catch (error: any) {
       console.error('Sign out error:', error);
@@ -258,14 +160,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     user,
     isLoading,
     isAuthenticated: !!user,
-    userId: user?.uid || null,
-    supabaseUserId,
+    userId: user?.uid || null, // Firebase UID only
     accessToken,
     signInWithPhone,
     verifyPhoneOTP,
     signInWithGoogle,
     signOut,
-    getSupabaseSession,
   };
 
   return (

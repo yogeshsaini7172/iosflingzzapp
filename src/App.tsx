@@ -30,7 +30,7 @@ const queryClient = new QueryClient({
 
 const AuthenticatedApp = () => {
   console.log('🔒 AuthenticatedApp component rendering...');
-  const { user, isLoading, supabaseUserId } = useAuth();
+  const { user, isLoading, userId } = useAuth();
   const navigate = useNavigate();
   console.log('👤 Current user state:', { user: user?.uid, isLoading });
   
@@ -75,8 +75,8 @@ const AuthenticatedApp = () => {
 
   // Function to recheck profile status
   const recheckProfile = async () => {
-    if (!supabaseUserId) return false;
-    const profileComplete = await checkUserProfile(supabaseUserId);
+    if (!userId) return false;
+    const profileComplete = await checkUserProfile(userId);
     setHasProfile(!!profileComplete);
     return !!profileComplete;
   };
@@ -102,12 +102,12 @@ const AuthenticatedApp = () => {
     };
 
     const checkProfile = async () => {
-      console.log('📋 Checking profile for user:', supabaseUserId);
-      if (supabaseUserId) {
+      console.log('📋 Checking profile for user:', userId);
+      if (userId) {
         // Clear demo caches but preserve real profile completion status
         clearDemoLocalStorage();
         try {
-          const profileComplete = await checkUserProfile(supabaseUserId);
+          const profileComplete = await checkUserProfile(userId);
           console.log('✅ Profile check result:', { profileComplete });
           setHasProfile(!!profileComplete);
         } catch (error) {

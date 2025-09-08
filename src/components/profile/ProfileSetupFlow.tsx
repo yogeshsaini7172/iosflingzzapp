@@ -22,7 +22,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<'idle' | 'pending' | 'verified' | 'failed'>('idle');
   const { toast } = useToast();
-  const { user, supabaseUserId } = useAuth();
+  const { user, userId } = useAuth();
   const { uploadMultipleImages, uploading } = useImageUpload();
 
   // Profile Data State
@@ -108,8 +108,12 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         setIsLoading(false);
         return;
       }
-      // Prefer Supabase Auth user id for RLS compatibility
-      const userId = supabaseUserId || user.uid;
+      // Use Firebase UID consistently
+      if (!userId) {
+        toast({ title: "Authentication error", description: "User ID not available", variant: "destructive" });
+        setIsLoading(false);
+        return;
+      }
       
       // Upload profile images to Supabase Storage first
       let imageUrls: string[] = [];
