@@ -17,7 +17,7 @@ import DateSigmaHome from "./components/campus/DateSigmaHome";
 import SubscriptionPage from "./components/subscription/SubscriptionPage";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
-import GenZBackground from "./components/ui/genZ-background";
+import { supabase } from "@/integrations/supabase/client";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,15 +37,38 @@ const AuthenticatedApp = () => {
   const [hasProfile, setHasProfile] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(true);
 
-  // Function to check if user has completed profile (client-side flag)
-  const checkUserProfile = async (_userId: string) => {
+  // Function to check if user has completed profile
+  const checkUserProfile = async (userId: string) => {
     try {
+      // Check localStorage flag first (faster)
       const flag = localStorage.getItem('profile_complete');
       if (flag === 'true') return true;
+      
+      // Check demo profile as fallback
       const demoProfile = localStorage.getItem('demoProfile');
-      return !!demoProfile;
+      if (demoProfile) return true;
+      
+      // As last resort, check if user has profile in database
+      // This ensures profile completion persists across devices/browsers
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', userId)
+          .single();
+          
+        if (data && !error) {
+          // User has profile in database, set localStorage for future
+          localStorage.setItem('profile_complete', 'true');
+          return true;
+        }
+      } catch (dbError) {
+        console.log('Database check failed, using localStorage only');
+      }
+      
+      return false;
     } catch (error) {
-      console.error('❌ Error checking local profile flag:', error);
+      console.error('❌ Error checking profile:', error);
       return false;
     }
   };
@@ -62,17 +85,17 @@ const AuthenticatedApp = () => {
     console.log('🔄 App starting, checking auth state...');
     const clearDemoLocalStorage = () => {
       try {
-        // Clear demo/testing caches to avoid stale data after DB reset
+        // Clear only demo/testing caches, but preserve profile_complete
         const keys = [
           'demoProfile',
-          'demoPreferences',
+          'demoPreferences', 
           'demoUserId',
           'demoQCS',
-          'subscription_plan',
-          'profile_complete'
+          'subscription_plan'
+          // DO NOT clear 'profile_complete' - this tracks real profile completion
         ];
         keys.forEach((k) => localStorage.removeItem(k));
-        console.log('🧹 Cleared demo localStorage keys');
+        console.log('🧹 Cleared demo localStorage keys (preserving profile_complete)');
       } catch (e) {
         console.warn('⚠️ Failed clearing demo localStorage keys', e);
       }
@@ -81,7 +104,7 @@ const AuthenticatedApp = () => {
     const checkProfile = async () => {
       console.log('📋 Checking profile for user:', user?.uid);
       if (user) {
-        // Always clear demo caches when a real session exists
+        // Clear demo caches but preserve real profile completion status
         clearDemoLocalStorage();
         try {
           const profileComplete = await checkUserProfile(user.uid);
