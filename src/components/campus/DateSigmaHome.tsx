@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
 import { 
   Heart, 
   X,
@@ -207,22 +208,25 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
     const currentProfile = profiles[currentIndex];
     const userId = user.uid;
 
-    try {
-      // Call the enhanced-swipe-action via Supabase client (no JWT required now)
-      const { data, error: invokeError } = await supabase.functions.invoke('enhanced-swipe-action', {
-        body: {
-          user_id: userId,
-          target_user_id: currentProfile.user_id,
-          direction,
-        },
-      });
-      if (invokeError) {
-        console.error('Enhanced swipe invoke error:', invokeError);
-        throw invokeError;
-      }
+     try {
+       // Call the enhanced-swipe-action via fetchWithFirebaseAuth
+       const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/enhanced-swipe-action', {
+         method: 'POST',
+         body: JSON.stringify({
+           target_user_id: currentProfile.user_id,
+           direction,
+         })
+       });
 
-      // Handle match result
-      if (data?.matched) {
+       if (!response.ok) {
+         const errorData = await response.json();
+         throw new Error(errorData.error || 'Failed to process swipe');
+       }
+
+       const data = await response.json();
+
+       // Handle match result
+       if (data?.matched) {
         console.log('🎉 Match detected!', data);
         toast({
           title: "It's a Match! 🎉",

@@ -6,8 +6,28 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Verify Firebase ID token
+async function verifyFirebaseToken(idToken: string) {
+  try {
+    const serviceAccountJson = Deno.env.get('FIREBASE_SERVICE_ACCOUNT_JSON')
+    if (!serviceAccountJson) {
+      throw new Error('Firebase service account not configured')
+    }
+
+    const serviceAccount = JSON.parse(serviceAccountJson)
+    const payload = JSON.parse(atob(idToken.split('.')[1]))
+    
+    if (!payload.iss?.includes('firebase') || !payload.aud?.includes(serviceAccount.project_id)) {
+      throw new Error('Invalid token issuer or audience')
+    }
+    
+    return payload.sub // Return Firebase UID
+  } catch (error) {
+    throw new Error('Invalid or expired token')
+  }
+}
+
 interface SwipeRequest {
-  user_id: string;
   target_user_id: string;
   direction: 'left' | 'right';
 }
@@ -27,19 +47,40 @@ serve(async (req) => {
       }
     )
 
-    const { user_id, target_user_id, direction }: SwipeRequest = await req.json()
+    // Verify Firebase token
+    const authHeader = req.headers.get('authorization') || ''
+    const idToken = authHeader.replace('Bearer ', '')
+    
+    if (!idToken) {
+      return new Response(
+        JSON.stringify({ error: 'No token provided' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
-    console.log(`📝 Function invocation: enhanced-swipe-action`, { user_id, target_user_id, direction });
+    let firebaseUid
+    try {
+      firebaseUid = await verifyFirebaseToken(idToken)
+    } catch (error) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const { target_user_id, direction }: SwipeRequest = await req.json()
+
+    console.log(`📝 Function invocation: enhanced-swipe-action`, { user_id: firebaseUid, target_user_id, direction });
 
     // Log function invocation for observability
     await supabaseClient.from('function_invocations').insert({
       function_name: 'enhanced-swipe-action',
-      payload: { user_id, target_user_id, direction },
-      user_id,
+      payload: { user_id: firebaseUid, target_user_id, direction },
+      user_id: firebaseUid,
       status: 'started'
     }).then(r => console.log('Logged invocation:', r.error || 'success'));
 
-    if (!user_id || !target_user_id || !direction) {
+    if (!target_user_id || !direction) {
       return new Response(
         JSON.stringify({ error: 'Missing required fields' }),
         { 
@@ -53,7 +94,7 @@ serve(async (req) => {
     const { error: swipeError } = await supabaseClient
       .from('enhanced_swipes')
       .insert({
-        user_id,
+        user_id: firebaseUid,
         target_user_id,
         direction
       })
@@ -75,13 +116,13 @@ serve(async (req) => {
 
     // If right swipe, check for match
     if (direction === 'right') {
-      console.log(`🔍 Checking for existing swipe from ${target_user_id} to ${user_id}`);
+      console.log(`🔍 Checking for existing swipe from ${target_user_id} to ${firebaseUid}`);
       
       const { data: otherSwipe, error: matchError } = await supabaseClient
         .from('enhanced_swipes')
         .select('*')
         .eq('user_id', target_user_id)
-        .eq('target_user_id', user_id)
+        .eq('target_user_id', firebaseUid)
         .eq('direction', 'right')
         .maybeSingle()
 
@@ -93,8 +134,8 @@ serve(async (req) => {
         // Create match and chat room directly using service role client
         try {
           // Determine deterministic user ordering
-          const user1 = user_id < target_user_id ? user_id : target_user_id;
-          const user2 = user_id < target_user_id ? target_user_id : user_id;
+          const user1 = firebaseUid < target_user_id ? firebaseUid : target_user_id;
+          const user2 = firebaseUid < target_user_id ? target_user_id : firebaseUid;
 
           console.log(`📝 Creating match between ${user1} and ${user2}`);
 
@@ -146,13 +187,13 @@ serve(async (req) => {
           const { data: user1Profile } = await supabaseClient
             .from('profiles')
             .select('first_name')
-            .eq('user_id', user1)
+            .eq('firebase_uid', user1)
             .single();
 
           const { data: user2Profile } = await supabaseClient
             .from('profiles')
             .select('first_name')
-            .eq('user_id', user2)
+            .eq('firebase_uid', user2)
             .single();
 
           // Create notifications for both users
@@ -194,7 +235,7 @@ serve(async (req) => {
 
           isMatch = true;
           matchResult = { match_id: matchId, chat_room_id: chatRoomId };
-          console.log(`🎉 Match created successfully between users ${user_id} and ${target_user_id}`, matchResult);
+          console.log(`🎉 Match created successfully between users ${firebaseUid} and ${target_user_id}`, matchResult);
 
         } catch (err) {
           console.error('❌ Error in match creation:', err);
@@ -221,13 +262,6 @@ serve(async (req) => {
   } catch (error) {
     console.error('Unexpected error:', error)
     
-    // Log error
-    await supabaseClient.from('function_invocations').insert({
-      function_name: 'enhanced-swipe-action',
-      status: 'error',
-      error: error.message
-    }).catch(() => {}); // Ignore logging errors
-
     return new Response(
       JSON.stringify({ 
         error: 'Internal server error',

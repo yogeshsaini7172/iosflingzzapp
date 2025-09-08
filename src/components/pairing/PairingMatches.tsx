@@ -8,6 +8,7 @@ import { Heart, MessageCircle, MoreVertical, Shield, Brain, Zap, Users, ChevronR
 import { usePairing } from '@/hooks/usePairing';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
 import DetailedProfileModal from '@/components/profile/DetailedProfileModal';
 import { useRequiredAuth } from '@/hooks/useRequiredAuth';
 import RebuiltChatSystem from '@/components/chat/RebuiltChatSystem';
@@ -42,25 +43,31 @@ const PairingMatches: React.FC = () => {
       
       setScoringLoading(true);
       try {
-        const { data: pairingResults, error } = await supabase.functions.invoke('deterministic-pairing', {
-          body: { user_id: userId }
+        const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/deterministic-pairing', {
+          method: 'POST', 
+          body: JSON.stringify({})
         });
 
-        if (error) throw error;
+        if (!response.ok) {
+          throw new Error('Failed to fetch pairing results');
+        }
 
-        // Map candidates to UI model and enrich from pairedProfiles when possible
-        const candidates = pairingResults?.top_candidates || [];
-        const enriched: PairingMatch[] = candidates.map((c: any) => {
-          const fromFeed = pairedProfiles.find(p => p.user_id === c.candidate_id);
-          const [first, ...rest] = (c.candidate_name || '').split(' ');
-          return {
-            user_id: c.candidate_id,
-            first_name: first || fromFeed?.first_name || 'User',
-            last_name: rest.join(' ') || fromFeed?.last_name || '',
-            university: c.candidate_university || fromFeed?.university || '',
-            profile_images: fromFeed?.profile_images || [],
-            bio: fromFeed?.bio,
-            total_qcs: c.candidate_qcs,
+        const data = await response.json();
+
+        if (data.success && Array.isArray(data.top_candidates)) {
+          // Map candidates to UI model and enrich from pairedProfiles when possible
+          const candidates = data.top_candidates || [];
+          const enriched: PairingMatch[] = candidates.map((c: any) => {
+            const fromFeed = pairedProfiles.find(p => p.user_id === c.candidate_id);
+            const [first, ...rest] = (c.candidate_name || '').split(' ');
+            return {
+              user_id: c.candidate_id,
+              first_name: first || fromFeed?.first_name || 'User',
+              last_name: rest.join(' ') || fromFeed?.last_name || '',
+              university: c.candidate_university || fromFeed?.university || '',
+              profile_images: fromFeed?.profile_images || [],
+              bio: fromFeed?.bio,
+              total_qcs: c.candidate_qcs,
             compatibility_score: 0, // Will be assigned below
             can_chat: false, // Will be assigned below
           };
@@ -103,11 +110,15 @@ const PairingMatches: React.FC = () => {
               can_chat: false
             });
           }
+          setPairingData(data.pairings);
+          toast({
+            title: "Pairing Complete!",
+            description: `Found ${data.pairings.length} quality matches`,
+          });
+        } else {
+          console.warn('No pairings returned:', data);
+          setPairingData([]);
         }
-
-        // Sort by compatibility score desc to show best matches first
-        mixedMatches.sort((a, b) => (b.compatibility_score || 0) - (a.compatibility_score || 0));
-        setMatches(mixedMatches);
       } catch (err: any) {
         console.error('Deterministic pairing failed:', err);
         toast({ title: 'Pairing unavailable', description: 'Could not compute compatibility right now.', variant: 'destructive' });
