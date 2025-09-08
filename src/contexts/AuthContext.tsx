@@ -73,18 +73,30 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           setAccessToken(token);
           console.log('🔑 Firebase token acquired for Supabase requests');
 
-          // Sign into Supabase using Firebase ID token
-          const { data: sbSession, error: sbError } = await supabase.auth.signInWithIdToken({
-            provider: 'firebase',
-            token,
-          });
-          if (sbError) {
-            console.error('❌ Supabase signInWithIdToken failed:', sbError);
-            setSupabaseUserId(null);
+          // If Supabase already has a session, reuse it
+          const { data: existing } = await supabase.auth.getSession();
+          const existingUid = existing?.session?.user?.id ?? null;
+          if (existingUid) {
+            setSupabaseUserId(existingUid);
+            console.log('♻️ Reusing existing Supabase session:', existingUid);
           } else {
-            const sbUid = sbSession?.user?.id ?? sbSession?.session?.user?.id ?? null;
-            setSupabaseUserId(sbUid);
-            console.log('✅ Supabase session established:', !!sbSession?.session, '| uid:', sbUid);
+            // Bridge Firebase -> Supabase only for supported providers
+            const providers = (firebaseUser.providerData || []).map(p => p.providerId);
+            if (providers.includes('google.com')) {
+              const { data: sbSession, error: sbError } = await supabase.auth.signInWithIdToken({
+                provider: 'google',
+                token,
+              });
+              if (sbError) {
+                console.error('❌ Supabase signInWithIdToken (google) failed:', sbError);
+              } else {
+                const sbUid = sbSession?.user?.id ?? sbSession?.session?.user?.id ?? null;
+                setSupabaseUserId(sbUid);
+                console.log('✅ Supabase session established:', sbUid);
+              }
+            } else {
+              console.warn('⚠️ Non-google provider detected; skipping Supabase bridge.');
+            }
           }
 
           // Any profile sync/creation is handled later in profile flow
@@ -93,7 +105,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         } catch (error) {
           console.error('❌ Error getting Firebase token or syncing Supabase:', error);
           setAccessToken(null);
-          setSupabaseUserId(null);
+          // Do not clear supabaseUserId here to avoid race with a valid session
         }
       } else {
         setAccessToken(null);
