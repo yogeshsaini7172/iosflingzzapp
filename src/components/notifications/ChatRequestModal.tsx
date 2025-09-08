@@ -29,7 +29,7 @@ interface ChatRequestModalProps {
 const ChatRequestModal = ({ isOpen, onClose, profile }: ChatRequestModalProps) => {
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
-  const { userId, accessToken } = useRequiredAuth();
+  const { userId } = useRequiredAuth();
 
   const handleSendRequest = async () => {
     if (!message.trim() || !userId) return;
@@ -40,9 +40,9 @@ const ChatRequestModal = ({ isOpen, onClose, profile }: ChatRequestModalProps) =
         body: {
           action: 'send_request',
           recipient_id: profile.user_id,
-          message: message.trim()
-        },
-        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
+          message: message.trim(),
+          user_id: userId  // Pass Firebase userId directly
+        }
       });
 
       if (error) throw error;

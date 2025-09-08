@@ -20,6 +20,8 @@ const NotificationCenter = ({ onNavigate }: NotificationCenterProps) => {
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
+      case 'new_like':
+        return <Heart className="w-4 h-4 text-pink-500" />;
       case 'chat_request':
         return <MessageCircle className="w-4 h-4 text-blue-500" />;
       case 'chat_request_accepted':

@@ -7,7 +7,7 @@ import { toast } from '@/hooks/use-toast';
 export interface Notification {
   id: string;
   user_id: string;
-  type: 'chat_request' | 'chat_request_accepted' | 'new_match' | 'new_message';
+  type: 'chat_request' | 'chat_request_accepted' | 'new_match' | 'new_message' | 'new_like';
   title: string;
   message: string;
   data?: any;
@@ -32,7 +32,7 @@ export const useNotifications = () => {
       const list = (data?.data || []) as any[];
       const notifs = list.map((n) => ({
         ...n,
-        type: n.type as 'chat_request' | 'chat_request_accepted' | 'new_match' | 'new_message',
+        type: n.type as 'chat_request' | 'chat_request_accepted' | 'new_match' | 'new_message' | 'new_like',
       }));
       setNotifications(notifs);
       setUnreadCount(notifs.filter((n) => !n.read_at).length);
@@ -43,21 +43,22 @@ export const useNotifications = () => {
     }
   };
 
-  // Real-time notifications
+  // Real-time notifications (guard with userId check)
   useRealtime({
     table: 'notifications',
     event: 'INSERT',
-    filter: `user_id=eq.${userId}`,
+    filter: userId ? `user_id=eq.${userId}` : 'id=eq.00000000-0000-0000-0000-000000000000',
     onInsert: (payload) => {
       const newNotification = payload.new as Notification;
-      setNotifications(prev => [newNotification, ...prev]);
-      setUnreadCount(prev => prev + 1);
-      
-      // Show toast notification
-      toast({
-        title: newNotification.title,
-        description: newNotification.message,
-      });
+      // Double-check user_id matches to prevent cross-user notifications
+      if (newNotification.user_id === userId) {
+        setNotifications(prev => [newNotification, ...prev]);
+        setUnreadCount(prev => prev + 1);
+        toast({
+          title: newNotification.title,
+          description: newNotification.message,
+        });
+      }
     }
   });
 
@@ -77,23 +78,17 @@ export const useNotifications = () => {
     }
   };
 
-  // Mark all as read
+  // Mark all as read via Edge Function
   const markAllAsRead = async () => {
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read_at: new Date().toISOString() })
-        .eq('user_id', userId)
-        .is('read_at', null);
-
+      const { error } = await supabase.functions.invoke('notifications-management', {
+        body: { action: 'mark_all_read', user_id: userId }
+      });
       if (error) throw error;
-
-      setNotifications(prev => 
-        prev.map(n => ({ ...n, read_at: n.read_at || new Date().toISOString() }))
-      );
+      setNotifications(prev => prev.map(n => ({ ...n, read_at: n.read_at || new Date().toISOString() })));
       setUnreadCount(0);
     } catch (error) {
-      console.error('Error marking all notifications as read:', error);
+      console.error('Error marking all as read:', error);
     }
   };
 

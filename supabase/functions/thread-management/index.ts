@@ -7,10 +7,10 @@ const corsHeaders = {
 }
 
 interface ThreadRequest {
-  action: 'create' | 'update' | 'delete' | 'like' | 'unlike' | 'reply';
+  action: 'list' | 'create' | 'update' | 'delete' | 'like' | 'unlike' | 'reply';
   threadId?: string;
   content?: string;
-  userId: string;
+  userId?: string;
 }
 
 serve(async (req) => {
@@ -34,9 +34,36 @@ serve(async (req) => {
 
     const { action, threadId, content, userId }: ThreadRequest = await req.json();
     
-    console.log(`Thread management request: ${action} for user: ${userId}`);
+    console.log(`Thread management request: ${action} for user: ${userId || 'anonymous'}`);
 
     switch (action) {
+      case 'list': {
+        // List all threads (no userId required for public viewing)
+        const { data, error } = await supabase
+          .from('threads')
+          .select(`
+            *,
+            profiles:profiles!threads_user_id_fkey (
+              first_name,
+              profile_images
+            )
+          `)
+          .order('created_at', { ascending: false })
+          .limit(20);
+
+        if (error) throw error;
+
+        const formatted = (data || []).map((t: any) => ({
+          ...t,
+          author: t.profiles
+        }));
+
+        console.log(`Retrieved ${formatted.length} threads`);
+        return new Response(
+          JSON.stringify({ success: true, data: formatted }),
+          { headers: corsHeaders }
+        );
+      }
       case 'create':
         if (!content || !userId) {
           return new Response(

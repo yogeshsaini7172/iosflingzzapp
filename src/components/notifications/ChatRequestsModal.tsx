@@ -36,7 +36,7 @@ const ChatRequestsModal = ({ isOpen, onClose, onNavigate }: ChatRequestsModalPro
   const [requests, setRequests] = useState<ChatRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [responding, setResponding] = useState<string | null>(null);
-  const { userId, accessToken } = useRequiredAuth();
+  const { userId } = useRequiredAuth();
 
   useEffect(() => {
     if (isOpen && userId) {
@@ -50,8 +50,10 @@ const ChatRequestsModal = ({ isOpen, onClose, onNavigate }: ChatRequestsModalPro
     try {
       setLoading(true);
       const { data, error } = await supabase.functions.invoke('chat-request-handler', {
-        body: { action: 'get_requests' },
-        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
+        body: { 
+          action: 'get_requests',
+          user_id: userId  // Pass Firebase userId directly
+        }
       });
 
       if (error) throw error;
@@ -75,9 +77,9 @@ const ChatRequestsModal = ({ isOpen, onClose, onNavigate }: ChatRequestsModalPro
         body: {
           action: 'respond_request',
           request_id: requestId,
-          status
-        },
-        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
+          status,
+          user_id: userId  // Pass Firebase userId directly
+        }
       });
 
       if (error) throw error;
