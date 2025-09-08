@@ -51,9 +51,8 @@ const MatchesList = ({ onNavigate }: MatchesListProps) => {
 
   // Real-time updates for new matches and messages
   useRealtime({
-    table: 'enhanced_matches',
+    table: 'chat_rooms',
     event: '*',
-    filter: `user1_id=eq.${userId},user2_id=eq.${userId}`,
     onInsert: () => fetchMatches(),
     onUpdate: () => fetchMatches()
   });
@@ -71,13 +70,35 @@ const MatchesList = ({ onNavigate }: MatchesListProps) => {
       setLoading(true);
       const { data, error } = await supabase.functions.invoke('chat-management', {
         body: {
-          action: 'get_user_matches',
+          action: 'list',
           user_id: userId
         }
       });
 
       if (error) throw error;
-      setMatches(data?.matches || []);
+      const rooms = data?.data || [];
+      // Map rooms to Match type expected by UI
+      const mapped: Match[] = rooms.map((r: any) => ({
+        id: r.id,
+        user1_id: r.user1_id,
+        user2_id: r.user2_id,
+        created_at: r.created_at,
+        chat_room_id: r.id,
+        profile: r.other_user ? {
+          first_name: r.other_user.first_name,
+          last_name: r.other_user.last_name || '',
+          profile_images: r.other_user.profile_images || [],
+          university: r.other_user.university || '',
+          major: r.other_user.major || '',
+          bio: r.other_user.bio || ''
+        } : undefined,
+        last_message: r.last_message ? {
+          message_text: r.last_message,
+          created_at: r.last_message_time,
+          sender_id: ''
+        } : undefined
+      }));
+      setMatches(mapped);
     } catch (error) {
       console.error('Error fetching matches:', error);
       toast({

@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export type Profile = {
   profile_id: string;
@@ -18,6 +19,7 @@ export function useFeed(initialLimit = 12) {
   const [items, setItems] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const { user } = useAuth();
 
   const fetchNext = useCallback(
     async (limit = initialLimit, filters: { ageMin?: number; ageMax?: number; gender?: string } = {}) => {
@@ -114,7 +116,7 @@ export function useFeed(initialLimit = 12) {
       
       // Call the swipe Edge Function
       const { data: response, error } = await supabase.functions.invoke('swipe', {
-        body: { to_user_id: userId, type },
+        body: { to_user_id: userId, type, from_user_id: user?.uid },
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
       

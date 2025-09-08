@@ -27,7 +27,7 @@ serve(async (req) => {
     const authHeader = req.headers.get("authorization") || "";
     const token = authHeader.replace("Bearer ", "");
     
-    // For demo purposes, use default user ID if no token
+    // For demo purposes, use default user ID if no token or explicit from_user_id
     let userId = "11111111-1111-1111-1111-111111111001"; // Default Alice user
     
     if (token) {
@@ -36,9 +36,13 @@ serve(async (req) => {
         userId = user.user.id;
       }
     }
+    // Allow explicit Firebase user id passthrough when not using Supabase Auth
+    if (from_user_id) {
+      userId = from_user_id;
+    }
 
     const body = await req.json();
-    const { to_user_id, type } = body;
+    const { to_user_id, type, from_user_id } = body;
     
     if (!to_user_id || !["like", "pass"].includes(type)) {
       return new Response(
