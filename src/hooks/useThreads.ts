@@ -33,8 +33,9 @@ export const useThreads = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Always fetch threads (public via edge function). Likes require user.
+    fetchThreads();
     if (userId) {
-      fetchThreads();
       fetchUserLikes();
     }
   }, [userId]);
@@ -59,9 +60,8 @@ export const useThreads = () => {
   }, [userId]);
 
   const fetchThreads = async () => {
-    if (!userId) return;
-
     try {
+      console.log('[Threads] Fetching list via edge function...');
       const { data, error } = await supabase.functions.invoke('thread-management', {
         body: { action: 'list' }
       });
@@ -69,6 +69,7 @@ export const useThreads = () => {
       if (error) throw error;
 
       const formattedThreads = (data?.data as any[]) || [];
+      console.log('[Threads] Received', formattedThreads.length, 'threads');
       setThreads(formattedThreads);
     } catch (error) {
       console.error('Error fetching threads:', error);
