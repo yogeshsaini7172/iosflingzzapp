@@ -74,15 +74,10 @@ export const useProfileData = () => {
   const { user } = useAuth();
 
   const getCurrentUserId = () => {
-    // Get user ID directly from Firebase auth
-    if (user?.uid) {
-      console.log("🔥 Firebase user ID:", user.uid);
-      return user.uid;
+    if (!user?.uid) {
+      throw new Error('User authentication required');
     }
-    // Fallback for backward compatibility during migration
-    const fallbackId = localStorage.getItem("demoUserId") || "6e6a510a-d406-4a01-91ab-64efdbca98f2";
-    console.log("📱 Using fallback user ID:", fallbackId);
-    return fallbackId;
+    return user.uid;
   };
 
   const callDataFunction = async (action: string, payload?: any) => {

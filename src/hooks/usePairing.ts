@@ -11,10 +11,10 @@ export const usePairing = () => {
   const { user } = useAuth();
 
   const getCurrentUserId = () => {
-    if (user?.uid) {
-      return user.uid;
+    if (!user?.uid) {
+      throw new Error('User authentication required for pairing');
     }
-    return localStorage.getItem("demoUserId") || "11111111-1111-1111-1111-111111111001";
+    return user.uid;
   };
 
   const fetchPairedProfiles = async () => {

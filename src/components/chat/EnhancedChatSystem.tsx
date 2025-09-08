@@ -7,6 +7,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Send, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useRequiredAuth } from "@/hooks/useRequiredAuth";
 
 interface ChatRoom {
   id: string;
@@ -37,11 +38,18 @@ const EnhancedChatSystem = ({ onNavigate, selectedChatId }: EnhancedChatSystemPr
   const [newMessage, setNewMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { userId, isLoading: authLoading } = useRequiredAuth();
 
-    const getCurrentUserId = () => {
-      // Bypass auth - use default user ID for database operations
-      return '11111111-1111-1111-1111-111111111001'; // Default Alice user
-    };
+  // Show loading state while auth is being checked
+  if (authLoading || !userId) {
+    return (
+      <Card className="h-[600px] flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </Card>
+    );
+  }
 
   useEffect(() => {
     fetchChatRooms();
@@ -58,8 +66,6 @@ const EnhancedChatSystem = ({ onNavigate, selectedChatId }: EnhancedChatSystemPr
   }, [selectedChatId, chatRooms]);
 
   const fetchChatRooms = async () => {
-    const userId = getCurrentUserId();
-    
     try {
       console.log("🔍 Fetching chat rooms via function for user:", userId);
 
@@ -114,7 +120,6 @@ const EnhancedChatSystem = ({ onNavigate, selectedChatId }: EnhancedChatSystemPr
     if (!newMessage.trim() || !selectedChat) return;
 
     setIsLoading(true);
-    const userId = getCurrentUserId();
 
     try {
       const { error } = await supabase
@@ -150,8 +155,6 @@ const EnhancedChatSystem = ({ onNavigate, selectedChatId }: EnhancedChatSystemPr
   };
 
   if (selectedChat) {
-    const currentUserId = getCurrentUserId();
-    
     return (
       <Card className="h-[600px] flex flex-col">
         <CardHeader className="flex flex-row items-center space-y-0 pb-4">
@@ -182,12 +185,12 @@ const EnhancedChatSystem = ({ onNavigate, selectedChatId }: EnhancedChatSystemPr
                 <div
                   key={message.id}
                   className={`flex ${
-                    message.sender_id === currentUserId ? "justify-end" : "justify-start"
+                    message.sender_id === userId ? "justify-end" : "justify-start"
                   }`}
                 >
                   <div
                     className={`max-w-[70%] p-3 rounded-lg ${
-                      message.sender_id === currentUserId
+                      message.sender_id === userId
                         ? "bg-primary text-primary-foreground"
                         : "bg-muted"
                     }`}

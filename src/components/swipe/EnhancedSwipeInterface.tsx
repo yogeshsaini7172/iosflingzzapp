@@ -6,8 +6,8 @@ import { Heart, X, Filter, RefreshCw, Settings, MoreHorizontal } from "lucide-re
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import DetailedProfileModal from "@/components/profile/DetailedProfileModal";
-import { useAuth } from '@/contexts/AuthContext';
 import EnhancedChatSystem from "@/components/chat/EnhancedChatSystem";
+import { useRequiredAuth } from "@/hooks/useRequiredAuth";
 
 interface SwipeProfile {
   user_id: string;
@@ -47,10 +47,19 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
     datingIntentions: [] as string[]
   });
   const { toast } = useToast();
+  const { userId, isLoading: authLoading } = useRequiredAuth();
 
-  const getCurrentUserId = () => {
-    return localStorage.getItem("demoUserId") || "11111111-1111-1111-1111-111111111001";
-  };
+  // Show loading state while auth is being checked
+  if (authLoading || !userId) {
+    return (
+      <div className="flex items-center justify-center h-[600px] bg-gradient-subtle">
+        <div className="text-center animate-fade-in">
+          <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-6 text-primary animate-pulse-glow" />
+          <p className="text-foreground/70 font-modern text-lg">Authenticating...</p>
+        </div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     fetchProfiles();
@@ -58,7 +67,6 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
 
   const fetchProfiles = async () => {
     setIsLoading(true);
-    const userId = getCurrentUserId();
 
     console.log("🔍 Starting profile fetch for user:", userId);
 
@@ -134,7 +142,6 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
     if (currentIndex >= profiles.length) return;
 
     const currentProfile = profiles[currentIndex];
-    const userId = getCurrentUserId();
 
     console.log(`🎯 Processing ${direction} swipe:`, { userId, targetId: currentProfile.user_id });
 

@@ -51,7 +51,10 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
 
   // Helper function to get current user ID
   const getCurrentUserId = () => {
-    return user?.uid || localStorage.getItem("demoUserId") || "6e6a510a-d406-4a01-91ab-64efdbca98f2";
+    if (!user?.uid) {
+      throw new Error('User must be authenticated to access profile');
+    }
+    return user.uid;
   };
 
   // Local state for form management - Initialize with empty values initially

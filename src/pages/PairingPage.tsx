@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import DetailedProfileModal from '@/components/profile/DetailedProfileModal';
 import EnhancedChatSystem from '@/components/chat/EnhancedChatSystem';
-import { useAuth } from '@/contexts/AuthContext';
+import { useRequiredAuth } from '@/hooks/useRequiredAuth';
 import UnifiedLayout from '@/components/layout/UnifiedLayout';
 import ProfileImageHandler from '@/components/common/ProfileImageHandler';
 
@@ -39,9 +39,25 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
   const [selectedProfile, setSelectedProfile] = useState<Match | null>(null);
   const [selectedChatId, setSelectedChatId] = useState<string>("");
 
-  const { user } = useAuth();
+  const { userId, isLoading: authLoading } = useRequiredAuth();
   const [myReq, setMyReq] = useState<any>(null);
   const [myQual, setMyQual] = useState<any>(null);
+
+  // Show loading state while auth is being checked
+  if (authLoading || !userId) {
+    return (
+      <UnifiedLayout title="Smart Pairing">
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center animate-fade-in">
+            <div className="w-16 h-16 bg-gradient-royal rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse-glow">
+              <Heart className="w-8 h-8 text-white" />
+            </div>
+            <p className="text-foreground/70 font-modern text-lg">Loading your elite matches...</p>
+          </div>
+        </div>
+      </UnifiedLayout>
+    );
+  }
 
   const parseJsonSafe = (v: any) => {
     if (!v) return null;
@@ -54,13 +70,7 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
     }
   };
 
-  const getCurrentUserId = () => {
-    if (user?.uid) return user.uid;
-    return localStorage.getItem('demoUserId') || "11111111-1111-1111-1111-111111111001";
-  };
-
   useEffect(() => {
-    const userId = getCurrentUserId();
     (async () => {
       // Fetch current user's QCS and requirements from DB
       const { data: profile } = await supabase
@@ -73,7 +83,7 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
       setMyReq(parseJsonSafe(profile?.requirements));
       loadMatches(userId);
     })();
-  }, [user]);
+  }, [userId]);
 
   const loadMatches = async (userId: string) => {
     setIsLoading(true);
@@ -151,7 +161,6 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
   };
 
   const handleChatClick = async (match: Match) => {
-    const userId = getCurrentUserId();
     const compatibilityScore = match.compatibility_score || 0;
     
     // If compatibility score is 80% or below, send a chat request
@@ -228,7 +237,6 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
   }
 
   const handleRefresh = () => {
-    const userId = getCurrentUserId();
     loadMatches(userId);
   };
 

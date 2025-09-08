@@ -25,10 +25,10 @@ export function useProfilesFeed() {
   const [loading, setLoading] = useState(true);
 
   const getCurrentUserId = () => {
-    if (user?.uid) {
-      return user.uid;
+    if (!user?.uid) {
+      throw new Error('User authentication required for profiles feed');
     }
-    return localStorage.getItem("demoUserId") || "6e6a510a-d406-4a01-91ab-64efdbca98f2";
+    return user.uid;
   };
 
   const fetchFeed = async () => {

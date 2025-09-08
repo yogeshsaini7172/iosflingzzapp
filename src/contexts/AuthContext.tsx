@@ -7,6 +7,9 @@ import { toast } from 'sonner';
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
+  isAuthenticated: boolean;
+  userId: string | null;
+  accessToken: string | null;
   // Phone OTP
   signInWithPhone: (phone: string) => Promise<{ error?: any; confirmationResult?: ConfirmationResult }>;
   verifyPhoneOTP: (confirmationResult: ConfirmationResult, otp: string) => Promise<{ error?: any }>;
@@ -34,6 +37,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
 
   useEffect(() => {
     console.log('🔥 Setting up Firebase auth listener...');
@@ -46,19 +50,30 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       } : 'null');
       console.log('🔥 Setting user state to:', firebaseUser ? 'USER_OBJECT' : 'NULL');
       setUser(firebaseUser);
-      setIsLoading(false);
-
-      // Sync with Supabase when user signs in
+      
+      // Get access token for Supabase requests
       if (firebaseUser) {
-        // Create or update profile in Supabase
-        await syncUserProfile(firebaseUser);
-        toast.success('Successfully signed in!');
+        try {
+          const token = await firebaseUser.getIdToken();
+          setAccessToken(token);
+          console.log('🔑 Firebase token acquired for Supabase requests');
+          
+          // Sync with Supabase when user signs in
+          await syncUserProfile(firebaseUser);
+          toast.success('Successfully signed in!');
+        } catch (error) {
+          console.error('❌ Error getting Firebase token:', error);
+          setAccessToken(null);
+        }
       } else {
+        setAccessToken(null);
         console.log('🔥 No user found - user signed out or no session');
         if (firebaseUser === null) {
           toast.success('Successfully signed out');
         }
       }
+      
+      setIsLoading(false);
     });
 
     // Check current auth state immediately
@@ -168,6 +183,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const value = {
     user,
     isLoading,
+    isAuthenticated: !!user,
+    userId: user?.uid || null,
+    accessToken,
     signInWithPhone,
     verifyPhoneOTP,
     signInWithGoogle,

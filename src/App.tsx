@@ -12,6 +12,7 @@ import ChatPage from "./pages/ChatPage";
 import ProfilePage from "./pages/ProfilePage";
 import BlindDatePage from "./pages/BlindDatePage";
 import FeedPage from "./pages/FeedPage";
+import AuthPage from "./pages/AuthPage";
 import DateSigmaHome from "./components/campus/DateSigmaHome";
 import SubscriptionPage from "./components/subscription/SubscriptionPage";
 import NotFound from "./pages/NotFound";
