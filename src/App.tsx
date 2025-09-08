@@ -34,7 +34,7 @@ const AuthenticatedApp = () => {
   console.log('👤 Current user state:', { user: user?.uid, isLoading });
   
   const [hasProfile, setHasProfile] = useState(false);
-  const [hasSubscription, setHasSubscription] = useState(false);
+  // Subscription gating removed; users start on free tier by default
   const [checkingProfile, setCheckingProfile] = useState(true);
 
   // Function to check if user has completed profile
@@ -63,34 +63,13 @@ const AuthenticatedApp = () => {
     }
   };
 
-  // Function to check if user has selected a subscription
-  const checkUserSubscription = async (userId: string) => {
-    try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('subscription_tier')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      // Treat 'free' as no paid subscription selected
-      return !!(profile && profile.subscription_tier && profile.subscription_tier !== 'free');
-    } catch (error) {
-      console.error('Error checking subscription:', error);
-      return false;
-    }
-  };
 
   // Function to recheck profile status
   const recheckProfile = async () => {
     if (!user) return false;
-    
     const profileComplete = await checkUserProfile(user.uid);
-    const subscriptionSelected = await checkUserSubscription(user.uid);
-    
     setHasProfile(!!profileComplete);
-    setHasSubscription(!!subscriptionSelected);
-    
-    return !!profileComplete && !!subscriptionSelected;
+    return !!profileComplete;
   };
 
   useEffect(() => {
@@ -101,11 +80,9 @@ const AuthenticatedApp = () => {
         try {
           console.log('🔍 Querying Supabase for profile...');
           const profileComplete = await checkUserProfile(user.uid);
-          const subscriptionSelected = await checkUserSubscription(user.uid);
           
-          console.log('✅ Profile check results:', { profileComplete, subscriptionSelected });
+          console.log('✅ Profile check results:', { profileComplete });
           setHasProfile(!!profileComplete);
-          setHasSubscription(!!subscriptionSelected);
         } catch (error) {
           console.error('❌ Error in profile check:', error);
         }
@@ -131,11 +108,10 @@ const AuthenticatedApp = () => {
   }
 
   // Show authentication/profile setup/subscription flow if not complete
-  if (!user || !hasProfile || !hasSubscription) {
+  if (!user || !hasProfile) {
     console.log('🔑 Showing auth/setup flow...', { 
       hasUser: !!user, 
-      hasProfile, 
-      hasSubscription 
+      hasProfile 
     });
     return (
       <TooltipProvider>
@@ -145,7 +121,6 @@ const AuthenticatedApp = () => {
           <div id="recaptcha-container"></div>
           <Index 
             onProfileComplete={recheckProfile}
-            showSubscription={!!user && hasProfile && !hasSubscription}
           />
         </div>
       </TooltipProvider>

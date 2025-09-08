@@ -1,18 +1,17 @@
 import AuthPage from "@/pages/AuthPage";
 import SplashScreen from "@/components/onboarding/SplashScreen";
 import ProfileSetupFlow from "@/components/profile/ProfileSetupFlow";
-import SubscriptionSelectionPage from '@/components/subscription/SubscriptionSelectionPage';
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
 interface IndexProps {
   onProfileComplete?: () => Promise<boolean>;
-  showSubscription?: boolean;
 }
 
-const Index = ({ onProfileComplete, showSubscription }: IndexProps) => {
-  const [currentStep, setCurrentStep] = useState<'auth' | 'splash' | 'profile' | 'subscription'>('auth');
+const Index = ({ onProfileComplete }: IndexProps) => {
+  const [currentStep, setCurrentStep] = useState<'auth' | 'splash' | 'profile'>('auth');
   const [hasProfile, setHasProfile] = useState(false);
   const { user, isLoading } = useAuth();
 
@@ -35,17 +34,13 @@ const Index = ({ onProfileComplete, showSubscription }: IndexProps) => {
         setHasProfile(false);
       } else {
         setHasProfile(true);
-        // Check if we should show subscription selection
-        if (showSubscription) {
-          setCurrentStep('subscription');
-        }
       }
     };
 
     if (!isLoading) {
       checkUserProfile();
     }
-  }, [user, isLoading, showSubscription]);
+  }, [user, isLoading]);
 
   if (isLoading) {
     return (
@@ -89,29 +84,6 @@ const Index = ({ onProfileComplete, showSubscription }: IndexProps) => {
         />
       );
 
-      case 'subscription':
-        return (
-          <SubscriptionSelectionPage 
-            onComplete={async (tier: string) => {
-              console.log(`✅ Subscription tier selected: ${tier}`);
-              
-              // Update user's subscription tier in database
-              const { error } = await supabase
-                .from('profiles')
-                .update({ subscription_tier: tier })
-                .eq('user_id', user?.uid);
-
-              if (error) {
-                console.error('❌ Error updating subscription tier:', error);
-              }
-              
-              // Call the callback to recheck status and proceed to app
-              if (onProfileComplete) {
-                await onProfileComplete();
-              }
-            }}
-          />
-        );
 
       default:
       return <AuthPage onComplete={() => setCurrentStep('profile')} />;
