@@ -174,9 +174,20 @@ serve(async (req) => {
       .from('profiles')
       .select('*')
       .eq('user_id', user_id)
-      .single();
+      .maybeSingle();
 
     if (user1Error) throw user1Error;
+    
+    if (!user1Profile) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: "User profile not found. Please complete your profile setup first.",
+        user_id: user_id
+      }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     const user1QCS = user1Profile.total_qcs || 0;
     const qcsRangeMin = user1QCS - 10;
@@ -196,6 +207,8 @@ serve(async (req) => {
       .lte('total_qcs', qcsRangeMax)
       .neq('user_id', user_id)
       .eq('is_active', true)
+      .not('first_name', 'is', null)
+      .not('last_name', 'is', null)
       .limit(50);
 
     if (candidatesError) throw candidatesError;
@@ -207,11 +220,19 @@ serve(async (req) => {
         success: true,
         user1: {
           id: user_id,
+          name: `${user1Profile.first_name} ${user1Profile.last_name}`.trim(),
           qcs: user1QCS,
           qcs_range: [qcsRangeMin, qcsRangeMax]
         },
-        candidates: [],
-        message: "No candidates found in QCS range"
+        total_candidates_found: 0,
+        top_candidates: [],
+        message: "No candidates found in QCS range. Try again later or adjust your preferences.",
+        algorithm_info: {
+          base_score: 50.0,
+          jitter_range: "±2.0",
+          deterministic: true,
+          no_random_fallback: true
+        }
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

@@ -121,15 +121,35 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
       });
 
       if (error) {
-        console.error('Error computing deterministic pairing:', error);
-        toast.error('Pairing unavailable right now');
+        console.error('Error invoking deterministic-pairing:', error);
+        toast.error(`Pairing error: ${error.message || 'Unknown error'}`);
+        setMatches([]);
+        return;
+      }
+
+      // Handle different response types
+      if (!pairingResults.success) {
+        console.error('Pairing function returned error:', pairingResults.error);
+        if (pairingResults.error?.includes('profile not found')) {
+          toast.error('Please complete your profile setup first to use pairing.');
+        } else {
+          toast.error(pairingResults.error || 'Pairing unavailable right now');
+        }
         setMatches([]);
         return;
       }
 
       const candidates = pairingResults?.top_candidates || [];
-      const valid = candidates.filter((c: any) => Number.isFinite(Number(c?.final_score)));
-      const formattedMatches = valid
+      console.log(`Found ${candidates.length} candidates from deterministic pairing`);
+
+      if (candidates.length === 0) {
+        toast.info(pairingResults.message || 'No matches found. Try again later!');
+        setMatches([]);
+        return;
+      }
+
+      const formattedMatches = candidates
+        .filter((c: any) => Number.isFinite(Number(c?.final_score)))
         .map((c: any) => {
           const [first, ...rest] = (c.candidate_name || '').split(' ');
           const score = Math.round(Number(c.final_score));
@@ -145,7 +165,7 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
             bio: c.candidate_bio || 'No bio available',
             profile_images: c.candidate_images || [],
             age: c.candidate_age || 0,
-            interests: c.candidate_interests || [],
+            interests: [],
             total_qcs: c.candidate_qcs || 0,
             compatibility_score: score,
             physical_score: physical,
@@ -157,8 +177,8 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
       setMatches(formattedMatches);
       toast.success(`Found ${formattedMatches.length} calculated matches`);
     } catch (error) {
-      console.error('Error:', error);
-      toast.error('Failed to load matches');
+      console.error('Error in loadMatches:', error);
+      toast.error('Failed to load matches. Please check your internet connection.');
     } finally {
       setIsLoading(false);
     }
