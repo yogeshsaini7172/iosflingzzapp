@@ -4,6 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 interface ChatRequest {
@@ -28,7 +29,14 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const { action, candidate_id, match_id, message, user_id, chat_room_id }: ChatRequest = await req.json();
+    // Parse JSON body safely
+    let payload: Partial<ChatRequest> = {};
+    try {
+      payload = await req.json();
+    } catch (_e) {
+      payload = {};
+    }
+    const { action, candidate_id, match_id, message, user_id, other_user_id, chat_room_id }: ChatRequest = payload as ChatRequest;
 
     // Optional auth: try JWT, but allow unauthenticated for 'list' with explicit user_id
     const authHeader = req.headers.get('Authorization') || '';
