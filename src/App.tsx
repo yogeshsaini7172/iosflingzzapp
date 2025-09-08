@@ -72,8 +72,8 @@ const AuthenticatedApp = () => {
         .eq('user_id', userId)
         .maybeSingle();
 
-      // Accept any subscription tier (including 'free') as valid
-      return !!(profile && profile.subscription_tier);
+      // Treat 'free' as no paid subscription selected
+      return !!(profile && profile.subscription_tier && profile.subscription_tier !== 'free');
     } catch (error) {
       console.error('Error checking subscription:', error);
       return false;
@@ -84,19 +84,13 @@ const AuthenticatedApp = () => {
   const recheckProfile = async () => {
     if (!user) return false;
     
-    console.log('🔄 Rechecking profile status for user:', user.uid);
     const profileComplete = await checkUserProfile(user.uid);
     const subscriptionSelected = await checkUserSubscription(user.uid);
-    
-    console.log('✅ Recheck results:', { profileComplete, subscriptionSelected });
     
     setHasProfile(!!profileComplete);
     setHasSubscription(!!subscriptionSelected);
     
-    const allComplete = !!profileComplete && !!subscriptionSelected;
-    console.log('🏁 Profile setup fully complete:', allComplete);
-    
-    return allComplete;
+    return !!profileComplete && !!subscriptionSelected;
   };
 
   useEffect(() => {

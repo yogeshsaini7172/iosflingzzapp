@@ -7,9 +7,8 @@ const corsHeaders = {
 };
 
 interface SubscriptionRequest {
-  action: 'upgrade' | 'downgrade' | 'status' | 'set';
+  action: 'upgrade' | 'downgrade' | 'status';
   plan?: 'free' | 'basic' | 'plus' | 'premium';
-  user_id?: string; // optional fallback when no Supabase auth
 }
 
 const SUBSCRIPTIONS = {
@@ -106,27 +105,19 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const authHeader = req.headers.get('Authorization') || '';
-    const token = authHeader.startsWith('Bearer ') ? authHeader.replace('Bearer ', '') : '';
-    let authedUserId: string | null = null;
-    if (token) {
-      try {
-        const { data } = await supabaseClient.auth.getUser(token);
-        authedUserId = data.user?.id ?? null;
-      } catch (_e) {
-        authedUserId = null;
-      }
-    }
+    const authHeader = req.headers.get('Authorization')!;
+    const token = authHeader.replace('Bearer ', '');
+    const { data } = await supabaseClient.auth.getUser(token);
+    const user = data.user;
+    if (!user) throw new Error('User not authenticated');
 
-    const { action, plan, user_id }: SubscriptionRequest = await req.json();
-    const targetUserId = authedUserId || user_id;
-    if (!targetUserId) throw new Error('User not authenticated and no user_id provided');
+    const { action, plan }: SubscriptionRequest = await req.json();
 
     // Get user profile
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
       .select('*')
-      .eq('user_id', targetUserId)
+      .eq('user_id', user.id)
       .single();
 
     if (profileError) throw profileError;
@@ -143,13 +134,13 @@ serve(async (req) => {
           throw new Error(`Cannot upgrade to ${plan} from ${currentPlan}`);
         }
 
-        await applySubscriptionLimits(supabaseClient, targetUserId, plan);
+        await applySubscriptionLimits(supabaseClient, user.id, plan);
 
         // Record subscription history
         await supabaseClient
           .from('subscription_history')
           .insert({
-            user_id: targetUserId,
+            user_id: user.id,
             tier: plan,
             amount: SUBSCRIPTIONS[plan].price,
             status: 'active',
@@ -177,13 +168,13 @@ serve(async (req) => {
           throw new Error(`Cannot downgrade to ${downgradePlan} from ${currentPlan}`);
         }
 
-        await applySubscriptionLimits(supabaseClient, targetUserId, downgradePlan);
+        await applySubscriptionLimits(supabaseClient, user.id, downgradePlan);
 
         // Record subscription history
         await supabaseClient
           .from('subscription_history')
           .insert({
-            user_id: targetUserId,
+            user_id: user.id,
             tier: downgradePlan,
             amount: SUBSCRIPTIONS[downgradePlan as keyof typeof SUBSCRIPTIONS].price,
             status: 'active',
@@ -206,20 +197,6 @@ serve(async (req) => {
           success: true,
           data: formatUserStatus(profile),
           message: 'Subscription status fetched'
-        }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        });
-
-      case 'set':
-        if (!plan || !(plan in SUBSCRIPTIONS)) {
-          throw new Error('Invalid subscription plan');
-        }
-        await applySubscriptionLimits(supabaseClient, targetUserId, plan);
-        return new Response(JSON.stringify({
-          success: true,
-          data: { subscription: plan },
-          message: `Subscription set to ${plan}`
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200,

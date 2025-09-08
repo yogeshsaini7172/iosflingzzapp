@@ -5,9 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Check, Crown, Star, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 
 interface SubscriptionSelectionPageProps {
   onComplete: (tier: string) => void;
@@ -16,8 +13,6 @@ interface SubscriptionSelectionPageProps {
 const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProps) => {
   const [selectedPlan, setSelectedPlan] = useState<string>('');
   const { toast } = useToast();
-  const { user } = useAuth();
-  const navigate = useNavigate();
 
   const plans = [
     {
@@ -100,31 +95,32 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
     }
   ];
 
-  const handlePlanSelect = async (planId: string) => {
+  const handlePlanSelect = (planId: string) => {
     setSelectedPlan(planId);
-    const userId = user?.uid || localStorage.getItem('demoUserId') || '';
-
-    try {
-      const { data, error } = await supabase.functions.invoke('subscription-management', {
-        body: { action: 'set', plan: planId, user_id: userId }
+    
+    if (planId === 'free') {
+      // Immediate selection for free plan
+      toast({
+        title: "Welcome to datingSigma! 🎉",
+        description: "You can upgrade anytime from your profile settings."
       });
-      if (error) throw error;
-
+      onComplete('free');
+    } else {
+      // For paid plans, just select for now (no payment processing)
       toast({
         title: `${plans.find(p => p.id === planId)?.name} Plan Selected`,
-        description: planId === 'free' ? 'You can upgrade anytime from your profile settings.' : 'Redirecting to the app...'
+        description: "Payment processing will be available soon!"
       });
       onComplete(planId);
-      // Navigate into the main app without full reload to preserve auth state
-      navigate('/swipe', { replace: true });
-    } catch (err: any) {
-      console.error('Failed to set subscription tier:', err);
-      toast({ title: 'Subscription error', description: 'Please try again.', variant: 'destructive' });
     }
   };
 
-  const handleSkip = async () => {
-    await handlePlanSelect('free');
+  const handleSkip = () => {
+    toast({
+      title: "Welcome to datingSigma! 🎉",
+      description: "You're starting with the free plan. You can upgrade anytime!"
+    });
+    onComplete('free');
   };
 
   return (

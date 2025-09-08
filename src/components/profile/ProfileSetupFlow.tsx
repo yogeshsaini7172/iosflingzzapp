@@ -261,9 +261,9 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       }
 
       console.log('Profile completion successful:', profileResult);
-      toast({ title: "Profile Setup Complete! 🎉", description: `Your QCS score: ${totalScore}/100. Continue to choose a plan.` });
+      toast({ title: "Profile Setup Complete! 🎉", description: `Your QCS score: ${totalScore}/100. Ready to start!` });
 
-      // Proceed to subscription selection; main app will load after selection
+      // Skip subscription page and go directly to app
       onComplete();
     } catch (error: any) {
       console.error('Profile creation error:', error);
