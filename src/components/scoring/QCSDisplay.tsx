@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Brain, Zap, TrendingUp, Users, RefreshCw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
 
 interface QCSDisplayProps {
   userId?: string;
@@ -66,19 +67,27 @@ const QCSDisplay: React.FC<QCSDisplayProps> = ({
     setIsLoading(true);
     
     try {
-      const currentUserId = getCurrentUserId();
-      
-      const { data, error } = await supabase.functions.invoke('qcs-scoring', {
-        body: { 
-          user_id: currentUserId,
-          // Optional: provide specific data for scoring
-          physical: "athletic fit",
-          mental: "ambitious confident creative",
-          description: "Passionate about fitness and personal growth. Love meeting new people and trying new experiences."
+      // Call edge function with Firebase auth
+      const res = await fetchWithFirebaseAuth(
+        'https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/qcs-scoring',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            // Optional: provide specific data for scoring
+            physical: 'athletic fit',
+            mental: 'ambitious confident creative',
+            description:
+              'Passionate about fitness and personal growth. Love meeting new people and trying new experiences.',
+          }),
         }
-      });
+      );
 
-      if (error) throw error;
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Failed to calculate QCS' }));
+        throw new Error(err.error || 'Failed to calculate QCS');
+      }
+
+      const data = await res.json();
 
       setScoringResult(data);
       await fetchQCSData(); // Refresh QCS data

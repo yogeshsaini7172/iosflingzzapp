@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Brain, Calculator, Zap, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
 
 const QCSDemo = () => {
   const [calculating, setCalculating] = useState(false);
@@ -40,16 +41,18 @@ const QCSDemo = () => {
       console.log('Mental traits:', mental);
       console.log('Description:', description);
 
-      const { data, error } = await supabase.functions.invoke('qcs-scoring', {
-        body: {
-          user_id: aliceProfile.user_id,
-          physical,
-          mental,
-          description
+      const res = await fetchWithFirebaseAuth(
+        'https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/qcs-scoring',
+        {
+          method: 'POST',
+          body: JSON.stringify({ physical, mental, description }),
         }
-      });
-
-      if (error) throw error;
+      );
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Failed to calculate QCS' }));
+        throw new Error(err.error || 'Failed to calculate QCS');
+      }
+      const data = await res.json();
 
       console.log('✅ QCS Result:', data);
       setResult(data);

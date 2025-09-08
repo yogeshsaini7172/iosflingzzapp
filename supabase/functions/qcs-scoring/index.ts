@@ -246,12 +246,36 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    const { user_id, physical, mental, description } = await req.json();
+    // Verify Firebase ID token from Authorization header
+    const authHeader = req.headers.get('authorization') || '';
+    const idToken = authHeader.replace('Bearer ', '');
 
-    if (!user_id) {
-      throw new Error('user_id is required');
+    if (!idToken) {
+      return new Response(JSON.stringify({ error: 'No token provided' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
+
+    // Minimal verification: validate Firebase issuer/audience and extract UID
+    const serviceAccountJson = Deno.env.get('FIREBASE_SERVICE_ACCOUNT_JSON');
+    try {
+      if (!serviceAccountJson) throw new Error('Firebase service account not configured');
+      const serviceAccount = JSON.parse(serviceAccountJson);
+      const payload = JSON.parse(atob(idToken.split('.')[1]));
+      if (!payload.iss?.includes('firebase') || !payload.aud?.includes(serviceAccount.project_id)) {
+        throw new Error('Invalid token');
+      }
+      var userId = payload.sub as string;
+    } catch (_e) {
+      return new Response(JSON.stringify({ error: 'Invalid token' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Read optional scoring inputs from body
+    const { physical, mental, description } = await req.json();
 
     // Get scoring based on provided data or fetch from profile
     let physicalData = physical;
@@ -263,7 +287,7 @@ serve(async (req) => {
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('bio, body_type, personality_type, interests, height')
-        .eq('user_id', user_id)
+        .or(`firebase_uid.eq.${userId},user_id.eq.${userId}`)
         .single();
 
       if (error) throw error;
@@ -274,7 +298,7 @@ serve(async (req) => {
       descriptionData = descriptionData || profile.bio || 'No description available';
     }
 
-    console.log('Scoring for user:', user_id, { physicalData, mentalData, descriptionData });
+    console.log('Scoring for user:', userId, { physicalData, mentalData, descriptionData });
 
     const scoringResult = await finalCustomerScoring(physicalData, mentalData, descriptionData);
 
@@ -284,7 +308,7 @@ serve(async (req) => {
     const { error: qcsError } = await supabase
       .from('qcs')
       .upsert({
-        user_id,
+        user_id: userId,
         profile_score: Math.floor(finalScore * 0.4),
         college_tier: 85, // Default tier score
         personality_depth: Math.floor(finalScore * 0.3),
@@ -299,14 +323,14 @@ serve(async (req) => {
     const { error: profileError } = await supabase
       .from('profiles')
       .update({ total_qcs: finalScore })
-      .eq('user_id', user_id);
+      .or(`firebase_uid.eq.${userId},user_id.eq.${userId}`);
 
     if (profileError) {
       console.error('Error syncing QCS to profile:', profileError);
     }
 
     return new Response(JSON.stringify({
-      user_id,
+      user_id: userId,
       qcs_score: finalScore,
       scoring_details: scoringResult
     }), {
