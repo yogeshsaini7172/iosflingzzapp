@@ -101,10 +101,10 @@ const QCSDisplay: React.FC<QCSDisplayProps> = ({
   };
 
   useEffect(() => {
-    if (userId && (isAuthenticated || propUserId)) {
+    if (userId) {
       fetchQCSData();
     }
-  }, [userId, isAuthenticated, propUserId]);
+  }, [userId]);
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-600';

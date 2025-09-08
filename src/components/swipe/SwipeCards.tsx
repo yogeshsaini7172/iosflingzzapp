@@ -7,6 +7,7 @@ import { Heart, X, MapPin, Star, Shield, Zap } from 'lucide-react';
 import { useProfilesFeed, FeedProfile } from '@/hooks/useProfilesFeed';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useRequiredAuth } from '@/hooks/useRequiredAuth';
 
 const SwipeCards: React.FC = () => {
   const { profiles, loading } = useProfilesFeed();
