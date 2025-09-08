@@ -13,10 +13,10 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.subscription-management]
-verify_jwt = true
+verify_jwt = false
 
 [functions.profile-management]
-verify_jwt = true
+verify_jwt = false
 
 [functions.chat-management]
 verify_jwt = false
@@ -43,4 +43,34 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.enhanced-swipe-action]
+verify_jwt = false
+
+[functions.deterministic-pairing]
+verify_jwt = false
+
+[functions.pairing-feed-enhanced]
+verify_jwt = false
+
+[functions.swipe-enforcement]
+verify_jwt = false
+
+[functions.swipe-feed]
+verify_jwt = false
+
+[functions.swipe]
+verify_jwt = false
+
+[functions.who-liked-me]
+verify_jwt = false
+
+[functions.firebase-profile]
+verify_jwt = false
+
+[functions.get-feed]
+verify_jwt = false
+
+[functions.request-extra-pairings]
+verify_jwt = false
+
+[functions.qcs-sync]
 verify_jwt = false
