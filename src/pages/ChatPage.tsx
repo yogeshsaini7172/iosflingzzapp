@@ -7,7 +7,7 @@ interface ChatPageProps {
 
 const ChatPage = ({ onNavigate }: ChatPageProps) => {
   return (
-    <UnifiedLayout title="Messages">
+    <UnifiedLayout title="Chat">
       <EnhancedChatSystem onNavigate={onNavigate} />
     </UnifiedLayout>
   );
