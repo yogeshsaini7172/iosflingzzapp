@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, User } from "lucide-react";
@@ -9,7 +9,6 @@ import ChatNotificationBadge from '@/components/ui/chat-notification-badge';
 import HeartNotificationBadge from '@/components/ui/heart-notification-badge';
 import WhoLikedMeModal from '@/components/likes/WhoLikedMeModal';
 import ChatRequestsModal from '@/components/notifications/ChatRequestsModal';
-import { useState } from 'react';
 
 interface UnifiedLayoutProps {
   children: React.ReactNode;
@@ -42,7 +41,7 @@ const UnifiedLayout = ({ children, title = "DateSigma", showHeader = true }: Uni
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
-      {/* Unified Header */}
+      {/* Simplified Header with integrated navigation */}
       {showHeader && (
         <div className="sticky top-0 z-40 bg-card/80 backdrop-blur-xl border-b border-border/50">
           <div className="container mx-auto px-4 py-3">
@@ -95,7 +94,7 @@ const UnifiedLayout = ({ children, title = "DateSigma", showHeader = true }: Uni
         {children}
       </main>
 
-      {/* Unified Bottom Navigation */}
+      {/* Single Bottom Navigation */}
       <BottomNav />
 
       {/* Modals */}

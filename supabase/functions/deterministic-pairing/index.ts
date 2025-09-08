@@ -26,15 +26,18 @@ function getDeterministicJitter(user1Id: string, user2Id: string): number {
   return (normalized - 0.5) * 4.0; // Range: -2.0 to +2.0
 }
 
-// Deterministic compatibility calculation (no random fallback)
+// Enhanced compatibility calculation with separate mental and physical scores
 function computeCompatibility(userA: any, userB: any): { 
   deterministic_score: number; 
+  physical_score: number;
+  mental_score: number;
   parsing_issue: boolean; 
   debug: any; 
 } {
   let parsing_issue = false;
   let debug: any = { userA_data: {}, userB_data: {}, matches: [] };
-  let totalScore = 50.0; // Base score
+  let physicalScore = 0;
+  let mentalScore = 0;
   let matchCount = 0;
   
   try {
@@ -49,7 +52,7 @@ function computeCompatibility(userA: any, userB: any): {
     } catch (parseError) {
       parsing_issue = true;
       debug.parsing_error = parseError.message;
-      return { deterministic_score: 50.0, parsing_issue, debug };
+      return { deterministic_score: 50.0, physical_score: 0, mental_score: 0, parsing_issue, debug };
     }
     
     debug.userA_data = { qualities: userAQualities, requirements: userARequirements };
@@ -64,48 +67,75 @@ function computeCompatibility(userA: any, userB: any): {
     if (!hasUserAReqs || !hasUserBQualities) {
       parsing_issue = true;
       debug.issue = "Missing requirements or qualities data";
-      return { deterministic_score: 50.0, parsing_issue, debug };
+      return { deterministic_score: 50.0, physical_score: 0, mental_score: 0, parsing_issue, debug };
     }
     
-    // Height compatibility (User A wants User B)
-    if (userARequirements.height_range_min && userARequirements.height_range_max && userBQualities.height) {
-      const heightMatch = userBQualities.height >= userARequirements.height_range_min && 
-                         userBQualities.height <= userARequirements.height_range_max;
-      if (heightMatch) {
-        totalScore += 10;
-        matchCount++;
-        debug.matches.push("height_match");
+    // Physical scoring (50 points max)
+    // Height compatibility (25 points)
+    if (userARequirements.height_range_min && userARequirements.height_range_max) {
+      const userBHeight = userBQualities.height || userB.height;
+      if (userBHeight) {
+        const heightMatch = userBHeight >= userARequirements.height_range_min && 
+                           userBHeight <= userARequirements.height_range_max;
+        if (heightMatch) {
+          physicalScore += 25;
+          matchCount++;
+          debug.matches.push("height_match");
+        }
       }
     }
     
-    // Body type compatibility
-    if (userARequirements.preferred_body_types?.length > 0 && userBQualities.body_type) {
-      const bodyMatch = userARequirements.preferred_body_types.includes(userBQualities.body_type) ||
-                       userARequirements.preferred_body_types.includes('Any');
-      if (bodyMatch) {
-        totalScore += 10;
-        matchCount++;
-        debug.matches.push("body_type_match");
+    // Body type compatibility (25 points)
+    if (userARequirements.preferred_body_types?.length > 0) {
+      const userBBodyType = userBQualities.body_type || userB.body_type;
+      if (userBBodyType) {
+        const bodyMatch = userARequirements.preferred_body_types.includes(userBBodyType) ||
+                         userARequirements.preferred_body_types.includes('Any');
+        if (bodyMatch) {
+          physicalScore += 25;
+          matchCount++;
+          debug.matches.push("body_type_match");
+        }
       }
     }
     
-    // Values compatibility
-    if (userARequirements.preferred_values?.length > 0 && userBQualities.values) {
-      const valuesMatch = userARequirements.preferred_values.includes(userBQualities.values);
-      if (valuesMatch) {
-        totalScore += 15;
-        matchCount++;
-        debug.matches.push("values_match");
+    // Mental scoring (50 points max)
+    // Values compatibility (20 points)
+    if (userARequirements.preferred_values?.length > 0) {
+      const userBValues = userBQualities.values || userB.values;
+      if (userBValues) {
+        const valuesMatch = userARequirements.preferred_values.includes(userBValues);
+        if (valuesMatch) {
+          mentalScore += 20;
+          matchCount++;
+          debug.matches.push("values_match");
+        }
       }
     }
     
-    // Personality compatibility
-    if (userARequirements.preferred_personality?.length > 0 && userBQualities.personality_type) {
-      const personalityMatch = userARequirements.preferred_personality.includes(userBQualities.personality_type);
-      if (personalityMatch) {
-        totalScore += 15;
-        matchCount++;
-        debug.matches.push("personality_match");
+    // Mindset compatibility (15 points)
+    if (userARequirements.preferred_mindset?.length > 0) {
+      const userBMindset = userBQualities.mindset || userB.mindset;
+      if (userBMindset) {
+        const mindsetMatch = userARequirements.preferred_mindset.includes(userBMindset);
+        if (mindsetMatch) {
+          mentalScore += 15;
+          matchCount++;
+          debug.matches.push("mindset_match");
+        }
+      }
+    }
+    
+    // Personality compatibility (15 points)
+    if (userARequirements.preferred_personality_traits?.length > 0) {
+      const userBPersonality = userBQualities.personality_type || userB.personality_type;
+      if (userBPersonality) {
+        const personalityMatch = userARequirements.preferred_personality_traits.includes(userBPersonality);
+        if (personalityMatch) {
+          mentalScore += 15;
+          matchCount++;
+          debug.matches.push("personality_match");
+        }
       }
     }
     
@@ -133,11 +163,18 @@ function computeCompatibility(userA: any, userB: any): {
       }
     }
     
+    // Calculate overall compatibility (average of physical and mental)
+    const overallScore = Math.round((physicalScore + mentalScore) / 2 + 50); // Base 50 + weighted average
+    
     debug.match_count = matchCount;
-    debug.base_score = totalScore;
+    debug.physical_score = physicalScore;
+    debug.mental_score = mentalScore;
+    debug.overall_score = overallScore;
     
     return {
-      deterministic_score: Math.min(100, Math.max(0, totalScore)),
+      deterministic_score: Math.min(100, Math.max(0, overallScore)),
+      physical_score: Math.min(100, Math.max(0, physicalScore)),
+      mental_score: Math.min(100, Math.max(0, mentalScore)),
       parsing_issue: false,
       debug
     };
@@ -145,7 +182,13 @@ function computeCompatibility(userA: any, userB: any): {
   } catch (error) {
     parsing_issue = true;
     debug.calculation_error = error.message;
-    return { deterministic_score: 50.0, parsing_issue, debug };
+    return { 
+      deterministic_score: 50.0, 
+      physical_score: 0, 
+      mental_score: 0, 
+      parsing_issue, 
+      debug 
+    };
   }
 }
 
@@ -201,7 +244,8 @@ serve(async (req) => {
       .select(`
         user_id, first_name, last_name, total_qcs,
         qualities, requirements, date_of_birth, gender,
-        university, bio, profile_images
+        university, bio, profile_images, height, body_type,
+        values, mindset, personality_type
       `)
       .gte('total_qcs', qcsRangeMin)
       .lte('total_qcs', qcsRangeMax)
@@ -241,7 +285,7 @@ serve(async (req) => {
     // Calculate deterministic compatibility for each candidate
     const results = [];
     for (const candidate of candidates) {
-      const { deterministic_score, parsing_issue, debug } = computeCompatibility(user1Profile, candidate);
+      const { deterministic_score, physical_score, mental_score, parsing_issue, debug } = computeCompatibility(user1Profile, candidate);
       
       // Apply deterministic jitter
       const jitter_applied = getDeterministicJitter(user_id, candidate.user_id);
@@ -257,8 +301,12 @@ serve(async (req) => {
         candidate_name: `${candidate.first_name} ${candidate.last_name}`.trim(),
         candidate_age: age,
         candidate_university: candidate.university,
+        candidate_bio: candidate.bio,
+        candidate_images: candidate.profile_images,
         candidate_qcs: candidate.total_qcs || 0,
         deterministic_score: Math.round(deterministic_score * 10) / 10,
+        physical_score: Math.round(physical_score),
+        mental_score: Math.round(mental_score),
         jitter_applied: Math.round(jitter_applied * 10) / 10,
         final_score: Math.round(final_score * 10) / 10,
         parsing_issue,

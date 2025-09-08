@@ -54,41 +54,6 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
     }
   };
 
-  const jaccard = (a?: string[] | null, b?: string[] | null) => {
-    if (!a || !b || a.length === 0 || b.length === 0) return 0;
-    const A = new Set(a);
-    const B = new Set(b);
-    const inter = [...A].filter(x => B.has(x)).length;
-    const uni = new Set([...A, ...B]).size;
-    return uni ? inter / uni : 0;
-  };
-
-  const computeScores = (candidate: any) => {
-    const req = myReq || {};
-    const cQual = parseJsonSafe(candidate.qualities) || {};
-    const cVals = Array.isArray(candidate.values) ? candidate.values : (candidate.values ? [candidate.values] : []);
-    const cMindset = Array.isArray(candidate.mindset) ? candidate.mindset : (candidate.mindset ? [candidate.mindset] : []);
-    const cPersonality = candidate.personality_type ? [candidate.personality_type] : [];
-
-    // Physical: height + body type (50/50)
-    let physical = 0;
-    if (cQual.height && req.height_range_min != null && req.height_range_max != null) {
-      if (cQual.height >= req.height_range_min && cQual.height <= req.height_range_max) physical += 50;
-    }
-    if (Array.isArray(req.preferred_body_types) && cQual.body_type) {
-      if (req.preferred_body_types.map((s: string)=>s.toLowerCase().replace(/[^a-z0-9]/g,'_')).includes(String(cQual.body_type).toLowerCase())) physical += 50;
-    }
-    physical = Math.min(100, Math.max(0, Math.round(physical)));
-
-    // Mental: values (40) + mindset (30) + personality (30)
-    const valuesSim = jaccard(req.preferred_values || [], cVals) * 100;
-    const mindsetSim = jaccard(req.preferred_mindset || [], cMindset) * 100;
-    const personalitySim = jaccard(req.preferred_personality_traits || [], cPersonality) * 100;
-    const mental = Math.min(100, Math.round(valuesSim * 0.4 + mindsetSim * 0.3 + personalitySim * 0.3));
-
-    return { physical, mental };
-  };
-
   const getCurrentUserId = () => {
     if (user?.uid) return user.uid;
     return localStorage.getItem('demoUserId') || "11111111-1111-1111-1111-111111111001";
@@ -154,8 +119,9 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
           const [first, ...rest] = (c.candidate_name || '').split(' ');
           const score = Math.round(Number(c.final_score));
           
-          // Compute physical and mental scores based on requirements vs qualities
-          const { physical, mental } = computeScores(c);
+          // Use real physical and mental scores from deterministic pairing
+          const physical = c.physical_score || 0;
+          const mental = c.mental_score || 0;
           
           return {
             user_id: c.candidate_id,
@@ -343,7 +309,7 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Your QCS</p>
-                    <p className="text-2xl font-bold">{currentUser?.profile?.total_qcs || '850'}</p>
+                    <p className="text-2xl font-bold">{currentUser?.profile?.total_qcs || 0}</p>
                   </div>
                 </div>
               </CardContent>
