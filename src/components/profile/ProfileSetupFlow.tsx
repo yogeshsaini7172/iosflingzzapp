@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useImageUpload } from "@/hooks/useImageUpload";
 import BasicDetailsStep from "./steps/BasicDetailsStep";
 import WhatYouAreStep from "./steps/WhatYouAreStep";
 import WhoYouWantStep from "./steps/WhoYouWantStep";
@@ -22,6 +23,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
   const [verificationStatus, setVerificationStatus] = useState<'idle' | 'pending' | 'verified' | 'failed'>('idle');
   const { toast } = useToast();
   const { user } = useAuth();
+  const { uploadMultipleImages, uploading } = useImageUpload();
 
   // Profile Data State
   const [profileData, setProfileData] = useState({
@@ -108,10 +110,14 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       }
       const userId = user.uid;
       
-      // Create mock image URLs for demo
-      const imageUrls: string[] = profileData.profileImages.map((_, index) => 
-        `https://via.placeholder.com/400x600?text=Photo+${index + 1}`
-      );
+      // Upload profile images to Supabase Storage first
+      let imageUrls: string[] = [];
+      if (profileData.profileImages && profileData.profileImages.length > 0) {
+        toast({ title: "Uploading photos... 📸", description: "Please wait while we save your images" });
+        const uploadedImages = await uploadMultipleImages(profileData.profileImages, 'profile-images');
+        imageUrls = uploadedImages.map(img => img.path);
+        console.log('Uploaded images:', imageUrls);
+      }
 
       // Store complete profile data
       const completeProfile = {
@@ -180,7 +186,6 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       // Persist current verification status
       completeProfile.verification_status = 'verified';
       localStorage.setItem('demoProfile', JSON.stringify(completeProfile));
-
 
       // Calculate QCS via Edge Function (uses profile data)
       toast({ title: "Calculating QCS Score... 📊", description: "Analyzing your profile" });
