@@ -113,6 +113,8 @@ serve(async (req) => {
     } else if (action === 'get_requests') {
       // Get pending chat requests for user
       const targetUserId = bodyUserId || sender_id || effectiveUserId;
+      console.log(`🔍 Fetching chat requests for user: ${targetUserId}`);
+      
       const { data: requests, error: requestsError } = await supabaseClient
         .from('chat_requests')
         .select(`
@@ -129,8 +131,13 @@ serve(async (req) => {
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
-      if (requestsError) throw requestsError;
+      if (requestsError) {
+        console.error('❌ Error fetching chat requests:', requestsError);
+        throw requestsError;
+      }
 
+      console.log(`✅ Retrieved ${requests?.length || 0} chat requests`);
+      
       return new Response(JSON.stringify({ success: true, data: requests || [] }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
@@ -141,7 +148,7 @@ serve(async (req) => {
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('Chat request handler error:', errorMessage);
+    console.error('❌ Chat request handler error:', errorMessage, error);
     return new Response(JSON.stringify({ success: false, error: errorMessage }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
