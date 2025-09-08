@@ -894,7 +894,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card/90 backdrop-blur-lg border-t border-border z-50 shadow-premium">
+      <div className="hidden">
         <div className="flex justify-around items-center py-2 px-4">
           <Button
             variant="ghost"

@@ -205,8 +205,8 @@ const CampusConnectHome = ({
         )}
       </div>
 
-      {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card/90 backdrop-blur-lg border-t border-border shadow-soft z-50">
+      {/* Bottom Navigation handled globally by UnifiedLayout */}
+      <div className="hidden">
         <div className="container mx-auto px-4 py-2">
           <div className="flex justify-around items-center">
             <Button

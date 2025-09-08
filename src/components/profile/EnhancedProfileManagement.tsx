@@ -1098,7 +1098,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border/50 px-4 py-3 z-50">
+      <div className="hidden">
         <div className="flex justify-center space-x-8 max-w-md mx-auto">
           <Button
             variant="ghost"
