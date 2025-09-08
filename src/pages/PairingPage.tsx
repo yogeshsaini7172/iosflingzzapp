@@ -10,6 +10,8 @@ import { supabase } from '@/integrations/supabase/client';
 import DetailedProfileModal from '@/components/profile/DetailedProfileModal';
 import EnhancedChatSystem from '@/components/chat/EnhancedChatSystem';
 import { useAuth } from '@/contexts/AuthContext';
+import UnifiedLayout from '@/components/layout/UnifiedLayout';
+import ProfileImageHandler from '@/components/common/ProfileImageHandler';
 
 interface Match {
   user_id: string;
@@ -259,8 +261,8 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
   };
 
   return (
-    <div className="h-full overflow-auto bg-gradient-subtle">
-      <div className="max-w-7xl mx-auto p-6">
+    <UnifiedLayout title="Smart Pairing">
+      <div className="container mx-auto px-4 py-6">
 
         {/* Header */}
         <div className="mb-8">
@@ -347,19 +349,10 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                 <CardContent className="p-0">
                   {/* Profile Image - Shorter */}
                   <div className="relative h-32 overflow-hidden rounded-t-lg">
-                    <img 
-                      src={
-                        match.profile_images?.[0] 
-                          ? (match.profile_images[0].startsWith('blob:') || match.profile_images[0].startsWith('http') 
-                              ? match.profile_images[0] 
-                              : `${supabase.storage.from('profile-images').getPublicUrl(match.profile_images[0]).data.publicUrl}`)
-                          : 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400'
-                      }
+                    <ProfileImageHandler
+                      src={match.profile_images?.[0]}
                       alt={`${match.first_name} ${match.last_name}`}
                       className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.src = 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400';
-                      }}
                     />
                     <div className="absolute top-2 right-2">
                       <Badge className={`${getCompatibilityColor(match.compatibility_score || 0)} border-0 text-xs`}>
@@ -534,7 +527,7 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
           </Button>
         </div>
       </div>
-    </div>
+    </UnifiedLayout>
   );
 };
 

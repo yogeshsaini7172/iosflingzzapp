@@ -31,36 +31,53 @@ export function useProfilesFeed() {
     return localStorage.getItem("demoUserId") || "6e6a510a-d406-4a01-91ab-64efdbca98f2";
   };
 
+  const fetchFeed = async () => {
+    setLoading(true);
+
+    try {
+      const currentUserId = getCurrentUserId();
+      
+      // Use data-management function for feed
+      const { data, error } = await supabase.functions.invoke('data-management', {
+        headers: { Authorization: `Bearer firebase-${currentUserId}` },
+        body: { 
+          action: 'get_feed',
+          user_id: currentUserId,
+          limit: 20
+        }
+      });
+
+      if (error) throw error;
+
+      console.log("✅ Fetched profiles from data-management:", data?.data?.profiles?.length);
+      setProfiles(data?.data?.profiles || []);
+    } catch (err) {
+      console.error("❌ Error fetching feed profiles:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchFeed = async () => {
-      setLoading(true);
-
-      try {
-        const currentUserId = getCurrentUserId();
-        
-        // Use data-management function for feed
-        const { data, error } = await supabase.functions.invoke('data-management', {
-          headers: { Authorization: `Bearer firebase-${currentUserId}` },
-          body: { 
-            action: 'get_feed',
-            user_id: currentUserId,
-            limit: 20
-          }
-        });
-
-        if (error) throw error;
-
-        console.log("✅ Fetched profiles from data-management:", data?.data?.profiles?.length);
-        setProfiles(data?.data?.profiles || []);
-      } catch (err) {
-        console.error("❌ Error fetching feed profiles:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchFeed();
-  }, []); // Remove dependency on profile/preferences for now
+
+    // Real-time updates for profiles feed
+    const channel = supabase
+      .channel('profiles-feed-realtime')
+      .on('postgres_changes', { schema: 'public', table: 'profiles', event: '*' }, () => {
+        console.log('🔄 Profile updated, refetching feed...');
+        fetchFeed();
+      })
+      .on('postgres_changes', { schema: 'public', table: 'enhanced_swipes', event: '*' }, () => {
+        console.log('🔄 New swipe detected, refetching feed...');
+        fetchFeed();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   return { profiles, loading, setProfiles };
 }

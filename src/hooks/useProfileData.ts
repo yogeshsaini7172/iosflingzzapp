@@ -234,8 +234,37 @@ export const useProfileData = () => {
   };
 
   useEffect(() => {
-    fetchProfileData();
-  }, []);
+    if (!isLoading) {
+      fetchProfileData();
+
+      // Real-time updates for profile data
+      const channel = supabase
+        .channel('profile-data-realtime')
+        .on('postgres_changes', { 
+          schema: 'public', 
+          table: 'profiles', 
+          event: '*',
+          filter: `user_id=eq.${getCurrentUserId()}`
+        }, () => {
+          console.log('🔄 Own profile updated, refetching...');
+          fetchProfileData();
+        })
+        .on('postgres_changes', { 
+          schema: 'public', 
+          table: 'partner_preferences', 
+          event: '*',
+          filter: `user_id=eq.${getCurrentUserId()}`
+        }, () => {
+          console.log('🔄 Preferences updated, refetching...');
+          fetchProfileData();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [isLoading]);
 
   return {
     profile,

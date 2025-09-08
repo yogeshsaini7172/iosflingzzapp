@@ -30,6 +30,8 @@ import HeartNotificationBadge from '@/components/ui/heart-notification-badge';
 import WhoLikedMeModal from '@/components/likes/WhoLikedMeModal';
 import ChatRequestsModal from '@/components/notifications/ChatRequestsModal';
 import { useSwipeRealtime, useLikeRealtime, useNotificationRealtime } from '@/hooks/useRealtime';
+import UnifiedLayout from '@/components/layout/UnifiedLayout';
+import ProfileImageHandler from '@/components/common/ProfileImageHandler';
 
 interface Thread {
   id: number;
@@ -395,8 +397,8 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted pb-20">
-      {/* Company Header & Chat Section */}
+    <UnifiedLayout title="DateSigma Home" showHeader={false}>
+      {/* Custom Header for Home */}
       <div className="bg-card/80 backdrop-blur-md border-b border-border/50 px-4 py-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -968,7 +970,16 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
           onNavigate('chat');
         }}
       />
-    </div>
+      
+      <WhoLikedMeModal 
+        isOpen={showWhoLikedMe} 
+        onClose={() => setShowWhoLikedMe(false)} 
+      />
+      <ChatRequestsModal 
+        isOpen={showChatRequests} 
+        onClose={() => setShowChatRequests(false)} 
+      />
+    </UnifiedLayout>
   );
 };
 

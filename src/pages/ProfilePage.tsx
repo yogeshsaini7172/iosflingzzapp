@@ -1,5 +1,5 @@
 import EnhancedProfileManagement from '@/components/profile/EnhancedProfileManagement';
-import BottomNav from '@/components/navigation/BottomNav';
+import UnifiedLayout from '@/components/layout/UnifiedLayout';
 
 interface ProfilePageProps {
   onNavigate: (view: string) => void;
@@ -7,11 +7,9 @@ interface ProfilePageProps {
 
 const ProfilePage = ({ onNavigate }: ProfilePageProps) => {
   return (
-    <div className="min-h-screen pb-20">
+    <UnifiedLayout title="Profile">
       <EnhancedProfileManagement onNavigate={onNavigate} />
-      {/* Consistent bottom navigation */}
-      <BottomNav />
-    </div>
+    </UnifiedLayout>
   );
 };
 
