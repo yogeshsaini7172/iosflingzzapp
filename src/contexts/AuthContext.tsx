@@ -30,11 +30,13 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
+  console.log('🔐 AuthProvider initializing...');
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
 
   useEffect(() => {
+    console.log('🔥 Setting up Firebase auth listener...');
     // Set up Firebase auth state listener
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       console.log('🔥 Firebase auth state changed:', firebaseUser ? { 

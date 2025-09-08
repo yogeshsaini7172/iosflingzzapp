@@ -29,7 +29,10 @@ const queryClient = new QueryClient({
 });
 
 const AuthenticatedApp = () => {
+  console.log('🔒 AuthenticatedApp component rendering...');
   const { user, isLoading } = useAuth();
+  console.log('👤 Current user state:', { user: user?.uid, isLoading });
+  
   const [hasProfile, setHasProfile] = useState(false);
   const [hasSubscription, setHasSubscription] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(true);
@@ -115,15 +118,24 @@ const AuthenticatedApp = () => {
   }, [user, isLoading]);
 
   if (isLoading || checkingProfile) {
+    console.log('⏳ App loading...', { isLoading, checkingProfile });
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Loading DateSigma...</p>
+        </div>
       </div>
     );
   }
 
   // Show authentication/profile setup/subscription flow if not complete
   if (!user || !hasProfile || !hasSubscription) {
+    console.log('🔑 Showing auth/setup flow...', { 
+      hasUser: !!user, 
+      hasProfile, 
+      hasSubscription 
+    });
     return (
       <TooltipProvider>
         <div className="min-h-screen bg-gradient-to-br from-background to-muted">
@@ -139,6 +151,7 @@ const AuthenticatedApp = () => {
     );
   }
 
+  console.log('✅ Showing main app...');
   return (
     <TooltipProvider>
       <div className="min-h-screen bg-gradient-to-br from-background to-muted">
@@ -198,6 +211,7 @@ const AuthenticatedApp = () => {
 };
 
 function App() {
+  console.log('📱 App component rendering...');
   return (
     <QueryClientProvider client={queryClient}>
       <AuthenticatedApp />
