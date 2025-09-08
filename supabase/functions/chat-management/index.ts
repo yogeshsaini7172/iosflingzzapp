@@ -293,22 +293,33 @@ serve(async (req) => {
 
       case 'list':
         if (!user_id) throw new Error('user_id is required');
+        console.log(`🔍 Listing chat rooms for user: ${user_id}`);
+        
         // List chat rooms for a user and enrich with other user and last message
         const { data: rooms, error: roomsError } = await supabaseClient
           .from('chat_rooms')
           .select('id, match_id, user1_id, user2_id, updated_at, created_at')
           .or(`user1_id.eq.${user_id},user2_id.eq.${user_id}`)
           .order('updated_at', { ascending: false });
-        if (roomsError) throw roomsError;
+        
+        if (roomsError) {
+          console.error('❌ Error fetching chat rooms:', roomsError);
+          throw roomsError;
+        }
+        
+        console.log(`📋 Found ${rooms?.length || 0} chat rooms:`, rooms);
 
         const enriched = [] as any[];
         for (const room of rooms || []) {
           const otherUserId = room.user1_id === user_id ? room.user2_id : room.user1_id;
+          console.log(`👤 Fetching profile for other user: ${otherUserId}`);
+          
           const { data: otherUser } = await supabaseClient
             .from('profiles')
             .select('user_id, first_name, last_name, profile_images, university')
             .eq('user_id', otherUserId)
             .maybeSingle();
+            
           const { data: lastMessage } = await supabaseClient
             .from('chat_messages_enhanced')
             .select('message_text, created_at')
@@ -316,6 +327,10 @@ serve(async (req) => {
             .order('created_at', { ascending: false })
             .limit(1)
             .maybeSingle();
+            
+          console.log(`✅ Other user profile:`, otherUser);
+          console.log(`💬 Last message:`, lastMessage);
+          
           enriched.push({
             ...room,
             other_user: otherUser,
@@ -324,6 +339,7 @@ serve(async (req) => {
           });
         }
 
+        console.log(`🎯 Returning ${enriched.length} enriched chat rooms`);
         return new Response(JSON.stringify({ success: true, data: enriched }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200,
