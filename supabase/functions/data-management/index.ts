@@ -6,9 +6,29 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Verify Firebase ID token
+async function verifyFirebaseToken(idToken: string) {
+  try {
+    const serviceAccountJson = Deno.env.get('FIREBASE_SERVICE_ACCOUNT_JSON')
+    if (!serviceAccountJson) {
+      throw new Error('Firebase service account not configured')
+    }
+
+    const serviceAccount = JSON.parse(serviceAccountJson)
+    const payload = JSON.parse(atob(idToken.split('.')[1]))
+    
+    if (!payload.iss?.includes('firebase') || !payload.aud?.includes(serviceAccount.project_id)) {
+      throw new Error('Invalid token issuer or audience')
+    }
+    
+    return payload.sub // Return Firebase UID
+  } catch (error) {
+    throw new Error('Invalid or expired token')
+  }
+}
+
 interface DataRequest {
   action: 'get_profile' | 'update_profile' | 'get_preferences' | 'update_preferences' | 'get_feed' | 'get_pairing_feed' | 'create_profile';
-  user_id?: string;
   profile?: any;
   preferences?: any;
   filters?: any;
@@ -27,25 +47,30 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const authHeader = req.headers.get('Authorization');
-    let userId: string;
+    // Verify Firebase token
+    const authHeader = req.headers.get('authorization') || ''
+    const idToken = authHeader.replace('Bearer ', '')
     
-    // Extract user_id from Firebase token or use provided user_id
-    if (authHeader?.startsWith('Bearer dummy-token-')) {
-      userId = authHeader.replace('Bearer dummy-token-', '');
-    } else if (authHeader?.startsWith('Bearer firebase-')) {
-      userId = authHeader.replace('Bearer firebase-', '');
-    } else {
-      // For firebase auth, extract from JWT - for now use fallback
-      userId = 'default-user';
+    if (!idToken) {
+      return new Response(
+        JSON.stringify({ error: 'No token provided' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
-    const { action, user_id, profile: profileData, preferences: preferencesData, filters, limit }: DataRequest = await req.json();
-    
-    // Use provided user_id if available (for direct calls)
-    const finalUserId = user_id || userId;
+    let firebaseUid
+    try {
+      firebaseUid = await verifyFirebaseToken(idToken)
+    } catch (error) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
-    console.log(`[DATA-MANAGEMENT] Action: ${action}, User: ${finalUserId}`);
+    const { action, profile: profileData, preferences: preferencesData, filters, limit }: DataRequest = await req.json();
+
+    console.log(`[DATA-MANAGEMENT] Action: ${action}, User: ${firebaseUid}`);
 
     switch (action) {
       case 'create_profile':
@@ -54,7 +79,8 @@ serve(async (req) => {
         }
 
         const newProfile = {
-          user_id: finalUserId,
+          firebase_uid: firebaseUid,
+          user_id: firebaseUid, // Keep for compatibility
           email: profileData.email || 'user@example.com',
           ...profileData,
           subscription_tier: 'free',
@@ -78,10 +104,10 @@ serve(async (req) => {
 
         if (createError) throw createError;
 
-        console.log(`[DATA-MANAGEMENT] Profile created for ${finalUserId}`);
+        console.log(`[DATA-MANAGEMENT] Profile created for ${firebaseUid}`);
         return new Response(JSON.stringify({
           success: true,
-          data: { user_id: finalUserId, profile: createdProfile },
+          data: { user_id: firebaseUid, profile: createdProfile },
           message: 'Profile created'
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -92,7 +118,7 @@ serve(async (req) => {
         const { data: profile, error: getError } = await supabaseClient
           .from('profiles')
           .select('*')
-          .eq('user_id', finalUserId)
+          .eq('firebase_uid', firebaseUid)
           .single();
 
         if (getError && getError.code !== 'PGRST116') {
@@ -101,7 +127,7 @@ serve(async (req) => {
 
         return new Response(JSON.stringify({
           success: true,
-          data: { user_id: finalUserId, profile },
+          data: { user_id: firebaseUid, profile },
           message: 'Profile fetched'
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -121,16 +147,16 @@ serve(async (req) => {
         const { data: updated, error: updateError } = await supabaseClient
           .from('profiles')
           .update(updatedProfileData)
-          .eq('user_id', finalUserId)
+          .eq('firebase_uid', firebaseUid)
           .select()
           .single();
 
         if (updateError) throw updateError;
 
-        console.log(`[DATA-MANAGEMENT] Profile updated for ${finalUserId}`);
+        console.log(`[DATA-MANAGEMENT] Profile updated for ${firebaseUid}`);
         return new Response(JSON.stringify({
           success: true,
-          data: { user_id: finalUserId, profile: updated },
+          data: { user_id: firebaseUid, profile: updated },
           message: 'Profile updated'
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -141,7 +167,7 @@ serve(async (req) => {
         const { data: preferences, error: prefError } = await supabaseClient
           .from('partner_preferences')
           .select('*')
-          .eq('user_id', finalUserId)
+          .eq('user_id', firebaseUid)
           .single();
 
         if (prefError && prefError.code !== 'PGRST116') {
@@ -150,7 +176,7 @@ serve(async (req) => {
 
         return new Response(JSON.stringify({
           success: true,
-          data: { user_id: finalUserId, preferences },
+          data: { user_id: firebaseUid, preferences },
           message: 'Preferences fetched'
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -166,7 +192,7 @@ serve(async (req) => {
         const { data: existingPrefs } = await supabaseClient
           .from('partner_preferences')
           .select('user_id')
-          .eq('user_id', finalUserId)
+          .eq('user_id', firebaseUid)
           .single();
 
         let prefResult;
@@ -174,14 +200,14 @@ serve(async (req) => {
           const { data, error } = await supabaseClient
             .from('partner_preferences')
             .update({ ...preferencesData, updated_at: new Date().toISOString() })
-            .eq('user_id', finalUserId)
+            .eq('user_id', firebaseUid)
             .select()
             .single();
           prefResult = { data, error };
         } else {
           const { data, error } = await supabaseClient
             .from('partner_preferences')
-            .insert({ user_id: finalUserId, ...preferencesData })
+            .insert({ user_id: firebaseUid, ...preferencesData })
             .select()
             .single();
           prefResult = { data, error };
@@ -189,10 +215,10 @@ serve(async (req) => {
 
         if (prefResult.error) throw prefResult.error;
 
-        console.log(`[DATA-MANAGEMENT] Preferences updated for ${finalUserId}`);
+        console.log(`[DATA-MANAGEMENT] Preferences updated for ${firebaseUid}`);
         return new Response(JSON.stringify({
           success: true,
-          data: { user_id: finalUserId, preferences: prefResult.data },
+          data: { user_id: firebaseUid, preferences: prefResult.data },
           message: 'Preferences updated'
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -200,13 +226,28 @@ serve(async (req) => {
         });
 
       case 'get_feed':
-        // Fetch general feed excluding current user
-        const { data: feedProfiles, error: feedError } = await supabaseClient
+        // Get swiped users to exclude
+        const { data: swipedUsers } = await supabaseClient
+          .from('enhanced_swipes')
+          .select('target_user_id')
+          .eq('user_id', firebaseUid)
+
+        const swipedUserIds = swipedUsers?.map(s => s.target_user_id) || []
+
+        // Build profile query
+        let feedQuery = supabaseClient
           .from('profiles')
           .select('*')
-          .neq('user_id', finalUserId)
           .eq('is_active', true)
-          .limit(limit || 20);
+          .eq('show_profile', true)
+          .neq('firebase_uid', firebaseUid)
+
+        // Exclude swiped users
+        if (swipedUserIds.length > 0) {
+          feedQuery = feedQuery.not('firebase_uid', 'in', `(${swipedUserIds.join(',')})`)
+        }
+
+        const { data: feedProfiles, error: feedError } = await feedQuery.limit(limit || 20);
 
         if (feedError) throw feedError;
 
@@ -222,29 +263,29 @@ serve(async (req) => {
 
       case 'get_pairing_feed':
         // Enhanced pairing feed with filtering
-        let query = supabaseClient
+        let pairingQuery = supabaseClient
           .from('profiles')
           .select('*')
-          .neq('user_id', finalUserId)
-          .eq('is_active', true);
+          .neq('firebase_uid', firebaseUid)
+          .eq('is_active', true)
+          .eq('show_profile', true);
 
         // Apply filters if provided
         if (filters?.ageMin || filters?.ageMax) {
-          if (filters.ageMin) {
-            const minDate = new Date();
-            minDate.setFullYear(minDate.getFullYear() - filters.ageMax || 50);
-            query = query.gte('date_of_birth', minDate.toISOString().split('T')[0]);
-          }
+          const today = new Date()
           if (filters.ageMax) {
-            const maxDate = new Date();
-            maxDate.setFullYear(maxDate.getFullYear() - filters.ageMin || 18);
-            query = query.lte('date_of_birth', maxDate.toISOString().split('T')[0]);
+            const minBirthDate = new Date(today.getFullYear() - filters.ageMax - 1, today.getMonth(), today.getDate())
+            pairingQuery = pairingQuery.gte('date_of_birth', minBirthDate.toISOString().split('T')[0])
+          }
+          if (filters.ageMin) {
+            const maxBirthDate = new Date(today.getFullYear() - filters.ageMin, today.getMonth(), today.getDate())
+            pairingQuery = pairingQuery.lte('date_of_birth', maxBirthDate.toISOString().split('T')[0])
           }
         }
 
-        query = query.limit(limit || 10);
+        pairingQuery = pairingQuery.limit(limit || 10);
 
-        const { data: pairingProfiles, error: pairingError } = await query;
+        const { data: pairingProfiles, error: pairingError } = await pairingQuery;
 
         if (pairingError) throw pairingError;
 

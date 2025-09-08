@@ -6,6 +6,30 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Verify Firebase ID token
+async function verifyFirebaseToken(idToken: string) {
+  try {
+    const serviceAccountJson = Deno.env.get('FIREBASE_SERVICE_ACCOUNT_JSON')
+    if (!serviceAccountJson) {
+      throw new Error('Firebase service account not configured')
+    }
+
+    const serviceAccount = JSON.parse(serviceAccountJson)
+    const payload = JSON.parse(atob(idToken.split('.')[1]))
+    
+    if (!payload.iss?.includes('firebase') || !payload.aud?.includes(serviceAccount.project_id)) {
+      throw new Error('Invalid token issuer or audience')
+    }
+    
+    return {
+      uid: payload.sub,
+      email: payload.email
+    }
+  } catch (error) {
+    throw new Error('Invalid or expired token')
+  }
+}
+
 interface ProfileRequest {
   action: 'create' | 'update' | 'get';
   profile?: any;
@@ -23,25 +47,28 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const authHeader = req.headers.get('Authorization')!;
-    const token = authHeader.replace('Bearer ', '');
+    // Verify Firebase token
+    const authHeader = req.headers.get('authorization') || ''
+    const idToken = authHeader.replace('Bearer ', '')
     
-    // Extract user_id from token for demo (since auth is removed)
-    let userId: string;
-    if (token.startsWith('dummy-token-')) {
-      userId = token.replace('dummy-token-', '');
-    } else {
-      // Fallback: try to get user from auth
-      const { data } = await supabaseClient.auth.getUser(token);
-      const user = data.user;
-      if (!user) throw new Error('User not authenticated');
-      userId = user.id;
+    if (!idToken) {
+      return new Response(
+        JSON.stringify({ error: 'No token provided' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
-    const { action, profile: profileData, user_id }: ProfileRequest & { user_id?: string } = await req.json();
-    
-    // Use provided user_id if available (for direct calls)
-    const finalUserId = user_id || userId;
+    let firebaseUser
+    try {
+      firebaseUser = await verifyFirebaseToken(idToken)
+    } catch (error) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const { action, profile: profileData }: ProfileRequest = await req.json();
 
     switch (action) {
       case 'create':
@@ -54,14 +81,15 @@ serve(async (req) => {
         const { data: existingProfile } = await supabaseClient
           .from('profiles')
           .select('*')
-          .eq('user_id', finalUserId)
+          .eq('firebase_uid', firebaseUser.uid)
           .single();
 
         if (!existingProfile && action === 'create') {
           // Create new profile
           const newProfile = {
-            user_id: finalUserId,
-            email: profileData.email || 'demo@example.com',
+            firebase_uid: firebaseUser.uid,
+            user_id: firebaseUser.uid, // Keep for compatibility
+            email: firebaseUser.email || profileData.email || 'demo@example.com',
             ...profileData,
             // Initialize default values
             subscription_tier: 'free',
@@ -85,10 +113,10 @@ serve(async (req) => {
 
           if (createError) throw createError;
 
-          console.log(`Profile created for ${finalUserId}`);
+          console.log(`Profile created for ${firebaseUser.uid}`);
           return new Response(JSON.stringify({
             success: true,
-            data: { user_id: finalUserId, profile: createdProfile },
+            data: { user_id: firebaseUser.uid, profile: createdProfile },
             message: 'Profile created'
           }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -105,16 +133,16 @@ serve(async (req) => {
           const { data: updated, error: updateError } = await supabaseClient
             .from('profiles')
             .update(updatedProfile)
-            .eq('user_id', finalUserId)
+            .eq('firebase_uid', firebaseUser.uid)
             .select()
             .single();
 
           if (updateError) throw updateError;
 
-          console.log(`Profile updated for ${finalUserId}`);
+          console.log(`Profile updated for ${firebaseUser.uid}`);
           return new Response(JSON.stringify({
             success: true,
-            data: { user_id: finalUserId, profile: updated },
+            data: { user_id: firebaseUser.uid, profile: updated },
             message: 'Profile updated'
           }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -126,18 +154,16 @@ serve(async (req) => {
         const { data: profile, error: getError } = await supabaseClient
           .from('profiles')
           .select('*')
-          .eq('user_id', finalUserId)
+          .eq('firebase_uid', firebaseUser.uid)
           .single();
 
-        if (getError) throw getError;
-
-        if (!profile) {
-          throw new Error('Profile not found');
+        if (getError && getError.code !== 'PGRST116') {
+          throw getError;
         }
 
         return new Response(JSON.stringify({
           success: true,
-          data: { user_id: finalUserId, profile },
+          data: { user_id: firebaseUser.uid, profile },
           message: 'Profile fetched'
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },

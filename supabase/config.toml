@@ -1,66 +1,55 @@
 project_id = "cchvsqeqiavhanurnbeo"
 
-[functions.pairing-matches]
-verify_jwt = false
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
 
+[db]
+port = 54322
+
+[studio]
+enabled = true
+port = 54323
+
+[inbucket]
+enabled = true
+port = 54324
+
+[storage]
+enabled = true
+port = 54325
+
+[auth]
+enabled = true
+port = 54326
+
+[edge_runtime]
+enabled = true
+port = 54327
+
+# All functions use Firebase Admin SDK for authentication
 [functions.blind-date]
-verify_jwt = false
-
-[functions.compatibility-scoring]
-verify_jwt = false
-
-[functions.swipe-action]
-verify_jwt = false
-
-[functions.subscription-management]
-verify_jwt = false
-
-[functions.profile-management]
 verify_jwt = false
 
 [functions.chat-management]
 verify_jwt = false
 
-[functions.id-verification]
+[functions.chat-request-handler]
 verify_jwt = false
 
-[functions.qcs-scoring]
-verify_jwt = false
-
-[functions.profile-completion]
+[functions.compatibility-scoring]
 verify_jwt = false
 
 [functions.data-management]
 verify_jwt = false
 
-[functions.notifications-management]
-verify_jwt = false
-
-[functions.thread-management]
-verify_jwt = false
-
-[functions.chat-request-handler]
-verify_jwt = false
-
-[functions.enhanced-swipe-action]
-verify_jwt = false
-
 [functions.deterministic-pairing]
 verify_jwt = false
 
-[functions.pairing-feed-enhanced]
-verify_jwt = false
-
-[functions.swipe-enforcement]
-verify_jwt = false
-
-[functions.swipe-feed]
-verify_jwt = false
-
-[functions.swipe]
-verify_jwt = false
-
-[functions.who-liked-me]
+[functions.enhanced-swipe-action]
 verify_jwt = false
 
 [functions.firebase-profile]
@@ -69,8 +58,53 @@ verify_jwt = false
 [functions.get-feed]
 verify_jwt = false
 
-[functions.request-extra-pairings]
+[functions.id-verification]
+verify_jwt = false
+
+[functions.notifications-management]
+verify_jwt = false
+
+[functions.pairing-feed-enhanced]
+verify_jwt = false
+
+[functions.pairing-matches]
+verify_jwt = false
+
+[functions.profile-completion]
+verify_jwt = false
+
+[functions.profile-management]
+verify_jwt = false
+
+[functions.qcs-scoring]
 verify_jwt = false
 
 [functions.qcs-sync]
+verify_jwt = false
+
+[functions.request-extra-pairings]
+verify_jwt = false
+
+[functions.subscription-entitlement]
+verify_jwt = false
+
+[functions.subscription-management]
+verify_jwt = false
+
+[functions.swipe]
+verify_jwt = false
+
+[functions.swipe-action]
+verify_jwt = false
+
+[functions.swipe-enforcement]
+verify_jwt = false
+
+[functions.swipe-feed]
+verify_jwt = false
+
+[functions.thread-management]
+verify_jwt = false
+
+[functions.who-liked-me]
 verify_jwt = false

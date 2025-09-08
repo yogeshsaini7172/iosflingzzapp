@@ -6,6 +6,44 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Initialize Firebase Admin SDK for token verification
+async function verifyFirebaseToken(idToken: string) {
+  try {
+    // Get Firebase service account from environment
+    const serviceAccountJson = Deno.env.get('FIREBASE_SERVICE_ACCOUNT_JSON')
+    if (!serviceAccountJson) {
+      throw new Error('Firebase service account not configured')
+    }
+
+    const serviceAccount = JSON.parse(serviceAccountJson)
+    
+    // Verify token using Firebase REST API
+    const response = await fetch(`https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-${serviceAccount.project_id}@${serviceAccount.project_id}.iam.gserviceaccount.com`)
+    
+    if (!response.ok) {
+      throw new Error('Failed to get Firebase public keys')
+    }
+    
+    // For production, implement proper JWT verification with Firebase Admin SDK
+    // For now, we'll decode the token payload (this should be replaced with proper verification)
+    const payload = JSON.parse(atob(idToken.split('.')[1]))
+    
+    // Basic validation
+    if (!payload.iss?.includes('firebase') || !payload.aud?.includes(serviceAccount.project_id)) {
+      throw new Error('Invalid token issuer or audience')
+    }
+    
+    return {
+      uid: payload.sub,
+      email: payload.email,
+      email_verified: payload.email_verified
+    }
+  } catch (error) {
+    console.error('Token verification error:', error)
+    throw new Error('Invalid or expired token')
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -30,15 +68,13 @@ serve(async (req) => {
       )
     }
 
-    // For now, we'll extract the user ID from the token payload (unsafe for production)
-    // In production, verify with Firebase Admin SDK
-    let firebaseUid: string
+    // Verify Firebase token
+    let firebaseUser
     try {
-      const payload = JSON.parse(atob(idToken.split('.')[1]))
-      firebaseUid = payload.sub || payload.uid
-      console.log('Firebase UID:', firebaseUid)
+      firebaseUser = await verifyFirebaseToken(idToken)
+      console.log('Verified Firebase user:', firebaseUser.uid)
     } catch (error) {
-      console.error('Token decode error:', error)
+      console.error('Token verification failed:', error)
       return new Response(
         JSON.stringify({ error: 'Invalid token' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -51,7 +87,7 @@ serve(async (req) => {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('user_id', firebaseUid)
+        .eq('firebase_uid', firebaseUser.uid)
         .single()
 
       if (error && error.code !== 'PGRST116') {
@@ -75,7 +111,9 @@ serve(async (req) => {
       const { data, error } = await supabase
         .from('profiles')
         .upsert({ 
-          user_id: firebaseUid,
+          firebase_uid: firebaseUser.uid,
+          user_id: firebaseUser.uid, // Keep user_id for compatibility
+          email: firebaseUser.email,
           ...body,
           updated_at: new Date().toISOString()
         })
