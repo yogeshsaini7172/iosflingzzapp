@@ -8,7 +8,7 @@ import { toast } from 'sonner';
  * Redirects to auth page if not authenticated
  */
 export const useRequiredAuth = () => {
-  const { user, isLoading, isAuthenticated, userId, accessToken } = useAuth();
+  const { user, isLoading, isAuthenticated, userId, supabaseUserId, accessToken } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,13 +30,13 @@ export const useRequiredAuth = () => {
     };
   }
 
-  if (!userId) {
+  if (!supabaseUserId) {
     throw new Error('User ID is required but not available');
   }
 
   return {
     user,
-    userId,
+    userId: supabaseUserId,
     accessToken,
     isLoading: false,
     isAuthenticated: true,
@@ -48,11 +48,11 @@ export const useRequiredAuth = () => {
  * Returns null values if not authenticated
  */
 export const useOptionalAuth = () => {
-  const { user, isLoading, isAuthenticated, userId, accessToken } = useAuth();
+  const { user, isLoading, isAuthenticated, userId, supabaseUserId, accessToken } = useAuth();
 
   return {
     user: isAuthenticated ? user : null,
-    userId: isAuthenticated ? userId : null,
+    userId: isAuthenticated ? supabaseUserId : null,
     accessToken: isAuthenticated ? accessToken : null,
     isLoading,
     isAuthenticated,

@@ -167,7 +167,7 @@ serve(async (req) => {
         }
 
         // Send message
-        const { data: sentMessage, error: messageError } = await supabaseClient
+        const { data: sentEnhancedLegacyMessage, error: enhancedLegacyMessageError } = await supabaseClient
           .from('messages')
           .insert({
             match_id,
@@ -178,12 +178,12 @@ serve(async (req) => {
           .select()
           .single();
 
-        if (messageError) throw messageError;
+        if (enhancedLegacyMessageError) throw enhancedLegacyMessageError;
 
         console.log(`Message sent | match_id=${match_id} | sender=${authedUser.id}`);
         return new Response(JSON.stringify({
           success: true,
-          data: sentMessage,
+          data: sentEnhancedLegacyMessage,
           message: 'Message sent'
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -458,7 +458,7 @@ serve(async (req) => {
         }
 
         // Send message to enhanced chat
-        const { data: sentMessage, error: messageError } = await supabaseClient
+        const { data: sentEnhancedMessage, error: enhancedMessageError } = await supabaseClient
           .from('chat_messages_enhanced')
           .insert({
             chat_room_id,
@@ -469,12 +469,12 @@ serve(async (req) => {
           .select()
           .single();
 
-        if (messageError) throw messageError;
+        if (enhancedMessageError) throw enhancedMessageError;
 
         console.log(`Message sent to chat room ${chat_room_id} from ${user_id}`);
         return new Response(JSON.stringify({
           success: true,
-          data: sentMessage,
+          data: sentEnhancedMessage,
           message: 'Message sent'
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },

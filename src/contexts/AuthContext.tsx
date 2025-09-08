@@ -8,7 +8,8 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  userId: string | null;
+  userId: string | null; // Firebase UID
+  supabaseUserId: string | null; // Supabase Auth user id (UUID)
   accessToken: string | null;
   // Phone OTP
   signInWithPhone: (phone: string) => Promise<{ error?: any; confirmationResult?: ConfirmationResult }>;
@@ -40,6 +41,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [supabaseUserId, setSupabaseUserId] = useState<string | null>(null);
 
   // Get current Supabase session
   const getSupabaseSession = async () => {
@@ -64,22 +66,40 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       console.log('🔥 Setting user state to:', firebaseUser ? 'USER_OBJECT' : 'NULL');
       setUser(firebaseUser);
       
-      // Get access token for Supabase requests
+      // Get access token for Supabase requests and sync Supabase session
       if (firebaseUser) {
         try {
           const token = await firebaseUser.getIdToken();
           setAccessToken(token);
           console.log('🔑 Firebase token acquired for Supabase requests');
-          
-          // Sync with Supabase when user signs in
+
+          // Sign into Supabase using Firebase ID token
+          const { data: sbSession, error: sbError } = await supabase.auth.signInWithIdToken({
+            provider: 'firebase',
+            token,
+          });
+          if (sbError) {
+            console.error('❌ Supabase signInWithIdToken failed:', sbError);
+            setSupabaseUserId(null);
+          } else {
+            const sbUid = sbSession?.user?.id ?? sbSession?.session?.user?.id ?? null;
+            setSupabaseUserId(sbUid);
+            console.log('✅ Supabase session established:', !!sbSession?.session, '| uid:', sbUid);
+          }
+
+          // Any profile sync/creation is handled later in profile flow
           await syncUserProfile(firebaseUser);
           toast.success('Successfully signed in!');
         } catch (error) {
-          console.error('❌ Error getting Firebase token:', error);
+          console.error('❌ Error getting Firebase token or syncing Supabase:', error);
           setAccessToken(null);
+          setSupabaseUserId(null);
         }
       } else {
         setAccessToken(null);
+        setSupabaseUserId(null);
+        // Ensure Supabase session is cleared when Firebase signs out
+        try { await supabase.auth.signOut(); } catch (e) { /* no-op */ }
         console.log('🔥 No user found - user signed out or no session');
         if (firebaseUser === null) {
           toast.success('Successfully signed out');
@@ -184,7 +204,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signOut = async () => {
     try {
-      await firebaseSignOut(auth);
+      // Sign out from both Firebase and Supabase
+      await Promise.allSettled([
+        firebaseSignOut(auth),
+        supabase.auth.signOut()
+      ]);
+      setSupabaseUserId(null);
       return {};
     } catch (error: any) {
       console.error('Sign out error:', error);
@@ -198,6 +223,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     isLoading,
     isAuthenticated: !!user,
     userId: user?.uid || null,
+    supabaseUserId,
     accessToken,
     signInWithPhone,
     verifyPhoneOTP,
