@@ -185,8 +185,11 @@ const AuthenticatedApp = () => {
             if (view === 'profile') navigate('/profile');
             if (view === 'subscription') navigate('/subscription');
           }} />} />
-          <Route path="/matches" element={<MatchesPage onNavigate={(view) => {}} />} />
-          <Route path="/chat/:matchId?" element={<ChatPage onNavigate={(view) => {
+          <Route path="/matches" element={<MatchesPage onNavigate={(view) => {
+            if (view === 'home') navigate('/');
+            if (view === 'chat') navigate('/chat');
+          }} />} />
+          <Route path="/chat" element={<ChatPage onNavigate={(view) => {
             if (view === 'home') navigate('/');
           }} />} />
           <Route path="/profile" element={<ProfilePage onNavigate={(view) => {
