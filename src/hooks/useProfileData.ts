@@ -234,37 +234,37 @@ export const useProfileData = () => {
   };
 
   useEffect(() => {
-    if (!isLoading) {
-      fetchProfileData();
+    // Always fetch on mount/auth change
+    fetchProfileData();
 
-      // Real-time updates for profile data
-      const channel = supabase
-        .channel('profile-data-realtime')
-        .on('postgres_changes', { 
-          schema: 'public', 
-          table: 'profiles', 
-          event: '*',
-          filter: `user_id=eq.${getCurrentUserId()}`
-        }, () => {
-          console.log('🔄 Own profile updated, refetching...');
-          fetchProfileData();
-        })
-        .on('postgres_changes', { 
-          schema: 'public', 
-          table: 'partner_preferences', 
-          event: '*',
-          filter: `user_id=eq.${getCurrentUserId()}`
-        }, () => {
-          console.log('🔄 Preferences updated, refetching...');
-          fetchProfileData();
-        })
-        .subscribe();
+    // Real-time updates for the current user
+    const uid = getCurrentUserId();
+    const channel = supabase
+      .channel(`profile-data-realtime-${uid}`)
+      .on('postgres_changes', {
+        schema: 'public',
+        table: 'profiles',
+        event: '*',
+        filter: `user_id=eq.${uid}`
+      }, () => {
+        console.log('🔄 Own profile updated, refetching...');
+        fetchProfileData();
+      })
+      .on('postgres_changes', {
+        schema: 'public',
+        table: 'partner_preferences',
+        event: '*',
+        filter: `user_id=eq.${uid}`
+      }, () => {
+        console.log('🔄 Preferences updated, refetching...');
+        fetchProfileData();
+      })
+      .subscribe();
 
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
-  }, [isLoading]);
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.uid]);
 
   return {
     profile,
