@@ -6,6 +6,41 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Verify Firebase ID token
+async function verifyFirebaseToken(idToken: string) {
+  try {
+    const serviceAccountJson = Deno.env.get('FIREBASE_SERVICE_ACCOUNT_JSON')
+    if (!serviceAccountJson) {
+      throw new Error('Firebase service account not configured')
+    }
+
+    const serviceAccount = JSON.parse(serviceAccountJson)
+    
+    // Use base64url-safe decoding for JWT payload
+    const base64UrlPayload = idToken.split('.')[1]
+    const base64Payload = base64UrlPayload.replace(/-/g, '+').replace(/_/g, '/')
+    const payload = JSON.parse(atob(base64Payload))
+    
+    // Validate token claims
+    if (!payload.iss?.includes('securetoken.google.com') || 
+        !payload.aud?.includes(serviceAccount.project_id) ||
+        !payload.sub) {
+      throw new Error('Invalid token issuer, audience or subject')
+    }
+    
+    // Check token expiration
+    const now = Math.floor(Date.now() / 1000)
+    if (payload.exp <= now) {
+      throw new Error('Token expired')
+    }
+    
+    return payload.sub // Return Firebase UID
+  } catch (error) {
+    console.error('Token verification error:', error)
+    throw new Error('Invalid or expired token')
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -25,30 +60,34 @@ serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
     const authHeader = req.headers.get("authorization") || "";
-    const token = authHeader.replace("Bearer ", "");
+    const idToken = authHeader.replace("Bearer ", "");
     
-    // Get user ID from request body (Firebase Auth) or token (Supabase Auth)
-    const body = await req.json();
-    const { to_user_id, type, from_user_id } = body;
-    
-    let userId = from_user_id; // Prefer explicit user ID from Firebase
-    
-    if (!userId && token) {
-      const { data: user, error: userErr } = await supabase.auth.getUser(token);
-      if (user?.user) {
-        userId = user.user.id;
-      }
-    }
-    
-    if (!userId) {
+    if (!idToken) {
       return new Response(
-        JSON.stringify({ error: "User authentication required" }), 
+        JSON.stringify({ error: "No token provided" }), 
         { 
           status: 401,
           headers: { ...corsHeaders, "content-type": "application/json" }
         }
       );
     }
+
+    // Verify Firebase token
+    let firebaseUid;
+    try {
+      firebaseUid = await verifyFirebaseToken(idToken);
+    } catch (error) {
+      return new Response(
+        JSON.stringify({ error: "Invalid token" }), 
+        { 
+          status: 401,
+          headers: { ...corsHeaders, "content-type": "application/json" }
+        }
+      );
+    }
+    
+    const body = await req.json();
+    const { to_user_id, type } = body;
 
     // Request body already parsed above
     
@@ -62,13 +101,13 @@ serve(async (req) => {
       );
     }
 
-    console.log(`🎯 Recording ${type} swipe: ${userId} -> ${to_user_id}`);
+    console.log(`🎯 Recording ${type} swipe: ${firebaseUid} -> ${to_user_id}`);
 
     // Insert swipe record
     const { error: swipeError } = await supabase
       .from("enhanced_swipes")
       .insert({
-        user_id: userId,
+        user_id: firebaseUid,
         target_user_id: to_user_id,
         direction: type === "like" ? "right" : "left"
       });
@@ -87,7 +126,7 @@ serve(async (req) => {
         .from("enhanced_swipes")
         .select("*")
         .eq("user_id", to_user_id)
-        .eq("target_user_id", userId)
+        .eq("target_user_id", firebaseUid)
         .eq("direction", "right")
         .maybeSingle();
 
@@ -98,13 +137,13 @@ serve(async (req) => {
         const { data: existingMatch } = await supabase
           .from("enhanced_matches")
           .select("id, chat_room_id")
-          .or(`and(user1_id.eq.${userId},user2_id.eq.${to_user_id}),and(user1_id.eq.${to_user_id},user2_id.eq.${userId})`)
+          .or(`and(user1_id.eq.${firebaseUid},user2_id.eq.${to_user_id}),and(user1_id.eq.${to_user_id},user2_id.eq.${firebaseUid})`)
           .maybeSingle();
 
         if (!existingMatch) {
           // Create deterministic ordering for user1/user2 to avoid duplicates
-          const user1_id = userId < to_user_id ? userId : to_user_id
-          const user2_id = userId < to_user_id ? to_user_id : userId
+          const user1_id = firebaseUid < to_user_id ? firebaseUid : to_user_id
+          const user2_id = firebaseUid < to_user_id ? to_user_id : firebaseUid
 
           try {
             // 1) Create enhanced match
@@ -150,13 +189,13 @@ serve(async (req) => {
             const { data: currentProfile } = await supabase
               .from('profiles')
               .select('first_name, last_name')
-              .eq('user_id', userId)
+              .eq('firebase_uid', firebaseUid)
               .single();
 
             const { data: targetProfile } = await supabase
               .from('profiles')
               .select('first_name, last_name')
-              .eq('user_id', to_user_id)
+              .eq('firebase_uid', to_user_id)
               .single();
 
             // 4) Insert notifications for both users
@@ -171,7 +210,7 @@ serve(async (req) => {
                   data: { 
                     enhanced_match_id: newEnhancedMatch.id, 
                     chat_room_id: chatRoomId,
-                    other_user_id: userId
+                    other_user_id: firebaseUid
                   },
                   created_at: new Date().toISOString()
                 });
@@ -183,7 +222,7 @@ serve(async (req) => {
               const { error: notifErr2 } = await supabase
                 .from('notifications')
                 .insert({
-                  user_id: userId,
+                  user_id: firebaseUid,
                   type: 'new_match',
                   title: 'It\'s a match! 🎉',
                   message: `You and ${targetProfile?.first_name || 'someone'} liked each other!`,

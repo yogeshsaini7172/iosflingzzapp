@@ -12,6 +12,7 @@ import { useRequiredAuth } from "@/hooks/useRequiredAuth";
 
 interface SwipeProfile {
   user_id: string;
+  firebase_uid?: string;
   first_name: string;
   last_name: string;
   age: number;
@@ -105,6 +106,7 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
         .from("profiles")
         .select("*")
         .eq("is_active", true)
+        .not("firebase_uid", "in", `(${excludedIds.join(",")})`)
         .not("user_id", "in", `(${excludedIds.join(",")})`)
         .limit(10);
 
@@ -151,7 +153,7 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
       const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/enhanced-swipe-action', {
         method: 'POST',
         body: JSON.stringify({
-          target_user_id: currentProfile.user_id,
+          target_user_id: currentProfile.firebase_uid || currentProfile.user_id,
           direction,
         })
       });

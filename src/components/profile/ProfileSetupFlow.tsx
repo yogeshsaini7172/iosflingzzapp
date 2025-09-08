@@ -223,54 +223,85 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       };
 
       localStorage.setItem('demoQCS', JSON.stringify(qcsScore));
-      // After QCS success, update profile via Edge Function (service role)
-      const { data: profileResult, error: profileError } = await supabase.functions.invoke('profile-completion', {
-        body: {
-          userId,
-          email: user?.email || `${userId}@firebase.user`,
-          firstName: profileData.firstName,
-          lastName: profileData.lastName,
-          dateOfBirth: profileData.dateOfBirth,
-          gender: profileData.gender,
-          university: profileData.university,
-          yearOfStudy: profileData.yearOfStudy ? Number(profileData.yearOfStudy) : null,
-          fieldOfStudy: profileData.fieldOfStudy,
-          height: profileData.height ? Number(profileData.height) : null,
-          bodyType: profileData.bodyType,
-          faceType: profileData.faceType,
-          personalityType: profileData.personalityType,
-          values: profileData.values,
-          mindset: profileData.mindset,
-          relationshipGoals: profileData.relationshipGoals,
-          interests: profileData.interests,
-          bio: profileData.bio,
-          profileImages: imageUrls,
-          isProfilePublic: profileData.isProfilePublic,
-          qcsScore: totalScore,
-          preferences: {
-            preferredGender: profileData.preferredGender,
-            ageRangeMin: profileData.ageRangeMin,
-            ageRangeMax: profileData.ageRangeMax,
-            preferredRelationshipGoals: profileData.preferredRelationshipGoals,
-            // Add physical preferences for requirements matching
-            heightRangeMin: profileData.heightRangeMin,
-            heightRangeMax: profileData.heightRangeMax, 
-            preferredBodyTypes: profileData.preferredBodyTypes,
-            preferredSkinTone: profileData.preferredSkinTone,
-            preferredFaceType: profileData.preferredFaceType,
-            preferredValues: profileData.preferredValues,
-            preferredMindset: profileData.preferredMindset,
-            preferredPersonality: profileData.preferredPersonality
-          }
-        }
-      });
+      
+      // Create profile via data-management function with Firebase auth
+      const profilePayload = {
+        first_name: profileData.firstName,
+        last_name: profileData.lastName,
+        email: user?.email || `${userId}@firebase.user`,
+        date_of_birth: profileData.dateOfBirth,
+        gender: profileData.gender,
+        university: profileData.university,
+        year_of_study: profileData.yearOfStudy ? Number(profileData.yearOfStudy) : null,
+        field_of_study: profileData.fieldOfStudy,
+        height: profileData.height ? Number(profileData.height) : null,
+        body_type: profileData.bodyType,
+        face_type: profileData.faceType,
+        personality_type: profileData.personalityType,
+        values: profileData.values,
+        mindset: profileData.mindset,
+        relationship_goals: profileData.relationshipGoals,
+        interests: profileData.interests,
+        bio: profileData.bio,
+        profile_images: imageUrls,
+        is_profile_public: profileData.isProfilePublic,
+        total_qcs: totalScore
+      };
 
-      if (profileError) {
-        console.error('Profile completion error:', profileError);
-        throw new Error('Failed to complete profile setup');
+      const profileResponse = await fetchWithFirebaseAuth(
+        'https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/data-management',
+        {
+          method: 'POST',
+          body: JSON.stringify({ 
+            action: 'create_profile',
+            profile: profilePayload
+          })
+        }
+      );
+
+      if (!profileResponse.ok) {
+        const profileError = await profileResponse.json();
+        console.error('Profile creation error:', profileError);
+        throw new Error(profileError.error || 'Failed to complete profile setup');
       }
 
-      console.log('Profile completion successful:', profileResult);
+      const profileResult = await profileResponse.json();
+      console.log('Profile creation successful:', profileResult);
+
+      // Create preferences if provided
+      if (profileData.preferredGender.length > 0) {
+        const preferencesPayload = {
+          preferred_gender: profileData.preferredGender,
+          age_range_min: profileData.ageRangeMin,
+          age_range_max: profileData.ageRangeMax,
+          preferred_relationship_goal: profileData.preferredRelationshipGoals,
+          height_range_min: profileData.heightRangeMin,
+          height_range_max: profileData.heightRangeMax,
+          preferred_body_types: profileData.preferredBodyTypes,
+          preferred_skin_tone: profileData.preferredSkinTone,
+          preferred_face_type: profileData.preferredFaceType,
+          preferred_values: profileData.preferredValues,
+          preferred_mindset: profileData.preferredMindset,
+          preferred_personality_traits: profileData.preferredPersonality
+        };
+
+        const preferencesResponse = await fetchWithFirebaseAuth(
+          'https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/data-management',
+          {
+            method: 'POST',
+            body: JSON.stringify({ 
+              action: 'update_preferences',
+              preferences: preferencesPayload
+            })
+          }
+        );
+
+        if (!preferencesResponse.ok) {
+          console.warn('Preferences creation failed, but profile was created successfully');
+        } else {
+          console.log('Preferences created successfully');
+        }
+      }
       toast({ title: "Profile Setup Complete! 🎉", description: `Your QCS score: ${totalScore}/100. Ready to start!` });
 
       // Mark profile as complete locally and go directly to app

@@ -15,14 +15,28 @@ async function verifyFirebaseToken(idToken: string) {
     }
 
     const serviceAccount = JSON.parse(serviceAccountJson)
-    const payload = JSON.parse(atob(idToken.split('.')[1]))
     
-    if (!payload.iss?.includes('firebase') || !payload.aud?.includes(serviceAccount.project_id)) {
-      throw new Error('Invalid token issuer or audience')
+    // Use base64url-safe decoding for JWT payload
+    const base64UrlPayload = idToken.split('.')[1]
+    const base64Payload = base64UrlPayload.replace(/-/g, '+').replace(/_/g, '/')
+    const payload = JSON.parse(atob(base64Payload))
+    
+    // Validate token claims
+    if (!payload.iss?.includes('securetoken.google.com') || 
+        !payload.aud?.includes(serviceAccount.project_id) ||
+        !payload.sub) {
+      throw new Error('Invalid token issuer, audience or subject')
+    }
+    
+    // Check token expiration
+    const now = Math.floor(Date.now() / 1000)
+    if (payload.exp <= now) {
+      throw new Error('Token expired')
     }
     
     return payload.sub // Return Firebase UID
   } catch (error) {
+    console.error('Token verification error:', error)
     throw new Error('Invalid or expired token')
   }
 }
