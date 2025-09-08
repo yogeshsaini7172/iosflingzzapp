@@ -166,41 +166,27 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
 
       // Handle match result
       if (resp?.matched) {
-        console.log('🎉 Match detected!', resp);
+        const chatRoomId = resp?.chatRoomId;
+        console.log('🎉 Match detected!', { resp, chatRoomId });
+        
         toast({
           title: "It's a Match! 🎉",
           description: `You and ${currentProfile.first_name} liked each other!`,
+          duration: 5000,
         });
         
-        // Refresh matches or navigate to chat
-        // onNavigate?.('matches');
+        // If we have a chat room ID, show it after a delay
+        if (chatRoomId) {
+          setTimeout(() => {
+            setMatchedChatId(chatRoomId);
+          }, 2000); // Show match notification first, then navigate to chat
+        }
       } else if (direction === 'right') {
         toast({
           title: 'Like sent! 💖',
           description: "We'll let you know if they like you back.",
         });
-      }
-
-      if (direction === 'right') {
-        if (resp?.isMatch) {
-          const chatRoomId = (resp?.chatRoomId ?? resp?.chat_room_id) as string | undefined;
-          console.log('🎉 Match result. Chat room:', chatRoomId);
-          if (resp?.matched) {
-            toast({
-              title: "🎉 It's a Match!",
-              description: `You and ${currentProfile.first_name} liked each other!${chatRoomId ? ' Chat is now available.' : ''}`,
-            });
-            if (chatRoomId) setMatchedChatId(chatRoomId);
-          } else {
-            console.log('💝 Like sent, waiting for match');
-            toast({
-              title: 'Liked!',
-              description: `You liked ${currentProfile.first_name}`,
-            });
-          }
-        }
       } else {
-        console.log('👋 Profile passed');
         toast({
           title: 'Passed',
           description: `You passed on ${currentProfile.first_name}`,

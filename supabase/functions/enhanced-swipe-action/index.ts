@@ -65,6 +65,8 @@ serve(async (req) => {
 
     // If right swipe, check for match
     if (direction === 'right') {
+      console.log(`🔍 Checking for existing swipe from ${target_user_id} to ${user_id}`);
+      
       const { data: otherSwipe, error: matchError } = await supabaseClient
         .from('enhanced_swipes')
         .select('*')
@@ -76,14 +78,18 @@ serve(async (req) => {
       if (matchError) {
         console.error('Error checking for match:', matchError)
       } else if (otherSwipe) {
+        console.log('🎯 Found mutual like! Creating match...', otherSwipe);
+        
         // Create match and chat room directly using service role client
         try {
           // Determine deterministic user ordering
           const user1 = user_id < target_user_id ? user_id : target_user_id;
           const user2 = user_id < target_user_id ? target_user_id : user_id;
 
+          console.log(`📝 Creating match between ${user1} and ${user2}`);
+
           // Insert or get existing match
-          const { data: matchData, error: matchError } = await supabaseClient
+          const { data: matchData, error: matchCreateError } = await supabaseClient
             .from('enhanced_matches')
             .upsert({ 
               user1_id: user1, 
@@ -96,15 +102,16 @@ serve(async (req) => {
             .select('id')
             .single();
 
-          if (matchError) {
-            console.error('Match creation error:', matchError);
-            throw matchError;
+          if (matchCreateError) {
+            console.error('Match creation error:', matchCreateError);
+            throw matchCreateError;
           }
 
           const matchId = matchData.id;
+          console.log('✅ Match created with ID:', matchId);
 
           // Create or get chat room
-          const { data: chatData, error: chatError } = await supabaseClient
+          const { data: chatData, error: chatCreateError } = await supabaseClient
             .from('chat_rooms')
             .upsert({
               match_id: matchId,
@@ -117,12 +124,26 @@ serve(async (req) => {
             .select('id')
             .single();
 
-          if (chatError) {
-            console.error('Chat room creation error:', chatError);
-            throw chatError;
+          if (chatCreateError) {
+            console.error('Chat room creation error:', chatCreateError);
+            throw chatCreateError;
           }
 
           chatRoomId = chatData.id;
+          console.log('✅ Chat room created with ID:', chatRoomId);
+
+          // Get profile data for notifications
+          const { data: user1Profile } = await supabaseClient
+            .from('profiles')
+            .select('first_name')
+            .eq('user_id', user1)
+            .single();
+
+          const { data: user2Profile } = await supabaseClient
+            .from('profiles')
+            .select('first_name')
+            .eq('user_id', user2)
+            .single();
 
           // Create notifications for both users
           const notifications = [
@@ -130,7 +151,7 @@ serve(async (req) => {
               user_id: user1,
               type: 'new_match',
               title: 'It\'s a Match! 🎉',
-              message: 'You have a new match — say hi!',
+              message: `You and ${user2Profile?.first_name || 'someone'} liked each other!`,
               data: { 
                 enhanced_match_id: matchId, 
                 chat_room_id: chatRoomId, 
@@ -141,7 +162,7 @@ serve(async (req) => {
               user_id: user2,
               type: 'new_match',
               title: 'It\'s a Match! 🎉',
-              message: 'You have a new match — say hi!',
+              message: `You and ${user1Profile?.first_name || 'someone'} liked each other!`,
               data: { 
                 enhanced_match_id: matchId, 
                 chat_room_id: chatRoomId, 
@@ -152,22 +173,26 @@ serve(async (req) => {
 
           const { error: notifError } = await supabaseClient
             .from('notifications')
-            .upsert(notifications, { ignoreDuplicates: true });
+            .insert(notifications);
 
           if (notifError) {
             console.error('Notification creation error:', notifError);
             // Don't throw - match still created successfully
+          } else {
+            console.log('✅ Notifications created for both users');
           }
 
           isMatch = true;
           matchResult = { match_id: matchId, chat_room_id: chatRoomId };
-          console.log(`🎉 Match created between users ${user_id} and ${target_user_id}`, matchResult);
+          console.log(`🎉 Match created successfully between users ${user_id} and ${target_user_id}`, matchResult);
 
         } catch (err) {
-          console.error('Error in match creation:', err);
+          console.error('❌ Error in match creation:', err);
           // Fallback: still indicate match detected but may not have completed server setup
           isMatch = true;
         }
+      } else {
+        console.log('💝 No mutual swipe found yet - like recorded');
       }
     }
 

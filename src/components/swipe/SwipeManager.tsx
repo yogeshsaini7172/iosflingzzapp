@@ -169,15 +169,21 @@ const SwipeManager = ({ onUpgrade }: SwipeManagerProps) => {
       }
 
       // Handle the response
-      if (data.matched) {
+      if (data?.matched) {
         toast({
           title: "🎉 It's a Match!",
           description: `You and ${currentCandidate.first_name} liked each other!`,
+          duration: 5000,
         });
       } else if (direction === 'right') {
         toast({
-          title: "Nice choice! 💫",
+          title: "Nice choice! 💖",
           description: "We'll let you know if they like you back"
+        });
+      } else {
+        toast({
+          title: "Passed",
+          description: `You passed on ${currentCandidate.first_name}`
         });
       }
 
