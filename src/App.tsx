@@ -37,15 +37,25 @@ const AuthenticatedApp = () => {
   // Function to check if user has completed profile
   const checkUserProfile = async (userId: string) => {
     try {
-      const { data: profile } = await supabase
+      console.log('🔍 Checking profile for userId:', userId);
+      const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', userId)
         .maybeSingle();
 
-      return profile && profile.first_name && profile.university;
+      console.log('📊 Profile query result:', { profile, error });
+      
+      if (error) {
+        console.error('❌ Supabase profile query error:', error);
+        return false;
+      }
+
+      const isComplete = profile && profile.first_name && profile.university;
+      console.log('✅ Profile completeness:', isComplete);
+      return isComplete;
     } catch (error) {
-      console.error('Error checking profile:', error);
+      console.error('❌ Error checking profile:', error);
       return false;
     }
   };
@@ -80,13 +90,21 @@ const AuthenticatedApp = () => {
   };
 
   useEffect(() => {
+    console.log('🔄 App starting, checking auth state...');
     const checkProfile = async () => {
+      console.log('📋 Checking profile for user:', user?.uid);
       if (user) {
-        const profileComplete = await checkUserProfile(user.uid);
-        const subscriptionSelected = await checkUserSubscription(user.uid);
-        
-        setHasProfile(!!profileComplete);
-        setHasSubscription(!!subscriptionSelected);
+        try {
+          console.log('🔍 Querying Supabase for profile...');
+          const profileComplete = await checkUserProfile(user.uid);
+          const subscriptionSelected = await checkUserSubscription(user.uid);
+          
+          console.log('✅ Profile check results:', { profileComplete, subscriptionSelected });
+          setHasProfile(!!profileComplete);
+          setHasSubscription(!!subscriptionSelected);
+        } catch (error) {
+          console.error('❌ Error in profile check:', error);
+        }
       }
       setCheckingProfile(false);
     };
