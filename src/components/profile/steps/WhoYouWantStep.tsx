@@ -41,24 +41,6 @@ const WhoYouWantStep = ({ data, onChange }: WhoYouWantStepProps) => {
     "Open to anything", "Long-term commitment"
   ];
 
-  const skinToneOptions = [
-    "Fair", "Light", "Medium", "Olive", "Tan", "Dark", "Any"
-  ];
-
-  const faceTypeOptions = [
-    "Oval", "Round", "Square", "Heart", "Diamond", "Oblong", "Any"
-  ];
-
-  const loveLanguageOptions = [
-    "Physical Touch", "Words of Affirmation", "Acts of Service", 
-    "Quality Time", "Receiving Gifts"
-  ];
-
-  const lifestyleOptions = [
-    "Active/Fitness", "Party/Social", "Homebody", "Adventurous", 
-    "Creative/Artistic", "Professional", "Spiritual", "Minimalist", "Any"
-  ];
-
   const toggleArrayItem = (field: string, item: string, maxItems: number = 10) => {
     const currentArray = data[field] || [];
     const newArray = currentArray.includes(item)
@@ -258,105 +240,6 @@ const WhoYouWantStep = ({ data, onChange }: WhoYouWantStepProps) => {
                     className="rounded-full text-xs"
                   >
                     {goal}
-                    {isSelected && <X className="w-3 h-3 ml-1" />}
-                  </Button>
-                );
-              })}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Physical & Personal Preferences */}
-      <Card className="border-border/50">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Target className="w-5 h-5" />
-            Physical & Personal Preferences
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Preferred Skin Tone */}
-          <div className="space-y-3">
-            <Label>Preferred Skin Tone</Label>
-            <div className="flex flex-wrap gap-2">
-              {skinToneOptions.map((tone) => {
-                const isSelected = data.preferredSkinTone?.includes(tone);
-                return (
-                  <Button
-                    key={tone}
-                    variant={isSelected ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => toggleArrayItem('preferredSkinTone', tone)}
-                    className="rounded-full text-xs"
-                  >
-                    {tone}
-                    {isSelected && <X className="w-3 h-3 ml-1" />}
-                  </Button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Preferred Face Type */}
-          <div className="space-y-3">
-            <Label>Preferred Face Type</Label>
-            <div className="flex flex-wrap gap-2">
-              {faceTypeOptions.map((type) => {
-                const isSelected = data.preferredFaceType?.includes(type);
-                return (
-                  <Button
-                    key={type}
-                    variant={isSelected ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => toggleArrayItem('preferredFaceType', type)}
-                    className="rounded-full text-xs"
-                  >
-                    {type}
-                    {isSelected && <X className="w-3 h-3 ml-1" />}
-                  </Button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Preferred Love Language */}
-          <div className="space-y-3">
-            <Label>Preferred Love Language</Label>
-            <div className="flex flex-wrap gap-2">
-              {loveLanguageOptions.map((language) => {
-                const isSelected = data.preferredLoveLanguage?.includes(language);
-                return (
-                  <Button
-                    key={language}
-                    variant={isSelected ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => toggleArrayItem('preferredLoveLanguage', language)}
-                    className="rounded-full text-xs"
-                  >
-                    {language}
-                    {isSelected && <X className="w-3 h-3 ml-1" />}
-                  </Button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Preferred Lifestyle */}
-          <div className="space-y-3">
-            <Label>Preferred Lifestyle</Label>
-            <div className="flex flex-wrap gap-2">
-              {lifestyleOptions.map((lifestyle) => {
-                const isSelected = data.preferredLifestyle?.includes(lifestyle);
-                return (
-                  <Button
-                    key={lifestyle}
-                    variant={isSelected ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => toggleArrayItem('preferredLifestyle', lifestyle)}
-                    className="rounded-full text-xs"
-                  >
-                    {lifestyle}
                     {isSelected && <X className="w-3 h-3 ml-1" />}
                   </Button>
                 );

@@ -33,8 +33,6 @@ serve(async (req) => {
       personalityType,
       values,
       mindset,
-      loveLanguage,
-      lifestyle,
       relationshipGoals,
       interests,
       bio,
@@ -84,8 +82,6 @@ serve(async (req) => {
         personality_type: personalityType ?? null,
         values: values ?? null,
         mindset: mindset ?? null,
-        love_language: loveLanguage ?? null,
-        lifestyle: lifestyle ?? null,
         relationship_goals: relationshipGoals ?? [],
         interests: interests ?? [],
         bio: bio ?? null,
@@ -105,8 +101,6 @@ serve(async (req) => {
           personality_type: personalityType || null,
           values: values || null,
           mindset: mindset || null,
-          love_language: loveLanguage || null,
-          lifestyle: lifestyle || null,
           university: university || null,
           field_of_study: fieldOfStudy || null
         }),
@@ -115,13 +109,9 @@ serve(async (req) => {
           height_range_min: preferences?.heightRangeMin || null,
           height_range_max: preferences?.heightRangeMax || null,
           preferred_body_types: preferences?.preferredBodyTypes || [],
-          preferred_skin_tone: preferences?.preferredSkinTone || [],
-          preferred_face_type: preferences?.preferredFaceType || [],
           preferred_values: preferences?.preferredValues || [],
           preferred_mindset: preferences?.preferredMindset || [],
           preferred_personality: preferences?.preferredPersonality || [],
-          preferred_love_language: preferences?.preferredLoveLanguage || [],
-          preferred_lifestyle: preferences?.preferredLifestyle || [],
           preferred_gender: preferences?.preferredGender || []
         })
       }, {
@@ -135,23 +125,7 @@ serve(async (req) => {
 
     // Optionally upsert partner preferences if provided
     if (preferences) {
-      const { 
-        preferredGender, 
-        ageRangeMin, 
-        ageRangeMax, 
-        preferredRelationshipGoals,
-        heightRangeMin,
-        heightRangeMax,
-        preferredBodyTypes,
-        preferredSkinTone,
-        preferredFaceType,
-        preferredValues,
-        preferredMindset,
-        preferredPersonality,
-        preferredLoveLanguage,
-        preferredLifestyle
-      } = preferences;
-      
+      const { preferredGender, ageRangeMin, ageRangeMax, preferredRelationshipGoals } = preferences;
       const { error: prefError } = await supabase
         .from('partner_preferences')
         .upsert({
@@ -159,16 +133,6 @@ serve(async (req) => {
           preferred_gender: preferredGender ?? [],
           age_range_min: ageRangeMin ?? 18,
           age_range_max: ageRangeMax ?? 30,
-          height_range_min: heightRangeMin ?? 150,
-          height_range_max: heightRangeMax ?? 200,
-          preferred_body_types: preferredBodyTypes ?? [],
-          preferred_skin_tone: preferredSkinTone ?? [],
-          preferred_face_type: preferredFaceType ?? [],
-          preferred_values: preferredValues ?? [],
-          preferred_mindset: preferredMindset ?? [],
-          preferred_personality_traits: preferredPersonality ?? [],
-          preferred_love_language: preferredLoveLanguage ?? [],
-          preferred_lifestyle: preferredLifestyle ?? [],
           preferred_relationship_goal: preferredRelationshipGoals ?? []
         }, { onConflict: 'user_id' });
 

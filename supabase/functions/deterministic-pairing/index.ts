@@ -109,49 +109,6 @@ function computeCompatibility(userA: any, userB: any): {
       }
     }
     
-    // Skin tone compatibility
-    if (userARequirements.preferred_skin_tone?.length > 0 && userBQualities.skin_tone) {
-      const skinToneMatch = userARequirements.preferred_skin_tone.includes(userBQualities.skin_tone) ||
-                           userARequirements.preferred_skin_tone.includes('Any');
-      if (skinToneMatch) {
-        totalScore += 8;
-        matchCount++;
-        debug.matches.push("skin_tone_match");
-      }
-    }
-    
-    // Face type compatibility
-    if (userARequirements.preferred_face_type?.length > 0 && userBQualities.face_type) {
-      const faceTypeMatch = userARequirements.preferred_face_type.includes(userBQualities.face_type) ||
-                            userARequirements.preferred_face_type.includes('Any');
-      if (faceTypeMatch) {
-        totalScore += 8;
-        matchCount++;
-        debug.matches.push("face_type_match");
-      }
-    }
-    
-    // Love language compatibility (from user profile)
-    if (userARequirements.preferred_love_language?.length > 0 && userBQualities.love_language) {
-      const loveLanguageMatch = userARequirements.preferred_love_language.includes(userBQualities.love_language);
-      if (loveLanguageMatch) {
-        totalScore += 12;
-        matchCount++;
-        debug.matches.push("love_language_match");
-      }
-    }
-    
-    // Lifestyle compatibility (from user profile)
-    if (userARequirements.preferred_lifestyle?.length > 0 && userBQualities.lifestyle) {
-      const lifestyleMatch = userARequirements.preferred_lifestyle.includes(userBQualities.lifestyle) ||
-                            userARequirements.preferred_lifestyle.includes('Any');
-      if (lifestyleMatch) {
-        totalScore += 12;
-        matchCount++;
-        debug.matches.push("lifestyle_match");
-      }
-    }
-    
     // Mutual compatibility (User B wants User A)
     if (hasUserBReqs && hasUserAQualities) {
       // Reverse height check

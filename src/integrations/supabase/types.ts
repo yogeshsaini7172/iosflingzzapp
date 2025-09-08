@@ -485,14 +485,10 @@ export type Database = {
           height_range_min: number | null
           id: string
           preferred_body_types: string[] | null
-          preferred_face_type: string[] | null
           preferred_gender: string[] | null
-          preferred_lifestyle: string[] | null
-          preferred_love_language: string[] | null
           preferred_mindset: string[] | null
           preferred_personality_traits: string[] | null
           preferred_relationship_goal: string[] | null
-          preferred_skin_tone: string[] | null
           preferred_values: string[] | null
           updated_at: string
           user_id: string
@@ -505,14 +501,10 @@ export type Database = {
           height_range_min?: number | null
           id?: string
           preferred_body_types?: string[] | null
-          preferred_face_type?: string[] | null
           preferred_gender?: string[] | null
-          preferred_lifestyle?: string[] | null
-          preferred_love_language?: string[] | null
           preferred_mindset?: string[] | null
           preferred_personality_traits?: string[] | null
           preferred_relationship_goal?: string[] | null
-          preferred_skin_tone?: string[] | null
           preferred_values?: string[] | null
           updated_at?: string
           user_id: string
@@ -525,14 +517,10 @@ export type Database = {
           height_range_min?: number | null
           id?: string
           preferred_body_types?: string[] | null
-          preferred_face_type?: string[] | null
           preferred_gender?: string[] | null
-          preferred_lifestyle?: string[] | null
-          preferred_love_language?: string[] | null
           preferred_mindset?: string[] | null
           preferred_personality_traits?: string[] | null
           preferred_relationship_goal?: string[] | null
-          preferred_skin_tone?: string[] | null
           preferred_values?: string[] | null
           updated_at?: string
           user_id?: string
