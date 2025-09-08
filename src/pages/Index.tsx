@@ -74,19 +74,12 @@ const Index = ({ onProfileComplete, showSubscription }: IndexProps) => {
       return (
         <ProfileSetupFlow 
           onComplete={async () => {
-            console.log('🎯 Profile setup complete, triggering recheck...');
+            console.log('🎯 Profile setup complete → navigating to subscription');
             setHasProfile(true);
-            
-            // Trigger parent recheck and wait for it
+            setCurrentStep('subscription');
+            // Sync with parent so App knows profile is done
             if (onProfileComplete) {
-              console.log('⏳ Calling onProfileComplete...');
-              const profileCompleted = await onProfileComplete();
-              console.log('✅ Parent recheck completed:', profileCompleted);
-              
-              // Force a small delay to ensure state updates propagate
-              setTimeout(() => {
-                console.log('🔄 Profile setup flow completed, app should redirect now');
-              }, 100);
+              await onProfileComplete();
             }
           }}
         />
