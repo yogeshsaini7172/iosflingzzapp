@@ -246,6 +246,7 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  try {
     // Verify Firebase ID token from Authorization header
     const authHeader = req.headers.get('authorization') || '';
     const idToken = authHeader.replace('Bearer ', '');
