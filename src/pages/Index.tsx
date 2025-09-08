@@ -4,7 +4,7 @@ import ProfileSetupFlow from "@/components/profile/ProfileSetupFlow";
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+
 
 interface IndexProps {
   onProfileComplete?: () => Promise<boolean>;
@@ -22,14 +22,11 @@ const Index = ({ onProfileComplete }: IndexProps) => {
         return;
       }
 
-      // Check if user has completed profile setup
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.uid)
-        .maybeSingle();
+      // Check profile via local flag to avoid cross-auth mismatch
+      const flag = localStorage.getItem('profile_complete') === 'true';
+      const demo = localStorage.getItem('demoProfile');
 
-      if (!profile || !profile.first_name || !profile.university) {
+      if (!flag && !demo) {
         setCurrentStep('profile');
         setHasProfile(false);
       } else {
