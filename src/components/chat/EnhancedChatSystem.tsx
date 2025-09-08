@@ -73,7 +73,15 @@ const EnhancedChatSystem = ({ onNavigate, selectedChatId }: EnhancedChatSystemPr
         body: { action: 'list', user_id: userId }
       });
 
-      if (fnError) throw fnError;
+      if (fnError) {
+        console.error('❌ chat-management error object:', fnError);
+        throw fnError;
+      }
+
+      if (!fnData?.success) {
+        console.error('❌ chat-management returned failure:', fnData);
+        throw new Error(fnData?.error || 'Chat list failed');
+      }
 
       const roomsWithUsers = (fnData?.data || []) as any[];
       console.log("✅ Chat rooms from function:", roomsWithUsers);
@@ -89,7 +97,7 @@ const EnhancedChatSystem = ({ onNavigate, selectedChatId }: EnhancedChatSystemPr
       console.error("❌ Error fetching chat rooms:", error);
       toast({
         title: "Error",
-        description: "Failed to load chats",
+        description: error?.message || "Failed to load chats",
         variant: "destructive",
       });
     }
