@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { MessageCircle, Heart, Calendar, Send, MoreVertical, MapPin } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useRequiredAuth } from "@/hooks/useRequiredAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useRealtime } from "@/hooks/useRealtime";
 
 interface MatchesListProps {
   onNavigate: (view: 'home' | 'profile' | 'swipe' | 'blind-date' | 'matches') => void;
@@ -13,9 +17,54 @@ interface MatchesListProps {
 const MatchesList = ({ onNavigate }: MatchesListProps) => {
   const [selectedMatch, setSelectedMatch] = useState<string | null>(null);
   const [message, setMessage] = useState('');
+  const [matches, setMatches] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { userId } = useRequiredAuth();
+  const { toast } = useToast();
 
-  // Mock data for demonstration
-  const matches = [
+  useEffect(() => {
+    if (userId) {
+      fetchMatches();
+    }
+  }, [userId]);
+
+  // Real-time updates for new matches and messages
+  useRealtime({
+    table: 'enhanced_matches',
+    event: '*',
+    filter: `user1_id=eq.${userId},user2_id=eq.${userId}`,
+    onInsert: () => fetchMatches(),
+    onUpdate: () => fetchMatches()
+  });
+
+  const fetchMatches = async () => {
+    if (!userId) return;
+    
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.functions.invoke('chat-management', {
+        body: {
+          action: 'get_user_matches',
+          user_id: userId
+        }
+      });
+
+      if (error) throw error;
+      setMatches(data?.matches || []);
+    } catch (error) {
+      console.error('Error fetching matches:', error);
+      toast({
+        title: "Error loading matches",
+        description: "Please try again later",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Replace mock data with empty array since we're loading from API
+  const mockData = [
     {
       id: '1',
       firstName: 'Emma',

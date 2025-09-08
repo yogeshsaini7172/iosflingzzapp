@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useOptionalAuth } from "@/hooks/useRequiredAuth";
 
 interface ChatNotificationBadgeProps {
   onClick: () => void;
@@ -11,10 +12,7 @@ interface ChatNotificationBadgeProps {
 const ChatNotificationBadge = ({ onClick, className }: ChatNotificationBadgeProps) => {
   const [chatCount, setChatCount] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
-
-  const getCurrentUserId = () => {
-    return localStorage.getItem("demoUserId") || "11111111-1111-1111-1111-111111111001";
-  };
+  const { userId, isAuthenticated } = useOptionalAuth();
 
   useEffect(() => {
     fetchChatCounts();
@@ -25,7 +23,7 @@ const ChatNotificationBadge = ({ onClick, className }: ChatNotificationBadgeProp
   }, []);
 
   const fetchChatCounts = async () => {
-    const userId = getCurrentUserId();
+    if (!userId || !isAuthenticated) return;
     
     try {
       // Get total chat rooms

@@ -9,7 +9,7 @@ import { usePairing } from '@/hooks/usePairing';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import DetailedProfileModal from '@/components/profile/DetailedProfileModal';
-import { useAuth } from '@/contexts/AuthContext';
+import { useRequiredAuth } from '@/hooks/useRequiredAuth';
 import EnhancedChatSystem from '@/components/chat/EnhancedChatSystem';
 
 interface PairingMatch {
@@ -31,14 +31,16 @@ const PairingMatches: React.FC = () => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [matchedChatId, setMatchedChatId] = useState<string>("");
   const [scoringLoading, setScoringLoading] = useState<boolean>(true);
-  const [refreshKey, setRefreshKey] = useState(0); // 🔄 trigger recompute on realtime
+  const [refreshKey, setRefreshKey] = useState(0); 
   const { toast } = useToast();
+  const { userId } = useRequiredAuth();
 
   useEffect(() => {
     // Always compute REAL compatibility first; only show profiles after scoring
     const runDeterministicPairing = async () => {
+      if (!userId) return;
+      
       setScoringLoading(true);
-      const userId = getCurrentUserId();
       try {
         const { data: pairingResults, error } = await supabase.functions.invoke('deterministic-pairing', {
           body: { user_id: userId }
@@ -132,7 +134,7 @@ const PairingMatches: React.FC = () => {
   }, []);
 
   const handleChatRequest = async (matchId: string, canChat: boolean) => {
-    const userId = getCurrentUserId();
+    if (!userId) return;
     
     try {
       if (canChat) {
@@ -195,12 +197,11 @@ const PairingMatches: React.FC = () => {
     setSelectedProfile(null);
   };
 
-  const getCurrentUserId = () => {
-    return localStorage.getItem("demoUserId") || "11111111-1111-1111-1111-111111111001";
-  };
+  // Remove the getCurrentUserId function as we now use useRequiredAuth
 
   const handleAction = async (matchId: string, action: 'ghost' | 'bench') => {
-    const userId = getCurrentUserId();
+    if (!userId) return;
+    
     const actionText = action === 'ghost' ? 'Ghosted' : 'Benched';
     
     try {

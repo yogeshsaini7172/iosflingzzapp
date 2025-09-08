@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Heart, Crown, MapPin, Users } from "lucide-react";
 import { SubscriptionEnforcementService } from "@/services/subscriptionEnforcement";
 import { useToast } from "@/hooks/use-toast";
+import { useRequiredAuth } from "@/hooks/useRequiredAuth";
 
 interface WhoLikedMeModalProps {
   isOpen: boolean;
@@ -30,6 +31,7 @@ const WhoLikedMeModal = ({ isOpen, onClose }: WhoLikedMeModalProps) => {
   const [loading, setLoading] = useState(true);
   const [canSeeLikes, setCanSeeLikes] = useState(false);
   const { toast } = useToast();
+  const { userId } = useRequiredAuth();
 
   useEffect(() => {
     if (isOpen) {
@@ -63,10 +65,9 @@ const WhoLikedMeModal = ({ isOpen, onClose }: WhoLikedMeModalProps) => {
   };
 
   const handleLikeBack = async (userLike: UserLike) => {
+    if (!userId) return;
+    
     try {
-      // Simulate swiping right on this user
-      const userId = localStorage.getItem("demoUserId") || "11111111-1111-1111-1111-111111111001";
-      
       const result = await SubscriptionEnforcementService.processSwipe(userLike.user_id, 'right');
       
       if (result.success && result.data) {

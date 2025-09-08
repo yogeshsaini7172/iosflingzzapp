@@ -32,128 +32,93 @@ import ChatRequestsModal from '@/components/notifications/ChatRequestsModal';
 import { useSwipeRealtime, useLikeRealtime, useNotificationRealtime } from '@/hooks/useRealtime';
 import UnifiedLayout from '@/components/layout/UnifiedLayout';
 import ProfileImageHandler from '@/components/common/ProfileImageHandler';
+import { useAuth } from '@/contexts/AuthContext';
+import { useThreads } from '@/hooks/useThreads';
 
-interface Thread {
-  id: number;
-  author: string;
-  content: string;
-  time: string;
-  likes: number;
-  replies: number;
-  avatar: string;
-  userId?: string;
-}
+// Thread interface now comes from useThreads hook
 
 interface DateSigmaHomeProps {
   onNavigate: (view: string) => void;
 }
 
-// Initial threads data
-const initialThreads: Thread[] = [
-  { 
-    id: 1, 
-    author: "Sarah K", 
-    content: "Just had the most amazing coffee date! Sometimes the best connections happen when you least expect them ☕️💕", 
-    time: "2m ago",
-    likes: 24,
-    replies: 5,
-    avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150"
-  },
-  { 
-    id: 2, 
-    author: "Alex M", 
-    content: "Pro tip: Don't overthink your bio. Just be yourself and let your personality shine through! 🌟", 
-    time: "15m ago",
-    likes: 18,
-    replies: 3,
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150"
-  },
-  { 
-    id: 3, 
-    author: "Maria L", 
-    content: "Found my study buddy turned something more 📚❤️ College romance is real!", 
-    time: "1h ago",
-    likes: 42,
-    replies: 12,
-    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150"
-  }
-];
+// Threads are now loaded from database via useThreads hook
 
 const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
   const { profiles, loading } = useProfilesFeed();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [swipeCount, setSwipeCount] = useState(0);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0); // Add image index state
-  const [threads, setThreads] = useState<Thread[]>(() => {
-    const savedThreads = localStorage.getItem('userThreads');
-    return savedThreads ? JSON.parse(savedThreads) : initialThreads;
-  });
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
   const [isRewriteModalOpen, setIsRewriteModalOpen] = useState(false);
   const [newThreadContent, setNewThreadContent] = useState('');
   const [replyContent, setReplyContent] = useState('');
   const [rewriteContent, setRewriteContent] = useState('');
-  const [selectedThreadForReply, setSelectedThreadForReply] = useState<Thread | null>(null);
-  const [selectedThreadForRewrite, setSelectedThreadForRewrite] = useState<Thread | null>(null);
-  const [likedThreads, setLikedThreads] = useState<Set<number>>(() => {
-    const savedLikes = localStorage.getItem('likedThreads');
-    return savedLikes ? new Set(JSON.parse(savedLikes)) : new Set();
-  });
+  const [selectedThreadForReply, setSelectedThreadForReply] = useState<any>(null);
+  const [selectedThreadForRewrite, setSelectedThreadForRewrite] = useState<any>(null);
   const [showWhoLikedMe, setShowWhoLikedMe] = useState(false);
   const [showChatRequests, setShowChatRequests] = useState(false);
   const { toast } = useToast();
 
+  // Use threads hook for database integration
+  const { 
+    threads, 
+    loading: threadsLoading, 
+    likedThreads, 
+    createThread, 
+    likeThread, 
+    replyToThread, 
+    updateThread, 
+    deleteThread 
+  } = useThreads();
+
+  const { user } = useAuth();
   const getCurrentUserId = () => {
-    // Bypass auth - use default user ID for database operations
-    return '11111111-1111-1111-1111-111111111001'; // Default Alice user
+    if (!user?.uid) {
+      throw new Error('User authentication required');
+    }
+    return user.uid;
   };
 
   const getCurrentUserProfile = () => {
     return {
-      name: 'You',
+      name: user?.displayName || 'You',
       avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150'
     };
   };
 
   // Set up realtime listeners
-  const userId = getCurrentUserId();
+  const userId = user?.uid;
   
   // Listen for new matches
-  useSwipeRealtime(userId, (match) => {
-    toast({
-      title: "New Match! 💕",
-      description: "You have a new mutual match!",
+  if (userId) {
+    useSwipeRealtime(userId, (match) => {
+      toast({
+        title: "New Match! 💕",
+        description: "You have a new mutual match!",
+      });
     });
-  });
 
-  // Listen for new likes
-  useLikeRealtime(userId, (like) => {
-    toast({
-      title: "Someone liked you! ❤️",
-      description: "Check your likes to see who it is!",
+    // Listen for new likes
+    useLikeRealtime(userId, (like) => {
+      toast({
+        title: "Someone liked you! ❤️",
+        description: "Check your likes to see who it is!",
+      });
     });
-  });
 
-  // Listen for notifications
-  useNotificationRealtime(userId, (notification) => {
-    toast({
-      title: notification.title,
-      description: notification.message,
+    // Listen for notifications
+    useNotificationRealtime(userId, (notification) => {
+      toast({
+        title: notification.title,
+        description: notification.message,
+      });
     });
-  });
+  }
 
-  // Save threads to localStorage whenever threads change
-  useEffect(() => {
-    localStorage.setItem('userThreads', JSON.stringify(threads));
-  }, [threads]);
+  // Threads are now persisted in database via useThreads hook
 
-  // Save liked threads to localStorage whenever likes change
-  useEffect(() => {
-    localStorage.setItem('likedThreads', JSON.stringify(Array.from(likedThreads)));
-  }, [likedThreads]);
-
-  const handlePostThread = () => {
+  const handlePostThread = async () => {
     if (!newThreadContent.trim()) {
       toast({
         title: "Error",
@@ -163,64 +128,24 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
       return;
     }
 
-    const userProfile = getCurrentUserProfile();
-    const newThread: Thread = {
-      id: Date.now(), // Simple ID generation
-      author: userProfile.name,
-      content: newThreadContent.trim(),
-      time: "now",
-      likes: 0,
-      replies: 0,
-      avatar: userProfile.avatar,
-      userId: getCurrentUserId()
-    };
-
-    setThreads(prevThreads => [newThread, ...prevThreads]);
-    setNewThreadContent('');
-    setIsPostModalOpen(false);
-    
-    toast({
-      title: "Thread posted! 🎉",
-      description: "Your thread has been shared with the community.",
-    });
-  };
-
-  const handleLikeThread = (threadId: number) => {
-    const newLikedThreads = new Set(likedThreads);
-    const isCurrentlyLiked = likedThreads.has(threadId);
-    
-    if (isCurrentlyLiked) {
-      newLikedThreads.delete(threadId);
-    } else {
-      newLikedThreads.add(threadId);
-    }
-    
-    setLikedThreads(newLikedThreads);
-    
-    // Update the thread's like count
-    setThreads(prevThreads => 
-      prevThreads.map(thread => 
-        thread.id === threadId 
-          ? { ...thread, likes: thread.likes + (isCurrentlyLiked ? -1 : 1) }
-          : thread
-      )
-    );
-
-    if (!isCurrentlyLiked) {
-      toast({
-        title: "Liked! ❤️",
-        description: "You liked this thread.",
-      });
+    const success = await createThread(newThreadContent);
+    if (success) {
+      setNewThreadContent('');
+      setIsPostModalOpen(false);
     }
   };
 
-  const handleReplyToThread = (thread: Thread) => {
+  const handleLikeThread = (threadId: string) => {
+    likeThread(threadId);
+  };
+
+  const handleReplyToThread = (thread: any) => {
     setSelectedThreadForReply(thread);
     setIsReplyModalOpen(true);
     setReplyContent('');
   };
 
-  const handleSubmitReply = () => {
+  const handleSubmitReply = async () => {
     if (!replyContent.trim() || !selectedThreadForReply) {
       toast({
         title: "Error",
@@ -230,32 +155,21 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
       return;
     }
 
-    // Update the thread's reply count
-    setThreads(prevThreads => 
-      prevThreads.map(thread => 
-        thread.id === selectedThreadForReply.id 
-          ? { ...thread, replies: thread.replies + 1 }
-          : thread
-      )
-    );
-
-    setIsReplyModalOpen(false);
-    setReplyContent('');
-    setSelectedThreadForReply(null);
-    
-    toast({
-      title: "Reply posted! 💬",
-      description: `Your reply to ${selectedThreadForReply.author} has been added.`,
-    });
+    const success = await replyToThread(selectedThreadForReply.id, replyContent);
+    if (success) {
+      setIsReplyModalOpen(false);
+      setReplyContent('');
+      setSelectedThreadForReply(null);
+    }
   };
 
-  const handleRewriteThread = (thread: Thread) => {
+  const handleRewriteThread = (thread: any) => {
     setSelectedThreadForRewrite(thread);
     setRewriteContent(thread.content);
     setIsRewriteModalOpen(true);
   };
 
-  const handleSubmitRewrite = () => {
+  const handleSubmitRewrite = async () => {
     if (!rewriteContent.trim() || !selectedThreadForRewrite) {
       toast({
         title: "Error",
@@ -265,36 +179,16 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
       return;
     }
 
-    setThreads(prevThreads => 
-      prevThreads.map(thread => 
-        thread.id === selectedThreadForRewrite.id 
-          ? { ...thread, content: rewriteContent.trim(), time: "edited now" }
-          : thread
-      )
-    );
-
-    setIsRewriteModalOpen(false);
-    setRewriteContent('');
-    setSelectedThreadForRewrite(null);
-    
-    toast({
-      title: "Thread updated! ✏️",
-      description: "Your thread has been rewritten successfully.",
-    });
+    const success = await updateThread(selectedThreadForRewrite.id, rewriteContent);
+    if (success) {
+      setIsRewriteModalOpen(false);
+      setRewriteContent('');
+      setSelectedThreadForRewrite(null);
+    }
   };
 
-  const handleDeleteThread = (threadId: number) => {
-    setThreads(prevThreads => prevThreads.filter(thread => thread.id !== threadId));
-    
-    // Also remove from liked threads if it was liked
-    const newLikedThreads = new Set(likedThreads);
-    newLikedThreads.delete(threadId);
-    setLikedThreads(newLikedThreads);
-    
-    toast({
-      title: "Thread deleted! 🗑️",
-      description: "Your thread has been removed.",
-    });
+  const handleDeleteThread = (threadId: string) => {
+    deleteThread(threadId);
   };
 
   const calculateAge = (dateOfBirth: string) => {
@@ -309,10 +203,10 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
   };
 
   const handleSwipe = async (direction: 'left' | 'right') => {
-    if (currentIndex >= profiles.length) return;
+    if (currentIndex >= profiles.length || !user?.uid) return;
 
     const currentProfile = profiles[currentIndex];
-    const userId = getCurrentUserId();
+    const userId = user.uid;
 
     try {
       // Record swipe in database
@@ -426,7 +320,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
         <div className="flex space-x-3 overflow-x-auto scrollbar-hide pb-2">
           {/* Add Today's Thread Option OR User's Thread Management */}
           {(() => {
-            const userThreads = threads.filter(t => t.userId === getCurrentUserId());
+            const userThreads = threads.filter(t => t.user_id === (user?.uid || ''));
             
             if (userThreads.length === 0) {
               // Show "Add Today's Thread" if user has no threads
@@ -484,6 +378,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
             } else {
               // Show user's thread management options
               const latestUserThread = userThreads[0];
+              const threadAuthor = latestUserThread.author?.first_name || 'You';
               return (
                 <div className="flex-shrink-0 w-64">
                   <Card className="p-4 bg-gradient-secondary text-secondary-foreground border-0">
@@ -497,7 +392,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
                       </div>
                       <div className="flex space-x-2">
                         <Button 
-                          size="sm" 
+                          size="sm"
                           variant="ghost" 
                           className="flex-1 text-secondary-foreground hover:bg-secondary-foreground/20"
                           onClick={() => handleRewriteThread(latestUserThread)}
@@ -523,29 +418,32 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
           {/* Thread Cards - Now Dynamic with Reply/Like Options */}
           {threads.slice(0, 5).map((thread) => {
             const isLiked = likedThreads.has(thread.id);
-            const isOwnThread = thread.userId === getCurrentUserId();
+            const isOwnThread = thread.user_id === user?.uid;
+            const threadAuthor = thread.author?.first_name || 'Anonymous';
+            const threadAvatar = thread.author?.profile_images?.[0] || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150';
+            const timeAgo = new Date(thread.created_at).toLocaleString();
             
             return (
               <div key={thread.id} className="flex-shrink-0 w-72">
                 <Card className="p-4 bg-card/80 backdrop-blur-sm border-border/50 hover:bg-card transition-colors h-full">
                   <div className="flex space-x-3 mb-3">
                     <Avatar className="w-8 h-8">
-                      <AvatarImage src={thread.avatar} alt={thread.author} />
+                      <AvatarImage src={threadAvatar} alt={threadAuthor} />
                       <AvatarFallback className="bg-muted text-muted-foreground text-xs font-semibold">
-                        {thread.author.split(' ').map(n => n[0]).join('')}
+                        {threadAuthor.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2 mb-1">
                         <span className="font-semibold text-sm text-foreground truncate flex items-center">
-                          {thread.author}
+                          {threadAuthor}
                           {isOwnThread && (
                             <Badge variant="secondary" className="ml-2 text-xs">
                               You
                             </Badge>
                           )}
                         </span>
-                        <span className="text-xs text-muted-foreground flex-shrink-0">{thread.time}</span>
+                        <span className="text-xs text-muted-foreground flex-shrink-0">{timeAgo}</span>
                       </div>
                     </div>
                   </div>
@@ -559,7 +457,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
                         onClick={() => handleLikeThread(thread.id)}
                       >
                         <Heart className={`w-3 h-3 ${isLiked ? 'fill-current' : ''}`} />
-                        <span>{thread.likes}</span>
+                        <span>{thread.likes_count}</span>
                       </button>
                       
                       {!isOwnThread && (
@@ -572,7 +470,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
                         </button>
                       )}
                     </div>
-                    <span className="text-muted-foreground">{thread.replies} replies</span>
+                    <span className="text-muted-foreground">{thread.replies_count} replies</span>
                   </div>
                 </Card>
               </div>

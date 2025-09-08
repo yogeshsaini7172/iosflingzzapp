@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SubscriptionEnforcementService } from "@/services/subscriptionEnforcement";
+import { useOptionalAuth } from "@/hooks/useRequiredAuth";
 
 interface HeartNotificationBadgeProps {
   onClick: () => void;
@@ -13,10 +14,7 @@ const HeartNotificationBadge = ({ onClick, className }: HeartNotificationBadgePr
   const [likesCount, setLikesCount] = useState(0);
   const [canSeeLikes, setCanSeeLikes] = useState(false);
   const [loading, setLoading] = useState(true);
-
-  const getCurrentUserId = () => {
-    return localStorage.getItem("demoUserId") || "11111111-1111-1111-1111-111111111001";
-  };
+  const { userId, isAuthenticated } = useOptionalAuth();
 
   useEffect(() => {
     fetchLikesData();
@@ -27,9 +25,10 @@ const HeartNotificationBadge = ({ onClick, className }: HeartNotificationBadgePr
   }, []);
 
   const fetchLikesData = async () => {
+    if (!userId || !isAuthenticated) return;
+    
     try {
       setLoading(true);
-      const userId = getCurrentUserId();
       
       // Check if user can see who liked them based on subscription
       const canSee = await SubscriptionEnforcementService.checkActionPermission('see_who_liked');
