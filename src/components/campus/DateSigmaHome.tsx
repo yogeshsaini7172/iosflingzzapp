@@ -57,7 +57,6 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
   const [selectedThreadForReply, setSelectedThreadForReply] = useState<any>(null);
   const [selectedThreadForRewrite, setSelectedThreadForRewrite] = useState<any>(null);
   const [showWhoLikedMe, setShowWhoLikedMe] = useState(false);
-  const [showChatRequests, setShowChatRequests] = useState(false);
   const { toast } = useToast();
 
   // Use threads hook for database integration
@@ -288,7 +287,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
               onClick={() => setShowWhoLikedMe(true)}
             />
             <ChatNotificationBadge 
-              onClick={() => setShowChatRequests(true)}
+              onClick={() => onNavigate('chat')}
             />
           </div>
         </div>
@@ -839,22 +838,6 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
       <WhoLikedMeModal 
         isOpen={showWhoLikedMe}
         onClose={() => setShowWhoLikedMe(false)}
-      />
-
-      {/* Chat Requests Modal */}
-      <ChatRequestsModal 
-        isOpen={showChatRequests}
-        onClose={() => setShowChatRequests(false)}
-        onNavigate={onNavigate}
-      />
-      
-      <WhoLikedMeModal 
-        isOpen={showWhoLikedMe} 
-        onClose={() => setShowWhoLikedMe(false)} 
-      />
-      <ChatRequestsModal 
-        isOpen={showChatRequests} 
-        onClose={() => setShowChatRequests(false)} 
       />
     </UnifiedLayout>
   );
