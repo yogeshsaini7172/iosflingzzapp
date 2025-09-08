@@ -72,7 +72,8 @@ const AuthenticatedApp = () => {
         .eq('user_id', userId)
         .maybeSingle();
 
-      return profile && profile.subscription_tier;
+      // Treat 'free' as no paid subscription selected
+      return !!(profile && profile.subscription_tier && profile.subscription_tier !== 'free');
     } catch (error) {
       console.error('Error checking subscription:', error);
       return false;
