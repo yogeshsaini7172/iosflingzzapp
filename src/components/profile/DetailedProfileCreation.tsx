@@ -50,6 +50,12 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
     // Media
     profileImages: [] as File[],
     
+    // Physical Attributes (for qualities)
+    height: "",
+    bodyType: "",
+    skinTone: "",
+    faceType: "",
+    
     // Personality
     personalityType: "",
     hobbies: [] as string[],
@@ -75,7 +81,7 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
     preferredLifestyleHabits: [] as string[]
   });
 
-  const totalSteps = 6;
+  const totalSteps = 7;
 
   const handleNext = () => {
     if (currentStep < totalSteps) {
@@ -155,6 +161,10 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
         bio: profileData.bio,
         interests: profileData.interests,
         profile_images: imageUrls,
+        height: profileData.height ? parseInt(profileData.height) : null,
+        body_type: profileData.bodyType,
+        skin_tone: profileData.skinTone,
+        face_type: profileData.faceType,
         personality_type: profileData.personalityType,
         humor_type: profileData.humorStyle,
         love_language: profileData.loveLanguage,
@@ -163,7 +173,27 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
         is_profile_public: profileData.isProfilePublic,
         college_tier: 'tier3',
         subscription_tier: 'free',
-        swipes_left: 10
+        swipes_left: 10,
+        // Add qualities and requirements for proper scoring
+        qualities: JSON.stringify({
+          height: profileData.height ? parseInt(profileData.height) : null,
+          body_type: profileData.bodyType || null,
+          skin_tone: profileData.skinTone || null,
+          face_type: profileData.faceType || null,
+          personality_type: profileData.personalityType || null,
+          humor_type: profileData.humorStyle || null,
+          love_language: profileData.loveLanguage || null
+        }),
+        requirements: JSON.stringify({
+          height_range_min: profileData.heightRangeMin,
+          height_range_max: profileData.heightRangeMax,
+          preferred_body_types: profileData.preferredBodyShape,
+          preferred_skin_types: profileData.preferredSkinType,
+          preferred_humor_styles: profileData.preferredHumorStyle,
+          preferred_personality_types: profileData.preferredPersonalityType,
+          preferred_relationship_goals: profileData.preferredRelationshipGoal,
+          preferred_gender: profileData.preferredGender
+        })
       };
 
       const preferencesDataToStore = {
@@ -366,6 +396,78 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
           <div className="space-y-6 animate-fade-in">
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
+                About Your Physical Attributes 📏
+              </h2>
+              <p className="text-muted-foreground font-prompt">Help us match you better</p>
+            </div>
+
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <Label>Height (cm)</Label>
+                <Input
+                  type="number"
+                  placeholder="e.g., 170"
+                  value={profileData.height}
+                  onChange={(e) => setProfileData(prev => ({ ...prev, height: e.target.value }))}
+                  className="rounded-xl h-12 border-border/50 focus:border-primary"
+                />
+              </div>
+
+              <div className="space-y-3">
+                <Label>Body Type</Label>
+                <Select value={profileData.bodyType} onValueChange={(value) => setProfileData(prev => ({ ...prev, bodyType: value }))}>
+                  <SelectTrigger className="rounded-xl h-12 border-border/50">
+                    <SelectValue placeholder="Select your body type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="slim">Slim</SelectItem>
+                    <SelectItem value="athletic">Athletic</SelectItem>
+                    <SelectItem value="average">Average</SelectItem>
+                    <SelectItem value="curvy">Curvy</SelectItem>
+                    <SelectItem value="plus_size">Plus Size</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-3">
+                <Label>Skin Tone</Label>
+                <Select value={profileData.skinTone} onValueChange={(value) => setProfileData(prev => ({ ...prev, skinTone: value }))}>
+                  <SelectTrigger className="rounded-xl h-12 border-border/50">
+                    <SelectValue placeholder="Select your skin tone" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="fair">Fair</SelectItem>
+                    <SelectItem value="wheatish">Wheatish</SelectItem>
+                    <SelectItem value="olive">Olive</SelectItem>
+                    <SelectItem value="dark">Dark</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-3">
+                <Label>Face Type</Label>
+                <Select value={profileData.faceType} onValueChange={(value) => setProfileData(prev => ({ ...prev, faceType: value }))}>
+                  <SelectTrigger className="rounded-xl h-12 border-border/50">
+                    <SelectValue placeholder="Select your face type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="oval">Oval</SelectItem>
+                    <SelectItem value="round">Round</SelectItem>
+                    <SelectItem value="square">Square</SelectItem>
+                    <SelectItem value="heart">Heart</SelectItem>
+                    <SelectItem value="long">Long</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="space-y-6 animate-fade-in">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
                 Your Personality 🌟
               </h2>
               <p className="text-muted-foreground font-prompt">Help us understand who you are</p>
@@ -450,7 +552,7 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
           </div>
         );
 
-      case 4:
+      case 5:
         return (
           <div className="space-y-6 animate-fade-in">
             <div className="text-center mb-6">
@@ -558,7 +660,7 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
           </div>
         );
 
-      case 5:
+      case 6:
         return (
           <div className="space-y-6 animate-fade-in">
             <div className="text-center mb-6">
@@ -638,7 +740,7 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
           </div>
         );
 
-      case 6:
+      case 7:
         return (
           <div className="space-y-6 animate-fade-in">
             <div className="text-center mb-6">
@@ -740,7 +842,8 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
               disabled={
                 (currentStep === 1 && profileData.profileImages.length === 0) ||
                 (currentStep === 2 && (!profileData.firstName || !profileData.lastName || !profileData.gender)) ||
-                (currentStep === 3 && !profileData.personalityType)
+                (currentStep === 3 && (!profileData.height || !profileData.bodyType)) ||
+                (currentStep === 4 && !profileData.personalityType)
               }
             >
               Continue
