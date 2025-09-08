@@ -60,9 +60,29 @@ const AuthenticatedApp = () => {
 
   useEffect(() => {
     console.log('🔄 App starting, checking auth state...');
+    const clearDemoLocalStorage = () => {
+      try {
+        // Clear demo/testing caches to avoid stale data after DB reset
+        const keys = [
+          'demoProfile',
+          'demoPreferences',
+          'demoUserId',
+          'demoQCS',
+          'subscription_plan',
+          'profile_complete'
+        ];
+        keys.forEach((k) => localStorage.removeItem(k));
+        console.log('🧹 Cleared demo localStorage keys');
+      } catch (e) {
+        console.warn('⚠️ Failed clearing demo localStorage keys', e);
+      }
+    };
+
     const checkProfile = async () => {
       console.log('📋 Checking profile for user:', user?.uid);
       if (user) {
+        // Always clear demo caches when a real session exists
+        clearDemoLocalStorage();
         try {
           const profileComplete = await checkUserProfile(user.uid);
           console.log('✅ Profile check result:', { profileComplete });
