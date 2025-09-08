@@ -388,6 +388,36 @@ export type Database = {
         }
         Relationships: []
       }
+      function_invocations: {
+        Row: {
+          created_at: string
+          error: string | null
+          function_name: string
+          id: string
+          payload: Json | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          function_name: string
+          id?: string
+          payload?: Json | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          function_name?: string
+          id?: string
+          payload?: Json | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       identity_verifications: {
         Row: {
           created_at: string
