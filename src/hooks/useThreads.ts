@@ -62,25 +62,13 @@ export const useThreads = () => {
     if (!userId) return;
 
     try {
-      const { data, error } = await supabase
-        .from('threads')
-        .select(`
-          *,
-          profiles!threads_user_id_fkey (
-            first_name,
-            profile_images
-          )
-        `)
-        .order('created_at', { ascending: false })
-        .limit(20);
+      const { data, error } = await supabase.functions.invoke('thread-management', {
+        body: { action: 'list' }
+      });
 
       if (error) throw error;
 
-      const formattedThreads = data?.map((thread: any) => ({
-        ...thread,
-        author: thread.profiles
-      })) || [];
-
+      const formattedThreads = (data?.data as any[]) || [];
       setThreads(formattedThreads);
     } catch (error) {
       console.error('Error fetching threads:', error);

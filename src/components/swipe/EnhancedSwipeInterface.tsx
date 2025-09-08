@@ -143,86 +143,58 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
 
     const currentProfile = profiles[currentIndex];
 
-    console.log(`🎯 Processing ${direction} swipe:`, { userId, targetId: currentProfile.user_id });
+    console.log(`🎯 Processing ${direction} swipe via edge function:`, { userId, targetId: currentProfile.user_id });
 
     try {
-      // Use direct database operations for reliability
-      const { error: swipeError } = await supabase
-        .from("enhanced_swipes")
-        .insert({
-          user_id: userId,
-          target_user_id: currentProfile.user_id,
-          direction: direction
-        });
+      // Route through edge function (works with Firebase-only auth)
+      const { data: resp, error: swipeErr } = await supabase.functions.invoke('swipe-action', {
+        body: {
+          to_user_id: currentProfile.user_id,
+          type: direction === 'right' ? 'like' : 'pass',
+          from_user_id: userId,
+        },
+      });
 
-      if (swipeError) {
-        console.error("❌ Swipe insert error:", swipeError);
-        throw swipeError;
+      if (swipeErr) {
+        console.error('❌ Swipe function error:', swipeErr);
+        throw swipeErr;
       }
 
-      console.log("✅ Swipe recorded successfully");
+      console.log('✅ Swipe processed by function:', resp);
 
       if (direction === 'right') {
-        // Check if other user already swiped right
-        const { data: otherSwipe } = await supabase
-          .from("enhanced_swipes")
-          .select("*")
-          .eq("user_id", currentProfile.user_id)
-          .eq("target_user_id", userId)
-          .eq("direction", "right")
-          .maybeSingle();
-
-        console.log("🔍 Checking for mutual like:", { otherSwipe });
-
-        if (otherSwipe) {
-          console.log("🎉 Mutual match found! Creating chat room via function...");
-
-          const { data: roomResp, error: fnError } = await supabase.functions.invoke('chat-management', {
-            body: {
-              action: 'create_room',
-              user_id: userId,
-              other_user_id: currentProfile.user_id,
-            }
-          });
-
-          if (fnError || !roomResp?.data?.id) {
-            console.error("❌ Chat room creation via function failed:", fnError || roomResp);
-            throw fnError || new Error('Chat room creation failed');
-          }
-
-          const chatRoomId = roomResp.data.id as string;
-          console.log("✅ Chat room created (function):", chatRoomId);
-
+        if (resp?.isMatch) {
+          const chatRoomId = resp.chat_room_id as string | undefined;
+          console.log('🎉 Mutual match! Chat room:', chatRoomId);
           toast({
             title: "🎉 It's a Match!",
-            description: `You and ${currentProfile.first_name} liked each other! Chat is now available.`,
+            description: `You and ${currentProfile.first_name} liked each other!${chatRoomId ? ' Chat is now available.' : ''}`,
           });
-
-          setMatchedChatId(chatRoomId);
+          if (chatRoomId) setMatchedChatId(chatRoomId);
         } else {
-          console.log("💝 Like sent, waiting for match");
+          console.log('💝 Like sent, waiting for match');
           toast({
-            title: "Liked!",
+            title: 'Liked!',
             description: `You liked ${currentProfile.first_name}`,
           });
         }
       } else {
-        console.log("👋 Profile passed");
+        console.log('👋 Profile passed');
         toast({
-          title: "Passed",
+          title: 'Passed',
           description: `You passed on ${currentProfile.first_name}`,
         });
       }
 
       // Move to next profile
       setCurrentIndex(prev => prev + 1);
-      setCurrentImageIndex(0); // Reset image index for next profile
+      setCurrentImageIndex(0);
     } catch (error: any) {
-      console.error("❌ Error handling swipe:", error);
+      console.error('❌ Error handling swipe:', error);
       toast({
-        title: "Error",
-        description: "Failed to process swipe. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to process swipe. Please try again.',
+        variant: 'destructive',
       });
     }
   };

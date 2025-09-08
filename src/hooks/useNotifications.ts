@@ -21,26 +21,21 @@ export const useNotifications = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const { userId } = useRequiredAuth();
 
-  // Fetch notifications
+  // Fetch notifications via Edge Function (works with Firebase-only auth)
   const fetchNotifications = async () => {
     if (!userId) return;
-    
     try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(50);
-
+      const { data, error } = await supabase.functions.invoke('notifications-management', {
+        body: { action: 'list', user_id: userId }
+      });
       if (error) throw error;
-      
-      const notifs = (data || []).map(n => ({
+      const list = (data?.data || []) as any[];
+      const notifs = list.map((n) => ({
         ...n,
-        type: n.type as 'chat_request' | 'chat_request_accepted' | 'new_match' | 'new_message'
+        type: n.type as 'chat_request' | 'chat_request_accepted' | 'new_match' | 'new_message',
       }));
       setNotifications(notifs);
-      setUnreadCount(notifs.filter(n => !n.read_at).length);
+      setUnreadCount(notifs.filter((n) => !n.read_at).length);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     } finally {
@@ -66,23 +61,15 @@ export const useNotifications = () => {
     }
   });
 
-  // Mark notification as read
+  // Mark notification as read via Edge Function
   const markAsRead = async (notificationId: string) => {
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read_at: new Date().toISOString() })
-        .eq('id', notificationId)
-        .eq('user_id', userId);
-
+      const { error } = await supabase.functions.invoke('notifications-management', {
+        body: { action: 'mark_read', user_id: userId, notification_id: notificationId }
+      });
       if (error) throw error;
-
       setNotifications(prev => 
-        prev.map(n => 
-          n.id === notificationId 
-            ? { ...n, read_at: new Date().toISOString() }
-            : n
-        )
+        prev.map(n => n.id === notificationId ? { ...n, read_at: new Date().toISOString() } : n)
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {

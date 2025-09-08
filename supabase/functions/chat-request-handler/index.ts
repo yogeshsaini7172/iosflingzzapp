@@ -18,27 +18,30 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) throw new Error('No authorization header provided');
+    // Parse body early
+    const body = await req.json();
+    const { action, recipient_id, message, request_id, status, user_id: bodyUserId, sender_id } = body;
 
-    const token = authHeader.replace('Bearer ', '');
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
-    
-    const user = userData.user;
-    if (!user) throw new Error('User not authenticated');
-
-    const { action, recipient_id, message, request_id, status } = await req.json();
+    // Try Supabase auth, but fall back to user_id from body (Firebase-only auth)
+    let effectiveUserId: string | null = null;
+    const authHeader = req.headers.get('Authorization') || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.replace('Bearer ', '') : '';
+    if (token) {
+      const { data: userData } = await supabaseClient.auth.getUser(token);
+      effectiveUserId = userData?.user?.id ?? null;
+    }
+    if (!effectiveUserId) effectiveUserId = bodyUserId || sender_id || null;
+    if (!effectiveUserId) throw new Error('Missing user identity');
 
     if (action === 'send_request') {
       // Send chat request
       const { data: chatRequest, error: requestError } = await supabaseClient
         .from('chat_requests')
         .insert({
-          sender_id: user.id,
+          sender_id: effectiveUserId,
           recipient_id,
           message: message || 'Hi! I would love to chat with you 😊',
-          compatibility_score: Math.floor(Math.random() * 30) + 70 // Demo score
+          compatibility_score: Math.floor(Math.random() * 30) + 70
         })
         .select()
         .single();
@@ -53,24 +56,28 @@ serve(async (req) => {
           type: 'chat_request',
           title: 'New Chat Request 💬',
           message: `Someone wants to chat with you!`,
-          data: { sender_id: user.id, request_id: chatRequest.id }
+          data: { sender_id: effectiveUserId, request_id: chatRequest.id }
         });
 
-      return new Response(JSON.stringify({
-        success: true,
-        data: chatRequest
-      }), {
+      return new Response(JSON.stringify({ success: true, data: chatRequest }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       });
 
     } else if (action === 'respond_request') {
       // Respond to chat request (accept/decline)
+      const { data: existing, error: fetchErr } = await supabaseClient
+        .from('chat_requests')
+        .select('recipient_id, sender_id')
+        .eq('id', request_id)
+        .single();
+      if (fetchErr) throw fetchErr;
+      if (existing.recipient_id !== effectiveUserId) throw new Error('Unauthorized');
+
       const { data: updatedRequest, error: updateError } = await supabaseClient
         .from('chat_requests')
         .update({ status, updated_at: new Date().toISOString() })
         .eq('id', request_id)
-        .eq('recipient_id', user.id)
         .select()
         .single();
 
@@ -78,17 +85,13 @@ serve(async (req) => {
 
       if (status === 'accepted') {
         // Create chat room when request is accepted
-        const { data: chatRoom, error: roomError } = await supabaseClient.functions.invoke('chat-management', {
+        const { data: chatRoom } = await supabaseClient.functions.invoke('chat-management', {
           body: {
             action: 'create_room',
-            user_id: user.id,
+            user_id: effectiveUserId,
             other_user_id: updatedRequest.sender_id,
           }
         });
-
-        if (roomError) {
-          console.error('Chat room creation failed:', roomError);
-        }
 
         // Notify sender of acceptance
         await supabaseClient
@@ -102,16 +105,14 @@ serve(async (req) => {
           });
       }
 
-      return new Response(JSON.stringify({
-        success: true,
-        data: updatedRequest
-      }), {
+      return new Response(JSON.stringify({ success: true, data: updatedRequest }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       });
 
     } else if (action === 'get_requests') {
       // Get pending chat requests for user
+      const targetUserId = bodyUserId || sender_id || effectiveUserId;
       const { data: requests, error: requestsError } = await supabaseClient
         .from('chat_requests')
         .select(`
@@ -124,16 +125,13 @@ serve(async (req) => {
             university
           )
         `)
-        .eq('recipient_id', user.id)
+        .eq('recipient_id', targetUserId)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
       if (requestsError) throw requestsError;
 
-      return new Response(JSON.stringify({
-        success: true,
-        data: requests || []
-      }), {
+      return new Response(JSON.stringify({ success: true, data: requests || [] }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       });
@@ -144,11 +142,7 @@ serve(async (req) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('Chat request handler error:', errorMessage);
-    
-    return new Response(JSON.stringify({
-      success: false,
-      error: errorMessage
-    }), {
+    return new Response(JSON.stringify({ success: false, error: errorMessage }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
