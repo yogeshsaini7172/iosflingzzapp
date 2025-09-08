@@ -35,7 +35,7 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
     {
       id: 'basic',
       name: 'Basic',
-      price: '$9.99',
+      price: '$49',
       period: '/month',
       description: 'Enhanced features for better matches',
       icon: <Zap className="w-6 h-6 text-primary" />,
@@ -54,9 +54,9 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
     {
       id: 'premium',
       name: 'Premium',
-      price: '$19.99',
+      price: '$89',
       period: '/month',
-      description: 'Ultimate dating experience',
+      description: 'Advanced dating experience',
       icon: <Crown className="w-6 h-6 text-secondary" />,
       features: [
         'Everything in Basic',
@@ -71,6 +71,27 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
       buttonText: 'Go Premium',
       popular: false,
       color: 'border-secondary/50 bg-secondary/10'
+    },
+    {
+      id: 'elite',
+      name: 'Elite',
+      price: '$129',
+      period: '/month',
+      description: 'Ultimate dating experience',
+      icon: <Crown className="w-6 h-6 text-accent" />,
+      features: [
+        'Everything in Premium',
+        'VIP profile placement',
+        'Exclusive elite matches',
+        'Personal dating coach',
+        'Priority customer support',
+        'Advanced analytics',
+        'Custom filters',
+        'Exclusive events access'
+      ],
+      buttonText: 'Go Elite',
+      popular: false,
+      color: 'border-accent/50 bg-accent/10'
     }
   ];
 
@@ -122,7 +143,7 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
           {plans.map((plan) => (
             <Card 
               key={plan.id}
@@ -159,8 +180,13 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
                   ))}
                 </ul>
 
-                <Button 
-                  className={`w-full h-12 sm:h-12 text-sm sm:text-base font-medium ${plan.id === 'free' ? 'bg-gray-600 hover:bg-gray-700' : plan.id === 'basic' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-purple-600 hover:bg-purple-700'}`}
+                 <Button 
+                   className={`w-full h-12 sm:h-12 text-sm sm:text-base font-medium ${
+                     plan.id === 'free' ? 'bg-gray-600 hover:bg-gray-700' : 
+                     plan.id === 'basic' ? 'bg-blue-600 hover:bg-blue-700' : 
+                     plan.id === 'premium' ? 'bg-purple-600 hover:bg-purple-700' :
+                     'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700'
+                   }`}
                   onClick={(e) => {
                     e.stopPropagation();
                     handlePlanSelect(plan.id);

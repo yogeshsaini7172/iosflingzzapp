@@ -28,10 +28,9 @@ import { usePairing } from "@/hooks/usePairing";
 import UserSelector from "@/components/debug/UserSelector";
 import SwipeCards from "@/components/swipe/SwipeCards";
 import PairingMatches from "@/components/pairing/PairingMatches";
-import GhostBenchBar from "@/components/ui/ghost-bench-bar";
+import EnhancedProfileDisplay from "@/components/profile/EnhancedProfileDisplay";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import EnhancedProfileDisplay from "@/components/profile/EnhancedProfileDisplay";
 
 interface InstagramUIProps {
   onNavigate: (view: string) => void;
@@ -561,10 +560,6 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
           </div>
         </nav>
 
-        {/* Add GhostBenchBar for debugging */}
-        <div className="fixed bottom-20 left-4 z-50 opacity-30 hover:opacity-100 transition-opacity">
-          <GhostBenchBar onChatSelected={() => {}} />
-        </div>
       </div>
     </div>
   );

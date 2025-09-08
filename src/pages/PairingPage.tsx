@@ -95,14 +95,15 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
   useEffect(() => {
     const userId = getCurrentUserId();
     (async () => {
-      // Fetch current user's QCS from DB
+      // Fetch current user's QCS and requirements from DB
       const { data: profile } = await supabase
         .from('profiles')
-        .select('total_qcs')
+        .select('total_qcs, requirements')
         .eq('user_id', userId)
         .maybeSingle();
 
       setCurrentUser({ id: userId, profile: { total_qcs: profile?.total_qcs || 0 } });
+      setMyReq(parseJsonSafe(profile?.requirements));
       loadMatches(userId);
     })();
   }, [user]);
@@ -130,6 +131,10 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
         .map((c: any) => {
           const [first, ...rest] = (c.candidate_name || '').split(' ');
           const score = Math.round(Number(c.final_score));
+          
+          // Compute physical and mental scores based on requirements vs qualities
+          const { physical, mental } = computeScores(c);
+          
           return {
             user_id: c.candidate_id,
             first_name: first || 'User',
@@ -141,8 +146,8 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
             interests: c.candidate_interests || [],
             total_qcs: c.candidate_qcs || 0,
             compatibility_score: score,
-            physical_score: undefined,
-            mental_score: undefined,
+            physical_score: physical,
+            mental_score: mental,
           };
         })
         .sort((a: any, b: any) => (b.compatibility_score || 0) - (a.compatibility_score || 0));

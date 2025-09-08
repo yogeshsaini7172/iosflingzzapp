@@ -9,7 +9,7 @@ import { usePairing } from '@/hooks/usePairing';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import DetailedProfileModal from '@/components/profile/DetailedProfileModal';
-import GhostBenchBar from '@/components/ui/ghost-bench-bar';
+import { useAuth } from '@/contexts/AuthContext';
 import EnhancedChatSystem from '@/components/chat/EnhancedChatSystem';
 
 interface PairingMatch {
@@ -281,10 +281,6 @@ const PairingMatches: React.FC = () => {
         </Badge>
       </div>
 
-      {/* Ghost & Bench Management Bar */}
-      <div className="mb-6">
-        <GhostBenchBar onChatSelected={setMatchedChatId} />
-      </div>
 
       {/* Matches List */}
       <div className="space-y-3">

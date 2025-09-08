@@ -6,7 +6,7 @@ import { Heart, X, Filter, RefreshCw, Settings, MoreHorizontal } from "lucide-re
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import DetailedProfileModal from "@/components/profile/DetailedProfileModal";
-import GhostBenchBar from "@/components/ui/ghost-bench-bar";
+import { useAuth } from '@/contexts/AuthContext';
 import EnhancedChatSystem from "@/components/chat/EnhancedChatSystem";
 
 interface SwipeProfile {
@@ -297,7 +297,7 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
       <div className="max-w-md mx-auto space-y-6 p-4">
-        <GhostBenchBar onChatSelected={setMatchedChatId} />
+        
         
         {/* Premium Filters Bar */}
         <div className="flex gap-3 p-2">
