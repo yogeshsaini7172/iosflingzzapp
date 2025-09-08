@@ -241,42 +241,10 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
       setSwipeCount(prev => prev + 1);
       setCurrentImageIndex(0); // Reset image index for next profile
 
-      // Show toast for matches
-      if (direction === 'right') {
-        // Check for mutual like and ensure chat room
-        const { data: otherSwipe } = await supabase
-          .from('enhanced_swipes')
-          .select('*')
-          .eq('user_id', currentProfile.user_id)
-          .eq('target_user_id', userId)
-          .eq('direction', 'right')
-          .maybeSingle();
+      // No extra check needed here; edge function already handles mutual like,
+      // match creation, chat room creation, and notifications.
+      // We just continue to next profile.
 
-        if (otherSwipe) {
-          // Create or ensure chat room exists
-          const { data: roomResp, error: fnError } = await supabase.functions.invoke('chat-management', {
-            body: {
-              action: 'create_room',
-              user_id: userId,
-              other_user_id: currentProfile.user_id,
-            }
-          });
-
-          if (fnError) {
-            console.error('Chat room creation failed:', fnError);
-          }
-
-          toast({
-            title: "It's a Match! 💕",
-            description: `You and ${currentProfile.first_name} liked each other!`,
-          });
-        } else {
-          toast({
-            title: "Like sent! ❤️",
-            description: `Your like was sent to ${currentProfile.first_name}`,
-          });
-        }
-      }
 
     } catch (error) {
       console.error('Error handling swipe:', error);

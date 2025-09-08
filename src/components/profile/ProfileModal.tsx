@@ -29,54 +29,18 @@ const ProfileModal = ({ profile, isOpen, onClose, onChat }: ProfileModalProps) =
 
     try {
       if (type === 'like') {
-        // Create swipe record
-        const { error: swipeError } = await supabase
-          .from("enhanced_swipes")
-          .insert({
+        // Route likes through the edge function so the server creates matches/chats/notifications
+        const { data: resp, error: invokeError } = await supabase.functions.invoke('enhanced-swipe-action', {
+          body: {
             user_id: userId,
             target_user_id: profile.user_id,
-            direction: 'right'
-          });
+            direction: 'right',
+          },
+        });
 
-        if (swipeError) throw swipeError;
+        if (invokeError) throw invokeError;
 
-        // Check if other user already swiped right
-        const { data: otherSwipe } = await supabase
-          .from("enhanced_swipes")
-          .select("*")
-          .eq("user_id", profile.user_id)
-          .eq("target_user_id", userId)
-          .eq("direction", "right")
-          .single();
-
-        if (otherSwipe) {
-          // Create match and chat room
-          const { data: match, error: matchError } = await supabase
-            .from("enhanced_matches")
-            .insert({
-              user1_id: userId,
-              user2_id: profile.user_id,
-              status: 'matched',
-              user1_swiped: true,
-              user2_swiped: true
-            })
-            .select()
-            .single();
-
-          if (matchError) throw matchError;
-
-          const { data: chatRoom, error: chatError } = await supabase
-            .from("chat_rooms")
-            .insert({
-              match_id: match.id,
-              user1_id: userId,
-              user2_id: profile.user_id
-            })
-            .select()
-            .single();
-
-          if (chatError) throw chatError;
-
+        if (resp?.matched) {
           toast({
             title: "It's a Match! 🎉",
             description: "You can now start chatting!",
