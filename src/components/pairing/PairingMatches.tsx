@@ -31,6 +31,7 @@ const PairingMatches: React.FC = () => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [matchedChatId, setMatchedChatId] = useState<string>("");
   const [scoringLoading, setScoringLoading] = useState<boolean>(true);
+  const [refreshKey, setRefreshKey] = useState(0); // 🔄 trigger recompute on realtime
   const { toast } = useToast();
 
   useEffect(() => {
@@ -115,7 +116,20 @@ const PairingMatches: React.FC = () => {
     };
 
     runDeterministicPairing();
-  }, [pairedProfiles]);
+  }, [pairedProfiles, refreshKey]);
+
+  // 🔴 Realtime: recompute when matches/profiles change
+  useEffect(() => {
+    const channel = supabase
+      .channel('pairing-matches-rt')
+      .on('postgres_changes', { schema: 'public', table: 'enhanced_matches', event: '*' }, () => setRefreshKey((k) => k + 1))
+      .on('postgres_changes', { schema: 'public', table: 'profiles', event: '*' }, () => setRefreshKey((k) => k + 1))
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const handleChatRequest = async (matchId: string, canChat: boolean) => {
     const userId = getCurrentUserId();

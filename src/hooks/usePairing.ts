@@ -74,6 +74,21 @@ export const usePairing = () => {
 
   useEffect(() => {
     fetchPairedProfiles();
+
+    // Realtime: refetch when profiles or enhanced_matches change
+    const channel = supabase
+      .channel('pairing-feed-realtime')
+      .on('postgres_changes', { schema: 'public', table: 'profiles', event: '*' }, () => {
+        fetchPairedProfiles();
+      })
+      .on('postgres_changes', { schema: 'public', table: 'enhanced_matches', event: '*' }, () => {
+        fetchPairedProfiles();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return {
