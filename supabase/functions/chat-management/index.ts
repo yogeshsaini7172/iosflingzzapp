@@ -180,7 +180,7 @@ serve(async (req) => {
           .maybeSingle()
 
         let matchForHistory = enhancedMatchForHistory
-        let isFromEnhanced = !!enhancedMatchForHistory
+        let isFromEnhancedHistory = !!enhancedMatchForHistory
 
         if (!matchForHistory) {
           const { data: legacyMatchForHistory } = await supabaseClient
@@ -189,7 +189,7 @@ serve(async (req) => {
             .eq('id', match_id)
             .maybeSingle()
           matchForHistory = legacyMatchForHistory
-          isFromEnhanced = false
+          isFromEnhancedHistory = false
         }
 
         if (!matchForHistory) {
@@ -197,11 +197,11 @@ serve(async (req) => {
         }
 
         // Check authorization based on table schema
-        const isAuthorized = isFromEnhanced 
+        const isAuthorizedHistory = isFromEnhancedHistory 
           ? (matchForHistory.user1_id === authedUser.id || matchForHistory.user2_id === authedUser.id)
           : (matchForHistory.liker_id === authedUser.id || matchForHistory.liked_id === authedUser.id)
 
-        if (!isAuthorized) {
+        if (!isAuthorizedHistory) {
           throw new Error('Unauthorized: You are not part of this match');
         }
 
