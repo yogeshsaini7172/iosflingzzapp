@@ -199,14 +199,22 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
           preferred_body_types: profileData.preferredBodyShape,
           preferred_skin_types: profileData.preferredSkinType,
           preferred_gender: profileData.preferredGender,
+          // Age requirements
+          age_range_min: profileData.ageRangeMin,
+          age_range_max: profileData.ageRangeMax,
           // Mental/Personality requirements
           preferred_humor_styles: profileData.preferredHumorStyle,
           preferred_personality_types: profileData.preferredPersonalityType,
           preferred_relationship_goals: profileData.preferredRelationshipGoal,
           preferred_lifestyle_habits: profileData.preferredLifestyleHabits,
-          // Age preferences
-          age_range_min: profileData.ageRangeMin,
-          age_range_max: profileData.ageRangeMax
+          // Additional mental preferences
+          preferred_interests: [], // Could be expanded to collect specific interests
+          preferred_love_languages: [], // Could be expanded to collect specific love languages
+          preferred_communication_style: [], // Could be expanded to collect communication preferences
+          // Compatibility requirements
+          min_shared_interests: 2, // Minimum number of shared interests desired
+          personality_compatibility: "moderate", // How important personality match is
+          lifestyle_compatibility: "important" // How important lifestyle match is
         })
       };
 
