@@ -22,7 +22,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<'idle' | 'pending' | 'verified' | 'failed'>('idle');
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, supabaseUserId } = useAuth();
   const { uploadMultipleImages, uploading } = useImageUpload();
 
   // Profile Data State
@@ -102,13 +102,14 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
     try {
       setIsLoading(true);
       
-      // Require authenticated user
+      // Require authenticated session
       if (!user) {
         toast({ title: "Please sign in first", description: "Login before completing your profile.", variant: "destructive" });
         setIsLoading(false);
         return;
       }
-      const userId = user.uid;
+      // Prefer Supabase Auth user id for RLS compatibility
+      const userId = supabaseUserId || user.uid;
       
       // Upload profile images to Supabase Storage first
       let imageUrls: string[] = [];
