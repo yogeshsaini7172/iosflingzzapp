@@ -7,6 +7,7 @@ import { Check, Crown, Star, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface SubscriptionSelectionPageProps {
   onComplete: (tier: string) => void;
@@ -16,6 +17,7 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
   const [selectedPlan, setSelectedPlan] = useState<string>('');
   const { toast } = useToast();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const plans = [
     {
@@ -113,8 +115,8 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
         description: planId === 'free' ? 'You can upgrade anytime from your profile settings.' : 'Redirecting to the app...'
       });
       onComplete(planId);
-      // Hard redirect to ensure leaving setup flow
-      setTimeout(() => { window.location.href = '/'; }, 50);
+      // Navigate into the main app without full reload to preserve auth state
+      navigate('/swipe', { replace: true });
     } catch (err: any) {
       console.error('Failed to set subscription tier:', err);
       toast({ title: 'Subscription error', description: 'Please try again.', variant: 'destructive' });
