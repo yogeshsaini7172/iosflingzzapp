@@ -258,15 +258,27 @@ serve(async (req) => {
       });
     }
 
-    // Minimal verification: validate Firebase issuer/audience and extract UID
+    // Validate Firebase issuer/audience and extract UID safely (base64url decode)
     const serviceAccountJson = Deno.env.get('FIREBASE_SERVICE_ACCOUNT_JSON');
     try {
       if (!serviceAccountJson) throw new Error('Firebase service account not configured');
       const serviceAccount = JSON.parse(serviceAccountJson);
-      const payload = JSON.parse(atob(idToken.split('.')[1]));
-      if (!payload.iss?.includes('firebase') || !payload.aud?.includes(serviceAccount.project_id)) {
-        throw new Error('Invalid token');
+      const projectId = serviceAccount.project_id as string;
+
+      const parts = idToken.split('.');
+      if (parts.length < 2) throw new Error('Malformed token');
+      const base64Url = parts[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(base64Url.length / 4) * 4, '=');
+      const payload = JSON.parse(atob(base64));
+
+      const expectedIss = `https://securetoken.google.com/${projectId}`;
+      const issOk = typeof payload.iss === 'string' && payload.iss === expectedIss;
+      const audOk = typeof payload.aud === 'string' && payload.aud === projectId;
+      const subOk = typeof payload.sub === 'string' && payload.sub.length > 0;
+      if (!issOk || !audOk || !subOk) {
+        throw new Error('Invalid token claims');
       }
+
       var userId = payload.sub as string;
     } catch (_e) {
       return new Response(JSON.stringify({ error: 'Invalid token' }), {
