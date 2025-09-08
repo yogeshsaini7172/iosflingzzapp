@@ -74,16 +74,19 @@ const Index = ({ onProfileComplete, showSubscription }: IndexProps) => {
       return (
         <ProfileSetupFlow 
           onComplete={async () => {
-            console.log('Profile setup complete, triggering recheck...');
+            console.log('🎯 Profile setup complete, triggering recheck...');
             setHasProfile(true);
             
             // Trigger parent recheck and wait for it
             if (onProfileComplete) {
+              console.log('⏳ Calling onProfileComplete...');
               const profileCompleted = await onProfileComplete();
-              console.log('Parent recheck completed:', profileCompleted);
+              console.log('✅ Parent recheck completed:', profileCompleted);
               
-              // If recheck confirms profile is complete, the parent App will handle navigation
-              // No need for page refresh as App.tsx will re-render with hasProfile = true
+              // Force a small delay to ensure state updates propagate
+              setTimeout(() => {
+                console.log('🔄 Profile setup flow completed, app should redirect now');
+              }, 100);
             }
           }}
         />

@@ -263,7 +263,21 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       console.log('Profile completion successful:', profileResult);
       toast({ title: "Profile Setup Complete! 🎉", description: `Your QCS score: ${totalScore}/100. Ready to start!` });
 
-      // Skip subscription page and go directly to app
+      console.log('🔧 Setting default free subscription tier...');
+      // Set default free subscription tier in database before completing
+      const { error: subscriptionError } = await supabase
+        .from('profiles')
+        .update({ subscription_tier: 'free' })
+        .eq('user_id', userId);
+
+      if (subscriptionError) {
+        console.error('❌ Error setting default subscription:', subscriptionError);
+      } else {
+        console.log('✅ Default subscription tier set to free');
+      }
+
+      console.log('🎯 Calling onComplete to trigger redirect...');
+      // Now complete and trigger redirect to main app
       onComplete();
     } catch (error: any) {
       console.error('Profile creation error:', error);
