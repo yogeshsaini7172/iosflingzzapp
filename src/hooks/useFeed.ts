@@ -19,7 +19,7 @@ export function useFeed(initialLimit = 12) {
   const [items, setItems] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const { user } = useAuth();
+  const { accessToken } = useAuth();
 
   const fetchNext = useCallback(
     async (limit = initialLimit, filters: { ageMin?: number; ageMax?: number; gender?: string } = {}) => {
@@ -37,9 +37,8 @@ export function useFeed(initialLimit = 12) {
         if (filters.ageMax) params.set("age_max", String(filters.ageMax));
         if (filters.gender && filters.gender !== "all") params.set("gender", filters.gender);
         
-        // Get session token
-        const session = await supabase.auth.getSession();
-        const token = session.data.session?.access_token;
+        // Get Firebase token
+        const token = accessToken;
         
         // Call the Supabase Edge Function
         const { data: response, error } = await supabase.functions.invoke('get-feed', {
@@ -77,9 +76,8 @@ export function useFeed(initialLimit = 12) {
       if (filters.ageMax) params.set("age_max", String(filters.ageMax));
       if (filters.gender && filters.gender !== "all") params.set("gender", filters.gender);
       
-      // Get session token
-      const session = await supabase.auth.getSession();
-      const token = session.data.session?.access_token;
+      // Get Firebase token
+      const token = accessToken;
       
       // Call the Supabase Edge Function
       const { data: response, error } = await supabase.functions.invoke('get-feed', {
@@ -110,13 +108,12 @@ export function useFeed(initialLimit = 12) {
 
   const swipeProfile = useCallback(async (profileId: string, userId: string, type: "like" | "pass") => {
     try {
-      // Get session token
-      const session = await supabase.auth.getSession();
-      const token = session.data.session?.access_token;
+      // Get Firebase token
+      const token = accessToken;
       
       // Call the swipe Edge Function
       const { data: response, error } = await supabase.functions.invoke('swipe', {
-        body: { to_user_id: userId, type, from_user_id: user?.uid },
+        body: { to_user_id: userId, type, from_user_id: userId },
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
       
@@ -132,7 +129,7 @@ export function useFeed(initialLimit = 12) {
       console.error("❌ Swipe error:", err);
       throw err;
     }
-  }, [removeItem]);
+  }, [removeItem, accessToken]);
 
   return {
     items,

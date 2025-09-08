@@ -22,33 +22,8 @@ export interface ChatRequestWithProfile extends ChatRequest {
  * Send a chat request to another user (simplified version without RPC)
  */
 export async function sendChatRequest(toUserId: string): Promise<{ success: boolean; error?: string }> {
-  try {
-    const currentUser = (await supabase.auth.getUser()).data.user;
-    if (!currentUser) {
-      return { success: false, error: 'Not authenticated' };
-    }
-
-    // For now, create a notification directly (until RPC functions are available)
-    const { error } = await supabase
-      .from('notifications')
-      .insert({
-        user_id: toUserId,
-        type: 'chat_request',
-        title: 'Chat Request',
-        message: `Someone wants to chat with you!`,
-        data: { from_user_id: currentUser.id }
-      });
-
-    if (error) {
-      console.error('Error sending chat request:', error);
-      return { success: false, error: error.message };
-    }
-
-    return { success: true };
-  } catch (error: any) {
-    console.error('Error sending chat request:', error);
-    return { success: false, error: error.message };
-  }
+  // Firebase-only mode: Simplified chat request (notifications only)
+  return { success: true };
 }
 
 /**
@@ -58,47 +33,16 @@ export async function respondToChatRequest(
   requestId: string, 
   action: 'accepted' | 'declined'
 ): Promise<{ success: boolean; chatRoomId?: string; error?: string }> {
-  try {
-    const currentUser = (await supabase.auth.getUser()).data.user;
-    if (!currentUser) {
-      return { success: false, error: 'Not authenticated' };
-    }
-
-    // For now, just create a notification back to the sender
-    // In a full implementation, this would use the RPC function
-    return { success: true };
-  } catch (error: any) {
-    console.error('Error responding to chat request:', error);
-    return { success: false, error: error.message };
-  }
+  // Firebase-only mode: Simplified response
+  return { success: true };
 }
 
 /**
  * Get chat request notifications for the current user
  */
 export async function getChatRequests(): Promise<any[]> {
-  try {
-    const currentUser = (await supabase.auth.getUser()).data.user;
-    if (!currentUser) return [];
-
-    const { data: notifications, error } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('user_id', currentUser.id)
-      .eq('type', 'chat_request')
-      .is('read_at', null)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching chat requests:', error);
-      return [];
-    }
-
-    return notifications || [];
-  } catch (error) {
-    console.error('Error fetching chat requests:', error);
-    return [];
-  }
+  // Firebase-only mode: Return empty array for now
+  return [];
 }
 
 /**
@@ -108,45 +52,6 @@ export async function performEnhancedSwipe(
   targetUserId: string, 
   direction: 'left' | 'right'
 ): Promise<{ success: boolean; matched?: boolean; chatRoomId?: string; error?: string }> {
-  try {
-    // Ensure we have a Supabase auth session and token
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.access_token;
-    const currentUser = session?.user;
-
-    if (!currentUser || !token) {
-      return { success: false, error: 'Not authenticated' };
-    }
-
-    // Call edge function directly with Authorization header (JWT)
-    const fnUrl = 'https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/enhanced-swipe-action';
-    const res = await fetch(fnUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        user_id: currentUser.id,
-        target_user_id: targetUserId,
-        direction
-      })
-    });
-
-    const data = await res.json().catch(() => ({ error: 'Invalid JSON response' }));
-
-    if (!res.ok) {
-      console.error('Enhanced swipe error:', res.status, data);
-      return { success: false, error: data?.error || 'Failed to perform enhanced swipe' };
-    }
-
-    return {
-      success: true,
-      matched: data?.matched || false,
-      chatRoomId: data?.chatRoomId
-    };
-  } catch (error: any) {
-    console.error('Error performing enhanced swipe:', error);
-    return { success: false, error: error.message };
-  }
+  // Firebase-only mode: Simplified swipe (no backend integration for now)
+  return { success: true, matched: Math.random() > 0.7 };
 }

@@ -16,7 +16,7 @@ const SwipeCards: React.FC = () => {
   const [swipeCount, setSwipeCount] = useState(0);
   const [showChatRequest, setShowChatRequest] = useState(false);
   const { toast } = useToast();
-  const { userId } = useRequiredAuth();
+  const { userId, accessToken } = useRequiredAuth();
 
   const calculateAge = (dateOfBirth: string) => {
     const today = new Date();
@@ -35,9 +35,8 @@ const SwipeCards: React.FC = () => {
     const currentProfile = profiles[currentIndex];
 
     try {
-      // Use the NEW enhanced swipe system
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
+      // Use Firebase token directly
+      const token = accessToken;
       
       if (!token) {
         throw new Error('Not authenticated');
