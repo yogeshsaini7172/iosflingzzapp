@@ -43,18 +43,30 @@ serve(async (req) => {
         }
         if (!authedUser) throw new Error('User not authenticated');
 
-        // Check if match already exists
-        const { data: existingMatches } = await supabaseClient
-          .from('matches')
+        // Check if match already exists in enhanced_matches (preferred) 
+        const { data: existingEnhanced } = await supabaseClient
+          .from('enhanced_matches')
           .select('*')
-          .or(
-            `and(liker_id.eq.${authedUser.id},liked_id.eq.${candidate_id}),and(liker_id.eq.${candidate_id},liked_id.eq.${authedUser.id})`
-          );
+          .or(`and(user1_id.eq.${authedUser.id},user2_id.eq.${candidate_id}),and(user1_id.eq.${candidate_id},user2_id.eq.${authedUser.id})`)
+          .maybeSingle()
 
-        if (existingMatches && existingMatches.length > 0) {
+        let existingMatch = existingEnhanced
+
+        if (!existingMatch) {
+          // fallback to legacy matches table if present
+          const { data: legacyMatches } = await supabaseClient
+            .from('matches')
+            .select('*')
+            .or(`and(liker_id.eq.${authedUser.id},liked_id.eq.${candidate_id}),and(liker_id.eq.${candidate_id},liked_id.eq.${authedUser.id})`)
+            .maybeSingle()
+
+          existingMatch = legacyMatches
+        }
+
+        if (existingMatch) {
           return new Response(JSON.stringify({
             success: true,
-            data: { match_id: existingMatches[0].id, status: existingMatches[0].status },
+            data: { match_id: existingMatch.id, status: existingMatch.status },
             message: 'Chat already exists'
           }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -62,13 +74,18 @@ serve(async (req) => {
           });
         }
 
-        // Create new match
+        // Create new enhanced match
+        const user1_id = authedUser.id < candidate_id ? authedUser.id : candidate_id
+        const user2_id = authedUser.id < candidate_id ? candidate_id : authedUser.id
+
         const { data: newMatch, error: matchError } = await supabaseClient
-          .from('matches')
+          .from('enhanced_matches')
           .insert({
-            liker_id: authedUser.id,
-            liked_id: candidate_id,
+            user1_id,
+            user2_id,
             status: 'matched',
+            user1_swiped: true,
+            user2_swiped: true,
             created_at: new Date().toISOString()
           })
           .select()
@@ -92,14 +109,36 @@ serve(async (req) => {
         }
         if (!authedUser) throw new Error('User not authenticated');
 
-        // Verify user is part of this match
-        const { data: match } = await supabaseClient
-          .from('matches')
+        // Verify user is part of this match (check both tables)
+        const { data: enhancedMatch } = await supabaseClient
+          .from('enhanced_matches')
           .select('*')
           .eq('id', match_id)
-          .single();
+          .maybeSingle()
 
-        if (!match || (match.liker_id !== authedUser.id && match.liked_id !== authedUser.id)) {
+        let match = enhancedMatch
+        let isFromEnhanced = !!enhancedMatch
+
+        if (!match) {
+          const { data: legacyMatch } = await supabaseClient
+            .from('matches')
+            .select('*')
+            .eq('id', match_id)
+            .maybeSingle()
+          match = legacyMatch
+          isFromEnhanced = false
+        }
+
+        if (!match) {
+          throw new Error('Match not found');
+        }
+
+        // Check authorization based on table schema
+        const isAuthorized = isFromEnhanced 
+          ? (match.user1_id === authedUser.id || match.user2_id === authedUser.id)
+          : (match.liker_id === authedUser.id || match.liked_id === authedUser.id)
+
+        if (!isAuthorized) {
           throw new Error('Unauthorized: You are not part of this match');
         }
 
@@ -133,14 +172,36 @@ serve(async (req) => {
         }
         if (!authedUser) throw new Error('User not authenticated');
 
-        // Verify user is part of this match
-        const { data: matchForHistory } = await supabaseClient
-          .from('matches')
+        // Verify user is part of this match (check both tables)
+        const { data: enhancedMatchForHistory } = await supabaseClient
+          .from('enhanced_matches')
           .select('*')
           .eq('id', match_id)
-          .single();
+          .maybeSingle()
 
-        if (!matchForHistory || (matchForHistory.liker_id !== authedUser.id && matchForHistory.liked_id !== authedUser.id)) {
+        let matchForHistory = enhancedMatchForHistory
+        let isFromEnhanced = !!enhancedMatchForHistory
+
+        if (!matchForHistory) {
+          const { data: legacyMatchForHistory } = await supabaseClient
+            .from('matches')
+            .select('*')
+            .eq('id', match_id)
+            .maybeSingle()
+          matchForHistory = legacyMatchForHistory
+          isFromEnhanced = false
+        }
+
+        if (!matchForHistory) {
+          throw new Error('Match not found');
+        }
+
+        // Check authorization based on table schema
+        const isAuthorized = isFromEnhanced 
+          ? (matchForHistory.user1_id === authedUser.id || matchForHistory.user2_id === authedUser.id)
+          : (matchForHistory.liker_id === authedUser.id || matchForHistory.liked_id === authedUser.id)
+
+        if (!isAuthorized) {
           throw new Error('Unauthorized: You are not part of this match');
         }
 
