@@ -76,30 +76,97 @@ serve(async (req) => {
       if (matchError) {
         console.error('Error checking for match:', matchError)
       } else if (otherSwipe) {
-        // Use the stored procedure for atomic match creation
+        // Create match and chat room directly using service role client
         try {
-          const { data, error: rpcError } = await supabaseClient.rpc('create_match_and_chat', {
-            p_actor_id: user_id,
-            p_a: user_id,
-            p_b: target_user_id
-          })
+          // Determine deterministic user ordering
+          const user1 = user_id < target_user_id ? user_id : target_user_id;
+          const user2 = user_id < target_user_id ? target_user_id : user_id;
 
-          if (rpcError) {
-            console.error('RPC error:', rpcError)
-            throw rpcError
+          // Insert or get existing match
+          const { data: matchData, error: matchError } = await supabaseClient
+            .from('enhanced_matches')
+            .upsert({ 
+              user1_id: user1, 
+              user2_id: user2, 
+              status: 'matched' 
+            }, { 
+              onConflict: 'user1_id,user2_id',
+              ignoreDuplicates: false 
+            })
+            .select('id')
+            .single();
+
+          if (matchError) {
+            console.error('Match creation error:', matchError);
+            throw matchError;
           }
 
-          if (data) {
-            matchResult = data
-            isMatch = true
-            chatRoomId = data.chat_room_id
-            console.log(`🎉 Match created atomically between users ${user_id} and ${target_user_id}`, data)
+          const matchId = matchData.id;
+
+          // Create or get chat room
+          const { data: chatData, error: chatError } = await supabaseClient
+            .from('chat_rooms')
+            .upsert({
+              match_id: matchId,
+              user1_id: user1,
+              user2_id: user2
+            }, {
+              onConflict: 'match_id',
+              ignoreDuplicates: false
+            })
+            .select('id')
+            .single();
+
+          if (chatError) {
+            console.error('Chat room creation error:', chatError);
+            throw chatError;
           }
+
+          chatRoomId = chatData.id;
+
+          // Create notifications for both users
+          const notifications = [
+            {
+              user_id: user1,
+              type: 'new_match',
+              title: 'It\'s a Match! 🎉',
+              message: 'You have a new match — say hi!',
+              data: { 
+                enhanced_match_id: matchId, 
+                chat_room_id: chatRoomId, 
+                other_user_id: user2 
+              }
+            },
+            {
+              user_id: user2,
+              type: 'new_match',
+              title: 'It\'s a Match! 🎉',
+              message: 'You have a new match — say hi!',
+              data: { 
+                enhanced_match_id: matchId, 
+                chat_room_id: chatRoomId, 
+                other_user_id: user1 
+              }
+            }
+          ];
+
+          const { error: notifError } = await supabaseClient
+            .from('notifications')
+            .upsert(notifications, { ignoreDuplicates: true });
+
+          if (notifError) {
+            console.error('Notification creation error:', notifError);
+            // Don't throw - match still created successfully
+          }
+
+          isMatch = true;
+          matchResult = { match_id: matchId, chat_room_id: chatRoomId };
+          console.log(`🎉 Match created between users ${user_id} and ${target_user_id}`, matchResult);
 
         } catch (err) {
-          console.error('Error in atomic match creation:', err)
+          console.error('Error in match creation:', err);
           // Fallback: still indicate match detected but may not have completed server setup
-          isMatch = true
+          isMatch = true;
         }
       }
     }
