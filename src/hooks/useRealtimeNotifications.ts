@@ -15,7 +15,7 @@ interface Notification {
 }
 
 export function useRealtimeNotifications() {
-  const { user } = useAuth();
+  const { userId } = useAuth();
   const { toast } = useToast();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -25,12 +25,10 @@ export function useRealtimeNotifications() {
     let isMounted = true;
 
     (async () => {
-      if (!user) return;
+      if (!userId) return;
 
-      // Ensure Supabase auth session exists before subscribing
-      const { data: { session } } = await supabase.auth.getSession();
-      const authedUserId = session?.user?.id;
-      if (!authedUserId) return;
+      // Use Firebase UID directly
+      const authedUserId = userId;
 
       // Fetch initial notifications
       const { data, error } = await supabase
@@ -98,7 +96,7 @@ export function useRealtimeNotifications() {
         supabase.removeChannel(channel);
       }
     };
-  }, [user, toast]);
+  }, [userId, toast]);
 
   const markAsRead = async (notificationId: string) => {
     const { error } = await supabase
@@ -119,12 +117,12 @@ export function useRealtimeNotifications() {
   };
 
   const markAllAsRead = async () => {
-    if (!user) return;
+    if (!userId) return;
 
     const { error } = await supabase
       .from('notifications')
       .update({ read_at: new Date().toISOString() })
-      .eq('user_id', user.uid)
+      .eq('user_id', userId)
       .is('read_at', null);
 
     if (!error) {
