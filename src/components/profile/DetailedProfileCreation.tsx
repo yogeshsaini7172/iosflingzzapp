@@ -176,23 +176,37 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
         swipes_left: 10,
         // Add qualities and requirements for proper scoring
         qualities: JSON.stringify({
+          // Physical qualities
           height: profileData.height ? parseInt(profileData.height) : null,
           body_type: profileData.bodyType || null,
           skin_tone: profileData.skinTone || null,
           face_type: profileData.faceType || null,
+          // Mental/Personality qualities
           personality_type: profileData.personalityType || null,
           humor_type: profileData.humorStyle || null,
-          love_language: profileData.loveLanguage || null
+          love_language: profileData.loveLanguage || null,
+          relationship_goal: profileData.relationshipGoal || null,
+          interests: profileData.interests || [],
+          hobbies: profileData.hobbies || [],
+          // Bio-derived qualities (simplified for now)
+          communication_style: profileData.bio ? "expressive" : "reserved",
+          profile_completeness: profileData.bio ? "detailed" : "basic"
         }),
         requirements: JSON.stringify({
+          // Physical requirements
           height_range_min: profileData.heightRangeMin,
           height_range_max: profileData.heightRangeMax,
           preferred_body_types: profileData.preferredBodyShape,
           preferred_skin_types: profileData.preferredSkinType,
+          preferred_gender: profileData.preferredGender,
+          // Mental/Personality requirements
           preferred_humor_styles: profileData.preferredHumorStyle,
           preferred_personality_types: profileData.preferredPersonalityType,
           preferred_relationship_goals: profileData.preferredRelationshipGoal,
-          preferred_gender: profileData.preferredGender
+          preferred_lifestyle_habits: profileData.preferredLifestyleHabits,
+          // Age preferences
+          age_range_min: profileData.ageRangeMin,
+          age_range_max: profileData.ageRangeMax
         })
       };
 
