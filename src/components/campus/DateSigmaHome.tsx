@@ -35,6 +35,7 @@ import UnifiedLayout from '@/components/layout/UnifiedLayout';
 import ProfileImageHandler from '@/components/common/ProfileImageHandler';
 import { useAuth } from '@/contexts/AuthContext';
 import { useThreads } from '@/hooks/useThreads';
+import { AuthStatusChecker } from '@/components/debug/AuthStatusChecker';
 
 // Thread interface now comes from useThreads hook
 
@@ -295,6 +296,11 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
             />
           </div>
         </div>
+      </div>
+
+      {/* Temporary Auth Status Checker */}
+      <div className="px-4 py-2">
+        <AuthStatusChecker />
       </div>
 
       {/* Threads Section */}
