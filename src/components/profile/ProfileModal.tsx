@@ -6,6 +6,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Heart, MessageCircle, Ghost, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProfileModalProps {
   profile: any;
@@ -17,28 +19,37 @@ interface ProfileModalProps {
 const ProfileModal = ({ profile, isOpen, onClose, onChat }: ProfileModalProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-
-    const getCurrentUserId = () => {
-      // Bypass auth - use default user ID for database operations
-      return '11111111-1111-1111-1111-111111111001'; // Default Alice user
-    };
+  const { userId } = useAuth();
 
   const handleInteraction = async (type: 'like' | 'ghost' | 'bench') => {
+    if (!userId) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to continue",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsLoading(true);
-    const userId = getCurrentUserId();
 
     try {
       if (type === 'like') {
         // Route likes through the edge function so the server creates matches/chats/notifications
-        const { data: resp, error: invokeError } = await supabase.functions.invoke('enhanced-swipe-action', {
-          body: {
-            user_id: userId,
+        const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/enhanced-swipe-action', {
+          method: 'POST',
+          body: JSON.stringify({
             target_user_id: profile.user_id,
             direction: 'right',
-          },
+          })
         });
 
-        if (invokeError) throw invokeError;
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to process like');
+        }
+
+        const resp = await response.json();
 
         if (resp?.matched) {
           toast({

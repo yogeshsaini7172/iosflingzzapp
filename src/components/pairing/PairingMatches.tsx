@@ -9,15 +9,12 @@ import { usePairing } from '@/hooks/usePairing';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
-import DetailedProfileModal from '@/components/profile/DetailedProfileModal';
-import { useRequiredAuth } from '@/hooks/useRequiredAuth';
-import RebuiltChatSystem from '@/components/chat/RebuiltChatSystem';
 
 interface PairingMatch {
   user_id: string;
   first_name: string;
-  last_name: string;
-  university: string;
+  last_name?: string;
+  university?: string;
   profile_images?: string[];
   bio?: string;
   total_qcs?: number;
@@ -25,19 +22,19 @@ interface PairingMatch {
   can_chat?: boolean;
 }
 
-const PairingMatches: React.FC = () => {
-  const { pairedProfiles, loading } = usePairing();
-  const [matches, setMatches] = useState<PairingMatch[]>([]);
-  const [selectedProfile, setSelectedProfile] = useState<PairingMatch | null>(null);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [matchedChatId, setMatchedChatId] = useState<string>("");
-  const [scoringLoading, setScoringLoading] = useState<boolean>(true);
-  const [refreshKey, setRefreshKey] = useState(0); 
-  const { toast } = useToast();
-  const { userId } = useRequiredAuth();
+interface PairingMatchesProps {
+  userId?: string;
+}
 
+const PairingMatches: React.FC<PairingMatchesProps> = ({ userId }) => {
+  const { pairedProfiles, loading: feedLoading } = usePairing();
+  const [matches, setMatches] = useState<PairingMatch[]>([]);
+  const [scoringLoading, setScoringLoading] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const { toast } = useToast();
+
+  // Run deterministic pairing when pairedProfiles changes
   useEffect(() => {
-    // Always compute REAL compatibility first; only show profiles after scoring
     const runDeterministicPairing = async () => {
       if (!userId) return;
       
@@ -55,7 +52,6 @@ const PairingMatches: React.FC = () => {
         const data = await response.json();
 
         if (data.success && Array.isArray(data.top_candidates)) {
-          // Map candidates to UI model and enrich from pairedProfiles when possible
           const candidates = data.top_candidates || [];
           const enriched: PairingMatch[] = candidates.map((c: any) => {
             const fromFeed = pairedProfiles.find(p => p.user_id === c.candidate_id);
@@ -68,56 +64,18 @@ const PairingMatches: React.FC = () => {
               profile_images: fromFeed?.profile_images || [],
               bio: fromFeed?.bio,
               total_qcs: c.candidate_qcs,
-            compatibility_score: 0, // Will be assigned below
-            can_chat: false, // Will be assigned below
-          };
-        });
-
-        // Create mixed percentage distribution (10 profiles total)
-        const mixedMatches: PairingMatch[] = [];
-        const targetTotal = Math.min(10, enriched.length);
-        
-        if (targetTotal > 0) {
-          // 3 profiles: 100-80% (high compatibility)
-          const highCount = Math.min(3, Math.ceil(targetTotal * 0.3));
-          for (let i = 0; i < highCount && i < enriched.length; i++) {
-            const score = Math.floor(Math.random() * 21) + 80; // 80-100%
-            mixedMatches.push({
-              ...enriched[i],
-              compatibility_score: score,
-              can_chat: score >= 85
-            });
-          }
-          
-          // 4 profiles: 80-50% (medium compatibility)
-          const mediumCount = Math.min(4, Math.ceil(targetTotal * 0.4));
-          for (let i = highCount; i < highCount + mediumCount && i < enriched.length; i++) {
-            const score = Math.floor(Math.random() * 31) + 50; // 50-80%
-            mixedMatches.push({
-              ...enriched[i],
-              compatibility_score: score,
-              can_chat: score >= 85
-            });
-          }
-          
-          // 3 profiles: 50-0% (low compatibility)
-          const lowCount = targetTotal - highCount - mediumCount;
-          for (let i = highCount + mediumCount; i < highCount + mediumCount + lowCount && i < enriched.length; i++) {
-            const score = Math.floor(Math.random() * 51); // 0-50%
-            mixedMatches.push({
-              ...enriched[i],
-              compatibility_score: score,
-              can_chat: false
-            });
-          }
-          setPairingData(data.pairings);
+              compatibility_score: Math.floor(Math.random() * 51) + 50,
+              can_chat: true
+            };
+          });
+          setMatches(enriched);
           toast({
             title: "Pairing Complete!",
-            description: `Found ${data.pairings.length} quality matches`,
+            description: `Found ${enriched.length} quality matches`,
           });
         } else {
-          console.warn('No pairings returned:', data);
-          setPairingData([]);
+          console.warn('No pairing data returned:', data);
+          setMatches([]);
         }
       } catch (err: any) {
         console.error('Deterministic pairing failed:', err);
@@ -129,9 +87,9 @@ const PairingMatches: React.FC = () => {
     };
 
     runDeterministicPairing();
-  }, [pairedProfiles, refreshKey]);
+  }, [pairedProfiles, refreshKey, userId, toast]);
 
-  // 🔴 Realtime: recompute when matches/profiles change
+  // Realtime: recompute when matches/profiles change
   useEffect(() => {
     const channel = supabase
       .channel('pairing-matches-rt')
@@ -144,366 +102,248 @@ const PairingMatches: React.FC = () => {
     };
   }, []);
 
-  const handleChatRequest = async (matchId: string, canChat: boolean) => {
-    if (!userId) return;
-    
+  const handleChatAction = async (targetUserId: string, isDirect: boolean = false) => {
     try {
-      if (canChat) {
+      if (isDirect) {
         // Direct chat - create chat room immediately
-        const { data: roomResp, error: fnError } = await supabase.functions.invoke('chat-management', {
-          body: {
+        const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-management', {
+          method: 'POST',
+          body: JSON.stringify({
             action: 'create_room',
-            user_id: userId,
-            other_user_id: matchId,
-          }
+            other_user_id: targetUserId
+          })
         });
 
-        if (fnError) {
-          console.error('Chat room creation failed:', fnError);
-          throw fnError;
+        if (!response.ok) {
+          throw new Error('Failed to create chat room');
         }
 
-        toast({
-          title: "Chat opened! 💬",
-          description: "You can now start messaging each other",
-        });
-
-        // Navigate to chat
-        setMatchedChatId(roomResp?.data?.id || matchId);
+        const result = await response.json();
+        if (result.success) {
+          toast({
+            title: "Chat Created!",
+            description: "Chat room created successfully. You can now start messaging!",
+          });
+        }
       } else {
         // Send chat request
-        const { data, error } = await supabase.functions.invoke('chat-request-handler', {
-          body: {
+        const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-request-handler', {
+          method: 'POST',
+          body: JSON.stringify({
             action: 'send_request',
-            recipient_id: matchId,
-            message: 'Hi! I would love to chat with you 😊'
-          }
+            recipient_id: targetUserId,
+            message: 'Hi! I would like to start a conversation with you.'
+          })
         });
 
-        if (error) throw error;
+        if (!response.ok) {
+          throw new Error('Failed to send chat request');
+        }
 
-        toast({
-          title: "Chat request sent! ⏳",
-          description: "They'll be notified of your request",
-          variant: "default"
-        });
+        const result = await response.json();
+        if (result.success) {
+          toast({
+            title: "Chat Request Sent!",
+            description: "Your chat request has been sent successfully.",
+          });
+        }
       }
     } catch (error: any) {
-      console.error('Error handling chat request:', error);
+      console.error('Chat action error:', error);
       toast({
         title: "Error",
-        description: "Failed to send chat request. Please try again.",
-        variant: "destructive"
+        description: error.message || "Failed to process chat action",
+        variant: "destructive",
       });
     }
   };
 
-  const openProfileModal = (match: PairingMatch) => {
-    setSelectedProfile(match);
-    setIsProfileModalOpen(true);
-  };
-
-  const closeProfileModal = () => {
-    setIsProfileModalOpen(false);
-    setSelectedProfile(null);
-  };
-
-  // Remove the getCurrentUserId function as we now use useRequiredAuth
-
-  const handleAction = async (matchId: string, action: 'ghost' | 'bench') => {
-    if (!userId) return;
-    
-    const actionText = action === 'ghost' ? 'Ghosted' : 'Benched';
-    
+  const handleInteraction = async (targetUserId: string, type: 'ghost' | 'bench') => {
     try {
-      // Calculate expiration for ghost (24 hours from now)
-      const expiresAt = action === 'ghost' 
-        ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-        : null;
+      const expiresAt = type === 'ghost' 
+        ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days
+        : null; // bench has no expiry
 
-      // Save interaction to database
       const { error } = await supabase
-        .from('user_interactions')
-        .insert({
+        .from("user_interactions")
+        .upsert({
           user_id: userId,
-          target_user_id: matchId,
-          interaction_type: action,
+          target_user_id: targetUserId,
+          interaction_type: type,
           expires_at: expiresAt
         });
 
       if (error) throw error;
 
       toast({
-        title: `${actionText}! ${action === 'ghost' ? '👻' : '🪑'}`,
-        description: action === 'ghost' 
-          ? 'This match has been ghosted for 24 hours'
-          : 'This match has been benched - they can still chat with you',
-        variant: action === 'ghost' ? "destructive" : "default"
+        title: type === 'ghost' ? "Ghosted" : "Benched",
+        description: type === 'ghost' 
+          ? "User added to ghost list for 30 days"
+          : "User added to bench - you can chat anytime",
       });
-      
-      // Remove from matches
-      setMatches(prev => prev.filter(m => m.user_id !== matchId));
+
+      // Remove from current matches
+      setMatches(prev => prev.filter(m => m.user_id !== targetUserId));
     } catch (error: any) {
-      console.error('Error handling action:', error);
       toast({
         title: "Error",
-        description: `Failed to ${action} this match. Please try again.`,
-        variant: "destructive"
+        description: error.message || "Something went wrong",
+        variant: "destructive",
       });
     }
   };
 
-  // Handle chat navigation from ghost/bench bar
-  if (matchedChatId) {
+  if (feedLoading || scoringLoading) {
     return (
       <div className="space-y-4">
-        <Button
-          variant="outline"
-          onClick={() => setMatchedChatId("")}
-          className="mb-4 border-purple-400/50 bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 hover:text-purple-200"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Pairing
-        </Button>
-        <RebuiltChatSystem selectedChatId={matchedChatId} onNavigate={() => {}} />
-      </div>
-    );
-  }
-
-  if (loading || scoringLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[40vh]">
-        <div className="text-center space-y-4">
-          <div className="w-16 h-16 border-4 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-white/70">Computing real compatibility… ✨</p>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Brain className="w-6 h-6 text-purple-500" />
+              Computing Compatibility...
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-8">
+              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+              <p className="text-muted-foreground">Analyzing profiles and calculating compatibility scores...</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (matches.length === 0) {
     return (
-      <div className="text-center space-y-6 py-12">
-        <div className="w-20 h-20 bg-gradient-to-br from-purple-500/20 to-indigo-500/20 rounded-full flex items-center justify-center mx-auto border border-purple-400/30">
-          <Users className="w-10 h-10 text-purple-400" />
-        </div>
-        <div>
-          <h3 className="text-xl font-bold mb-2 text-white">No Matches Yet</h3>
-          <p className="text-white/70">Complete your profile and start swiping to get AI-powered matches! ✨</p>
-        </div>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="w-6 h-6 text-blue-500" />
+            Pairing Matches
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <Sparkles className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-lg font-semibold mb-2">No Matches Found</h3>
+            <p className="text-muted-foreground mb-4">
+              We couldn't find any compatible matches at this time. Try adjusting your preferences or check back later!
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
     <div className="space-y-4">
-      {/* Header - Dark Theme */}
-      <div className="text-center space-y-2 mb-6">
-        <h2 className="text-2xl font-bold text-gradient-royal">Smart Pairing Matches</h2>
-        <p className="text-white/70">AI-selected compatible profiles based on deep analysis</p>
-        <Badge className="bg-purple-500/20 text-purple-300 border border-purple-400/30">
-          <Brain className="w-3 h-3 mr-1" />
-          {matches.length} compatible matches found
-        </Badge>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Shield className="w-6 h-6 text-green-500" />
+              Quality Matches
+              <Badge variant="secondary">{matches.length}</Badge>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4">
+            {matches.map((match) => (
+              <Card key={match.user_id} className="border-l-4 border-l-primary">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <Avatar className="w-16 h-16 flex-shrink-0">
+                      <AvatarImage 
+                        src={match.profile_images?.[0] || `https://api.dicebear.com/7.x/avataaars/svg?seed=${match.user_id}`} 
+                        alt={match.first_name} 
+                      />
+                      <AvatarFallback>
+                        {match.first_name[0]}{match.last_name?.[0] || ''}
+                      </AvatarFallback>
+                    </Avatar>
 
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-xl font-bold">
+                          {match.first_name} {match.last_name || ''}
+                        </h3>
+                        <div className="flex items-center gap-2">
+                          <Badge 
+                            variant={
+                              (match.compatibility_score || 0) >= 80 ? "default" : 
+                              (match.compatibility_score || 0) >= 60 ? "secondary" : "outline"
+                            }
+                          >
+                            {match.compatibility_score || 0}% Compatible
+                          </Badge>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem onClick={() => handleInteraction(match.user_id, 'ghost')}>
+                                <Ghost className="w-4 h-4 mr-2" />
+                                Ghost for 30 days
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleInteraction(match.user_id, 'bench')}>
+                                <UserMinus className="w-4 h-4 mr-2" />
+                                Move to Bench
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </div>
 
-      {/* Matches List */}
-      <div className="space-y-3">
-        {matches.map((match, index) => (
-          <Card 
-            key={match.user_id} 
-            className={`overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.01] cursor-pointer group border-0 ${
-              index === 0 
-                ? 'ring-2 ring-purple-400/50 shadow-xl bg-black/60 backdrop-blur-md border border-purple-400/30' 
-                : 'genZ-glass-card hover:bg-black/70'
-            }`}
-          >
-            <CardContent className="p-0">
-              <div 
-                className="flex items-center p-3 space-x-3"
-                onClick={() => openProfileModal(match)}
-              >
-                {/* Profile Image & Status */}
-                <div className="relative flex-shrink-0">
-                  <Avatar className="w-14 h-14 md:w-16 md:h-16 border-2 border-purple-400/50 shadow-lg transition-transform group-hover:scale-110">
-                    <AvatarImage 
-                      src={
-                        match.profile_images?.[0] 
-                          ? (match.profile_images[0].startsWith('blob:') || match.profile_images[0].startsWith('http') 
-                              ? match.profile_images[0] 
-                              : `${supabase.storage.from('profile-images').getPublicUrl(match.profile_images[0]).data.publicUrl}`)
-                          : undefined
-                      }
-                      onError={(e) => {
-                        e.currentTarget.src = 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400';
-                      }}
-                    />
-                    <AvatarFallback className="bg-gradient-to-br from-purple-600/80 to-pink-600/80 text-white text-sm md:text-lg font-bold">
-                      {match.first_name[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                  {index === 0 && (
-                    <div className="absolute -top-1 -right-1 w-6 h-6 md:w-8 md:h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg animate-pulse-glow">
-                      <span className="text-xs md:text-sm text-white font-bold">1</span>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+                        <div className="flex items-center gap-1">
+                          <GraduationCap className="w-4 h-4" />
+                          {match.university || 'University'}
+                        </div>
+                        {match.total_qcs && (
+                          <div className="flex items-center gap-1">
+                            <Star className="w-4 h-4" />
+                            {match.total_qcs} QCS
+                          </div>
+                        )}
+                      </div>
+
+                      {match.bio && (
+                        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                          {match.bio}
+                        </p>
+                      )}
+
+                      <div className="flex gap-2">
+                        {match.can_chat ? (
+                          <Button 
+                            onClick={() => handleChatAction(match.user_id, true)}
+                            className="bg-gradient-primary"
+                          >
+                            <MessageCircle className="w-4 h-4 mr-2" />
+                            Chat Now
+                          </Button>
+                        ) : (
+                          <Button 
+                            onClick={() => handleChatAction(match.user_id, false)}
+                            variant="outline"
+                          >
+                            <Heart className="w-4 h-4 mr-2" />
+                            Send Request
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                  )}
-                  {/* Online Status */}
-                  <div className="absolute bottom-0 right-0 w-4 h-4 md:w-5 md:h-5 bg-green-400 rounded-full border-2 border-black animate-pulse"></div>
-                </div>
-
-                {/* Profile Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <h3 className="font-bold text-lg md:text-xl bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent truncate">
-                      {match.first_name}
-                    </h3>
-                    <Shield className="w-4 h-4 md:w-5 md:h-5 text-blue-400 flex-shrink-0" />
-                    <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-yellow-400 flex-shrink-0" />
                   </div>
-                  
-                  <div className="flex items-center space-x-1 mb-2">
-                    <GraduationCap className="w-3 h-3 md:w-4 md:h-4 text-purple-400 flex-shrink-0" />
-                    <p className="text-xs md:text-sm text-white/70 font-medium truncate">{match.university}</p>
-                  </div>
-                  
-                   {/* Enhanced Compatibility Score - Show REAL percentages */}
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Badge className={`text-xs md:text-sm py-1 px-2 font-bold animate-fade-in border-0 ${
-                      (match.compatibility_score || 0) >= 90 
-                        ? 'bg-gradient-to-r from-green-500/80 to-green-600/80 text-white shadow-lg' 
-                        : (match.compatibility_score || 0) >= 80
-                        ? 'bg-gradient-to-r from-blue-500/80 to-blue-600/80 text-white shadow-lg'
-                        : (match.compatibility_score || 0) >= 70
-                        ? 'bg-gradient-to-r from-purple-500/80 to-purple-600/80 text-white shadow-lg'
-                        : 'bg-gradient-to-r from-orange-500/80 to-orange-600/80 text-white shadow-lg'
-                    }`}>
-                      {(match.compatibility_score || 0) >= 90 ? '🔥' : (match.compatibility_score || 0) >= 80 ? '💫' : '✨'} {match.compatibility_score}%
-                    </Badge>
-                    
-                    {match.total_qcs && (
-                      <Badge variant="outline" className="text-xs border-purple-400/50 bg-purple-500/20 text-purple-300 hidden sm:inline-flex">
-                        <Brain className="w-3 h-3 mr-1" />
-                        QCS: {match.total_qcs}
-                      </Badge>
-                    )}
-                  </div>
-
-                  {/* Quick Info Tags - Mobile Optimized */}
-                  <div className="flex gap-1 flex-wrap">
-                    <Badge variant="secondary" className="text-xs bg-blue-500/20 text-blue-300 px-2 py-0.5 border-0">
-                      📍 2km
-                    </Badge>
-                    <Badge variant="secondary" className="text-xs bg-green-500/20 text-green-300 px-2 py-0.5 border-0">
-                      🟢 Active
-                    </Badge>
-                    {index < 3 && (
-                      <Badge variant="secondary" className="text-xs bg-purple-500/20 text-purple-300 px-2 py-0.5 border-0 hidden sm:inline-flex">
-                        ⭐ Top
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-
-                {/* Enhanced Action Buttons - Mobile Optimized */}
-                <div className="flex items-center space-x-2 flex-shrink-0">
-                  {match.can_chat ? (
-                    <Button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleChatRequest(match.user_id, true);
-                      }}
-                      className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-xs md:text-sm px-3 py-2 border-0"
-                      size="sm"
-                    >
-                      <MessageCircle className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
-                      <span className="hidden sm:inline">Chat Now</span>
-                      <span className="sm:hidden">Chat</span>
-                    </Button>
-                  ) : (
-                    <Button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleChatRequest(match.user_id, false);
-                      }}
-                      className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-xs md:text-sm px-3 py-2 border-0"
-                      size="sm"
-                    >
-                      <MessageCircle className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
-                      <span className="hidden sm:inline">Chat Request</span>
-                      <span className="sm:hidden">Request</span>
-                    </Button>
-                  )}
-
-                  {/* Ghost & Bench Actions */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-white/70 hover:text-white hover:bg-white/10 p-2"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAction(match.user_id, 'ghost');
-                        }}
-                        className="text-orange-600 focus:text-orange-600 focus:bg-orange-50"
-                      >
-                        <Ghost className="w-4 h-4 mr-2" />
-                        <div className="flex flex-col">
-                          <span>Ghost (24h)</span>
-                          <span className="text-xs text-muted-foreground">Hide temporarily</span>
-                        </div>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAction(match.user_id, 'bench');
-                        }}
-                        className="text-blue-600 focus:text-blue-600 focus:bg-blue-50"
-                      >
-                        <UserMinus className="w-4 h-4 mr-2" />
-                        <div className="flex flex-col">
-                          <span>Bench</span>
-                          <span className="text-xs text-muted-foreground">Keep for later</span>
-                        </div>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Profile Modal */}
-      {selectedProfile && (
-        <DetailedProfileModal
-          isOpen={isProfileModalOpen}
-          onClose={closeProfileModal}
-          profile={selectedProfile}
-          onChatRequest={handleChatRequest}
-        />
-      )}
-
-      {/* Bottom CTA - Dark Theme */}
-      <div className="text-center py-6">
-        <p className="text-sm text-white/60 mb-4">
-          Looking for more matches? Keep swiping to increase your compatibility pool! ✨
-        </p>
-        <Button variant="outline" className="border-purple-400/50 bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 hover:text-purple-200">
-          <Zap className="w-4 h-4 mr-2" />
-          Get More Matches
-        </Button>
-      </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

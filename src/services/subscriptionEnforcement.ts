@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
 
 interface SwipeResult {
   success: boolean;
@@ -75,18 +75,20 @@ export class SubscriptionEnforcementService {
    */
   static async processSwipe(candidateId: string, direction: 'left' | 'right'): Promise<SwipeResult> {
     try {
-      const { data, error } = await supabase.functions.invoke('swipe-enforcement', {
-        body: {
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/swipe-enforcement', {
+        method: 'POST',
+        body: JSON.stringify({
           candidate_id: candidateId,
           direction
-        }
+        })
       });
 
-      if (error) {
-        console.error('Swipe enforcement error:', error);
-        return { success: false, error: error.message };
+      if (!response.ok) {
+        const errorData = await response.json();
+        return { success: false, error: errorData.error || 'Failed to process swipe' };
       }
 
+      const data = await response.json();
       return data;
     } catch (err: any) {
       console.error('Error processing swipe:', err);
@@ -99,18 +101,20 @@ export class SubscriptionEnforcementService {
    */
   static async getPairingFeed(page: number = 1, limit: number = 20): Promise<FeedResult> {
     try {
-      const { data, error } = await supabase.functions.invoke('pairing-feed-enhanced', {
-        body: {
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/pairing-feed-enhanced', {
+        method: 'POST',
+        body: JSON.stringify({
           page,
           limit
-        }
+        })
       });
 
-      if (error) {
-        console.error('Pairing feed error:', error);
-        return { success: false, error: error.message };
+      if (!response.ok) {
+        const errorData = await response.json();
+        return { success: false, error: errorData.error || 'Failed to get pairing feed' };
       }
 
+      const data = await response.json();
       return data;
     } catch (err: any) {
       console.error('Error getting pairing feed:', err);
@@ -123,15 +127,17 @@ export class SubscriptionEnforcementService {
    */
   static async requestExtraPairings(count: number = 1): Promise<{ success: boolean; data?: any; error?: string }> {
     try {
-      const { data, error } = await supabase.functions.invoke('request-extra-pairings', {
-        body: { count }
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/request-extra-pairings', {
+        method: 'POST',
+        body: JSON.stringify({ count })
       });
 
-      if (error) {
-        console.error('Extra pairings request error:', error);
-        return { success: false, error: error.message };
+      if (!response.ok) {
+        const errorData = await response.json();
+        return { success: false, error: errorData.error || 'Failed to request extra pairings' };
       }
 
+      const data = await response.json();
       return data;
     } catch (err: any) {
       console.error('Error requesting extra pairings:', err);
@@ -144,15 +150,17 @@ export class SubscriptionEnforcementService {
    */
   static async getWhoLikedMe(): Promise<WhoLikedMeResult> {
     try {
-      const { data, error } = await supabase.functions.invoke('who-liked-me', {
-        body: {}
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/who-liked-me', {
+        method: 'POST',
+        body: JSON.stringify({})
       });
 
-      if (error) {
-        console.error('Who liked me error:', error);
-        return { success: false, error: error.message };
+      if (!response.ok) {
+        const errorData = await response.json();
+        return { success: false, error: errorData.error || 'Failed to get who liked you' };
       }
 
+      const data = await response.json();
       return data;
     } catch (err: any) {
       console.error('Error getting who liked me:', err);
@@ -165,11 +173,17 @@ export class SubscriptionEnforcementService {
    */
   static async checkActionPermission(action: 'swipe' | 'see_who_liked' | 'request_extra_pairings'): Promise<boolean> {
     try {
-      const { data, error } = await supabase.functions.invoke('subscription-entitlement', {
-        body: { action: 'check' }
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/subscription-entitlement', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'check' })
       });
 
-      if (error || !data.success) {
+      if (!response.ok) {
+        return false;
+      }
+
+      const data = await response.json();
+      if (!data.success) {
         return false;
       }
 
@@ -199,11 +213,17 @@ export class SubscriptionEnforcementService {
    */
   static async getPlanLimits(): Promise<any> {
     try {
-      const { data, error } = await supabase.functions.invoke('subscription-entitlement', {
-        body: { action: 'check' }
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/subscription-entitlement', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'check' })
       });
 
-      if (error || !data.success) {
+      if (!response.ok) {
+        return null;
+      }
+
+      const data = await response.json();
+      if (!data.success) {
         return null;
       }
 

@@ -6,10 +6,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageCircle, Check, X, Clock, Heart } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useRequiredAuth } from "@/hooks/useRequiredAuth";
 import { toast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
+import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
 
 interface ChatRequestsModalProps {
   isOpen: boolean;
@@ -49,14 +49,23 @@ const ChatRequestsModal = ({ isOpen, onClose, onNavigate }: ChatRequestsModalPro
     
     try {
       setLoading(true);
-      const { data, error } = await supabase.functions.invoke('chat-request-handler', {
-        body: { 
-          action: 'get_requests',
-          user_id: userId  // Pass Firebase userId directly
-        }
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-request-handler', {
+        method: 'POST',
+        body: JSON.stringify({ 
+          action: 'list'
+        })
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error('Failed to fetch chat requests');
+      }
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to fetch chat requests');
+      }
+
       setRequests(data?.data || []);
     } catch (error: any) {
       console.error("Error fetching chat requests:", error);
@@ -73,16 +82,23 @@ const ChatRequestsModal = ({ isOpen, onClose, onNavigate }: ChatRequestsModalPro
   const handleResponse = async (requestId: string, status: 'accepted' | 'declined') => {
     setResponding(requestId);
     try {
-      const { data, error } = await supabase.functions.invoke('chat-request-handler', {
-        body: {
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-request-handler', {
+        method: 'POST',
+        body: JSON.stringify({
           action: 'respond_request',
           request_id: requestId,
-          status,
-          user_id: userId  // Pass Firebase userId directly
-        }
+          status
+        })
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error(`Failed to ${status} chat request`);
+      }
+
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || `Failed to ${status} chat request`);
+      }
 
       if (status === 'accepted') {
         toast({
