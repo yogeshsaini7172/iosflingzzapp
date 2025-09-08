@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Users, Sparkles, User, Crown, Heart, MessageCircle, Brain } from "lucide-react";
+import { Home, Users, Sparkles, User } from "lucide-react";
 
 const BottomNav = () => {
   const location = useLocation();

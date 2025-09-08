@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, User } from "lucide-react";
@@ -19,6 +20,7 @@ interface UnifiedLayoutProps {
 const UnifiedLayout = ({ children, title = "DateSigma", showHeader = true }: UnifiedLayoutProps) => {
   const { signOut } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [showWhoLikedMe, setShowWhoLikedMe] = useState(false);
   const [showChatRequests, setShowChatRequests] = useState(false);
 
@@ -60,14 +62,20 @@ const UnifiedLayout = ({ children, title = "DateSigma", showHeader = true }: Uni
               {/* Right side - Notifications & Profile */}
               <div className="flex items-center space-x-3">
                 <HeartNotificationBadge 
-                  onClick={() => setShowWhoLikedMe(true)}
+                  onClick={() => {
+                    console.log('❤️ Heart badge clicked - navigating to matches');
+                    navigate('/matches');
+                  }}
                 />
                 <ChatNotificationBadge 
-                  onClick={() => setShowChatRequests(true)}
+                  onClick={() => {
+                    console.log('💬 Chat badge clicked - navigating to chat');
+                    navigate('/chat');
+                  }}
                 />
                 
                 {/* Profile & Logout */}
-                <div className="flex items-center space-x-2 pl-2 border-l border-border/50">
+                <div className="flex items-center space-x-2 pl-2 border-border/50">
                   <Avatar className="w-8 h-8">
                     <AvatarImage src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150" />
                     <AvatarFallback>
@@ -97,7 +105,7 @@ const UnifiedLayout = ({ children, title = "DateSigma", showHeader = true }: Uni
       {/* Single Bottom Navigation */}
       <BottomNav />
 
-      {/* Modals */}
+      {/* Optional Modals - kept for flexibility */}
       <WhoLikedMeModal 
         isOpen={showWhoLikedMe} 
         onClose={() => setShowWhoLikedMe(false)} 
