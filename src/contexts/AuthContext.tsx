@@ -193,7 +193,31 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signInWithGoogle = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+
+      // Obtain Google ID token from Firebase credential and establish Supabase session
+      // Note: credential may be null in some browsers; guard accordingly
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const credential: any = (await import('firebase/auth')).GoogleAuthProvider.credentialFromResult(result);
+      const idToken = credential?.idToken as string | undefined;
+
+      if (idToken) {
+        const { data: sbSession, error: sbError } = await supabase.auth.signInWithIdToken({
+          provider: 'google',
+          token: idToken,
+        });
+        if (sbError) {
+          console.error('❌ Supabase signInWithIdToken (google) failed:', sbError);
+          setSupabaseUserId(null);
+        } else {
+          const sbUid = sbSession?.user?.id ?? sbSession?.session?.user?.id ?? null;
+          setSupabaseUserId(sbUid);
+          console.log('✅ Supabase session established via Google:', sbUid);
+        }
+      } else {
+        console.warn('⚠️ Google credential missing idToken; Supabase session may not be created.');
+      }
+
       return {};
     } catch (error: any) {
       console.error('Google sign in error:', error);
