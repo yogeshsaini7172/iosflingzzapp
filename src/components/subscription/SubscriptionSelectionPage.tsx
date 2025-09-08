@@ -113,6 +113,8 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
         description: planId === 'free' ? 'You can upgrade anytime from your profile settings.' : 'Redirecting to the app...'
       });
       onComplete(planId);
+      // Hard redirect to ensure leaving setup flow
+      setTimeout(() => { window.location.href = '/'; }, 50);
     } catch (err: any) {
       console.error('Failed to set subscription tier:', err);
       toast({ title: 'Subscription error', description: 'Please try again.', variant: 'destructive' });
