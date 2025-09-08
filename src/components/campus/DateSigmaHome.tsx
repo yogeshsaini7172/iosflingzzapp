@@ -209,17 +209,48 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
     const userId = user.uid;
 
     try {
-      // Record swipe in database
-      const { error } = await supabase.functions.invoke('swipe-action', {
-        body: {
+      // Use the NEW enhanced swipe system
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      
+      if (!token) {
+        throw new Error('Not authenticated');
+      }
+
+      // Call the NEW enhanced-swipe-action function
+      const fnUrl = 'https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/enhanced-swipe-action';
+      const res = await fetch(fnUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
           user_id: userId,
-          candidate_id: currentProfile.user_id,
+          target_user_id: currentProfile.user_id,
           direction: direction
-        }
+        })
       });
 
-      if (error) {
-        console.error('Swipe error:', error);
+      const data = await res.json().catch(() => ({ error: 'Invalid JSON response' }));
+
+      if (!res.ok) {
+        console.error('Enhanced swipe error:', res.status, data);
+        throw new Error(data?.error || 'Failed to perform swipe');
+      }
+
+      // Handle match result
+      if (data?.matched) {
+        console.log('🎉 Match detected!', data);
+        toast({
+          title: "It's a Match! 🎉",
+          description: `You and ${currentProfile.first_name} liked each other!`,
+        });
+      } else if (direction === 'right') {
+        toast({
+          title: 'Like sent! 💖',
+          description: "We'll let you know if they like you back.",
+        });
       }
 
       // Update UI

@@ -95,13 +95,13 @@ const SwipeManager = ({ onUpgrade }: SwipeManagerProps) => {
 
       if (error) throw error;
 
-      // Filter out already swiped users
+      // Filter out already swiped users (using NEW enhanced_swipes table)
       const { data: swipedUsers } = await supabase
-        .from('swipes')
-        .select('candidate_id')
+        .from('enhanced_swipes')
+        .select('target_user_id')
         .eq('user_id', user.uid);
 
-      const swipedIds = swipedUsers?.map(s => s.candidate_id) || [];
+      const swipedIds = swipedUsers?.map(s => s.target_user_id) || [];
       const filteredCandidates = candidatesData?.filter(
         candidate => !swipedIds.includes(candidate.user_id)
       ) || [];
@@ -141,16 +141,35 @@ const SwipeManager = ({ onUpgrade }: SwipeManagerProps) => {
     }
 
     try {
-      // Record the swipe
-      const { error: swipeError } = await supabase
-        .from('swipes')
-        .insert({
-          user_id: user.uid,
-          candidate_id: currentCandidate.user_id,
-          direction: direction
-        });
+      // Use the NEW enhanced swipe system that handles everything
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      
+      if (!token) {
+        throw new Error('Not authenticated');
+      }
 
-      if (swipeError) throw swipeError;
+      // Call the NEW enhanced-swipe-action function for ALL swipes
+      const fnUrl = 'https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/enhanced-swipe-action';
+      const res = await fetch(fnUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          user_id: user.uid,
+          target_user_id: currentCandidate.user_id,
+          direction: direction
+        })
+      });
+
+      const data = await res.json().catch(() => ({ error: 'Invalid JSON response' }));
+
+      if (!res.ok) {
+        console.error('Enhanced swipe error:', res.status, data);
+        throw new Error(data?.error || 'Failed to perform swipe');
+      }
 
       // Update swipes left for free users
       if (subscriptionTier === 'free') {
@@ -163,63 +182,17 @@ const SwipeManager = ({ onUpgrade }: SwipeManagerProps) => {
         setSwipesLeft(prev => prev - 1);
       }
 
-      // Check for match if right swipe
-      if (direction === 'right') {
-        const { data: reciprocalSwipe } = await supabase
-          .from('swipes')
-          .select('*')
-          .eq('user_id', currentCandidate.user_id)
-          .eq('candidate_id', user.uid)
-          .eq('direction', 'right')
-          .single();
-
-        if (reciprocalSwipe) {
-          // It's a match — ask server to finalize match creation (enhanced_matches, chat_rooms, notifications)
-          try {
-            // call server-side edge function that handles match creation atomically
-            const { data: fnData, error: fnError } = await supabase.functions.invoke(
-              'enhanced-swipe-action',
-              {
-                body: {
-                  user_id: user.uid,
-                  target_user_id: currentCandidate.user_id,
-                  direction: 'right',
-                }
-              }
-            );
-
-            if (fnError) {
-              console.error('enhanced-swipe-action error:', fnError);
-              // fallback: show a friendly message but don't write legacy matches client-side
-              toast({
-                title: "Match detected",
-                description: `You and ${currentCandidate.first_name} liked each other! (server processing)`,
-              });
-            } else {
-              // server handled the match — show toast & optionally use returned data
-              toast({
-                title: "🎉 It's a Match!",
-                description: `You and ${currentCandidate.first_name} liked each other!`,
-              });
-
-              // if the function returns match & chat_room, you can optionally redirect user to chat:
-              // const match = fnData?.match;
-              // const chatRoom = fnData?.chat_room;
-              // navigate to chatRoom if you want immediate chat open
-            }
-          } catch (err) {
-            console.error('Error invoking enhanced-swipe-action:', err);
-            toast({
-              title: "Match detected",
-              description: `You and ${currentCandidate.first_name} liked each other!`,
-            });
-          }
-        } else {
-          toast({
-            title: "Nice choice! 💫",
-            description: "We'll let you know if they like you back"
-          });
-        }
+      // Handle the response
+      if (data.matched) {
+        toast({
+          title: "🎉 It's a Match!",
+          description: `You and ${currentCandidate.first_name} liked each other!`,
+        });
+      } else if (direction === 'right') {
+        toast({
+          title: "Nice choice! 💫",
+          description: "We'll let you know if they like you back"
+        });
       }
 
       // Move to next candidate

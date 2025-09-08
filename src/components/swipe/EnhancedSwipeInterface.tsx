@@ -146,21 +146,54 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
     console.log(`🎯 Processing ${direction} swipe via edge function:`, { userId, targetId: currentProfile.user_id });
 
     try {
-      // Route through edge function (works with Firebase-only auth)
-      const { data: resp, error: swipeErr } = await supabase.functions.invoke('swipe-action', {
-        body: {
-          to_user_id: currentProfile.user_id,
-          type: direction === 'right' ? 'like' : 'pass',
-          from_user_id: userId,
-        },
-      });
-
-      if (swipeErr) {
-        console.error('❌ Swipe function error:', swipeErr);
-        throw swipeErr;
+      // Use the NEW enhanced swipe system
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      
+      if (!token) {
+        throw new Error('Not authenticated');
       }
 
-      console.log('✅ Swipe processed by function:', resp);
+      // Call the NEW enhanced-swipe-action function
+      const fnUrl = 'https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/enhanced-swipe-action';
+      const res = await fetch(fnUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          target_user_id: currentProfile.user_id,
+          direction: direction
+        })
+      });
+
+      const resp = await res.json().catch(() => ({ error: 'Invalid JSON response' }));
+
+      if (!res.ok) {
+        console.error('Enhanced swipe error:', res.status, resp);
+        throw new Error(resp?.error || 'Failed to perform swipe');
+      }
+
+      console.log('✅ Swipe recorded successfully via enhanced function:', resp);
+
+      // Handle match result
+      if (resp?.matched) {
+        console.log('🎉 Match detected!', resp);
+        toast({
+          title: "It's a Match! 🎉",
+          description: `You and ${currentProfile.first_name} liked each other!`,
+        });
+        
+        // Refresh matches or navigate to chat
+        // onNavigate?.('matches');
+      } else if (direction === 'right') {
+        toast({
+          title: 'Like sent! 💖',
+          description: "We'll let you know if they like you back.",
+        });
+      }
 
       if (direction === 'right') {
         if (resp?.isMatch) {
