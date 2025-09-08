@@ -39,23 +39,38 @@ serve(async (req) => {
     switch (action) {
       case 'list': {
         // List all threads (no userId required for public viewing)
-        const { data, error } = await supabase
+        const { data: threadsData, error: threadsError } = await supabase
           .from('threads')
-          .select(`
-            *,
-            profiles:profiles!threads_user_id_fkey (
-              first_name,
-              profile_images
-            )
-          `)
+          .select('*')
           .order('created_at', { ascending: false })
           .limit(20);
 
-        if (error) throw error;
+        if (threadsError) throw threadsError;
 
-        const formatted = (data || []).map((t: any) => ({
+        // Fetch author profile info separately (no FK link exists between threads.user_id and profiles)
+        const userIds = Array.from(new Set((threadsData || []).map((t: any) => t.user_id).filter(Boolean)));
+
+        let profilesByUserId: Record<string, any> = {};
+        if (userIds.length > 0) {
+          const { data: profiles, error: profilesError } = await supabase
+            .from('profiles')
+            .select('user_id, first_name, profile_images')
+            .in('user_id', userIds);
+
+          if (profilesError) throw profilesError;
+
+          profilesByUserId = (profiles || []).reduce((acc: Record<string, any>, p: any) => {
+            acc[p.user_id] = {
+              first_name: p.first_name,
+              profile_images: p.profile_images,
+            };
+            return acc;
+          }, {} as Record<string, any>);
+        }
+
+        const formatted = (threadsData || []).map((t: any) => ({
           ...t,
-          author: t.profiles
+          author: profilesByUserId[t.user_id] || null,
         }));
 
         console.log(`Retrieved ${formatted.length} threads`);
