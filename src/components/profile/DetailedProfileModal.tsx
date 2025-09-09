@@ -184,15 +184,15 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
         </div>
 
         {/* Profile Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 bg-card/95 backdrop-blur-sm">
           {/* Basic Info */}
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center space-x-2">
-              <h2 className="text-3xl font-bold">{profile.first_name}</h2>
-              <span className="text-2xl text-muted-foreground">{mockProfileData.age}</span>
+              <h2 className="text-3xl font-bold text-foreground">{profile.first_name}</h2>
+              <span className="text-2xl font-semibold text-foreground/80">{mockProfileData.age}</span>
             </div>
             
-            <div className="flex items-center justify-center space-x-4 text-sm text-muted-foreground">
+            <div className="flex items-center justify-center space-x-4 text-sm text-foreground/70">
               <div className="flex items-center space-x-1">
                 <MapPin className="w-4 h-4" />
                 <span>{mockProfileData.location}</span>
@@ -226,9 +226,9 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
 
           {/* Bio */}
           {profile.bio && (
-            <Card className="bg-white/50 dark:bg-white/5 backdrop-blur-sm">
+            <Card className="bg-card/90 border border-border/50">
               <CardContent className="p-4">
-                <p className="text-center text-muted-foreground leading-relaxed">
+                <p className="text-center text-foreground/85 leading-relaxed">
                   "{profile.bio}"
                 </p>
               </CardContent>
@@ -237,7 +237,7 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
 
           {/* Interests */}
           <div>
-            <h3 className="font-semibold mb-3 text-center">Interests</h3>
+            <h3 className="font-semibold mb-3 text-center text-foreground">Interests</h3>
             <div className="flex flex-wrap justify-center gap-2">
               {mockProfileData.interests.map((interest, index) => {
                 const IconComponent = getInterestIcon(interest);
@@ -245,7 +245,7 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
                   <Badge 
                     key={index} 
                     variant="outline" 
-                    className="py-2 px-3 bg-white/50 dark:bg-white/5 backdrop-blur-sm hover:scale-105 transition-transform"
+                    className="py-2 px-3 bg-card/70 border-border/50 text-foreground hover:scale-105 transition-transform"
                   >
                     <IconComponent className="w-4 h-4 mr-2" />
                     {interest}
@@ -257,42 +257,42 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
 
           {/* Quick Stats */}
           <div className="grid grid-cols-2 gap-4">
-            <Card className="bg-white/30 dark:bg-white/5 backdrop-blur-sm">
+            <Card className="bg-card/80 border border-border/50">
               <CardContent className="p-4 text-center">
                 <Briefcase className="w-6 h-6 mx-auto mb-2 text-purple-600" />
-                <p className="font-semibold text-sm">{mockProfileData.occupation}</p>
-                <p className="text-xs text-muted-foreground">Profession</p>
+                <p className="font-semibold text-sm text-foreground">{mockProfileData.occupation}</p>
+                <p className="text-xs text-foreground/60">Profession</p>
               </CardContent>
             </Card>
             
-            <Card className="bg-white/30 dark:bg-white/5 backdrop-blur-sm">
+            <Card className="bg-card/80 border border-border/50">
               <CardContent className="p-4 text-center">
                 <GraduationCap className="w-6 h-6 mx-auto mb-2 text-blue-600" />
-                <p className="font-semibold text-sm">{mockProfileData.education}</p>
-                <p className="text-xs text-muted-foreground">Education</p>
+                <p className="font-semibold text-sm text-foreground">{mockProfileData.education}</p>
+                <p className="text-xs text-foreground/60">Education</p>
               </CardContent>
             </Card>
           </div>
 
           {/* Lifestyle Info */}
           <div className="space-y-3">
-            <h3 className="font-semibold text-center">Lifestyle</h3>
+            <h3 className="font-semibold text-center text-foreground">Lifestyle</h3>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Height:</span>
-                <span className="font-medium">{mockProfileData.height}</span>
+                <span className="text-foreground/70">Height:</span>
+                <span className="font-medium text-foreground">{mockProfileData.height}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Exercise:</span>
-                <span className="font-medium">{mockProfileData.exercise}</span>
+                <span className="text-foreground/70">Exercise:</span>
+                <span className="font-medium text-foreground">{mockProfileData.exercise}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Smoking:</span>
-                <span className="font-medium">{mockProfileData.smoking}</span>
+                <span className="text-foreground/70">Smoking:</span>
+                <span className="font-medium text-foreground">{mockProfileData.smoking}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Drinking:</span>
-                <span className="font-medium">{mockProfileData.drinking}</span>
+                <span className="text-foreground/70">Drinking:</span>
+                <span className="font-medium text-foreground">{mockProfileData.drinking}</span>
               </div>
             </div>
           </div>
