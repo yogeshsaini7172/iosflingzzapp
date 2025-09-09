@@ -74,21 +74,24 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
 
     try {
       // Use data-management function to get profiles (has proper access)
-      const { data, error } = await supabase.functions.invoke('data-management', {
-        headers: { Authorization: `Bearer firebase-${userId}` },
-        body: { 
+      // Use data-management function with real Firebase token
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/data-management', {
+        method: 'POST',
+        body: JSON.stringify({
           action: 'get_feed',
           user_id: userId,
           limit: 20
-        }
+        })
       });
 
-      if (error) {
-        console.error("❌ Error calling data-management function:", error);
-        throw error;
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        console.error("❌ Error calling data-management (get_feed):", err);
+        throw new Error(err?.error || 'Failed to fetch feed');
       }
 
-      const profilesData = data?.data?.profiles || [];
+      const payload = await response.json();
+      const profilesData = payload?.data?.profiles || [];
       console.log("✅ Fetched profiles from data-management:", profilesData.length);
 
       const formattedProfiles = profilesData.map((profile: any) => ({
