@@ -70,8 +70,23 @@ const AuthenticatedApp = () => {
 
   // Function to recheck profile status
   const recheckProfile = async () => {
-    if (!userId) return false;
+    if (!userId) {
+      // Fallback to local flag when userId missing (e.g., OAuth domain issues)
+      const localFlag = localStorage.getItem('profile_complete') === 'true';
+      const demo = localStorage.getItem('demoProfile');
+      setHasProfile(!!(localFlag || demo));
+      return !!(localFlag || demo);
+    }
     const profileComplete = await checkUserProfile(userId);
+    if (!profileComplete) {
+      const localFlag = localStorage.getItem('profile_complete') === 'true';
+      const demo = localStorage.getItem('demoProfile');
+      if (localFlag || demo) {
+        console.log('⚠️ Using local profile_complete fallback after recheck');
+        setHasProfile(true);
+        return true;
+      }
+    }
     setHasProfile(!!profileComplete);
     return !!profileComplete;
   };
@@ -104,7 +119,18 @@ const AuthenticatedApp = () => {
         try {
           const profileComplete = await checkUserProfile(userId);
           console.log('✅ Profile check result:', { profileComplete });
-          setHasProfile(!!profileComplete);
+          if (!profileComplete) {
+            const localFlag = localStorage.getItem('profile_complete') === 'true';
+            const demo = localStorage.getItem('demoProfile');
+            if (localFlag || demo) {
+              console.log('⚠️ Using local profile_complete fallback (demo/local)');
+              setHasProfile(true);
+            } else {
+              setHasProfile(false);
+            }
+          } else {
+            setHasProfile(true);
+          }
         } catch (error) {
           console.error('❌ Error in profile check:', error);
         }
