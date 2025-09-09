@@ -89,12 +89,38 @@ serve(async (req) => {
         // Fetch author profile info separately (no FK link exists between threads.user_id and profiles)
         const userIds = Array.from(new Set((threadsData || []).map((t: any) => t.user_id).filter(Boolean)));
 
+        // Fetch replies for all threads
+        const threadIds = (threadsData || []).map((t: any) => t.id);
+        let repliesByThreadId: Record<string, any[]> = {};
+        
+        if (threadIds.length > 0) {
+          const { data: repliesData, error: repliesError } = await supabase
+            .from('thread_replies')
+            .select('*')
+            .in('thread_id', threadIds)
+            .order('created_at', { ascending: true });
+
+          if (repliesError) throw repliesError;
+
+          // Get user IDs from replies for profile lookup
+          const replyUserIds = Array.from(new Set((repliesData || []).map((r: any) => r.user_id).filter(Boolean)));
+          userIds.push(...replyUserIds);
+
+          // Group replies by thread_id
+          repliesByThreadId = (repliesData || []).reduce((acc: Record<string, any[]>, reply: any) => {
+            if (!acc[reply.thread_id]) acc[reply.thread_id] = [];
+            acc[reply.thread_id].push(reply);
+            return acc;
+          }, {});
+        }
+
         let profilesByUserId: Record<string, any> = {};
-        if (userIds.length > 0) {
+        const uniqueUserIds = Array.from(new Set(userIds));
+        if (uniqueUserIds.length > 0) {
           const { data: profiles, error: profilesError } = await supabase
             .from('profiles')
             .select('user_id, first_name, profile_images')
-            .in('user_id', userIds);
+            .in('user_id', uniqueUserIds);
 
           if (profilesError) throw profilesError;
 
@@ -110,6 +136,10 @@ serve(async (req) => {
         const formatted = (threadsData || []).map((t: any) => ({
           ...t,
           author: profilesByUserId[t.user_id] || null,
+          replies: (repliesByThreadId[t.id] || []).map((reply: any) => ({
+            ...reply,
+            author: profilesByUserId[reply.user_id] || null,
+          })),
         }));
 
         console.log(`Retrieved ${formatted.length} threads`);

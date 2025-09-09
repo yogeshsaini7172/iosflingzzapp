@@ -16,6 +16,7 @@ export interface Thread {
     first_name: string;
     profile_images?: string[];
   };
+  replies?: ThreadReply[];
 }
 
 export interface ThreadReply {
@@ -24,6 +25,10 @@ export interface ThreadReply {
   user_id: string;
   content: string;
   created_at: string;
+  author?: {
+    first_name: string;
+    profile_images?: string[];
+  };
 }
 
 export const useThreads = () => {
@@ -52,6 +57,9 @@ export const useThreads = () => {
       })
       .on('postgres_changes', { schema: 'public', table: 'thread_likes', event: '*' }, () => {
         fetchUserLikes();
+      })
+      .on('postgres_changes', { schema: 'public', table: 'thread_replies', event: '*' }, () => {
+        fetchThreads(); // Refresh threads to get updated replies
       })
       .subscribe();
 

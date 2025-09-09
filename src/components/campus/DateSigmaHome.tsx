@@ -418,7 +418,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
             
             return (
               <div key={thread.id} className="flex-shrink-0 w-72">
-                <Card className="p-4 bg-card/80 backdrop-blur-sm border-border/50 hover:bg-card transition-colors h-full">
+                 <Card className="p-4 bg-card/80 backdrop-blur-sm border-border/50 hover:bg-card transition-colors h-full">
                   <div className="flex space-x-3 mb-3">
                     <Avatar className="w-8 h-8">
                       <AvatarImage src={threadAvatar} alt={threadAuthor} />
@@ -441,6 +441,41 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
                     </div>
                   </div>
                   <p className="text-sm text-foreground leading-relaxed mb-3 line-clamp-3">{thread.content}</p>
+                  
+                  {/* Show replies if any exist */}
+                  {thread.replies && thread.replies.length > 0 && (
+                    <div className="mb-3 space-y-2 max-h-32 overflow-y-auto">
+                      {thread.replies.slice(-2).map((reply: any) => {
+                        const replyAuthor = reply.author?.first_name || 'Anonymous';
+                        const replyAvatar = reply.author?.profile_images?.[0];
+                        return (
+                          <div key={reply.id} className="flex space-x-2 p-2 bg-muted/50 rounded-md">
+                            <Avatar className="w-5 h-5">
+                              <AvatarImage src={replyAvatar} alt={replyAuthor} />
+                              <AvatarFallback className="bg-muted-foreground text-muted text-xs">
+                                {replyAuthor.charAt(0)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center space-x-2">
+                                <span className="text-xs font-medium text-foreground">{replyAuthor}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {new Date(reply.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-1 break-words">{reply.content}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {thread.replies.length > 2 && (
+                        <p className="text-xs text-muted-foreground text-center">
+                          +{thread.replies.length - 2} more replies
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  
                   <div className="flex items-center justify-between text-xs">
                     <div className="flex space-x-3">
                       <button 
@@ -453,17 +488,15 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
                         <span>{thread.likes_count}</span>
                       </button>
                       
-                      {!isOwnThread && (
-                        <button 
-                          className="flex items-center space-x-1 text-muted-foreground hover:text-primary transition-colors"
-                          onClick={() => handleReplyToThread(thread)}
-                        >
-                          <MessageCircle className="w-3 h-3" />
-                          <span>Reply</span>
-                        </button>
-                      )}
+                      <button 
+                        className="flex items-center space-x-1 text-muted-foreground hover:text-primary transition-colors"
+                        onClick={() => handleReplyToThread(thread)}
+                      >
+                        <MessageCircle className="w-3 h-3" />
+                        <span>Reply</span>
+                      </button>
                     </div>
-                    <span className="text-muted-foreground">{thread.replies_count} replies</span>
+                    <span className="text-muted-foreground">{thread.replies?.length || 0} replies</span>
                   </div>
                 </Card>
               </div>
