@@ -1,71 +1,73 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { jwtVerify, createRemoteJWKSet } from 'https://deno.land/x/jose@v5.1.3/index.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Firebase Admin SDK for proper token verification
-import { initializeApp, cert } from "https://esm.sh/firebase-admin@12.0.0/app";
-import { getAuth } from "https://esm.sh/firebase-admin@12.0.0/auth";
+// Firebase project configuration
+const FIREBASE_PROJECT_ID = 'datingapp-275cb';
+const FIREBASE_ISSUER = `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`;
+const FIREBASE_AUDIENCE = FIREBASE_PROJECT_ID;
 
-let firebaseApp: any = null;
+// Google's public keys for Firebase token verification
+const JWKS = createRemoteJWKSet(new URL('https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com'));
 
-function getFirebaseApp() {
-  if (!firebaseApp) {
-    const serviceAccountJson = Deno.env.get('FIREBASE_SERVICE_ACCOUNT_JSON');
-    if (!serviceAccountJson) {
-      throw new Error('Firebase service account not configured');
-    }
-
-    const serviceAccount = JSON.parse(serviceAccountJson);
-    console.log('🔥 Initializing Firebase Admin with project:', serviceAccount.project_id);
-    
-    firebaseApp = initializeApp({
-      credential: cert(serviceAccount),
-      projectId: serviceAccount.project_id
-    });
-  }
-  return firebaseApp;
-}
-
-// Proper Firebase token verification using Admin SDK
+// Proper Firebase JWT verification using jose library
 async function verifyFirebaseToken(idToken: string) {
   try {
-    console.log('🔍 Token type check - first few chars:', idToken.substring(0, 50));
+    console.log('🔍 Verifying Firebase token...');
     
-    // Decode without verification first to see what we have
+    // Debug: Check token structure
     const parts = idToken.split('.');
-    if (parts.length === 3) {
-      const payloadStr = atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'));
-      const payload = JSON.parse(payloadStr);
-      console.log('📋 Token payload preview:', {
-        iss: payload.iss,
-        aud: payload.aud,
-        sub: payload.sub?.substring(0, 10) + '...',
-        firebase: !!payload.firebase
-      });
+    if (parts.length !== 3) {
+      throw new Error('Malformed JWT token');
     }
 
-    const app = getFirebaseApp();
-    const decodedToken = await getAuth(app).verifyIdToken(idToken);
-    
-    console.log('✅ Firebase token verified successfully:', {
-      uid: decodedToken.uid,
-      email: decodedToken.email,
-      provider: decodedToken.firebase?.sign_in_provider
+    // Decode payload for debugging (without verification)
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    console.log('📋 Token payload preview:', {
+      iss: payload.iss,
+      aud: payload.aud,
+      sub: payload.sub?.substring(0, 10) + '...',
+      firebase: !!payload.firebase,
+      exp: new Date(payload.exp * 1000).toISOString()
     });
-    
+
+    // Verify token using jose library with Google's JWKs
+    const { payload: verifiedPayload } = await jwtVerify(idToken, JWKS, {
+      issuer: FIREBASE_ISSUER,
+      audience: FIREBASE_AUDIENCE,
+    });
+
+    console.log('✅ Firebase token verified successfully:', {
+      uid: verifiedPayload.sub,
+      email: verifiedPayload.email,
+      provider: verifiedPayload.firebase?.sign_in_provider
+    });
+
     return {
-      uid: decodedToken.uid,
-      email: decodedToken.email || null,
-      email_verified: decodedToken.email_verified || false
+      uid: verifiedPayload.sub!,
+      email: verifiedPayload.email as string || null,
+      email_verified: verifiedPayload.email_verified as boolean || false
     };
+    
   } catch (error) {
     console.error('❌ Firebase token verification failed:', error.message);
     console.error('❌ Full error:', error);
-    throw new Error('Invalid or expired Firebase token');
+    
+    // Provide more specific error messages
+    if (error.message.includes('expired')) {
+      throw new Error('Firebase token has expired');
+    } else if (error.message.includes('audience')) {
+      throw new Error('Invalid token audience - not for this Firebase project');
+    } else if (error.message.includes('issuer')) {
+      throw new Error('Invalid token issuer - not from Firebase');
+    } else {
+      throw new Error('Invalid Firebase token');
+    }
   }
 }
 
@@ -93,7 +95,7 @@ serve(async (req) => {
       )
     }
 
-    // Verify Firebase token using Admin SDK
+    // Verify Firebase token using jose library
     let firebaseUser
     try {
       firebaseUser = await verifyFirebaseToken(idToken)
@@ -101,7 +103,7 @@ serve(async (req) => {
     } catch (error) {
       console.error('❌ Token verification failed:', error)
       return new Response(
-        JSON.stringify({ error: 'Invalid token' }),
+        JSON.stringify({ error: error.message }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -130,33 +132,45 @@ serve(async (req) => {
     }
 
     if (req.method === 'POST' || req.method === 'PUT') {
-      // Create or update profile
-      const body = await req.json()
-      
-      const { data, error } = await supabase
-        .from('profiles')
-        .upsert({ 
-          firebase_uid: firebaseUser.uid,
-          user_id: firebaseUser.uid, // Keep user_id for compatibility
-          email: firebaseUser.email,
-          ...body,
-          updated_at: new Date().toISOString()
-        })
-        .select()
-        .single()
-
-      if (error) {
-        console.error('Profile upsert error:', error)
-        return new Response(
-          JSON.stringify({ error: 'Failed to save profile' }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
+      // Handle profile creation/update or simple verification
+      let body = {}
+      try {
+        const requestBody = await req.text()
+        if (requestBody) {
+          body = JSON.parse(requestBody)
+        }
+      } catch (e) {
+        // If no body or invalid JSON, treat as simple verification request
+        console.log('No valid JSON body, treating as verification request')
       }
 
-      return new Response(
-        JSON.stringify({ profile: data }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      // If body has profile data, update profile
+      if (Object.keys(body).length > 0) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .upsert({ 
+            firebase_uid: firebaseUser.uid,
+            user_id: firebaseUser.uid, // Keep user_id for compatibility
+            email: firebaseUser.email,
+            ...body,
+            updated_at: new Date().toISOString()
+          })
+          .select()
+          .single()
+
+        if (error) {
+          console.error('Profile upsert error:', error)
+          return new Response(
+            JSON.stringify({ error: 'Failed to save profile' }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+
+        return new Response(
+          JSON.stringify({ profile: data }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
     }
 
     // For simple verification (used by swipe-enforcement), return userId 
