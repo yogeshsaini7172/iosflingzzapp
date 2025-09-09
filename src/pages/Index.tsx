@@ -1,6 +1,7 @@
 import AuthPage from "@/pages/AuthPage";
 import SplashScreen from "@/components/onboarding/SplashScreen";
 import ProfileSetupFlow from "@/components/profile/ProfileSetupFlow";
+import DemoModeButton from "@/components/demo/DemoModeButton";
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -53,7 +54,37 @@ const Index = ({ onProfileComplete }: IndexProps) => {
   // Handle different steps
   switch (currentStep) {
     case 'auth':
-      return <AuthPage onComplete={() => setCurrentStep('profile')} />;
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+          <div className="container mx-auto px-4 py-8">
+            <div className="grid md:grid-cols-2 gap-8 items-center min-h-screen">
+              <div>
+                <AuthPage onComplete={() => setCurrentStep('profile')} />
+              </div>
+              <div className="hidden md:block">
+                <DemoModeButton 
+                  onActivate={async () => {
+                    if (onProfileComplete) {
+                      await onProfileComplete();
+                    }
+                  }} 
+                />
+              </div>
+            </div>
+            
+            {/* Mobile demo button */}
+            <div className="md:hidden mt-8">
+              <DemoModeButton 
+                onActivate={async () => {
+                  if (onProfileComplete) {
+                    await onProfileComplete();
+                  }
+                }} 
+              />
+            </div>
+          </div>
+        </div>
+      );
 
     case 'splash':
       return (
@@ -73,16 +104,23 @@ const Index = ({ onProfileComplete }: IndexProps) => {
             if (onProfileComplete) {
               const profileCompleted = await onProfileComplete();
               console.log('Parent recheck completed:', profileCompleted);
-              
-              // If recheck confirms profile is complete, the parent App will handle navigation
-              // No need for page refresh as App.tsx will re-render with hasProfile = true
             }
           }}
         />
       );
 
       default:
-        return <AuthPage onComplete={() => setCurrentStep('profile')} />;
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center">
+            <DemoModeButton 
+              onActivate={async () => {
+                if (onProfileComplete) {
+                  await onProfileComplete();
+                }
+              }} 
+            />
+          </div>
+        );
   }
 };
 

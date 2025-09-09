@@ -70,25 +70,35 @@ const AuthenticatedApp = () => {
 
   // Function to recheck profile status
   const recheckProfile = async () => {
-    if (!userId) {
-      // Fallback to local flag when userId missing (e.g., OAuth domain issues)
-      const localFlag = localStorage.getItem('profile_complete') === 'true';
-      const demo = localStorage.getItem('demoProfile');
-      setHasProfile(!!(localFlag || demo));
-      return !!(localFlag || demo);
+    console.log('🔄 Rechecking profile status...');
+    
+    // Always prioritize local completion flags for development
+    const localFlag = localStorage.getItem('profile_complete') === 'true';
+    const demo = localStorage.getItem('demoProfile');
+    
+    if (localFlag || demo) {
+      console.log('✅ Found local profile completion, proceeding to app');
+      setHasProfile(true);
+      return true;
     }
-    const profileComplete = await checkUserProfile(userId);
-    if (!profileComplete) {
-      const localFlag = localStorage.getItem('profile_complete') === 'true';
-      const demo = localStorage.getItem('demoProfile');
-      if (localFlag || demo) {
-        console.log('⚠️ Using local profile_complete fallback after recheck');
-        setHasProfile(true);
-        return true;
+    
+    // Only try server check if we have userId and no local flags
+    if (userId) {
+      try {
+        const profileComplete = await checkUserProfile(userId);
+        if (profileComplete) {
+          console.log('✅ Server confirmed profile complete');
+          setHasProfile(true);
+          return true;
+        }
+      } catch (error) {
+        console.warn('⚠️ Server profile check failed, falling back to local check');
       }
     }
-    setHasProfile(!!profileComplete);
-    return !!profileComplete;
+    
+    console.log('❌ No valid profile found');
+    setHasProfile(false);
+    return false;
   };
 
   useEffect(() => {
