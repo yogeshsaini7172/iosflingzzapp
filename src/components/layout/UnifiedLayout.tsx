@@ -66,10 +66,7 @@ const UnifiedLayout = ({ children, title = "DateSigma", showHeader = true }: Uni
               {/* Right side - Notifications & Profile */}
               <div className="flex items-center space-x-3">
                 <HeartNotificationBadge 
-                  onClick={() => {
-                    console.log('❤️ Heart badge clicked - navigating to matches');
-                    navigate('/matches');
-                  }}
+                  onClick={() => setShowWhoLikedMe(true)}
                 />
                 <ChatNotificationBadge 
                   onClick={() => {
