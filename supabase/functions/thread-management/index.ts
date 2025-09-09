@@ -10,7 +10,6 @@ interface ThreadRequest {
   action: 'list' | 'create' | 'update' | 'delete' | 'like' | 'unlike' | 'reply';
   threadId?: string;
   content?: string;
-  userId?: string;
 }
 
 serve(async (req) => {
@@ -32,7 +31,47 @@ serve(async (req) => {
       }
     );
 
-    const { action, threadId, content, userId }: ThreadRequest = await req.json();
+    // Get Firebase token and verify user (except for 'list' action which can be public)
+    let userId: string | null = null;
+    
+    const { action, threadId, content }: ThreadRequest = await req.json();
+    
+    if (action !== 'list') {
+      const authHeader = req.headers.get('Authorization');
+      if (!authHeader) {
+        return new Response(
+          JSON.stringify({ error: 'Authentication required' }),
+          { status: 401, headers: corsHeaders }
+        );
+      }
+
+      // Verify Firebase token and get user ID  
+      const verifyResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/firebase-profile`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': authHeader,
+          'apikey': Deno.env.get('SUPABASE_ANON_KEY')
+        }
+      });
+
+      if (!verifyResponse.ok) {
+        return new Response(
+          JSON.stringify({ error: 'Authentication failed' }),
+          { status: 401, headers: corsHeaders }
+        );
+      }
+
+      const { userId: verifiedUserId } = await verifyResponse.json();
+      if (!verifiedUserId) {
+        return new Response(
+          JSON.stringify({ error: 'User not authenticated' }),
+          { status: 401, headers: corsHeaders }
+        );
+      }
+      
+      userId = verifiedUserId;
+    }
     
     console.log(`Thread management request: ${action} for user: ${userId || 'anonymous'}`);
 
@@ -82,7 +121,7 @@ serve(async (req) => {
       case 'create':
         if (!content || !userId) {
           return new Response(
-            JSON.stringify({ error: 'Content and userId are required' }),
+            JSON.stringify({ error: 'Content is required and user must be authenticated' }),
             { status: 400, headers: corsHeaders }
           );
         }
@@ -107,7 +146,7 @@ serve(async (req) => {
       case 'update':
         if (!threadId || !content || !userId) {
           return new Response(
-            JSON.stringify({ error: 'ThreadId, content and userId are required' }),
+            JSON.stringify({ error: 'ThreadId and content are required and user must be authenticated' }),
             { status: 400, headers: corsHeaders }
           );
         }
@@ -134,7 +173,7 @@ serve(async (req) => {
       case 'delete':
         if (!threadId || !userId) {
           return new Response(
-            JSON.stringify({ error: 'ThreadId and userId are required' }),
+            JSON.stringify({ error: 'ThreadId is required and user must be authenticated' }),
             { status: 400, headers: corsHeaders }
           );
         }
@@ -156,7 +195,7 @@ serve(async (req) => {
       case 'like':
         if (!threadId || !userId) {
           return new Response(
-            JSON.stringify({ error: 'ThreadId and userId are required' }),
+            JSON.stringify({ error: 'ThreadId is required and user must be authenticated' }),
             { status: 400, headers: corsHeaders }
           );
         }
@@ -179,7 +218,7 @@ serve(async (req) => {
       case 'unlike':
         if (!threadId || !userId) {
           return new Response(
-            JSON.stringify({ error: 'ThreadId and userId are required' }),
+            JSON.stringify({ error: 'ThreadId is required and user must be authenticated' }),
             { status: 400, headers: corsHeaders }
           );
         }
@@ -201,7 +240,7 @@ serve(async (req) => {
       case 'reply':
         if (!threadId || !content || !userId) {
           return new Response(
-            JSON.stringify({ error: 'ThreadId, content and userId are required' }),
+            JSON.stringify({ error: 'ThreadId and content are required and user must be authenticated' }),
             { status: 400, headers: corsHeaders }
           );
         }
