@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Heart, Brain, Star, MapPin, GraduationCap, Sparkles, Users, RefreshCw, MessageCircle } from 'lucide-react';
+import { Heart, Brain, Star, MapPin, GraduationCap, Sparkles, Users, RefreshCw, MessageCircle, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import DetailedProfileModal from '@/components/profile/DetailedProfileModal';
@@ -391,7 +391,7 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                     <div className="flex items-center justify-between text-xs">
                       <div className="flex items-center space-x-3">
                         <div className="flex items-center">
-                          <Heart className="h-3 w-3 mr-1 text-red-500" />
+                          <Zap className="h-3 w-3 mr-1 text-amber-500" />
                           <span>{match.physical_score || 0}%</span>
                         </div>
                         <div className="flex items-center">
