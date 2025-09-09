@@ -72,13 +72,28 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
   };
 
   useEffect(() => {
+    console.log('🎯 PairingPage useEffect triggered with userId:', userId);
+    if (!userId) {
+      console.log('⚠️ No userId available, skipping QCS fetch');
+      return;
+    }
+    
     (async () => {
+      console.log('🔍 Fetching QCS for user:', userId);
+      
       // Fetch current user's QCS and requirements from DB
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('total_qcs, requirements')
         .eq('user_id', userId)
         .maybeSingle();
+
+      if (profileError) {
+        console.error('❌ Error fetching profile for QCS:', profileError);
+      } else {
+        console.log('✅ Profile data fetched:', profile);
+        console.log('📊 QCS Value:', profile?.total_qcs);
+      }
 
       setCurrentUser({ id: userId, profile: { total_qcs: profile?.total_qcs || 0 } });
       setMyReq(parseJsonSafe(profile?.requirements));
@@ -92,16 +107,19 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
       console.log("🔍 Loading matches for user:", userId);
 
       // Compute REAL compatibility first; only show profiles after scoring
+      console.log("📡 Calling deterministic-pairing function...");
       const { data: pairingResults, error } = await supabase.functions.invoke('deterministic-pairing', {
         body: { user_id: userId }
       });
 
       if (error) {
-        console.error('Error invoking deterministic-pairing:', error);
+        console.error('❌ Error invoking deterministic-pairing:', error);
         toast.error(`Pairing error: ${error.message || 'Unknown error'}`);
         setMatches([]);
         return;
       }
+
+      console.log('✅ Deterministic pairing results:', pairingResults);
 
       // Handle different response types
       if (!pairingResults.success) {
