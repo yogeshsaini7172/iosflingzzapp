@@ -40,16 +40,19 @@ const SwipeManager = ({ onUpgrade }: SwipeManagerProps) => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('swipes_left, subscription_tier')
-        .eq('user_id', user.uid)
-        .single();
+      const response = await fetchWithFirebaseAuth('/functions/v1/data-management', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'get_profile' })
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to fetch profile');
+      const data = await response.json();
 
-      setSwipesLeft(data.swipes_left || 0);
-      setSubscriptionTier(data.subscription_tier || 'free');
+      if (data.success && data.data.profile) {
+        const profile = data.data.profile;
+        setSwipesLeft(profile.swipes_left || 0);
+        setSubscriptionTier(profile.subscription_tier || 'free');
+      }
     } catch (error: any) {
       console.error('Error fetching user profile:', error);
     }
@@ -59,63 +62,31 @@ const SwipeManager = ({ onUpgrade }: SwipeManagerProps) => {
     if (!user) return;
 
     try {
-      // Get user's partner preferences
-      const { data: preferences } = await supabase
-        .from('partner_preferences')
-        .select('*')
-      .eq('user_id', user.uid)
-        .single();
+      // Get feed from data-management function
+      const response = await fetchWithFirebaseAuth('/functions/v1/data-management', {
+        method: 'POST',
+        body: JSON.stringify({ 
+          action: 'get_feed',
+          limit: 20
+        })
+      });
 
-      // Get candidates based on preferences
-      let query = supabase
-        .from('profiles')
-        .select('*')
-        .neq('user_id', user.uid)  // Exclude self
-        .eq('is_profile_public', true)  // Only public profiles
-        .limit(20);
+      if (!response.ok) throw new Error('Failed to fetch candidates');
+      const data = await response.json();
 
-          // Apply gender filter if preferences exist
-          if (preferences?.preferred_gender?.length > 0) {
-            // Cast to the proper type
-            const genderFilter = preferences.preferred_gender as ('male' | 'female' | 'non_binary' | 'prefer_not_to_say')[];
-            query = query.in('gender', genderFilter);
-          }
+      if (data.success && data.data.profiles) {
+        // Calculate age for each candidate
+        const candidatesWithAge = data.data.profiles.map((candidate: any) => ({
+          ...candidate,
+          age: candidate.date_of_birth ? 
+            new Date().getFullYear() - new Date(candidate.date_of_birth).getFullYear() : 
+            undefined
+        }));
 
-      // Apply age filter if preferences exist
-      if (preferences?.age_range_min && preferences?.age_range_max) {
-        const currentYear = new Date().getFullYear();
-        const maxBirthYear = currentYear - preferences.age_range_min;
-        const minBirthYear = currentYear - preferences.age_range_max;
-        
-        query = query
-          .gte('date_of_birth', `${minBirthYear}-01-01`)
-          .lte('date_of_birth', `${maxBirthYear}-12-31`);
+        setCandidates(candidatesWithAge);
+      } else {
+        setCandidates([]);
       }
-
-      const { data: candidatesData, error } = await query;
-
-      if (error) throw error;
-
-      // Filter out already swiped users (using NEW enhanced_swipes table)
-      const { data: swipedUsers } = await supabase
-        .from('enhanced_swipes')
-        .select('target_user_id')
-        .eq('user_id', user.uid);
-
-      const swipedIds = swipedUsers?.map(s => s.target_user_id) || [];
-      const filteredCandidates = candidatesData?.filter(
-        candidate => !swipedIds.includes(candidate.user_id)
-      ) || [];
-
-      // Calculate age for each candidate
-      const candidatesWithAge = filteredCandidates.map(candidate => ({
-        ...candidate,
-        age: candidate.date_of_birth ? 
-          new Date().getFullYear() - new Date(candidate.date_of_birth).getFullYear() : 
-          undefined
-      }));
-
-      setCandidates(candidatesWithAge);
     } catch (error: any) {
       console.error('Error fetching candidates:', error);
       toast({
@@ -161,12 +132,15 @@ const SwipeManager = ({ onUpgrade }: SwipeManagerProps) => {
 
       // Update swipes left for free users
       if (subscriptionTier === 'free') {
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({ swipes_left: swipesLeft - 1 })
-          .eq('user_id', user.uid);
+        const updateResponse = await fetchWithFirebaseAuth('/functions/v1/data-management', {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'update_profile',
+            profile: { swipes_left: swipesLeft - 1 }
+          })
+        });
 
-        if (updateError) throw updateError;
+        if (!updateResponse.ok) throw new Error('Failed to update swipes');
         setSwipesLeft(prev => prev - 1);
       }
 
