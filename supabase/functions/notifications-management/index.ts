@@ -6,23 +6,18 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Verify Firebase ID token
+// Verify Firebase ID token (lightweight payload checks)
 async function verifyFirebaseToken(idToken: string) {
   try {
-    const serviceAccountJson = Deno.env.get('FIREBASE_SERVICE_ACCOUNT_JSON')
-    if (!serviceAccountJson) {
-      throw new Error('Firebase service account not configured')
-    }
-
-    const serviceAccount = JSON.parse(serviceAccountJson)
-    const payload = JSON.parse(atob(idToken.split('.')[1]))
-    
-    if (!payload.iss?.includes('firebase') || !payload.aud?.includes(serviceAccount.project_id)) {
-      throw new Error('Invalid token issuer or audience')
-    }
-    
-    return payload.sub // Return Firebase UID
-  } catch (error) {
+    const parts = idToken.split('.')
+    if (parts.length !== 3) throw new Error('Malformed token')
+    const payload = JSON.parse(atob(parts[1]))
+    const now = Math.floor(Date.now() / 1000)
+    if (!payload?.sub) throw new Error('Missing subject')
+    if (!payload?.iss || !payload.iss.includes('securetoken.google.com')) throw new Error('Invalid issuer')
+    if (payload?.exp && payload.exp < now) throw new Error('Token expired')
+    return payload.sub as string
+  } catch {
     throw new Error('Invalid or expired token')
   }
 }

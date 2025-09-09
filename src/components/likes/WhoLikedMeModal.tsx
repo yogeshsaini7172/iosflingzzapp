@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -134,6 +134,9 @@ const WhoLikedMeModal = ({ isOpen, onClose }: WhoLikedMeModalProps) => {
               <Badge variant="secondary">{likes.length}</Badge>
             )}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            See who liked your profile and like back to create a match.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="flex-1 overflow-y-auto">
