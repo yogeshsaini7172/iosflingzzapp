@@ -10,6 +10,7 @@ import ChatNotificationBadge from '@/components/ui/chat-notification-badge';
 import HeartNotificationBadge from '@/components/ui/heart-notification-badge';
 import WhoLikedMeModal from '@/components/likes/WhoLikedMeModal';
 import ChatRequestsModal from '@/components/notifications/ChatRequestsModal';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface UnifiedLayoutProps {
   children: React.ReactNode;
@@ -23,6 +24,9 @@ const UnifiedLayout = ({ children, title = "DateSigma", showHeader = true }: Uni
   const navigate = useNavigate();
   const [showWhoLikedMe, setShowWhoLikedMe] = useState(false);
   const [showChatRequests, setShowChatRequests] = useState(false);
+
+  // Enable global notifications for all users - this ensures realtime notifications work everywhere
+  useNotifications();
 
   const handleLogout = async () => {
     try {
