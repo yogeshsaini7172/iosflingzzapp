@@ -64,12 +64,8 @@ const HeartNotificationBadge = ({ onClick, className }: HeartNotificationBadgePr
   };
 
   const handleClick = () => {
-    if (canSeeLikes) {
-      onClick();
-    } else {
-      // Show upgrade prompt
-      window.location.hash = 'upgrade';
-    }
+    // Always open the modal; it will handle permissions and upgrade prompts internally
+    onClick();
   };
 
   if (loading) {
