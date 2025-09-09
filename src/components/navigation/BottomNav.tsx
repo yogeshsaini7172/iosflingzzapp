@@ -3,7 +3,12 @@ import { Home, Users, Sparkles, User } from "lucide-react";
 
 const BottomNav = () => {
   const location = useLocation();
-  const active = (path: string) => location.pathname === path || location.pathname.startsWith(path);
+  const active = (path: string) => {
+    if (path === "/") {
+      return location.pathname === "/";
+    }
+    return location.pathname === path || location.pathname.startsWith(path + "/");
+  };
 
   const items = [
     { path: "/", icon: Home, label: "Home" },
