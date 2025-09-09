@@ -72,78 +72,59 @@ const AuthenticatedApp = () => {
   const recheckProfile = async () => {
     console.log('🔄 Rechecking profile status...');
     
-    // Always prioritize local completion flags for development
-    const localFlag = localStorage.getItem('profile_complete') === 'true';
-    const demo = localStorage.getItem('demoProfile');
-    
-    if (localFlag || demo) {
-      console.log('✅ Found local profile completion, proceeding to app');
-      setHasProfile(true);
-      return true;
+    if (!userId) {
+      console.log('❌ No user ID available');
+      setHasProfile(false);
+      return false;
     }
     
-    // Only try server check if we have userId and no local flags
-    if (userId) {
-      try {
-        const profileComplete = await checkUserProfile(userId);
-        if (profileComplete) {
-          console.log('✅ Server confirmed profile complete');
-          setHasProfile(true);
-          return true;
-        }
-      } catch (error) {
-        console.warn('⚠️ Server profile check failed, falling back to local check');
-      }
+    try {
+      const profileComplete = await checkUserProfile(userId);
+      console.log('✅ Profile check result:', profileComplete);
+      setHasProfile(!!profileComplete);
+      return !!profileComplete;
+    } catch (error) {
+      console.error('❌ Error checking profile:', error);
+      setHasProfile(false);
+      return false;
     }
-    
-    console.log('❌ No valid profile found');
-    setHasProfile(false);
-    return false;
   };
 
   useEffect(() => {
     console.log('🔄 App starting, checking auth state...');
-    const clearDemoLocalStorage = () => {
+    const clearAllLocalStorage = () => {
       try {
-        // Clear only demo/testing caches, but preserve profile_complete
+        // Clear all localStorage items for fresh start
         const keys = [
           'demoProfile',
           'demoPreferences', 
           'demoUserId',
           'demoQCS',
-          'subscription_plan'
-          // DO NOT clear 'profile_complete' - this tracks real profile completion
+          'subscription_plan',
+          'profile_complete'
         ];
         keys.forEach((k) => localStorage.removeItem(k));
-        console.log('🧹 Cleared demo localStorage keys (preserving profile_complete)');
+        console.log('🧹 Cleared all localStorage for real authentication');
       } catch (e) {
-        console.warn('⚠️ Failed clearing demo localStorage keys', e);
+        console.warn('⚠️ Failed clearing localStorage keys', e);
       }
     };
 
     const checkProfile = async () => {
       console.log('📋 Checking profile for user:', userId);
       if (userId) {
-        // Clear demo caches but preserve real profile completion status
-        clearDemoLocalStorage();
+        // Clear all local storage for real authentication
+        clearAllLocalStorage();
         try {
           const profileComplete = await checkUserProfile(userId);
           console.log('✅ Profile check result:', { profileComplete });
-          if (!profileComplete) {
-            const localFlag = localStorage.getItem('profile_complete') === 'true';
-            const demo = localStorage.getItem('demoProfile');
-            if (localFlag || demo) {
-              console.log('⚠️ Using local profile_complete fallback (demo/local)');
-              setHasProfile(true);
-            } else {
-              setHasProfile(false);
-            }
-          } else {
-            setHasProfile(true);
-          }
+          setHasProfile(!!profileComplete);
         } catch (error) {
           console.error('❌ Error in profile check:', error);
+          setHasProfile(false);
         }
+      } else {
+        setHasProfile(false);
       }
       setCheckingProfile(false);
     };

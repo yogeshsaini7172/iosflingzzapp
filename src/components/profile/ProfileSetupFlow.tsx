@@ -174,24 +174,25 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         preferred_relationship_goal: profileData.preferredRelationshipGoals
       };
 
-      localStorage.setItem('demoPreferences', JSON.stringify(preferences));
-      localStorage.setItem('demoProfile', JSON.stringify(completeProfile));
-      localStorage.setItem('demoUserId', userId);
+      // Remove demo localStorage - everything is real now
+      console.log('Creating real profile, no demo storage needed');
 
-      // Simplified verification check - allow completion with basic profile
+      // Check if verification was completed (either verified status or documents uploaded)
       const hasVerificationDocuments = profileData.collegeIdFile || profileData.govtIdFile;
       const isVerificationComplete = verificationStatus === 'verified' || hasVerificationDocuments;
       
-      // For development/demo, allow completion without full verification
-      if (!isVerificationComplete && !localStorage.getItem('demoProfile')) {
-        // Create minimal verification for demo purposes
-        console.log('⚠️ Creating demo verification for profile completion');
-        setVerificationStatus('pending');
+      if (!isVerificationComplete) {
+        toast({
+          title: "Verification required",
+          description: "Please submit your IDs and verify before completing.",
+          variant: "destructive"
+        });
+        setIsLoading(false);
+        return;
       }
 
       // Set verification status - use actual status or 'pending' if documents uploaded
       completeProfile.verification_status = verificationStatus === 'verified' ? 'verified' : 'pending';
-      localStorage.setItem('demoProfile', JSON.stringify(completeProfile));
 
       // Calculate QCS via Edge Function (uses profile data)
       toast({ title: "Calculating QCS Score... 📊", description: "Analyzing your profile" });
@@ -222,7 +223,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         total_score: totalScore
       };
 
-      localStorage.setItem('demoQCS', JSON.stringify(qcsScore));
+      // QCS will be stored in real database via edge function
       
       // Create profile via data-management function with Firebase auth
       const profilePayload = {

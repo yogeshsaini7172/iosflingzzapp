@@ -1,7 +1,6 @@
 import AuthPage from "@/pages/AuthPage";
 import SplashScreen from "@/components/onboarding/SplashScreen";
 import ProfileSetupFlow from "@/components/profile/ProfileSetupFlow";
-import DemoModeButton from "@/components/demo/DemoModeButton";
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,16 +22,9 @@ const Index = ({ onProfileComplete }: IndexProps) => {
         return;
       }
 
-      // Check profile via local flag to avoid cross-auth mismatch
-      const flag = localStorage.getItem('profile_complete') === 'true';
-      const demo = localStorage.getItem('demoProfile');
-
-      if (!flag && !demo) {
-        setCurrentStep('profile');
-        setHasProfile(false);
-      } else {
-        setHasProfile(true);
-      }
+      // For real authentication, always require profile setup
+      setCurrentStep('profile');
+      setHasProfile(false);
     };
 
     if (!isLoading) {
@@ -54,37 +46,7 @@ const Index = ({ onProfileComplete }: IndexProps) => {
   // Handle different steps
   switch (currentStep) {
     case 'auth':
-      return (
-        <div className="min-h-screen bg-gradient-to-br from-background to-muted">
-          <div className="container mx-auto px-4 py-8">
-            <div className="grid md:grid-cols-2 gap-8 items-center min-h-screen">
-              <div>
-                <AuthPage onComplete={() => setCurrentStep('profile')} />
-              </div>
-              <div className="hidden md:block">
-                <DemoModeButton 
-                  onActivate={async () => {
-                    if (onProfileComplete) {
-                      await onProfileComplete();
-                    }
-                  }} 
-                />
-              </div>
-            </div>
-            
-            {/* Mobile demo button */}
-            <div className="md:hidden mt-8">
-              <DemoModeButton 
-                onActivate={async () => {
-                  if (onProfileComplete) {
-                    await onProfileComplete();
-                  }
-                }} 
-              />
-            </div>
-          </div>
-        </div>
-      );
+      return <AuthPage onComplete={() => setCurrentStep('profile')} />;
 
     case 'splash':
       return (
@@ -100,6 +62,9 @@ const Index = ({ onProfileComplete }: IndexProps) => {
             console.log('Profile setup complete, triggering recheck...');
             setHasProfile(true);
             
+            // Mark profile as complete in localStorage for App.tsx check
+            localStorage.setItem('profile_complete', 'true');
+            
             // Trigger parent recheck and wait for it
             if (onProfileComplete) {
               const profileCompleted = await onProfileComplete();
@@ -110,17 +75,7 @@ const Index = ({ onProfileComplete }: IndexProps) => {
       );
 
       default:
-        return (
-          <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center">
-            <DemoModeButton 
-              onActivate={async () => {
-                if (onProfileComplete) {
-                  await onProfileComplete();
-                }
-              }} 
-            />
-          </div>
-        );
+        return <AuthPage onComplete={() => setCurrentStep('profile')} />;
   }
 };
 
