@@ -17,7 +17,7 @@ import DateSigmaHome from "./components/campus/DateSigmaHome";
 import SubscriptionPage from "./components/subscription/SubscriptionPage";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,35 +40,37 @@ const AuthenticatedApp = () => {
   // Function to check if user has completed profile
   const checkUserProfile = async (userId: string) => {
     try {
-      // Check localStorage flag first (faster)
-      const flag = localStorage.getItem('profile_complete');
-      if (flag === 'true') return true;
-      
-      // Check demo profile as fallback
-      const demoProfile = localStorage.getItem('demoProfile');
-      if (demoProfile) return true;
-      
-      // As last resort, check if user has profile in database
-      // This ensures profile completion persists across devices/browsers
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('user_id', userId)
-          .single();
-          
-        if (data && !error) {
-          // User has profile in database, set localStorage for future
-          localStorage.setItem('profile_complete', 'true');
-          return true;
-        }
-      } catch (dbError) {
-        console.log('Database check failed, using localStorage only');
+      // Verify via Edge Function using Firebase token
+      const res = await fetchWithFirebaseAuth('/functions/v1/profile-management', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'get' }),
+      });
+      const json = await res.json();
+      const profile = json?.data?.profile ?? null;
+
+      if (profile) {
+        return true; // profile exists, allow main app
       }
-      
+
+      // No profile: create a minimal stub, then force setup flow
+      try {
+        await fetchWithFirebaseAuth('/functions/v1/profile-management', {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'create',
+            profile: {
+              display_name: user?.displayName || '',
+              email: user?.email || '',
+            },
+          }),
+        });
+      } catch (createErr) {
+        console.warn('⚠️ Could not auto-create profile stub:', createErr);
+      }
+
       return false;
     } catch (error) {
-      console.error('❌ Error checking profile:', error);
+      console.error('❌ Error checking profile via edge function:', error);
       return false;
     }
   };
