@@ -413,7 +413,7 @@ serve(async (req) => {
           const { data: otherUser } = await supabaseClient
             .from('profiles')
             .select('user_id, first_name, last_name, profile_images, university')
-            .eq('user_id', otherUserId)
+            .eq('firebase_uid', otherUserId)
             .maybeSingle();
             
           const { data: lastMessage } = await supabaseClient
