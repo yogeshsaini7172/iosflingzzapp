@@ -191,23 +191,25 @@ const WhoLikedMeModal = ({ isOpen, onClose }: WhoLikedMeModalProps) => {
                       </div>
                       
                       <div className="flex flex-col gap-2">
-                        {!userLike.is_mutual_match && (
-                          <Button
-                            size="sm"
-                            className="bg-red-500 hover:bg-red-600"
-                            onClick={() => handleLikeBack(userLike)}
-                          >
-                            <Heart className="w-4 h-4 mr-1" />
-                            Like Back
-                          </Button>
-                        )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            onClose();
+                            // Navigate to swipe page to view profile
+                            window.location.hash = 'swipe';
+                          }}
+                        >
+                          <Users className="w-4 h-4 mr-1" />
+                          View Profile
+                        </Button>
                         {userLike.is_mutual_match && (
                           <Button
                             size="sm"
-                            variant="outline"
+                            className="bg-green-500 hover:bg-green-600"
                             onClick={() => {
                               onClose();
-                              // Navigate to chat
+                              // Navigate to chat for matches
                               window.location.hash = 'chat';
                             }}
                           >
