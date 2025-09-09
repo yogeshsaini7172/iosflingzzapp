@@ -178,8 +178,11 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       localStorage.setItem('demoProfile', JSON.stringify(completeProfile));
       localStorage.setItem('demoUserId', userId);
 
-      // Guard: ensure verification was successful
-      if (verificationStatus !== 'verified') {
+      // Check if verification was completed (either verified status or documents uploaded)
+      const hasVerificationDocuments = profileData.collegeIdFile || profileData.govtIdFile;
+      const isVerificationComplete = verificationStatus === 'verified' || hasVerificationDocuments;
+      
+      if (!isVerificationComplete) {
         toast({
           title: "Verification required",
           description: "Please submit your IDs and verify before completing.",
@@ -189,8 +192,8 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         return;
       }
 
-      // Persist current verification status
-      completeProfile.verification_status = 'verified';
+      // Set verification status - use actual status or 'pending' if documents uploaded
+      completeProfile.verification_status = verificationStatus === 'verified' ? 'verified' : 'pending';
       localStorage.setItem('demoProfile', JSON.stringify(completeProfile));
 
       // Calculate QCS via Edge Function (uses profile data)
@@ -330,8 +333,8 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         return profileData.preferredGender.length > 0 && profileData.preferredRelationshipGoals.length > 0;
       case 4: // Upload Photos
         return profileData.profileImages.length >= 1;
-       case 5: // ID Verification - only proceed after verified
-        return verificationStatus === 'verified';
+      case 5: // ID Verification - only proceed after verified
+        return verificationStatus === 'verified' || profileData.collegeIdFile || profileData.govtIdFile;
       default:
         return true;
     }
