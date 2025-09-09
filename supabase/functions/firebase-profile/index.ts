@@ -6,57 +6,66 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Verify Firebase ID token with proper RS256 verification
-function base64UrlToBase64(input: string) {
-  return input.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(input.length / 4) * 4, '=')
+// Firebase Admin SDK for proper token verification
+import { initializeApp, cert } from "https://esm.sh/firebase-admin@12.0.0/app";
+import { getAuth } from "https://esm.sh/firebase-admin@12.0.0/auth";
+
+let firebaseApp: any = null;
+
+function getFirebaseApp() {
+  if (!firebaseApp) {
+    const serviceAccountJson = Deno.env.get('FIREBASE_SERVICE_ACCOUNT_JSON');
+    if (!serviceAccountJson) {
+      throw new Error('Firebase service account not configured');
+    }
+
+    const serviceAccount = JSON.parse(serviceAccountJson);
+    console.log('🔥 Initializing Firebase Admin with project:', serviceAccount.project_id);
+    
+    firebaseApp = initializeApp({
+      credential: cert(serviceAccount),
+      projectId: serviceAccount.project_id
+    });
+  }
+  return firebaseApp;
 }
 
+// Proper Firebase token verification using Admin SDK
 async function verifyFirebaseToken(idToken: string) {
   try {
-    const parts = idToken.split('.')
-    if (parts.length !== 3) {
-      throw new Error('Malformed JWT token')
-    }
-
-    // Decode header and payload
-    const headerStr = atob(base64UrlToBase64(parts[0]))
-    const payloadStr = atob(base64UrlToBase64(parts[1]))
+    console.log('🔍 Token type check - first few chars:', idToken.substring(0, 50));
     
-    const header = JSON.parse(headerStr)
-    const payload = JSON.parse(payloadStr)
-
-    // Validate basic structure
-    if (!payload?.sub || !payload?.iss || !payload?.aud) {
-      throw new Error('Missing required JWT claims')
+    // Decode without verification first to see what we have
+    const parts = idToken.split('.');
+    if (parts.length === 3) {
+      const payloadStr = atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'));
+      const payload = JSON.parse(payloadStr);
+      console.log('📋 Token payload preview:', {
+        iss: payload.iss,
+        aud: payload.aud,
+        sub: payload.sub?.substring(0, 10) + '...',
+        firebase: !!payload.firebase
+      });
     }
 
-    // Validate issuer and audience for Firebase
-    if (payload.iss !== 'https://securetoken.google.com/datingapp-275cb') {
-      throw new Error('Invalid issuer')
-    }
-    if (payload.aud !== 'datingapp-275cb') {
-      throw new Error('Invalid audience')
-    }
-
-    // Check expiration
-    const now = Math.floor(Date.now() / 1000)
-    if (payload.exp && payload.exp < now) {
-      throw new Error('Token expired')
-    }
-    if (payload.iat && payload.iat > now + 300) { // Allow 5 min clock skew
-      throw new Error('Token used too early')
-    }
-
-    console.log('✅ Firebase token verified for user:', payload.sub)
+    const app = getFirebaseApp();
+    const decodedToken = await getAuth(app).verifyIdToken(idToken);
+    
+    console.log('✅ Firebase token verified successfully:', {
+      uid: decodedToken.uid,
+      email: decodedToken.email,
+      provider: decodedToken.firebase?.sign_in_provider
+    });
     
     return {
-      uid: payload.sub,
-      email: payload.email || null,
-      email_verified: payload.email_verified || false
-    }
+      uid: decodedToken.uid,
+      email: decodedToken.email || null,
+      email_verified: decodedToken.email_verified || false
+    };
   } catch (error) {
-    console.error('❌ Token verification failed:', error.message)
-    throw new Error('Invalid or expired token')
+    console.error('❌ Firebase token verification failed:', error.message);
+    console.error('❌ Full error:', error);
+    throw new Error('Invalid or expired Firebase token');
   }
 }
 
@@ -84,13 +93,13 @@ serve(async (req) => {
       )
     }
 
-    // Verify Firebase token
+    // Verify Firebase token using Admin SDK
     let firebaseUser
     try {
       firebaseUser = await verifyFirebaseToken(idToken)
-      console.log('Verified Firebase user:', firebaseUser.uid)
+      console.log('✅ Verified Firebase user:', firebaseUser.uid)
     } catch (error) {
-      console.error('Token verification failed:', error)
+      console.error('❌ Token verification failed:', error)
       return new Response(
         JSON.stringify({ error: 'Invalid token' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -150,13 +159,14 @@ serve(async (req) => {
       )
     }
 
+    // For simple verification (used by swipe-enforcement), return userId 
     return new Response(
-      JSON.stringify({ error: 'Method not allowed' }),
-      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ userId: firebaseUser.uid }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 
   } catch (error) {
-    console.error('Server error:', error)
+    console.error('❌ Server error:', error)
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
