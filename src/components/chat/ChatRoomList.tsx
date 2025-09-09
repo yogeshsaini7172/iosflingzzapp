@@ -9,9 +9,10 @@ interface ChatRoomListProps {
   loading: boolean;
   onRoomSelect: (room: ChatRoom) => void;
   onBack: () => void;
+  onShowRequests: () => void;
 }
 
-const ChatRoomList = ({ chatRooms, loading, onRoomSelect, onBack }: ChatRoomListProps) => {
+const ChatRoomList = ({ chatRooms, loading, onRoomSelect, onBack, onShowRequests }: ChatRoomListProps) => {
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -45,12 +46,22 @@ const ChatRoomList = ({ chatRooms, loading, onRoomSelect, onBack }: ChatRoomList
           <Button variant="ghost" onClick={onBack} className="mr-3">
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <div>
+          <div className="flex-1">
             <h1 className="text-xl font-bold">Messages</h1>
             <p className="text-sm text-muted-foreground">
               {chatRooms.length} conversation{chatRooms.length !== 1 ? 's' : ''}
             </p>
           </div>
+          
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={onShowRequests}
+            className="ml-2"
+          >
+            <MessageSquare className="w-4 h-4 mr-2" />
+            Requests
+          </Button>
         </div>
       </div>
 

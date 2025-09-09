@@ -3,6 +3,7 @@ import { useRequiredAuth } from "@/hooks/useRequiredAuth";
 import { useChat, ChatRoom } from "@/hooks/useChat";
 import ChatRoomList from "./ChatRoomList";
 import ChatConversation from "./ChatConversation";
+import ChatRequestsModal from "@/components/notifications/ChatRequestsModal";
 
 interface RebuiltChatSystemProps {
   onNavigate: (view: string) => void;
@@ -12,6 +13,7 @@ interface RebuiltChatSystemProps {
 const RebuiltChatSystem = ({ onNavigate, selectedChatId }: RebuiltChatSystemProps) => {
   const { userId, isLoading: authLoading } = useRequiredAuth();
   const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null);
+  const [showChatRequests, setShowChatRequests] = useState(false);
   
   const { 
     chatRooms, 
@@ -77,12 +79,21 @@ const RebuiltChatSystem = ({ onNavigate, selectedChatId }: RebuiltChatSystemProp
 
   // Show chat rooms list
   return (
-    <ChatRoomList
-      chatRooms={chatRooms}
-      loading={loading}
-      onRoomSelect={handleRoomSelect}
-      onBack={handleBack}
-    />
+    <>
+      <ChatRoomList
+        chatRooms={chatRooms}
+        loading={loading}
+        onRoomSelect={handleRoomSelect}
+        onBack={handleBack}
+        onShowRequests={() => setShowChatRequests(true)}
+      />
+      
+      <ChatRequestsModal 
+        isOpen={showChatRequests} 
+        onClose={() => setShowChatRequests(false)}
+        onNavigate={onNavigate}
+      />
+    </>
   );
 };
 
