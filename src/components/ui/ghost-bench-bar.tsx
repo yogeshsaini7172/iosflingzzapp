@@ -162,11 +162,10 @@ const GhostBenchBar = ({ onChatSelected }: GhostBenchBarProps) => {
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
                       {interaction.profile?.profile_images?.[0] ? (
-                        <img 
-                          src={interaction.profile.profile_images[0]} 
-                          alt=""
-                          className="w-full h-full rounded-full object-cover"
-                        />
+                        <span className="text-sm font-medium">
+                          {interaction.profile?.first_name?.[0]}
+                          {interaction.profile?.last_name?.[0]}
+                        </span>
                       ) : (
                         <span className="text-sm font-medium">
                           {interaction.profile?.first_name?.[0]}

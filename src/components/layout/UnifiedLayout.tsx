@@ -81,7 +81,6 @@ const UnifiedLayout = ({ children, title = "DateSigma", showHeader = true }: Uni
                 {/* Profile & Logout */}
                 <div className="flex items-center space-x-2 pl-2 border-border/50">
                   <Avatar className="w-8 h-8">
-                    <AvatarImage src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150" />
                     <AvatarFallback>
                       <User className="w-4 h-4" />
                     </AvatarFallback>

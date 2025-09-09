@@ -78,8 +78,8 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
       return;
     }
     
-    (async () => {
-      console.log('🔍 Fetching QCS for user:', userId);
+    const fetchDataAndMatches = async () => {
+      console.log('🔍 Auto-fetching QCS and matches for user:', userId);
       
       // Fetch current user's QCS and requirements from DB
       const { data: profile, error: profileError } = await supabase
@@ -91,14 +91,22 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
       if (profileError) {
         console.error('❌ Error fetching profile for QCS:', profileError);
       } else {
-        console.log('✅ Profile data fetched:', profile);
+        console.log('✅ Profile data auto-fetched:', profile);
         console.log('📊 QCS Value:', profile?.total_qcs);
       }
 
       setCurrentUser({ id: userId, profile: { total_qcs: profile?.total_qcs || 0 } });
       setMyReq(parseJsonSafe(profile?.requirements));
-      loadMatches(userId);
-    })();
+      await loadMatches(userId);
+    };
+
+    // Initial fetch
+    fetchDataAndMatches();
+    
+    // Auto-refresh every 30 seconds
+    const autoRefresh = setInterval(fetchDataAndMatches, 30000);
+    
+    return () => clearInterval(autoRefresh);
   }, [userId]);
 
   const loadMatches = async (userId: string) => {

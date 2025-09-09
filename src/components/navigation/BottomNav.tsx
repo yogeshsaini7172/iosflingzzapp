@@ -24,11 +24,11 @@ const BottomNav = () => {
               aria-label={label}
               className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-300 min-w-[60px] ${
                 isActive
-                  ? "bg-gradient-to-r from-primary to-primary-glow text-primary-foreground shadow-glow transform scale-110"
+                  ? "bg-gradient-to-r from-primary to-primary-glow text-white shadow-glow transform scale-110"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               }`}
             >
-              <Icon className={`w-5 h-5 mb-1 ${isActive ? "text-primary" : ""}`} />
+              <Icon className={`w-5 h-5 mb-1 ${isActive ? "text-white" : ""}`} />
               <span className={`text-xs font-professional font-medium ${isActive ? "font-bold" : ""}`}>
                 {label}
               </span>
