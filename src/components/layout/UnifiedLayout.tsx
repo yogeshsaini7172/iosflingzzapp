@@ -12,6 +12,7 @@ import WhoLikedMeModal from '@/components/likes/WhoLikedMeModal';
 import ChatRequestsModal from '@/components/notifications/ChatRequestsModal';
 import LikeNotificationHandler from '@/components/swipe/LikeNotificationHandler';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 
 interface UnifiedLayoutProps {
   children: React.ReactNode;
@@ -28,6 +29,9 @@ const UnifiedLayout = ({ children, title = "DateSigma", showHeader = true }: Uni
 
   // Enable global notifications for all users - this ensures realtime notifications work everywhere
   useNotifications();
+  
+  // Enable centralized real-time notifications for all chat and matching activities
+  useRealtimeNotifications();
 
   const handleLogout = async () => {
     try {

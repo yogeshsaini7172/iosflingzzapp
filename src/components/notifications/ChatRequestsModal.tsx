@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageCircle, Check, X, Clock, Heart } from "lucide-react";
 import { useRequiredAuth } from "@/hooks/useRequiredAuth";
+import { useRealtime } from "@/hooks/useRealtime";
 import { toast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
@@ -43,6 +44,41 @@ const ChatRequestsModal = ({ isOpen, onClose, onNavigate }: ChatRequestsModalPro
       fetchChatRequests();
     }
   }, [isOpen, userId]);
+
+  // Real-time listener for new chat requests
+  useRealtime({
+    table: 'chat_requests',
+    event: 'INSERT',
+    filter: userId ? `recipient_id=eq.${userId}` : 'id=eq.00000000-0000-0000-0000-000000000000',
+    onInsert: (payload) => {
+      const newRequest = payload.new;
+      // Only add if it's for the current user and status is pending
+      if (newRequest.recipient_id === userId && newRequest.status === 'pending') {
+        // Fetch fresh data to get complete request with sender info
+        fetchChatRequests();
+        toast({
+          title: "New Chat Request! 💬",
+          description: "Someone wants to connect with you",
+        });
+      }
+    }
+  });
+
+  // Real-time listener for chat request updates (accepted/declined)
+  useRealtime({
+    table: 'chat_requests',
+    event: 'UPDATE',
+    filter: userId ? `recipient_id=eq.${userId}` : 'id=eq.00000000-0000-0000-0000-000000000000',
+    onUpdate: (payload) => {
+      const updatedRequest = payload.new;
+      if (updatedRequest.recipient_id === userId) {
+        // Remove from list if no longer pending
+        if (updatedRequest.status !== 'pending') {
+          setRequests(prev => prev.filter(req => req.id !== updatedRequest.id));
+        }
+      }
+    }
+  });
 
   const fetchChatRequests = async () => {
     if (!userId) return;

@@ -1,142 +1,112 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { useEffect } from 'react';
+import { useRealtime } from './useRealtime';
+import { useRequiredAuth } from './useRequiredAuth';
+import { toast } from '@/hooks/use-toast';
 
-interface Notification {
-  id: string;
-  user_id: string;
-  type: string;
-  title: string;
-  message: string;
-  data?: any;
-  read_at?: string;
-  created_at: string;
+interface UseRealtimeNotificationsProps {
+  onNewLike?: (like: any) => void;
+  onNewMatch?: (match: any) => void;
+  onNewMessage?: (message: any) => void;
+  onNewChatRequest?: (request: any) => void;
+  onChatRequestUpdate?: (request: any) => void;
 }
 
-export function useRealtimeNotifications() {
-  const { userId } = useAuth();
-  const { toast } = useToast();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+export const useRealtimeNotifications = ({
+  onNewLike,
+  onNewMatch,
+  onNewMessage,
+  onNewChatRequest,
+  onChatRequestUpdate
+}: UseRealtimeNotificationsProps = {}) => {
+  const { userId } = useRequiredAuth();
 
-  useEffect(() => {
-    let channel: any | null = null;
-    let isMounted = true;
-
-    (async () => {
-      if (!userId) return;
-
-      // Use Firebase UID directly
-      const authedUserId = userId;
-
-      // Fetch initial notifications
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', authedUserId)
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (isMounted && !error && data) {
-        setNotifications(data);
-        setUnreadCount(data.filter(n => !n.read_at).length);
+  // Listen for new likes/swipes
+  useRealtime({
+    table: 'enhanced_swipes',
+    event: 'INSERT',
+    filter: userId ? `target_user_id=eq.${userId}` : 'id=eq.00000000-0000-0000-0000-000000000000',
+    onInsert: (payload) => {
+      const swipe = payload.new;
+      if (swipe.direction === 'right' && swipe.target_user_id === userId) {
+        onNewLike?.(swipe);
       }
+    }
+  });
 
-      // Set up real-time subscription (only after we have a session)
-      channel = supabase
-        .channel(`notifications:${authedUserId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'notifications',
-            filter: `user_id=eq.${authedUserId}`
-          },
-          (payload) => {
-            const newNotification = payload.new as Notification;
-
-            setNotifications(prev => [newNotification, ...prev]);
-            setUnreadCount(prev => prev + 1);
-
-            if (newNotification.type === 'new_match') {
-              toast({ title: "🎉 It's a Match!", description: newNotification.message });
-            } else if (newNotification.type === 'chat_request') {
-              toast({ title: '💬 Chat Request', description: newNotification.message });
-            } else if (newNotification.type === 'chat_request_accepted') {
-              toast({ title: '✅ Chat Accepted', description: newNotification.message });
-            } else {
-              toast({ title: newNotification.title, description: newNotification.message });
-            }
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'notifications',
-            filter: `user_id=eq.${authedUserId}`
-          },
-          (payload) => {
-            const updatedNotification = payload.new as Notification;
-            setNotifications(prev => prev.map(n => n.id === updatedNotification.id ? updatedNotification : n));
-            if (updatedNotification.read_at && !payload.old.read_at) {
-              setUnreadCount(prev => Math.max(0, prev - 1));
-            }
-          }
-        )
-        .subscribe();
-    })();
-
-    return () => {
-      isMounted = false;
-      if (channel) {
-        supabase.removeChannel(channel);
+  // Listen for new matches
+  useRealtime({
+    table: 'enhanced_matches',
+    event: 'INSERT',
+    filter: userId ? `user1_id=eq.${userId},user2_id=eq.${userId}` : 'id=eq.00000000-0000-0000-0000-000000000000',
+    onInsert: (payload) => {
+      const match = payload.new;
+      if (match.user1_id === userId || match.user2_id === userId) {
+        onNewMatch?.(match);
+        toast({
+          title: "It's a Match! 🎉",
+          description: "You have a new match - start chatting now!",
+        });
       }
-    };
-  }, [userId, toast]);
-
-  const markAsRead = async (notificationId: string) => {
-    const { error } = await supabase
-      .from('notifications')
-      .update({ read_at: new Date().toISOString() })
-      .eq('id', notificationId);
-
-    if (!error) {
-      setNotifications(prev =>
-        prev.map(n => 
-          n.id === notificationId 
-            ? { ...n, read_at: new Date().toISOString() }
-            : n
-        )
-      );
-      setUnreadCount(prev => Math.max(0, prev - 1));
     }
-  };
+  });
 
-  const markAllAsRead = async () => {
-    if (!userId) return;
-
-    const { error } = await supabase
-      .from('notifications')
-      .update({ read_at: new Date().toISOString() })
-      .eq('user_id', userId)
-      .is('read_at', null);
-
-    if (!error) {
-      setNotifications(prev =>
-        prev.map(n => ({ ...n, read_at: n.read_at || new Date().toISOString() }))
-      );
-      setUnreadCount(0);
+  // Listen for new chat messages (only from others)
+  useRealtime({
+    table: 'chat_messages_enhanced',
+    event: 'INSERT',
+    filter: userId ? `sender_id=neq.${userId}` : 'id=eq.00000000-0000-0000-0000-000000000000',
+    onInsert: (payload) => {
+      const message = payload.new;
+      // Only process if user is part of this chat room
+      onNewMessage?.(message);
     }
-  };
+  });
 
-  return {
-    notifications,
-    unreadCount,
-    markAsRead,
-    markAllAsRead
-  };
-}
+  // Listen for new chat requests
+  useRealtime({
+    table: 'chat_requests',
+    event: 'INSERT',
+    filter: userId ? `recipient_id=eq.${userId}` : 'id=eq.00000000-0000-0000-0000-000000000000',
+    onInsert: (payload) => {
+      const request = payload.new;
+      if (request.recipient_id === userId && request.status === 'pending') {
+        onNewChatRequest?.(request);
+        toast({
+          title: "New Chat Request! 💬",
+          description: "Someone wants to connect with you",
+        });
+      }
+    }
+  });
+
+  // Listen for chat request updates
+  useRealtime({
+    table: 'chat_requests',
+    event: 'UPDATE',
+    filter: userId ? `sender_id=eq.${userId},recipient_id=eq.${userId}` : 'id=eq.00000000-0000-0000-0000-000000000000',
+    onUpdate: (payload) => {
+      const request = payload.new;
+      if (request.sender_id === userId || request.recipient_id === userId) {
+        onChatRequestUpdate?.(request);
+        
+        // Show toast for status changes
+        if (request.status === 'accepted' && request.sender_id === userId) {
+          toast({
+            title: "Chat Request Accepted! 🎉",
+            description: "Your chat request was accepted - start chatting now!",
+          });
+        }
+      }
+    }
+  });
+
+  // Listen for notifications table changes (redundant with useNotifications but useful for debugging)
+  useRealtime({
+    table: 'notifications',
+    event: 'INSERT',
+    filter: userId ? `user_id=eq.${userId}` : 'id=eq.00000000-0000-0000-0000-000000000000',
+    onInsert: (payload) => {
+      console.log('🔔 New notification received via real-time:', payload.new);
+    }
+  });
+};
