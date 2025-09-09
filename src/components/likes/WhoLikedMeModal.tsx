@@ -4,10 +4,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Crown, MapPin, Users } from "lucide-react";
+import { Heart, Crown, MapPin, Users, Eye } from "lucide-react";
 import { SubscriptionEnforcementService } from "@/services/subscriptionEnforcement";
 import { useToast } from "@/hooks/use-toast";
 import { useRequiredAuth } from "@/hooks/useRequiredAuth";
+import DetailedProfileModal from '@/components/profile/DetailedProfileModal';
 
 interface WhoLikedMeModalProps {
   isOpen: boolean;
@@ -30,6 +31,8 @@ const WhoLikedMeModal = ({ isOpen, onClose }: WhoLikedMeModalProps) => {
   const [likes, setLikes] = useState<UserLike[]>([]);
   const [loading, setLoading] = useState(true);
   const [canSeeLikes, setCanSeeLikes] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState<UserLike | null>(null);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const { toast } = useToast();
   const { userId } = useRequiredAuth();
 
@@ -195,12 +198,11 @@ const WhoLikedMeModal = ({ isOpen, onClose }: WhoLikedMeModalProps) => {
                           size="sm"
                           variant="outline"
                           onClick={() => {
-                            onClose();
-                            // Navigate to swipe page to view this specific profile
-                            window.location.hash = `swipe?profile=${userLike.user_id}`;
+                            setSelectedProfile(userLike);
+                            setShowProfileModal(true);
                           }}
                         >
-                          <Users className="w-4 h-4 mr-1" />
+                          <Eye className="w-4 h-4 mr-1" />
                           View Profile
                         </Button>
                       </div>
@@ -212,6 +214,34 @@ const WhoLikedMeModal = ({ isOpen, onClose }: WhoLikedMeModalProps) => {
           )}
         </div>
       </DialogContent>
+      
+      {/* Profile Modal */}
+      {selectedProfile && (
+        <DetailedProfileModal
+          isOpen={showProfileModal}
+          onClose={() => {
+            setShowProfileModal(false);
+            setSelectedProfile(null);
+          }}
+          profile={{
+            user_id: selectedProfile.user_id,
+            first_name: selectedProfile.first_name,
+            last_name: selectedProfile.last_name,
+            university: selectedProfile.university,
+            profile_images: selectedProfile.profile_images,
+            bio: selectedProfile.bio,
+            age: selectedProfile.age,
+            can_chat: selectedProfile.is_mutual_match,
+            compatibility_score: 85, // Mock score
+            total_qcs: 425 // Mock QCS score
+          }}
+          onSwipe={async (direction) => {
+            if (direction === 'right' && !selectedProfile.is_mutual_match) {
+              await handleLikeBack(selectedProfile);
+            }
+          }}
+        />
+      )}
     </Dialog>
   );
 };
