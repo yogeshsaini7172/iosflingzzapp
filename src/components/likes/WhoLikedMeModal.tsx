@@ -196,27 +196,13 @@ const WhoLikedMeModal = ({ isOpen, onClose }: WhoLikedMeModalProps) => {
                           variant="outline"
                           onClick={() => {
                             onClose();
-                            // Navigate to swipe page to view profile
-                            window.location.hash = 'swipe';
+                            // Navigate to swipe page to view this specific profile
+                            window.location.hash = `swipe?profile=${userLike.user_id}`;
                           }}
                         >
                           <Users className="w-4 h-4 mr-1" />
                           View Profile
                         </Button>
-                        {userLike.is_mutual_match && (
-                          <Button
-                            size="sm"
-                            className="bg-green-500 hover:bg-green-600"
-                            onClick={() => {
-                              onClose();
-                              // Navigate to chat for matches
-                              window.location.hash = 'chat';
-                            }}
-                          >
-                            <Users className="w-4 h-4 mr-1" />
-                            Message
-                          </Button>
-                        )}
                       </div>
                     </div>
                   </CardContent>
