@@ -41,9 +41,9 @@ const AuthenticatedApp = () => {
   const checkUserProfile = async (userId: string) => {
     try {
       // Check if profile exists via Edge Function
-      const res = await fetchWithFirebaseAuth('/functions/v1/profile-management', {
+      const res = await fetchWithFirebaseAuth('/functions/v1/data-management', {
         method: 'POST',
-        body: JSON.stringify({ action: 'get' }),
+        body: JSON.stringify({ action: 'get_profile' }),
       });
       
       if (!res.ok) {
