@@ -45,7 +45,10 @@ export const useChat = (userId: string | null) => {
       
       const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-management', {
         method: 'POST',
-        body: JSON.stringify({ action: 'list' })
+        body: JSON.stringify({ 
+          action: 'list',
+          user_id: userId 
+        })
       });
 
       if (!response.ok) throw new Error('Failed to fetch chat rooms');
