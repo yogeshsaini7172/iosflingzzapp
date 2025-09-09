@@ -220,6 +220,7 @@ const AuthenticatedApp = () => {
           }} />} />
           <Route path="/subscription" element={<SubscriptionPage onNavigate={(view) => {
             if (view === 'home') navigate('/');
+            if (view === 'profile') navigate('/profile');
           }} />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -1109,7 +1109,10 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
           </Badge>
         </div>
 
-        <div className="flex items-center justify-between p-4 border border-primary/20 rounded-lg">
+        <div 
+          className="flex items-center justify-between p-4 border border-primary/20 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+          onClick={() => onNavigate('subscription')}
+        >
           <div className="flex items-center gap-3">
             <Sparkles className="w-5 h-5 text-secondary" />
             <div>
