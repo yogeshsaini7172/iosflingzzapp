@@ -60,6 +60,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
   const [selectedThreadForReply, setSelectedThreadForReply] = useState<any>(null);
   const [selectedThreadForRewrite, setSelectedThreadForRewrite] = useState<any>(null);
   const [showWhoLikedMe, setShowWhoLikedMe] = useState(false);
+  const [expandedThreads, setExpandedThreads] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   // Use threads hook for database integration
@@ -145,6 +146,18 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
     setSelectedThreadForReply(thread);
     setIsReplyModalOpen(true);
     setReplyContent('');
+  };
+
+  const toggleThreadReplies = (threadId: string) => {
+    setExpandedThreads(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(threadId)) {
+        newSet.delete(threadId);
+      } else {
+        newSet.add(threadId);
+      }
+      return newSet;
+    });
   };
 
   const handleSubmitReply = async () => {
@@ -415,6 +428,8 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
             const threadAuthor = thread.author?.first_name || 'Anonymous';
             const threadAvatar = thread.author?.profile_images?.[0] || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150';
             const timeAgo = new Date(thread.created_at).toLocaleString();
+            const isExpanded = expandedThreads.has(thread.id);
+            const hasReplies = thread.replies && thread.replies.length > 0;
             
             return (
               <div key={thread.id} className="flex-shrink-0 w-72">
@@ -442,14 +457,17 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
                   </div>
                   <p className="text-sm text-foreground leading-relaxed mb-3 line-clamp-3">{thread.content}</p>
                   
-                  {/* Show replies if any exist */}
-                  {thread.replies && thread.replies.length > 0 && (
-                    <div className="mb-3 space-y-2 max-h-32 overflow-y-auto">
-                      {thread.replies.slice(-2).map((reply: any) => {
+                  {/* Show replies only when expanded */}
+                  {isExpanded && hasReplies && (
+                    <div className="mb-3 space-y-2 max-h-40 overflow-y-auto border-l-2 border-primary/20 pl-3">
+                      <div className="text-xs text-muted-foreground mb-2 italic">
+                        Replying to: "{thread.content.length > 50 ? thread.content.substring(0, 50) + '...' : thread.content}"
+                      </div>
+                      {thread.replies.map((reply: any) => {
                         const replyAuthor = reply.author?.first_name || 'Anonymous';
                         const replyAvatar = reply.author?.profile_images?.[0];
                         return (
-                          <div key={reply.id} className="flex space-x-2 p-2 bg-muted/50 rounded-md">
+                          <div key={reply.id} className="flex space-x-2 p-2 bg-muted/50 rounded-md border-l-2 border-accent">
                             <Avatar className="w-5 h-5">
                               <AvatarImage src={replyAvatar} alt={replyAuthor} />
                               <AvatarFallback className="bg-muted-foreground text-muted text-xs">
@@ -463,16 +481,11 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
                                   {new Date(reply.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </span>
                               </div>
-                              <p className="text-xs text-muted-foreground mt-1 break-words">{reply.content}</p>
+                              <p className="text-xs text-foreground mt-1 break-words">{reply.content}</p>
                             </div>
                           </div>
                         );
                       })}
-                      {thread.replies.length > 2 && (
-                        <p className="text-xs text-muted-foreground text-center">
-                          +{thread.replies.length - 2} more replies
-                        </p>
-                      )}
                     </div>
                   )}
                   
@@ -488,6 +501,18 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
                         <span>{thread.likes_count}</span>
                       </button>
                       
+                      {hasReplies && (
+                        <button 
+                          className={`flex items-center space-x-1 transition-colors ${
+                            isExpanded ? 'text-primary' : 'text-muted-foreground hover:text-primary'
+                          }`}
+                          onClick={() => toggleThreadReplies(thread.id)}
+                        >
+                          <MessageCircle className="w-3 h-3" />
+                          <span>{isExpanded ? 'Hide' : 'View'} Replies</span>
+                        </button>
+                      )}
+
                       <button 
                         className="flex items-center space-x-1 text-muted-foreground hover:text-primary transition-colors"
                         onClick={() => handleReplyToThread(thread)}
