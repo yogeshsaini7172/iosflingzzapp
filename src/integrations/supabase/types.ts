@@ -1290,6 +1290,33 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      rpc_accept_chat_request: {
+        Args: { p_chat_request_id: string; p_recipient_id: string }
+        Returns: {
+          chat_room_id: string
+          created_match: boolean
+          match_id: string
+        }[]
+      }
+      rpc_get_feed_for_user: {
+        Args: { p_limit?: number; p_user_id: string }
+        Returns: {
+          bio: string
+          date_of_birth: string
+          firebase_uid: string
+          first_name: string
+          gender: Database["public"]["Enums"]["gender"]
+          height: number
+          id: string
+          interests: string[]
+          last_name: string
+          profile_images: string[]
+          relationship_goals: string[]
+          total_qcs: number
+          university: string
+          user_id: string
+        }[]
+      }
     }
     Enums: {
       app_subscription_tier: "free" | "basic" | "plus" | "premium"
