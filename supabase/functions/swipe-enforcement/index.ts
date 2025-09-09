@@ -60,14 +60,14 @@ serve(async (req) => {
 
     const firebaseToken = authHeader.replace('Bearer ', '');
     
-    // Verify Firebase token and get user ID
+    // Verify Firebase token and get user ID  
     const verifyResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/firebase-profile`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
-      },
-      body: JSON.stringify({ firebaseToken })
+        'Authorization': authHeader, // Pass the original Firebase token
+        'apikey': Deno.env.get('SUPABASE_ANON_KEY')
+      }
     });
 
     if (!verifyResponse.ok) {
