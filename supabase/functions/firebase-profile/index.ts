@@ -31,7 +31,7 @@ async function verifyFirebaseToken(idToken: string) {
     }
 
     // Validate issuer and audience for Firebase
-    if (!payload.iss.includes('securetoken.google.com/datingapp-275cb')) {
+    if (payload.iss !== 'https://securetoken.google.com/datingapp-275cb') {
       throw new Error('Invalid issuer')
     }
     if (payload.aud !== 'datingapp-275cb') {
