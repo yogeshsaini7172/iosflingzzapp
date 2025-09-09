@@ -12,6 +12,7 @@ import RebuiltChatSystem from '@/components/chat/RebuiltChatSystem';
 import { useRequiredAuth } from '@/hooks/useRequiredAuth';
 import UnifiedLayout from '@/components/layout/UnifiedLayout';
 import ProfileImageHandler from '@/components/common/ProfileImageHandler';
+import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
 
 interface Match {
   user_id: string;
@@ -166,12 +167,21 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
     // If compatibility score is 80% or below, send a chat request
     if (compatibilityScore <= 80) {
       try {
+        const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-request-handler', {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'send_request',
+            recipient_id: match.user_id,
+            message: `Hi ${match.first_name}! I would like to start a conversation with you.`
+          })
+        });
+        if (!response.ok) throw new Error('Failed to send chat request');
         toast.success(`Chat request sent to ${match.first_name}! 💌`);
         toast.info("They'll be notified and can choose to accept your request.");
         return;
       } catch (error: any) {
-        console.error("Error sending chat request:", error);
-        toast.error("Failed to send chat request");
+        console.error('Error sending chat request:', error);
+        toast.error(error.message || 'Failed to send chat request');
         return;
       }
     }

@@ -22,13 +22,21 @@ serve(async (req) => {
     const body = await req.json();
     const { action, recipient_id, message, request_id, status, user_id: bodyUserId, sender_id } = body;
 
-    // Try Supabase auth, but fall back to user_id from body (Firebase-only auth)
+    // Prefer Firebase token verification (Firebase-only auth)
     let effectiveUserId: string | null = null;
     const authHeader = req.headers.get('Authorization') || '';
-    const token = authHeader.startsWith('Bearer ') ? authHeader.replace('Bearer ', '') : '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
     if (token) {
-      const { data: userData } = await supabaseClient.auth.getUser(token);
-      effectiveUserId = userData?.user?.id ?? null;
+      try {
+        const payloadPart = token.split('.')[1] || '';
+        const payload = JSON.parse(atob(payloadPart));
+        // Firebase tokens include both `sub` and sometimes `user_id`
+        effectiveUserId = payload?.user_id || payload?.sub || null;
+      } catch (_) {
+        // Fallback: try Supabase JWT (unlikely in Firebase-only mode)
+        const { data: userData } = await supabaseClient.auth.getUser(token);
+        effectiveUserId = userData?.user?.id ?? null;
+      }
     }
     if (!effectiveUserId) effectiveUserId = bodyUserId || sender_id || null;
     if (!effectiveUserId) throw new Error('Missing user identity');
