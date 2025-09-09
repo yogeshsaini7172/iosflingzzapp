@@ -73,49 +73,25 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
     console.log("🔍 Starting profile fetch for user:", userId);
 
     try {
-      // First, try direct database query as it's more reliable
-      console.log("📊 Using direct database query for profiles");
-      
-      // Get already swiped users
-      const { data: swipedIds, error: swipeError } = await supabase
-        .from("enhanced_swipes")
-        .select("target_user_id")
-        .eq("user_id", userId);
-
-      if (swipeError) {
-        console.log("⚠️ No swipe history found (expected for new users):", swipeError);
-      }
-
-      // Get ghosted users to exclude
-      const { data: ghostedIds } = await supabase
-        .from("user_interactions")
-        .select("target_user_id")
-        .eq("user_id", userId)
-        .eq("interaction_type", "ghost")
-        .gt("expires_at", new Date().toISOString());
-
-      const excludedIds = [
-        userId,
-        ...(swipedIds?.map(s => s.target_user_id) || []),
-        ...(ghostedIds?.map(g => g.target_user_id) || [])
-      ];
-
-      console.log("🚫 Excluding user IDs:", excludedIds);
-
-      const { data: profilesData, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("is_active", true)
-        .not("firebase_uid", "in", `(${excludedIds.join(",")})`)
-        .not("user_id", "in", `(${excludedIds.join(",")})`)
-        .limit(10);
+      // Use data-management function to get profiles (has proper access)
+      const { data, error } = await supabase.functions.invoke('data-management', {
+        headers: { Authorization: `Bearer firebase-${userId}` },
+        body: { 
+          action: 'get_feed',
+          user_id: userId,
+          limit: 20
+        }
+      });
 
       if (error) {
-        console.error("❌ Database query error:", error);
+        console.error("❌ Error calling data-management function:", error);
         throw error;
       }
 
-      const formattedProfiles = (profilesData || []).map(profile => ({
+      const profilesData = data?.data?.profiles || [];
+      console.log("✅ Fetched profiles from data-management:", profilesData.length);
+
+      const formattedProfiles = profilesData.map((profile: any) => ({
         ...profile,
         age: profile.date_of_birth ? new Date().getFullYear() - new Date(profile.date_of_birth).getFullYear() : 22
       }));
