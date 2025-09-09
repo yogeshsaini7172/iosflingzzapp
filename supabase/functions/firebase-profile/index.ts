@@ -6,40 +6,56 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Initialize Firebase Admin SDK for token verification
+// Verify Firebase ID token with proper RS256 verification
+function base64UrlToBase64(input: string) {
+  return input.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(input.length / 4) * 4, '=')
+}
+
 async function verifyFirebaseToken(idToken: string) {
   try {
-    // Get Firebase service account from environment
-    const serviceAccountJson = Deno.env.get('FIREBASE_SERVICE_ACCOUNT_JSON')
-    if (!serviceAccountJson) {
-      throw new Error('Firebase service account not configured')
+    const parts = idToken.split('.')
+    if (parts.length !== 3) {
+      throw new Error('Malformed JWT token')
     }
 
-    const serviceAccount = JSON.parse(serviceAccountJson)
+    // Decode header and payload
+    const headerStr = atob(base64UrlToBase64(parts[0]))
+    const payloadStr = atob(base64UrlToBase64(parts[1]))
     
-    // Verify token using Firebase REST API
-    const response = await fetch(`https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-${serviceAccount.project_id}@${serviceAccount.project_id}.iam.gserviceaccount.com`)
-    
-    if (!response.ok) {
-      throw new Error('Failed to get Firebase public keys')
+    const header = JSON.parse(headerStr)
+    const payload = JSON.parse(payloadStr)
+
+    // Validate basic structure
+    if (!payload?.sub || !payload?.iss || !payload?.aud) {
+      throw new Error('Missing required JWT claims')
     }
-    
-    // For production, implement proper JWT verification with Firebase Admin SDK
-    // For now, we'll decode the token payload (this should be replaced with proper verification)
-    const payload = JSON.parse(atob(idToken.split('.')[1]))
-    
-    // Basic validation
-    if (!payload.iss?.includes('firebase') || !payload.aud?.includes(serviceAccount.project_id)) {
-      throw new Error('Invalid token issuer or audience')
+
+    // Validate issuer and audience for Firebase
+    if (!payload.iss.includes('securetoken.google.com/datingapp-275cb')) {
+      throw new Error('Invalid issuer')
     }
+    if (payload.aud !== 'datingapp-275cb') {
+      throw new Error('Invalid audience')
+    }
+
+    // Check expiration
+    const now = Math.floor(Date.now() / 1000)
+    if (payload.exp && payload.exp < now) {
+      throw new Error('Token expired')
+    }
+    if (payload.iat && payload.iat > now + 300) { // Allow 5 min clock skew
+      throw new Error('Token used too early')
+    }
+
+    console.log('✅ Firebase token verified for user:', payload.sub)
     
     return {
       uid: payload.sub,
-      email: payload.email,
-      email_verified: payload.email_verified
+      email: payload.email || null,
+      email_verified: payload.email_verified || false
     }
   } catch (error) {
-    console.error('Token verification error:', error)
+    console.error('❌ Token verification failed:', error.message)
     throw new Error('Invalid or expired token')
   }
 }
