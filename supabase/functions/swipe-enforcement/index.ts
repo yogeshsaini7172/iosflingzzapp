@@ -85,6 +85,17 @@ serve(async (req) => {
       throw new Error('Missing candidate_id or direction');
     }
 
+    // Validate direction strictly against DB constraint
+    if (direction !== 'left' && direction !== 'right') {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Invalid direction. Must be "left" or "right".'
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      });
+    }
+
     // Get user profile
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
@@ -132,7 +143,7 @@ serve(async (req) => {
       .insert({
         user_id: userId,
         target_user_id: candidate_id,
-        direction: direction === 'right' ? 'like' : 'pass'
+        direction
       });
 
     if (swipeError) {
@@ -178,7 +189,7 @@ serve(async (req) => {
           .select('*')
           .eq('user_id', candidate_id)
           .eq('target_user_id', userId)
-          .eq('direction', 'like')
+          .eq('direction', 'right')
           .single();
 
       if (reciprocalSwipe) {
