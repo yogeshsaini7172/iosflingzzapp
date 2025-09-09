@@ -6,18 +6,25 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Verify Firebase ID token (lightweight payload checks)
+// Verify Firebase ID token with base64url-safe parsing
+function base64UrlToBase64(input: string) {
+  return input.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(input.length / 4) * 4, '=')
+}
+
 async function verifyFirebaseToken(idToken: string) {
   try {
     const parts = idToken.split('.')
     if (parts.length !== 3) throw new Error('Malformed token')
-    const payload = JSON.parse(atob(parts[1]))
+    const payloadStr = atob(base64UrlToBase64(parts[1]))
+    const payload = JSON.parse(payloadStr)
+
     const now = Math.floor(Date.now() / 1000)
     if (!payload?.sub) throw new Error('Missing subject')
     if (!payload?.iss || !payload.iss.includes('securetoken.google.com')) throw new Error('Invalid issuer')
     if (payload?.exp && payload.exp < now) throw new Error('Token expired')
-    return payload.sub as string
-  } catch {
+
+    return payload.sub as string // Firebase UID
+  } catch (error) {
     throw new Error('Invalid or expired token')
   }
 }
