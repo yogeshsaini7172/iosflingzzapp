@@ -9,13 +9,31 @@ const corsHeaders = {
 // Verify Firebase ID token
 async function verifyFirebaseToken(idToken: string) {
   try {
+    if (!idToken || typeof idToken !== 'string') {
+      throw new Error('Invalid token format')
+    }
+
     const serviceAccountJson = Deno.env.get('FIREBASE_SERVICE_ACCOUNT_JSON')
     if (!serviceAccountJson) {
       throw new Error('Firebase service account not configured')
     }
 
     const serviceAccount = JSON.parse(serviceAccountJson)
-    const payload = JSON.parse(atob(idToken.split('.')[1]))
+    
+    // Split and validate token structure
+    const tokenParts = idToken.split('.')
+    if (tokenParts.length !== 3) {
+      throw new Error('Invalid JWT structure')
+    }
+    
+    // Use base64url-safe decoding for JWT payload
+    const base64UrlPayload = tokenParts[1]
+    if (!base64UrlPayload) {
+      throw new Error('Missing token payload')
+    }
+    
+    const base64Payload = base64UrlPayload.replace(/-/g, '+').replace(/_/g, '/')
+    const payload = JSON.parse(atob(base64Payload))
     
     if (!payload.iss?.includes('firebase') || !payload.aud?.includes(serviceAccount.project_id)) {
       throw new Error('Invalid token issuer or audience')
@@ -48,9 +66,15 @@ serve(async (req) => {
     );
 
     // Verify Firebase token
-    const authHeader = req.headers.get('authorization') || ''
-    const idToken = authHeader.replace('Bearer ', '')
+    const authHeader = req.headers.get('authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'No valid authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
     
+    const idToken = authHeader.replace('Bearer ', '').trim()
     if (!idToken) {
       return new Response(
         JSON.stringify({ error: 'No token provided' }),
