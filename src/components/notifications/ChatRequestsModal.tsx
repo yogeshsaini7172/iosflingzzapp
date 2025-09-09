@@ -52,7 +52,7 @@ const ChatRequestsModal = ({ isOpen, onClose, onNavigate }: ChatRequestsModalPro
       const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-request-handler', {
         method: 'POST',
         body: JSON.stringify({ 
-          action: 'list'
+          action: 'get_requests'
         })
       });
 
