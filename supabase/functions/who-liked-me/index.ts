@@ -114,19 +114,7 @@ serve(async (req) => {
       .from('enhanced_swipes')
       .select(`
         user_id,
-        created_at,
-        profiles!enhanced_swipes_user_id_fkey (
-          user_id,
-          first_name,
-          last_name,
-          date_of_birth,
-          university,
-          profile_images,
-          bio,
-          interests,
-          total_qcs,
-          gender
-        )
+        created_at
       `)
       .eq('target_user_id', user.id)
       .eq('direction', 'right')
@@ -139,28 +127,92 @@ serve(async (req) => {
 
     logStep("Likers retrieved", { count: likerSwipes?.length || 0 });
 
-    // Format the likers data
-    const likers = (likerSwipes || [])
-      .filter(swipe => swipe.profiles) // Ensure profile exists
-      .map(swipe => ({
-        user_id: swipe.profiles.user_id,
-        first_name: swipe.profiles.first_name,
-        last_name: swipe.profiles.last_name,
-        age: calculateAge(swipe.profiles.date_of_birth),
-        university: swipe.profiles.university,
-        profile_images: swipe.profiles.profile_images || [],
-        bio: swipe.profiles.bio,
-        interests: swipe.profiles.interests || [],
-        total_qcs: swipe.profiles.total_qcs || 0,
-        gender: swipe.profiles.gender,
-        liked_at: swipe.created_at
-      }));
+    // Get profiles for the likers
+    const likerIds = (likerSwipes || []).map(swipe => swipe.user_id);
+    
+    if (likerIds.length === 0) {
+      return new Response(JSON.stringify({
+        success: true,
+        data: {
+          count: 0,
+          mutual_matches_count: 0,
+          users: [],
+          plan_info: {
+            id: planId,
+            can_see_who_liked_you: true
+          }
+        }
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      });
+    }
 
-    // Check for existing mutual matches
-    const { data: mutualMatches } = await supabaseClient
-      .from('enhanced_matches')
-      .select('user1_id, user2_id')
-      .or(`and(user1_id.eq.${user.id},user2_id.in.(${likers.map(l => l.user_id).join(',')})),and(user2_id.eq.${user.id},user1_id.in.(${likers.map(l => l.user_id).join(',')}))`);
+    const { data: profiles, error: profilesError } = await supabaseClient
+      .from('profiles')
+      .select(`
+        user_id,
+        first_name,
+        last_name,
+        date_of_birth,
+        university,
+        profile_images,
+        bio,
+        interests,
+        total_qcs,
+        gender
+      `)
+      .in('user_id', likerIds);
+
+    if (profilesError) {
+      logStep("Profiles query error", { error: profilesError.message });
+      throw profilesError;
+    }
+
+    // Create a map of user_id to profile for easy lookup
+    const profileMap = new Map();
+    (profiles || []).forEach(profile => {
+      profileMap.set(profile.user_id, profile);
+    });
+
+    // Create a map of user_id to swipe time
+    const swipeTimeMap = new Map();
+    (likerSwipes || []).forEach(swipe => {
+      swipeTimeMap.set(swipe.user_id, swipe.created_at);
+    });
+
+    // Format the likers data by combining swipes and profiles
+    const likers = (likerSwipes || [])
+      .map(swipe => {
+        const profile = profileMap.get(swipe.user_id);
+        if (!profile) return null; // Skip if no profile found
+        
+        return {
+          user_id: profile.user_id,
+          first_name: profile.first_name,
+          last_name: profile.last_name,
+          age: calculateAge(profile.date_of_birth),
+          university: profile.university,
+          profile_images: profile.profile_images || [],
+          bio: profile.bio,
+          interests: profile.interests || [],
+          total_qcs: profile.total_qcs || 0,
+          gender: profile.gender,
+          liked_at: swipe.created_at
+        };
+      })
+      .filter(Boolean); // Remove null entries
+
+    // Check for existing mutual matches (if there are any likers)
+    let mutualMatches = [];
+    if (likers.length > 0) {
+      const { data } = await supabaseClient
+        .from('enhanced_matches')
+        .select('user1_id, user2_id')
+        .or(`and(user1_id.eq.${user.id},user2_id.in.(${likers.map(l => l.user_id).join(',')})),and(user2_id.eq.${user.id},user1_id.in.(${likers.map(l => l.user_id).join(',')}))`);
+      
+      mutualMatches = data || [];
+    }
 
     const matchedUserIds = new Set(
       (mutualMatches || []).map(match => 
