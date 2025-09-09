@@ -68,35 +68,33 @@ const WhoLikedMeModal = ({ isOpen, onClose }: WhoLikedMeModalProps) => {
   };
 
   const handleLikeBack = async (userLike: UserLike) => {
-    if (!userId) return;
+    if (!userId) return { isMatch: false };
     
     try {
       const result = await SubscriptionEnforcementService.processSwipe(userLike.user_id, 'right');
       
       if (result.success && result.data) {
-        // Check if it was a mutual match by looking at the response
-        const wasMatch = result.data.plan && result.data.daily_swipes_used > 0;
+        // Since this is "Who Liked Me", when we like back it should be a match
+        toast({
+          title: "It's a Match! 🎉",
+          description: `You and ${userLike.first_name} can now start chatting!`,
+        });
         
-        if (wasMatch) {
-          toast({
-            title: "Like sent! ❤️",
-            description: `Your like was sent to ${userLike.first_name}`,
-          });
-        } else {
-          toast({
-            title: "Like sent! ❤️",
-            description: `Your like was sent to ${userLike.first_name}`,
-          });
-        }
+        // Update the local state to show it's now a mutual match
+        setLikes(prev => prev.map(like => 
+          like.user_id === userLike.user_id 
+            ? { ...like, is_mutual_match: true }
+            : like
+        ));
         
-        // Refresh the likes list
-        fetchLikes();
+        return { isMatch: true };
       } else {
         toast({
           title: "Error",
           description: result.error || "Failed to send like",
           variant: "destructive"
         });
+        return { isMatch: false };
       }
     } catch (error) {
       console.error("Error liking back:", error);
@@ -105,6 +103,7 @@ const WhoLikedMeModal = ({ isOpen, onClose }: WhoLikedMeModalProps) => {
         description: "Failed to send like",
         variant: "destructive"
       });
+      return { isMatch: false };
     }
   };
 
@@ -237,7 +236,18 @@ const WhoLikedMeModal = ({ isOpen, onClose }: WhoLikedMeModalProps) => {
           }}
           onSwipe={async (direction) => {
             if (direction === 'right' && !selectedProfile.is_mutual_match) {
-              await handleLikeBack(selectedProfile);
+              const result = await handleLikeBack(selectedProfile);
+              if (result?.isMatch) {
+                // Close profile modal and show match success
+                setShowProfileModal(false);
+                setSelectedProfile(null);
+                // Refresh the likes list to show updated match status
+                fetchLikes();
+              }
+            } else if (direction === 'left') {
+              // Just close the modal for pass
+              setShowProfileModal(false);
+              setSelectedProfile(null);
             }
           }}
         />
