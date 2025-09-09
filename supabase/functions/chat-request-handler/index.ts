@@ -65,50 +65,61 @@ serve(async (req) => {
       });
 
     } else if (action === 'respond_request') {
-      // Respond to chat request (accept/decline)
-      const { data: existing, error: fetchErr } = await supabaseClient
-        .from('chat_requests')
-        .select('recipient_id, sender_id')
-        .eq('id', request_id)
-        .single();
-      if (fetchErr) throw fetchErr;
-      if (existing.recipient_id !== effectiveUserId) throw new Error('Unauthorized');
-
-      const { data: updatedRequest, error: updateError } = await supabaseClient
-        .from('chat_requests')
-        .update({ status, updated_at: new Date().toISOString() })
-        .eq('id', request_id)
-        .select()
-        .single();
-
-      if (updateError) throw updateError;
-
+      // Respond to chat request (accept/decline) - ATOMIC VERSION
       if (status === 'accepted') {
-        // Create chat room when request is accepted
-        const { data: chatRoom } = await supabaseClient.functions.invoke('chat-management', {
-          body: {
-            action: 'create_room',
-            user_id: effectiveUserId,
-            other_user_id: updatedRequest.sender_id,
+        // Use atomic RPC function to prevent race conditions
+        const { data: result, error: rpcError } = await supabaseClient
+          .rpc('rpc_accept_chat_request', {
+            p_chat_request_id: request_id,
+            p_recipient_id: effectiveUserId
+          });
+
+        if (rpcError) {
+          console.error('❌ RPC Error:', rpcError);
+          throw new Error(`Failed to accept chat request: ${rpcError.message}`);
+        }
+
+        console.log('✅ Chat request accepted atomically:', result);
+        
+        return new Response(JSON.stringify({ 
+          success: true, 
+          data: { 
+            id: request_id, 
+            status: 'accepted',
+            match_id: result[0]?.match_id,
+            chat_room_id: result[0]?.chat_room_id,
+            created_match: result[0]?.created_match
           }
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
         });
 
-        // Notify sender of acceptance
-        await supabaseClient
-          .from('notifications')
-          .insert({
-            user_id: updatedRequest.sender_id,
-            type: 'chat_request_accepted',
-            title: 'Chat Request Accepted! 🎉',
-            message: 'Your chat request was accepted. Start chatting now!',
-            data: { chat_room_id: chatRoom?.data?.id }
-          });
-      }
+      } else {
+        // Handle decline (non-atomic, simpler case)
+        const { data: existing, error: fetchErr } = await supabaseClient
+          .from('chat_requests')
+          .select('recipient_id')
+          .eq('id', request_id)
+          .single();
+        
+        if (fetchErr) throw fetchErr;
+        if (existing.recipient_id !== effectiveUserId) throw new Error('Unauthorized');
 
-      return new Response(JSON.stringify({ success: true, data: updatedRequest }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      });
+        const { data: updatedRequest, error: updateError } = await supabaseClient
+          .from('chat_requests')
+          .update({ status: 'declined', updated_at: new Date().toISOString() })
+          .eq('id', request_id)
+          .select()
+          .single();
+
+        if (updateError) throw updateError;
+
+        return new Response(JSON.stringify({ success: true, data: updatedRequest }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        });
+      }
 
     } else if (action === 'get_requests') {
       // Get pending chat requests for user
