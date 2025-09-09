@@ -1,6 +1,30 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
+// Firebase JWT validation
+async function validateFirebaseToken(token: string) {
+  try {
+    // Decode the Firebase JWT token
+    const [header, payload] = token.split('.').slice(0, 2);
+    const decodedPayload = JSON.parse(atob(payload));
+    
+    // Basic validation - check if token has required fields
+    if (!decodedPayload.user_id || !decodedPayload.email) {
+      throw new Error('Invalid token structure');
+    }
+    
+    return {
+      user: {
+        id: decodedPayload.user_id,
+        email: decodedPayload.email,
+        aud: decodedPayload.aud
+      }
+    };
+  } catch (error) {
+    throw new Error(`Token validation failed: ${error.message}`);
+  }
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -50,10 +74,7 @@ serve(async (req) => {
     if (!authHeader) throw new Error('No authorization header provided');
 
     const token = authHeader.replace('Bearer ', '');
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
-    
-    const user = userData.user;
+    const { user } = await validateFirebaseToken(token);
     if (!user) throw new Error('User not authenticated');
     
     logStep("User authenticated", { userId: user.id });
@@ -108,7 +129,7 @@ serve(async (req) => {
         )
       `)
       .eq('target_user_id', user.id)
-      .eq('direction', 'like')
+      .eq('direction', 'right')
       .order('created_at', { ascending: false });
 
     if (swipesError) {

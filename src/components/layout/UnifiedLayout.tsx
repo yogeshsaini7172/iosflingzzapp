@@ -10,6 +10,7 @@ import ChatNotificationBadge from '@/components/ui/chat-notification-badge';
 import HeartNotificationBadge from '@/components/ui/heart-notification-badge';
 import WhoLikedMeModal from '@/components/likes/WhoLikedMeModal';
 import ChatRequestsModal from '@/components/notifications/ChatRequestsModal';
+import LikeNotificationHandler from '@/components/swipe/LikeNotificationHandler';
 import { useNotifications } from '@/hooks/useNotifications';
 
 interface UnifiedLayoutProps {
@@ -47,6 +48,9 @@ const UnifiedLayout = ({ children, title = "DateSigma", showHeader = true }: Uni
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+      {/* Global notification handlers */}
+      <LikeNotificationHandler />
+      
       {/* Simplified Header with integrated navigation */}
       {showHeader && (
         <div className="sticky top-0 z-40 bg-card/80 backdrop-blur-xl border-b border-border/50">
