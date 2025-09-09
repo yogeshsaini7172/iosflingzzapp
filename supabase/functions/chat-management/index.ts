@@ -320,12 +320,15 @@ serve(async (req) => {
         console.log(`🔍 Listing chat rooms for user: ${user_id}`);
         
         // Log function invocation for observability
-        await supabaseClient.from('function_invocations').insert({
+        const { error: logError } = await supabaseClient.from('function_invocations').insert({
           function_name: 'chat-management',
           payload: { action: 'list', user_id },
           user_id,
           status: 'started'
-        }).catch(() => {}); // Don't fail on logging errors
+        });
+        if (logError) {
+          console.warn('⚠️ Logging failed:', logError);
+        }
         
         // List chat rooms for a user and enrich with other user and last message
         const { data: roomsRaw, error: roomsError } = await supabaseClient
