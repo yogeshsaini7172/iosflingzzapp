@@ -54,17 +54,30 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
+    // Use Firebase token verification instead of Supabase auth
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) throw new Error('No authorization header provided');
 
-    const token = authHeader.replace('Bearer ', '');
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
+    const firebaseToken = authHeader.replace('Bearer ', '');
     
-    const user = userData.user;
-    if (!user) throw new Error('User not authenticated');
+    // Verify Firebase token and get user ID
+    const verifyResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/firebase-profile`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
+      },
+      body: JSON.stringify({ firebaseToken })
+    });
+
+    if (!verifyResponse.ok) {
+      throw new Error('Firebase authentication failed');
+    }
+
+    const { userId } = await verifyResponse.json();
+    if (!userId) throw new Error('User not authenticated');
     
-    logStep("User authenticated", { userId: user.id });
+    logStep("User authenticated", { userId });
 
     const { candidate_id, direction }: SwipeRequest = await req.json();
     
@@ -76,7 +89,7 @@ serve(async (req) => {
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single();
 
     if (profileError) throw profileError;
@@ -84,7 +97,7 @@ serve(async (req) => {
     const planId = profile.plan_id || 'free';
     const plan = SUBSCRIPTION_PLANS[planId as keyof typeof SUBSCRIPTION_PLANS] || SUBSCRIPTION_PLANS.free;
     
-    logStep("Profile retrieved", { planId, userId: user.id });
+    logStep("Profile retrieved", { planId, userId });
 
     // Reset daily count if date changed
     let updatedProfile = resetDailyCountIfNeeded(profile);
@@ -117,7 +130,7 @@ serve(async (req) => {
     const { error: swipeError } = await supabaseClient
       .from('enhanced_swipes')
       .insert({
-        user_id: user.id,
+        user_id: userId,
         target_user_id: candidate_id,
         direction: direction === 'right' ? 'like' : 'pass'
       });
@@ -151,7 +164,7 @@ serve(async (req) => {
         await supabaseClient
           .from('profiles')
           .update(updateData)
-          .eq('user_id', user.id);
+          .eq('user_id', userId);
       }
     }
 
@@ -159,21 +172,21 @@ serve(async (req) => {
     if (direction === 'right') {
       logStep("Processing potential match", { candidateId: candidate_id });
       
-      // Check if candidate already swiped right on this user
-      const { data: reciprocalSwipe } = await supabaseClient
-        .from('enhanced_swipes')
-        .select('*')
-        .eq('user_id', candidate_id)
-        .eq('target_user_id', user.id)
-        .eq('direction', 'like')
-        .single();
+        // Check if candidate already swiped right on this user
+        const { data: reciprocalSwipe } = await supabaseClient
+          .from('enhanced_swipes')
+          .select('*')
+          .eq('user_id', candidate_id)
+          .eq('target_user_id', userId)
+          .eq('direction', 'like')
+          .single();
 
       if (reciprocalSwipe) {
         logStep("Match found! Creating match record");
         
         // Create deterministic ordering for user1/user2 to avoid duplicates
-        const user1_id = user.id < candidate_id ? user.id : candidate_id
-        const user2_id = user.id < candidate_id ? candidate_id : user.id
+        const user1_id = userId < candidate_id ? userId : candidate_id
+        const user2_id = userId < candidate_id ? candidate_id : userId
 
         // Check if match already exists
         const { data: existingMatch } = await supabaseClient
@@ -223,7 +236,7 @@ serve(async (req) => {
             const { data: currentProfile } = await supabaseClient
               .from('profiles')
               .select('first_name, last_name')
-              .eq('user_id', user.id)
+              .eq('user_id', userId)
               .single();
 
             const { data: candidateProfile } = await supabaseClient
@@ -244,7 +257,7 @@ serve(async (req) => {
                   data: { 
                     enhanced_match_id: newEnhancedMatch.id, 
                     chat_room_id: chatRoom?.id || null,
-                    other_user_id: user.id
+                    other_user_id: userId
                   },
                   created_at: new Date().toISOString()
                 });
@@ -256,7 +269,7 @@ serve(async (req) => {
               const { error: notifErr2 } = await supabaseClient
                 .from('notifications')
                 .insert({
-                  user_id: user.id,
+                  user_id: userId,
                   type: 'new_match',
                   title: 'It\'s a match! 🎉',
                   message: `You and ${candidateProfile?.first_name || 'someone'} liked each other!`,
