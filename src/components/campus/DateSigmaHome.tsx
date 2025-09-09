@@ -475,7 +475,7 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
         <Dialog open={isReplyModalOpen} onOpenChange={setIsReplyModalOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-rose-700">Reply to {selectedThreadForReply?.author}</DialogTitle>
+              <DialogTitle className="text-rose-700">Reply to {selectedThreadForReply?.author?.first_name || 'Anonymous'}</DialogTitle>
             </DialogHeader>
             {selectedThreadForReply && (
               <div className="space-y-4">
