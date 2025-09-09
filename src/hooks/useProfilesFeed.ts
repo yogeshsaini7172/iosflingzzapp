@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfileData } from "@/hooks/useProfileData";
 import { useAuth } from "@/contexts/AuthContext";
+import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
 
 export interface FeedProfile {
   id: string;
@@ -37,22 +38,28 @@ export function useProfilesFeed() {
     try {
       const currentUserId = getCurrentUserId();
       
-      // Use data-management function for feed
-      const { data, error } = await supabase.functions.invoke('data-management', {
-        headers: { Authorization: `Bearer firebase-${currentUserId}` },
-        body: { 
+      // Use data-management function with real Firebase token
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/data-management', {
+        method: 'POST',
+        body: JSON.stringify({
           action: 'get_feed',
           user_id: currentUserId,
           limit: 20
-        }
+        })
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        console.error("❌ Error calling data-management (get_feed):", err);
+        throw new Error(err?.error || 'Failed to fetch feed');
+      }
 
-      console.log("✅ Fetched profiles from data-management:", data?.data?.profiles?.length);
-      setProfiles(data?.data?.profiles || []);
+      const payload = await response.json();
+      console.log("✅ Fetched profiles from data-management:", payload?.data?.profiles?.length);
+      setProfiles(payload?.data?.profiles || []);
     } catch (err) {
       console.error("❌ Error fetching feed profiles:", err);
+      setProfiles([]); // Clear profiles on error
     } finally {
       setLoading(false);
     }

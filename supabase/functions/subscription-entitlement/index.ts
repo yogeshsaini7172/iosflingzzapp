@@ -6,6 +6,55 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Verify Firebase ID token
+async function verifyFirebaseToken(idToken: string) {
+  try {
+    if (!idToken || typeof idToken !== 'string') {
+      throw new Error('Invalid token format')
+    }
+
+    const serviceAccountJson = Deno.env.get('FIREBASE_SERVICE_ACCOUNT_JSON')
+    if (!serviceAccountJson) {
+      throw new Error('Firebase service account not configured')
+    }
+
+    const serviceAccount = JSON.parse(serviceAccountJson)
+    
+    // Split and validate token structure
+    const tokenParts = idToken.split('.')
+    if (tokenParts.length !== 3) {
+      throw new Error('Invalid JWT structure')
+    }
+    
+    // Use base64url-safe decoding for JWT payload
+    const base64UrlPayload = tokenParts[1]
+    if (!base64UrlPayload) {
+      throw new Error('Missing token payload')
+    }
+    
+    const base64Payload = base64UrlPayload.replace(/-/g, '+').replace(/_/g, '/')
+    const payload = JSON.parse(atob(base64Payload))
+    
+    // Validate token claims
+    if (!payload.iss?.includes('securetoken.google.com') || 
+        !payload.aud?.includes(serviceAccount.project_id) ||
+        !payload.sub) {
+      throw new Error('Invalid token issuer, audience or subject')
+    }
+    
+    // Check token expiration
+    const now = Math.floor(Date.now() / 1000)
+    if (payload.exp <= now) {
+      throw new Error('Token expired')
+    }
+    
+    return payload.sub // Return Firebase UID
+  } catch (error) {
+    console.error('Token verification error:', error)
+    throw new Error('Invalid or expired token')
+  }
+}
+
 // Plan configuration - single source of truth
 const SUBSCRIPTION_PLANS = {
   free: {
@@ -187,25 +236,33 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) throw new Error('No authorization header provided');
+    // Verify Firebase token
+    const authHeader = req.headers.get('authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new Error('No valid authorization header')
+    }
+    
+    const idToken = authHeader.replace('Bearer ', '').trim()
+    if (!idToken) {
+      throw new Error('No token provided')
+    }
 
-    const token = authHeader.replace('Bearer ', '');
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
+    let firebaseUid
+    try {
+      firebaseUid = await verifyFirebaseToken(idToken)
+    } catch (error) {
+      throw new Error('Invalid token')
+    }
     
-    const user = userData.user;
-    if (!user) throw new Error('User not authenticated');
-    
-    logStep("User authenticated", { userId: user.id });
+    logStep("User authenticated", { userId: firebaseUid });
 
     const { action, plan_id }: EntitlementRequest = await req.json();
 
-    // Get user profile
+    // Get user profile using Firebase UID
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('firebase_uid', firebaseUid)
       .single();
 
     if (profileError) {
@@ -213,7 +270,7 @@ serve(async (req) => {
       throw profileError;
     }
 
-    logStep("Profile retrieved", { planId: profile.plan_id, userId: user.id });
+    logStep("Profile retrieved", { planId: profile.plan_id, userId: firebaseUid });
 
     switch (action) {
       case 'check':
@@ -233,7 +290,7 @@ serve(async (req) => {
               boosts_remaining: updatedUser.boosts_remaining,
               superlikes_remaining: updatedUser.superlikes_remaining
             })
-            .eq('user_id', user.id);
+            .eq('firebase_uid', firebaseUid);
         }
 
         return new Response(JSON.stringify({
@@ -268,13 +325,13 @@ serve(async (req) => {
         await supabaseClient
           .from('profiles')
           .update(planLimits)
-          .eq('user_id', user.id);
+          .eq('firebase_uid', firebaseUid);
 
         // Record subscription history
         await supabaseClient
           .from('subscription_history')
           .insert({
-            user_id: user.id,
+            user_id: firebaseUid,
             tier: plan_id,
             amount: targetPrice,
             status: 'active',
@@ -282,7 +339,7 @@ serve(async (req) => {
             end_date: planLimits.plan_expires_at
           });
 
-        logStep(`Plan ${action}d`, { from: currentPlan, to: plan_id, userId: user.id });
+        logStep(`Plan ${action}d`, { from: currentPlan, to: plan_id, userId: firebaseUid });
 
         const updatedProfile = { ...profile, ...planLimits };
         return new Response(JSON.stringify({
