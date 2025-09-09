@@ -52,7 +52,7 @@ const AuthenticatedApp = () => {
       }
       
       const json = await res.json();
-      const profile = json?.profile;
+      const profile = json?.data?.profile;
 
       if (profile && profile.user_id) {
         // Profile exists and has data - check if it's complete
