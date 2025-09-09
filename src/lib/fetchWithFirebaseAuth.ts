@@ -10,7 +10,7 @@ export async function fetchWithFirebaseAuth(input: RequestInfo | URL, init: Requ
     try {
       const token = await user.getIdToken(true); // Force refresh to get valid token
       headers.set('Authorization', `Bearer ${token}`);
-      console.log('🔑 Using Firebase token for request');
+      console.log(`🔑 Using Firebase token for request - User: ${user.email} (${user.uid})`);
     } catch (error) {
       console.error('❌ Error getting Firebase token:', error);
       throw new Error('Authentication failed - please sign in again');
