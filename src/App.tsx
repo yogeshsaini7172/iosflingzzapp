@@ -40,37 +40,30 @@ const AuthenticatedApp = () => {
   // Function to check if user has completed profile
   const checkUserProfile = async (userId: string) => {
     try {
-      // Verify via Edge Function using Firebase token
+      // Check if profile exists via Edge Function
       const res = await fetchWithFirebaseAuth('/functions/v1/profile-management', {
         method: 'POST',
         body: JSON.stringify({ action: 'get' }),
       });
+      
+      if (!res.ok) {
+        console.error('❌ Profile check failed:', res.status);
+        return false;
+      }
+      
       const json = await res.json();
-      const profile = json?.data?.profile ?? null;
+      const profile = json?.profile;
 
-      if (profile) {
-        return true; // profile exists, allow main app
+      if (profile && profile.user_id) {
+        // Profile exists and has data - check if it's complete
+        const hasBasicInfo = profile.first_name && profile.last_name && profile.bio;
+        return hasBasicInfo;
       }
 
-      // No profile: create a minimal stub, then force setup flow
-      try {
-        await fetchWithFirebaseAuth('/functions/v1/profile-management', {
-          method: 'POST',
-          body: JSON.stringify({
-            action: 'create',
-            profile: {
-              display_name: user?.displayName || '',
-              email: user?.email || '',
-            },
-          }),
-        });
-      } catch (createErr) {
-        console.warn('⚠️ Could not auto-create profile stub:', createErr);
-      }
-
+      // No profile exists - this should trigger profile setup flow
       return false;
     } catch (error) {
-      console.error('❌ Error checking profile via edge function:', error);
+      console.error('❌ Error checking profile:', error);
       return false;
     }
   };
