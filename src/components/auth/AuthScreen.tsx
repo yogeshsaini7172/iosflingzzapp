@@ -105,7 +105,7 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
             <Shield className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold mb-2 bg-gradient-hero bg-clip-text text-transparent">
-            Welcome to DateSigma
+            Welcome to FLINGZZ
           </h1>
           <p className="text-muted-foreground font-prompt text-lg">
             The verified student dating platform 💜

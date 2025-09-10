@@ -65,7 +65,7 @@ const Navbar = () => {
               <Heart className="h-4 w-4 text-primary-foreground" />
             </div>
             <NavLink to="/" className="text-xl font-display font-bold text-primary hover:text-foreground transition-colors">
-              DateSigma
+              FLINGZZ
             </NavLink>
           </div>
 

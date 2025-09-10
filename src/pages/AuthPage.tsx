@@ -181,7 +181,7 @@ const AuthPage = ({ onBack, onComplete }: AuthPageProps = {}) => {
             <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-2xl">💫</span>
             </div>
-            <CardTitle>Welcome to DateSigma</CardTitle>
+            <CardTitle>Welcome to FLINGZZ</CardTitle>
             <CardDescription>
               Choose your preferred sign-in method
             </CardDescription>

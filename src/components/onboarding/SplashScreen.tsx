@@ -33,7 +33,7 @@ const SplashScreen = ({ onContinue }: SplashScreenProps) => {
               FLINGZZ App
             </h1>
             <p className="text-muted-foreground text-lg">
-              Find your vibe at college
+              Connect, Match, Fling
             </p>
           </div>
 

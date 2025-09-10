@@ -20,7 +20,7 @@ interface UnifiedLayoutProps {
   showHeader?: boolean;
 }
 
-const UnifiedLayout = ({ children, title = "DateSigma", showHeader = true }: UnifiedLayoutProps) => {
+const UnifiedLayout = ({ children, title = "FLINGZZ", showHeader = true }: UnifiedLayoutProps) => {
   const { signOut } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();

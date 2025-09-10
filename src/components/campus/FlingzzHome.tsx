@@ -38,13 +38,13 @@ import { useThreads } from '@/hooks/useThreads';
 
 // Thread interface now comes from useThreads hook
 
-interface DateSigmaHomeProps {
+interface FlingzzHomeProps {
   onNavigate: (view: string) => void;
 }
 
 // Threads are now loaded from database via useThreads hook
 
-const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
+const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
   const { profiles, loading } = useProfilesFeed();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [swipeCount, setSwipeCount] = useState(0);
@@ -289,15 +289,15 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
   };
 
   return (
-    <UnifiedLayout title="DateSigma Home" showHeader={false}>
+    <UnifiedLayout title="FLINGZZ Home" showHeader={false}>
       {/* Custom Header for Home */}
       <div className="bg-card/80 backdrop-blur-md border-b border-border/50 px-4 py-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center shadow-sm">
-              <span className="text-primary-foreground font-bold text-sm">DS</span>
+              <span className="text-primary-foreground font-bold text-sm">FZ</span>
             </div>
-            <h1 className="text-base font-display font-bold text-foreground">DateSigma</h1>
+            <h1 className="text-base font-display font-bold text-foreground">FLINGZZ</h1>
           </div>
           <div className="flex items-center space-x-2">
             <HeartNotificationBadge 
@@ -906,4 +906,4 @@ const DateSigmaHome = ({ onNavigate }: DateSigmaHomeProps) => {
   );
 };
 
-export default DateSigmaHome;
+export default FlingzzHome;

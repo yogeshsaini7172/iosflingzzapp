@@ -122,7 +122,7 @@ const AppLayout = ({ children, currentView, onViewChange }: AppLayoutProps) => {
                   GradSync
                 </h1>
                 <p className="text-xs text-muted-foreground">
-                  Elite College Dating
+                  Connect & Fling
                 </p>
               </div>
             </div>

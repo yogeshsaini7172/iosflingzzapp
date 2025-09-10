@@ -5,7 +5,7 @@ import { AuthProvider } from '@/contexts/AuthContext'
 import { App } from './App.tsx'
 import './index.css'
 
-console.log('🚀 Starting DateSigma App...');
+console.log('🚀 Starting FLINGZZ App...');
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
