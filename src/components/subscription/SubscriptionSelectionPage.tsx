@@ -101,7 +101,7 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
     if (planId === 'free') {
       // Immediate selection for free plan
       toast({
-        title: "Welcome to datingSigma! 🎉",
+        title: "Welcome to FLINGZZ! 🎉",
         description: "You can upgrade anytime from your profile settings."
       });
       onComplete('free');
@@ -117,7 +117,7 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
 
   const handleSkip = () => {
     toast({
-      title: "Welcome to datingSigma! 🎉",
+      title: "Welcome to FLINGZZ! 🎉",
       description: "You're starting with the free plan. You can upgrade anytime!"
     });
     onComplete('free');

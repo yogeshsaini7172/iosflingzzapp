@@ -137,7 +137,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                     <span className="text-primary-foreground font-bold text-lg sm:text-xl">💕</span>
                   </div>
                   <h1 className="text-lg sm:text-2xl font-display font-bold bg-gradient-primary bg-clip-text text-transparent">
-                    datingSigma
+                    FLINGZZ
                   </h1>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3">

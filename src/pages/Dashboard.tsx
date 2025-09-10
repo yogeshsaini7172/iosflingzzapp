@@ -106,7 +106,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                  datingSigma App
+                  FLINGZZ App
                 </h1>
                 {userProfile.subscriptionTier === 'premium' && (
                   <Badge className="bg-amber-100 text-amber-700 border-0 text-xs">

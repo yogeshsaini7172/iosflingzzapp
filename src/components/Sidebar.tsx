@@ -12,7 +12,7 @@ const Sidebar: React.FC = () => {
 
   return (
     <div className="flex flex-col space-y-6">
-      <h1 className="text-2xl font-bold text-primary">DatingSigma</h1>
+      <h1 className="text-2xl font-bold text-primary">FLINGZZ</h1>
       <nav className="space-y-4">
         {menuItems.map((item, idx) => (
           <div
