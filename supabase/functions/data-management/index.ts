@@ -105,6 +105,11 @@ serve(async (req) => {
     const { action, profile: profileData, preferences: preferencesData, filters, limit }: DataRequest = await req.json();
 
     console.log(`[DATA-MANAGEMENT] Action: ${action}, User: ${firebaseUid}`);
+    
+    // Add debug logging for profile creation
+    if (action === 'create_profile') {
+      console.log('[DEBUG] Profile data received:', JSON.stringify(profileData, null, 2));
+    }
 
     switch (action) {
       case 'create_profile':
@@ -191,7 +196,10 @@ serve(async (req) => {
           .select()
           .single();
 
-        if (createError) throw createError;
+        if (createError) {
+          console.error('[DEBUG] Profile creation error:', createError);
+          throw new Error(`Failed to create profile: ${createError.message}`);
+        }
 
         console.log(`[DATA-MANAGEMENT] Profile created for ${firebaseUid}`);
         return new Response(JSON.stringify({

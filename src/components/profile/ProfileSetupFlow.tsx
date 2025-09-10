@@ -263,7 +263,9 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       if (!profileResponse.ok) {
         const profileError = await profileResponse.json();
         console.error('Profile creation error:', profileError);
-        throw new Error(profileError.error || 'Failed to complete profile setup');
+        console.error('Profile response status:', profileResponse.status);
+        console.error('Profile payload that was sent:', profilePayload);
+        throw new Error(profileError.error || profileError.message || 'Failed to complete profile setup');
       }
 
       const profileResult = await profileResponse.json();
