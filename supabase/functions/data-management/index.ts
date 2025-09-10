@@ -228,8 +228,8 @@ serve(async (req) => {
           throw new Error('Profile data is required');
         }
 
-        // Update qualities JSON when profile is updated
-        const qualities = {
+        // Update updateQualities JSON when profile is updated
+        const updateQualities = {
           // Physical qualities
           height: profileData.height || null,
           body_type: profileData.body_type || null, 
@@ -255,7 +255,7 @@ serve(async (req) => {
 
         const updatedProfileData = {
           ...profileData,
-          qualities: JSON.stringify(qualities),
+          qualities: JSON.stringify(updateQualities),
           updated_at: new Date().toISOString()
         };
 
