@@ -2,13 +2,13 @@ import { calculateQCS, updateProfileCompletion } from './qcs';
 import { supabase } from "@/integrations/supabase/client";
 
 export async function fixAllQCS() {
-  const userIds = [
-    '11111111-1111-1111-1111-111111111001', // Alice
-    '22222222-2222-2222-2222-222222222002', // Bob  
-    '33333333-3333-3333-3333-333333333003', // Charlie
-    '44444444-4444-4444-4444-444444444004', // Diana
-    '55555555-5555-5555-5555-555555555005'  // Eva
-  ];
+  // Get actual user IDs from the database
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("user_id")
+    .limit(10);
+  
+  const userIds = profiles?.map(p => p.user_id) || [];
 
   console.log('🔧 Fixing QCS scores and populating qualities/requirements for all users...');
   
@@ -34,10 +34,16 @@ export async function fixAllQCS() {
         let requirements = {};
 
         try {
-          qualities = profile.qualities ? JSON.parse(profile.qualities as string) : {};
-          requirements = profile.requirements ? JSON.parse(profile.requirements as string) : {};
+          qualities = (typeof profile.qualities === 'object' && profile.qualities !== null) 
+            ? profile.qualities 
+            : (profile.qualities ? JSON.parse(profile.qualities as string) : {});
+          requirements = (typeof profile.requirements === 'object' && profile.requirements !== null) 
+            ? profile.requirements 
+            : (profile.requirements ? JSON.parse(profile.requirements as string) : {});
         } catch (e) {
           console.log(`Parsing existing JSON failed for ${userId}, creating new...`);
+          qualities = {};
+          requirements = {};
         }
 
         // If qualities is empty, populate with sample data
@@ -92,8 +98,8 @@ export async function fixAllQCS() {
         await supabase
           .from("profiles")
           .update({
-            qualities: JSON.stringify(qualities),
-            requirements: JSON.stringify(requirements)
+            qualities: qualities,
+            requirements: requirements
           })
           .eq("user_id", userId);
 

@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { App } from './App.tsx'
 import './index.css'
+import './services/fix-qcs' // Auto-run QCS fix for existing profiles
 
 console.log('🚀 Starting FLINGZZ App...');
 
