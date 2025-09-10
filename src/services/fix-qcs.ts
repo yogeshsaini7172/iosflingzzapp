@@ -114,4 +114,10 @@ export async function fixAllQCS() {
 }
 
 // Auto-run fix on import for demo
-fixAllQCS();
+(async () => {
+  try {
+    await fixAllQCS();
+  } catch (error) {
+    console.error('❌ Error running QCS fix:', error);
+  }
+})();
