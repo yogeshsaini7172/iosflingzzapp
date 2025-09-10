@@ -112,11 +112,66 @@ serve(async (req) => {
           throw new Error('Profile data is required');
         }
 
+        // Build qualities JSON from profile data
+        const qualities = {
+          // Physical qualities
+          height: profileData.height || null,
+          body_type: profileData.body_type || null,
+          skin_tone: profileData.skin_tone || null,
+          face_type: profileData.face_type || null,
+          // Mental/Personality qualities
+          personality_type: profileData.personality_type || null,
+          personality_traits: profileData.personality_traits || [],
+          values: Array.isArray(profileData.values) ? profileData.values : (profileData.values ? [profileData.values] : []),
+          mindset: Array.isArray(profileData.mindset) ? profileData.mindset : (profileData.mindset ? [profileData.mindset] : []),
+          relationship_goals: profileData.relationship_goals || [],
+          interests: profileData.interests || [],
+          // Education and career
+          university: profileData.university || null,
+          field_of_study: profileData.field_of_study || null,
+          education_level: profileData.education_level || null,
+          profession: profileData.profession || null,
+          // Communication style
+          bio_length: profileData.bio ? profileData.bio.length : 0,
+          communication_style: profileData.bio && profileData.bio.length > 100 ? "expressive" : "concise",
+          profile_completeness: (profileData.bio && profileData.profile_images?.length >= 2 && profileData.interests?.length >= 3) ? "detailed" : "basic"
+        };
+
+        // Build requirements JSON - will be set when preferences are added
+        const requirements = {
+          // Physical requirements - defaults
+          height_range_min: 150,
+          height_range_max: 200,
+          preferred_body_types: [],
+          preferred_skin_types: [],
+          preferred_face_types: [],
+          preferred_gender: [],
+          // Age requirements - defaults
+          age_range_min: 18,
+          age_range_max: 30,
+          // Mental/Personality requirements - defaults
+          preferred_personality_traits: [],
+          preferred_values: [],
+          preferred_mindset: [],
+          preferred_relationship_goals: [],
+          preferred_interests: [],
+          preferred_love_languages: [],
+          preferred_communication_style: [],
+          preferred_lifestyle: [],
+          // Compatibility requirements
+          min_shared_interests: 2,
+          personality_compatibility: "moderate",
+          lifestyle_compatibility: "important"
+        };
+
         const newProfile = {
           firebase_uid: firebaseUid,
           user_id: firebaseUid, // Keep for compatibility
           email: profileData.email || 'user@example.com',
           ...profileData,
+          // Add structured JSON fields for QCS/compatibility
+          qualities: JSON.stringify(qualities),
+          requirements: JSON.stringify(requirements),
           subscription_tier: 'free',
           daily_outgoing_matches: 0,
           daily_incoming_matches: 0,
@@ -173,8 +228,34 @@ serve(async (req) => {
           throw new Error('Profile data is required');
         }
 
+        // Update qualities JSON when profile is updated
+        const qualities = {
+          // Physical qualities
+          height: profileData.height || null,
+          body_type: profileData.body_type || null, 
+          skin_tone: profileData.skin_tone || null,
+          face_type: profileData.face_type || null,
+          // Mental/Personality qualities
+          personality_type: profileData.personality_type || null,
+          personality_traits: profileData.personality_traits || [],
+          values: Array.isArray(profileData.values) ? profileData.values : (profileData.values ? [profileData.values] : []),
+          mindset: Array.isArray(profileData.mindset) ? profileData.mindset : (profileData.mindset ? [profileData.mindset] : []),
+          relationship_goals: profileData.relationship_goals || [],
+          interests: profileData.interests || [],
+          // Education and career
+          university: profileData.university || null,
+          field_of_study: profileData.field_of_study || null,
+          education_level: profileData.education_level || null,
+          profession: profileData.profession || null,
+          // Communication style
+          bio_length: profileData.bio ? profileData.bio.length : 0,
+          communication_style: profileData.bio && profileData.bio.length > 100 ? "expressive" : "concise",
+          profile_completeness: (profileData.bio && profileData.profile_images?.length >= 2 && profileData.interests?.length >= 3) ? "detailed" : "basic"
+        };
+
         const updatedProfileData = {
           ...profileData,
+          qualities: JSON.stringify(qualities),
           updated_at: new Date().toISOString()
         };
 
@@ -222,6 +303,33 @@ serve(async (req) => {
           throw new Error('Preferences data is required');
         }
 
+        // Build requirements JSON from preferences data
+        const requirements = {
+          // Physical requirements
+          height_range_min: preferencesData.height_range_min || 150,
+          height_range_max: preferencesData.height_range_max || 200,
+          preferred_body_types: preferencesData.preferred_body_types || [],
+          preferred_skin_types: preferencesData.preferred_skin_tone || [],
+          preferred_face_types: preferencesData.preferred_face_type || [],
+          preferred_gender: preferencesData.preferred_gender || [],
+          // Age requirements
+          age_range_min: preferencesData.age_range_min || 18,
+          age_range_max: preferencesData.age_range_max || 30,
+          // Mental/Personality requirements
+          preferred_personality_traits: preferencesData.preferred_personality_traits || [],
+          preferred_values: preferencesData.preferred_values || [],
+          preferred_mindset: preferencesData.preferred_mindset || [],
+          preferred_relationship_goals: preferencesData.preferred_relationship_goal || [],
+          preferred_interests: preferencesData.preferred_interests || [],
+          preferred_love_languages: preferencesData.preferred_love_language || [],
+          preferred_communication_style: preferencesData.preferred_communication_style || [],
+          preferred_lifestyle: preferencesData.preferred_lifestyle || [],
+          // Compatibility requirements
+          min_shared_interests: preferencesData.min_shared_interests || 2,
+          personality_compatibility: preferencesData.personality_compatibility || "moderate",
+          lifestyle_compatibility: preferencesData.lifestyle_compatibility || "important"
+        };
+
         // Check if record exists
         const { data: existingPrefs } = await supabaseClient
           .from('partner_preferences')
@@ -248,6 +356,19 @@ serve(async (req) => {
         }
 
         if (prefResult.error) throw prefResult.error;
+
+        // Also update the requirements in profiles table
+        const { error: profileUpdateError } = await supabaseClient
+          .from('profiles')
+          .update({ 
+            requirements: JSON.stringify(requirements),
+            updated_at: new Date().toISOString()
+          })
+          .eq('firebase_uid', firebaseUid);
+
+        if (profileUpdateError) {
+          console.warn('Could not update profile requirements:', profileUpdateError);
+        }
 
         console.log(`[DATA-MANAGEMENT] Preferences updated for ${firebaseUid}`);
         return new Response(JSON.stringify({
@@ -296,38 +417,67 @@ serve(async (req) => {
         });
 
       case 'get_pairing_feed':
-        // Enhanced pairing feed with filtering
-        let pairingQuery = supabaseClient
-          .from('profiles')
-          .select('*')
-          .neq('firebase_uid', firebaseUid)
-          .eq('is_active', true)
-          .eq('show_profile', true);
+        // Enhanced pairing feed with compatibility scoring
+        console.log(`[DATA-MANAGEMENT] Getting enhanced pairing feed for ${firebaseUid}`);
+        
+        // Call the enhanced pairing function
+        const pairingResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/enhanced-pairing`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${idToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ limit: limit || 10 })
+        });
 
-        // Apply filters if provided
-        if (filters?.ageMin || filters?.ageMax) {
-          const today = new Date()
-          if (filters.ageMax) {
-            const minBirthDate = new Date(today.getFullYear() - filters.ageMax - 1, today.getMonth(), today.getDate())
-            pairingQuery = pairingQuery.gte('date_of_birth', minBirthDate.toISOString().split('T')[0])
+        if (!pairingResponse.ok) {
+          console.error('Enhanced pairing function failed, falling back to basic pairing');
+          
+          // Fallback to basic pairing
+          let pairingQuery = supabaseClient
+            .from('profiles')
+            .select('*')
+            .neq('firebase_uid', firebaseUid)
+            .eq('is_active', true)
+            .eq('show_profile', true);
+
+          // Apply filters if provided
+          if (filters?.ageMin || filters?.ageMax) {
+            const today = new Date()
+            if (filters.ageMax) {
+              const minBirthDate = new Date(today.getFullYear() - filters.ageMax - 1, today.getMonth(), today.getDate())
+              pairingQuery = pairingQuery.gte('date_of_birth', minBirthDate.toISOString().split('T')[0])
+            }
+            if (filters.ageMin) {
+              const maxBirthDate = new Date(today.getFullYear() - filters.ageMin, today.getMonth(), today.getDate())
+              pairingQuery = pairingQuery.lte('date_of_birth', maxBirthDate.toISOString().split('T')[0])
+            }
           }
-          if (filters.ageMin) {
-            const maxBirthDate = new Date(today.getFullYear() - filters.ageMin, today.getMonth(), today.getDate())
-            pairingQuery = pairingQuery.lte('date_of_birth', maxBirthDate.toISOString().split('T')[0])
-          }
+
+          pairingQuery = pairingQuery.limit(limit || 10);
+
+          const { data: pairingProfiles, error: pairingError } = await pairingQuery;
+
+          if (pairingError) throw pairingError;
+
+          console.log(`[DATA-MANAGEMENT] Basic pairing feed fetched: ${pairingProfiles?.length} profiles`);
+          return new Response(JSON.stringify({
+            success: true,
+            data: { profiles: pairingProfiles || [] },
+            message: 'Basic pairing feed fetched'
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200,
+          });
         }
 
-        pairingQuery = pairingQuery.limit(limit || 10);
-
-        const { data: pairingProfiles, error: pairingError } = await pairingQuery;
-
-        if (pairingError) throw pairingError;
-
-        console.log(`[DATA-MANAGEMENT] Pairing feed fetched: ${pairingProfiles?.length} profiles`);
+        const pairingData = await pairingResponse.json();
+        
+        console.log(`[DATA-MANAGEMENT] Enhanced pairing feed fetched: ${pairingData.data?.profiles?.length || 0} profiles`);
         return new Response(JSON.stringify({
           success: true,
-          data: { profiles: pairingProfiles || [] },
-          message: 'Pairing feed fetched'
+          data: { profiles: pairingData.data?.profiles || [] },
+          message: `Enhanced pairing feed: ${pairingData.message}`
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200,
