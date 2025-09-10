@@ -142,8 +142,8 @@ serve(async (req) => {
           profile_completeness: (profileData.bio && profileData.profile_images?.length >= 2 && profileData.interests?.length >= 3) ? "detailed" : "basic"
         };
 
-        // Build requirements JSON - will be set when preferences are added
-        const requirements = {
+        // Build initial requirements JSON - defaults
+        const initialRequirements = {
           // Physical requirements - defaults
           height_range_min: 150,
           height_range_max: 200,
@@ -176,7 +176,7 @@ serve(async (req) => {
           ...profileData,
           // Add structured JSON fields for QCS/compatibility
           qualities: JSON.stringify(qualities),
-          requirements: JSON.stringify(requirements),
+          requirements: JSON.stringify(initialRequirements),
           subscription_tier: 'free',
           daily_outgoing_matches: 0,
           daily_incoming_matches: 0,
