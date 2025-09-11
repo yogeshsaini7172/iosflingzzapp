@@ -13,6 +13,7 @@ import ProgressIndicator from "./steps/ProgressIndicator";
 import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { calculateAge, validateMinimumAge, MINIMUM_AGE } from "@/utils/ageValidation";
 
 interface ProfileSetupFlowProps {
   onComplete: () => void;
@@ -112,6 +113,19 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       // Use Firebase UID consistently
       if (!userId) {
         toast({ title: "Authentication error", description: "User ID not available", variant: "destructive" });
+        setIsLoading(false);
+        return;
+      }
+
+      // Final age validation before profile creation
+      if (!validateMinimumAge(profileData.dateOfBirth)) {
+        const age = calculateAge(profileData.dateOfBirth);
+        toast({ 
+          title: "Age requirement not met", 
+          description: `You must be at least ${MINIMUM_AGE} years old. You are currently ${age} years old.`, 
+          variant: "destructive" 
+        });
+        setCurrentStep(1); // Go back to basic details step
         setIsLoading(false);
         return;
       }
@@ -325,8 +339,9 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
   const canProceed = () => {
     switch (currentStep) {
       case 1: // Basic Details
+        const isAgeValid = validateMinimumAge(profileData.dateOfBirth);
         return profileData.firstName && profileData.lastName && profileData.dateOfBirth && 
-               profileData.gender && profileData.university;
+               profileData.gender && profileData.university && isAgeValid;
       case 2: // What You Are
         return profileData.personalityType && profileData.values && profileData.bio;
       case 3: // Who You Want
