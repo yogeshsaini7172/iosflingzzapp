@@ -18,14 +18,14 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    // Fix Alice's QCS score specifically
-    const aliceUserId = '11111111-1111-1111-1111-111111111001';
+    // Sync QCS score for the requested user
+    const targetUserId = 'DnGJgBsXcNa2pBC2yIpsae9rhYb2';
     
     // Get QCS data
     const { data: qcsData, error: qcsError } = await supabaseClient
       .from('qcs')
       .select('*')
-      .eq('user_id', aliceUserId)
+      .eq('user_id', targetUserId)
       .single();
 
     if (qcsError) {
@@ -33,27 +33,26 @@ serve(async (req) => {
       throw qcsError;
     }
 
-    // Calculate proper total score (normalize the 360 total to 0-100 scale)
-    let finalScore = 87; // Use the calculated score from our QCS example
+    // Keep the raw component total for this user (155)
+    let finalScore = 155;
     
     if (qcsData && qcsData.total_score) {
-      // If we have component scores, calculate properly
+      // Use the calculated component sum directly
       const componentSum = (qcsData.profile_score || 0) + 
                           (qcsData.college_tier || 0) + 
                           (qcsData.personality_depth || 0) + 
                           (qcsData.behavior_score || 0);
       
-      // Normalize to 0-100 scale
-      finalScore = Math.min(100, Math.max(0, Math.floor(componentSum / 4)));
+      finalScore = componentSum; // Keep the full score as calculated
     }
 
-    console.log('Updating Alice QCS to:', finalScore);
+    console.log('Updating user QCS to:', finalScore);
 
     // Update profiles table with correct QCS
     const { error: updateError } = await supabaseClient
       .from('profiles')
       .update({ total_qcs: finalScore })
-      .eq('user_id', aliceUserId);
+      .or(`firebase_uid.eq.${targetUserId},user_id.eq.${targetUserId}`);
 
     if (updateError) {
       console.error('Profile update error:', updateError);
@@ -64,7 +63,7 @@ serve(async (req) => {
     const { error: qcsUpdateError } = await supabaseClient
       .from('qcs')
       .update({ total_score: finalScore })
-      .eq('user_id', aliceUserId);
+      .eq('user_id', targetUserId);
 
     if (qcsUpdateError) {
       console.error('QCS update error:', qcsUpdateError);
@@ -72,9 +71,9 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({
       success: true,
-      user_id: aliceUserId,
+      user_id: targetUserId,
       updated_qcs: finalScore,
-      message: 'Alice\'s QCS score synchronized successfully'
+      message: 'QCS score synchronized successfully'
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
