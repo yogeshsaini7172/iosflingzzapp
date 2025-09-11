@@ -27,6 +27,8 @@ interface Match {
   compatibility_score?: number;
   physical_score?: number;
   mental_score?: number;
+  matched_criteria?: string[];
+  not_matched_criteria?: string[];
 }
 
 interface PairingPageProps {
@@ -157,26 +159,26 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
         return;
       }
 
+      // Display exact scores calculated by deterministic algorithm
+      console.log('🔍 Raw candidates from deterministic-pairing:', candidates);
+      
       const formattedMatches = candidates
-        .filter((c: any) => Number.isFinite(Number(c?.final_score)))
+        .filter((c: any) => c?.candidate_id)
         .map((c: any) => {
           const [first, ...rest] = (c.candidate_name || '').split(' ');
-          const score = Math.round(Number(c.final_score));
-
-          // Prefer real physical/mental from backend; otherwise derive sensible defaults
-          const rawPhysical = Number.isFinite(Number(c.physical_score)) ? Number(c.physical_score) : undefined;
-          const rawMental = Number.isFinite(Number(c.mental_score)) ? Number(c.mental_score) : undefined;
-
-          // Derive from any provided breakdown
-          const breakdownPhysical = Number.isFinite(Number(c?.breakdown?.physical)) ? Number(c.breakdown.physical) : undefined;
-          const breakdownMental = Number.isFinite(Number(c?.breakdown?.mental)) ? Number(c.breakdown.mental) : undefined;
-
-          // Final fallbacks: split total score 60/40 to avoid zeros
-          const fallbackPhysical = Math.round((score || 0) * 0.6);
-          const fallbackMental = Math.round((score || 0) * 0.4);
-
-          const physical = Math.max(0, Math.min(100, Math.round(rawPhysical ?? breakdownPhysical ?? fallbackPhysical)));
-          const mental = Math.max(0, Math.min(100, Math.round(rawMental ?? breakdownMental ?? fallbackMental)));
+          
+          // Use EXACT scores from deterministic algorithm - no fallbacks
+          const compatibilityScore = Number(c.final_score) || Number(c.deterministic_score) || 0;
+          const physicalScore = Number(c.physical_score) || 0;
+          const mentalScore = Number(c.mental_score) || 0;
+          
+          console.log(`📊 ${c.candidate_name}:`, {
+            compatibility: compatibilityScore,
+            physical: physicalScore, 
+            mental: mentalScore,
+            matched: c.debug_info?.matched || [],
+            not_matched: c.debug_info?.not_matched || []
+          });
           
           return {
             user_id: c.candidate_id,
@@ -188,9 +190,12 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
             age: c.candidate_age || 0,
             interests: [],
             total_qcs: c.candidate_qcs || 0,
-            compatibility_score: score,
-            physical_score: physical,
-            mental_score: mental,
+            compatibility_score: Math.round(compatibilityScore),
+            physical_score: Math.round(physicalScore),
+            mental_score: Math.round(mentalScore),
+            // Add debugging info for display
+            matched_criteria: c.debug_info?.matched || [],
+            not_matched_criteria: c.debug_info?.not_matched || []
           };
         })
         .sort((a: any, b: any) => (b.compatibility_score || 0) - (a.compatibility_score || 0));
@@ -431,21 +436,52 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                       </div>
                     </div>
 
-                    {/* Compact Scores */}
-                    <div className="flex items-center justify-between text-xs">
-                      <div className="flex items-center space-x-3">
-                        <div className="flex items-center">
-                          <Zap className="h-3 w-3 mr-1 text-amber-500" />
-                          <span>{match.physical_score || 0}%</span>
+                    {/* Detailed Scoring Breakdown */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center space-x-3">
+                          <div className="flex items-center">
+                            <Zap className="h-3 w-3 mr-1 text-amber-500" />
+                            <span className="font-medium">Physical: {match.physical_score}%</span>
+                          </div>
+                          <div className="flex items-center">
+                            <Brain className="h-3 w-3 mr-1 text-blue-500" />
+                            <span className="font-medium">Mental: {match.mental_score}%</span>
+                          </div>
                         </div>
-                        <div className="flex items-center">
-                          <Brain className="h-3 w-3 mr-1 text-blue-500" />
-                          <span>{match.mental_score || 0}%</span>
-                        </div>
+                        <Badge variant="outline" className="text-xs font-bold">
+                          QCS: {match.total_qcs}
+                        </Badge>
                       </div>
-                      <Badge variant="outline" className="text-xs font-bold">
-                        QCS: {match.total_qcs}
-                      </Badge>
+                      
+                      {/* Match Criteria Breakdown */}
+                      {(match.matched_criteria?.length > 0 || match.not_matched_criteria?.length > 0) && (
+                        <div className="text-xs space-y-1">
+                          {match.matched_criteria?.length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                              <span className="text-green-600 font-medium">✓</span>
+                              {match.matched_criteria.map((criteria, idx) => (
+                                <Badge key={idx} variant="secondary" className="text-xs bg-green-100 text-green-700">
+                                  {criteria.replace('_', ' ')}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                          {match.not_matched_criteria?.length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                              <span className="text-red-500 font-medium">✗</span>
+                              {match.not_matched_criteria.slice(0, 3).map((criteria, idx) => (
+                                <Badge key={idx} variant="outline" className="text-xs text-red-600 border-red-200">
+                                  {criteria.replace('_', ' ')}
+                                </Badge>
+                              ))}
+                              {match.not_matched_criteria.length > 3 && (
+                                <span className="text-xs text-muted-foreground">+{match.not_matched_criteria.length - 3} more</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* Action Buttons - Compact */}
