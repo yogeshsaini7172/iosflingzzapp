@@ -30,9 +30,9 @@ const queryClient = new QueryClient({
 
 const AuthenticatedApp = () => {
   console.log('🔒 AuthenticatedApp component rendering...');
-  const { user, isLoading, userId } = useAuth();
+  const { user, isLoading, userId, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  console.log('👤 Current user state:', { user: user?.uid, isLoading });
+  console.log('👤 Current user state:', { user: user?.uid, isLoading, isAuthenticated });
   
   const [hasProfile, setHasProfile] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(true);
@@ -112,7 +112,7 @@ const AuthenticatedApp = () => {
 
     const checkProfile = async () => {
       console.log('📋 Checking profile for user:', userId);
-      if (userId) {
+      if (userId && isAuthenticated) {
         // Clear all local storage for real authentication
         clearAllLocalStorage();
         try {
@@ -124,6 +124,8 @@ const AuthenticatedApp = () => {
           setHasProfile(false);
         }
       } else {
+        // User is not authenticated - reset profile state
+        console.log('🚫 User not authenticated, resetting profile state');
         setHasProfile(false);
       }
       setCheckingProfile(false);
@@ -132,7 +134,7 @@ const AuthenticatedApp = () => {
     if (!isLoading) {
       checkProfile();
     }
-  }, [user, isLoading]);
+  }, [user, isLoading, isAuthenticated, userId]);
 
   if (isLoading || checkingProfile) {
     console.log('⏳ App loading...', { isLoading, checkingProfile });
@@ -146,10 +148,11 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Show authentication/profile setup flow if not complete
-  if (!hasProfile) {
+  // Show authentication/profile setup flow if not authenticated or no profile
+  if (!isAuthenticated || !hasProfile) {
     console.log('🔑 Showing auth/setup flow...', { 
       hasUser: !!user, 
+      isAuthenticated,
       hasProfile
     });
     return (

@@ -39,14 +39,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         displayName: firebaseUser.displayName 
       } : 'null');
       
+      const wasAuthenticated = !!user;
       setUser(firebaseUser);
       
       if (firebaseUser) {
         console.log('🔑 Firebase user authenticated');
-        toast.success('Successfully signed in!');
+        if (!wasAuthenticated) {
+          toast.success('Successfully signed in!');
+        }
       } else {
         console.log('🔥 No user found - user signed out or no session');
-        if (firebaseUser === null) {
+        if (wasAuthenticated) {
+          console.log('👋 User logged out, clearing state');
           toast.success('Successfully signed out');
         }
       }
@@ -55,7 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [user]);
 
   const getIdToken = async () => {
     if (!auth.currentUser) return null;
@@ -139,10 +143,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
+      console.log('🚪 Signing out user...');
       await firebaseSignOut(auth);
-      setUser(null);
+      // The onAuthStateChanged listener will handle setting user to null
+      console.log('✅ Sign out successful');
       return {};
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Sign out error:', error);
       toast.error(error.message);
       return { error };
