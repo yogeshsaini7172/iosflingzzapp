@@ -40,22 +40,29 @@ function computeCompatibilityWithPreferences(
 } {
   let parsing_issue = false;
   let debug: any = { userA_data: {}, userB_data: {}, matches: [] };
-  let physicalScore = 0;
-  let mentalScore = 0;
+  let physicalScore = 25; // Start with baseline physical score
+  let mentalScore = 25;   // Start with baseline mental score
   let matchCount = 0;
   
   try {
     debug.userA_data = { profile: userA, preferences: userAPrefs };
     debug.userB_data = { profile: userB };
     
+    // If no preferences, return reasonable baseline scores
     if (!userAPrefs) {
       parsing_issue = true;
-      debug.issue = "Missing user preferences data";
-      return { deterministic_score: 50.0, physical_score: 0, mental_score: 0, parsing_issue, debug };
+      debug.issue = "Missing user preferences data - using baseline scores";
+      return { 
+        deterministic_score: 65.0, 
+        physical_score: 35, 
+        mental_score: 30, 
+        parsing_issue, 
+        debug 
+      };
     }
     
-    // Physical scoring (50 points max)
-    // Height compatibility (12 points)
+    // Physical scoring (up to 50 points total - baseline 25 + bonuses)
+    // Height compatibility (12 points bonus)
     if (userAPrefs.height_range_min && userAPrefs.height_range_max && userB.height) {
       const heightMatch = userB.height >= userAPrefs.height_range_min && 
                          userB.height <= userAPrefs.height_range_max;
@@ -66,7 +73,7 @@ function computeCompatibilityWithPreferences(
       }
     }
     
-    // Body type compatibility (12 points)
+    // Body type compatibility (12 points bonus)
     if (userAPrefs.preferred_body_types?.length > 0 && userB.body_type) {
       const bodyMatch = userAPrefs.preferred_body_types.includes(userB.body_type);
       if (bodyMatch) {
@@ -76,7 +83,7 @@ function computeCompatibilityWithPreferences(
       }
     }
     
-    // Skin tone compatibility (13 points)
+    // Skin tone compatibility (13 points bonus)
     if (userAPrefs.preferred_skin_tone?.length > 0 && userB.skin_tone) {
       const skinMatch = userAPrefs.preferred_skin_tone.includes(userB.skin_tone);
       if (skinMatch) {
@@ -86,7 +93,7 @@ function computeCompatibilityWithPreferences(
       }
     }
     
-    // Face type compatibility (13 points)
+    // Face type compatibility (13 points bonus)
     if (userAPrefs.preferred_face_type?.length > 0 && userB.face_type) {
       const faceMatch = userAPrefs.preferred_face_type.includes(userB.face_type);
       if (faceMatch) {
@@ -96,8 +103,8 @@ function computeCompatibilityWithPreferences(
       }
     }
     
-    // Mental scoring (50 points max)
-    // Values compatibility (15 points)
+    // Mental scoring (up to 50 points total - baseline 25 + bonuses)
+    // Values compatibility (15 points bonus)
     if (userAPrefs.preferred_values?.length > 0 && userB.values) {
       const valuesMatch = Array.isArray(userB.values) 
         ? userB.values.some((v: string) => userAPrefs.preferred_values.includes(v))
@@ -109,7 +116,7 @@ function computeCompatibilityWithPreferences(
       }
     }
     
-    // Mindset compatibility (10 points)
+    // Mindset compatibility (10 points bonus)
     if (userAPrefs.preferred_mindset?.length > 0 && userB.mindset) {
       const mindsetMatch = Array.isArray(userB.mindset)
         ? userB.mindset.some((m: string) => userAPrefs.preferred_mindset.includes(m))
@@ -121,7 +128,7 @@ function computeCompatibilityWithPreferences(
       }
     }
     
-    // Personality compatibility (10 points)
+    // Personality compatibility (10 points bonus)
     if (userAPrefs.preferred_personality_traits?.length > 0 && userB.personality_traits) {
       const personalityMatch = Array.isArray(userB.personality_traits)
         ? userB.personality_traits.some((p: string) => userAPrefs.preferred_personality_traits.includes(p))
@@ -133,7 +140,7 @@ function computeCompatibilityWithPreferences(
       }
     }
     
-    // Love language compatibility (8 points)
+    // Love language compatibility (8 points bonus)
     if (userAPrefs.preferred_love_language?.length > 0 && userB.love_language) {
       const loveLanguageMatch = userAPrefs.preferred_love_language.includes(userB.love_language);
       if (loveLanguageMatch) {
@@ -143,7 +150,7 @@ function computeCompatibilityWithPreferences(
       }
     }
     
-    // Lifestyle compatibility (7 points)
+    // Lifestyle compatibility (7 points bonus)
     if (userAPrefs.preferred_lifestyle?.length > 0) {
       const userBLifestyle = userB.lifestyle ? 
         (typeof userB.lifestyle === 'string' ? JSON.parse(userB.lifestyle) : userB.lifestyle) : null;
@@ -159,13 +166,14 @@ function computeCompatibilityWithPreferences(
       }
     }
     
-    // Calculate overall compatibility
-    const overallScore = Math.round((physicalScore + mentalScore) + 50); // Base 50 + weighted scores
+    // Calculate overall compatibility (baseline 50 + bonus points)
+    const overallScore = Math.round(physicalScore + mentalScore);
     
     debug.match_count = matchCount;
     debug.physical_score = physicalScore;
     debug.mental_score = mentalScore;
     debug.overall_score = overallScore;
+    debug.baseline_used = true;
     
     return {
       deterministic_score: Math.min(100, Math.max(0, overallScore)),
@@ -179,9 +187,9 @@ function computeCompatibilityWithPreferences(
     parsing_issue = true;
     debug.calculation_error = error.message;
     return { 
-      deterministic_score: 50.0, 
-      physical_score: 0, 
-      mental_score: 0, 
+      deterministic_score: 65.0, 
+      physical_score: 35, 
+      mental_score: 30, 
       parsing_issue, 
       debug 
     };
