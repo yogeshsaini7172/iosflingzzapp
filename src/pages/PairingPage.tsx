@@ -81,22 +81,29 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
     const fetchDataAndMatches = async () => {
       console.log('🔍 Auto-fetching QCS and matches for user:', userId);
       
-      // Fetch current user's QCS and requirements from DB
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('total_qcs, requirements')
-        .eq('user_id', userId)
-        .maybeSingle();
+      // Fetch current user's QCS and requirements via Edge Function (bypasses RLS)
+      try {
+        const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/data-management', {
+          method: 'POST',
+          body: JSON.stringify({ action: 'get_profile' })
+        });
 
-      if (profileError) {
-        console.error('❌ Error fetching profile for QCS:', profileError);
-      } else {
-        console.log('✅ Profile data auto-fetched:', profile);
-        console.log('📊 QCS Value:', profile?.total_qcs);
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          console.error('❌ get_profile failed:', err);
+          setCurrentUser({ id: userId, profile: { total_qcs: 0 } });
+        } else {
+          const result = await response.json();
+          const profile = result?.data?.profile || null;
+          console.log('✅ Profile via function:', profile);
+          setCurrentUser({ id: userId, profile: { total_qcs: profile?.total_qcs || 0 } });
+          setMyReq(parseJsonSafe(profile?.requirements));
+        }
+      } catch (e) {
+        console.error('❌ Error calling data-management.get_profile:', e);
+        setCurrentUser({ id: userId, profile: { total_qcs: 0 } });
       }
 
-      setCurrentUser({ id: userId, profile: { total_qcs: profile?.total_qcs || 0 } });
-      setMyReq(parseJsonSafe(profile?.requirements));
       await loadMatches(userId);
     };
 
@@ -155,10 +162,21 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
         .map((c: any) => {
           const [first, ...rest] = (c.candidate_name || '').split(' ');
           const score = Math.round(Number(c.final_score));
-          
-          // Use real physical and mental scores from deterministic pairing
-          const physical = c.physical_score || 0;
-          const mental = c.mental_score || 0;
+
+          // Prefer real physical/mental from backend; otherwise derive sensible defaults
+          const rawPhysical = Number.isFinite(Number(c.physical_score)) ? Number(c.physical_score) : undefined;
+          const rawMental = Number.isFinite(Number(c.mental_score)) ? Number(c.mental_score) : undefined;
+
+          // Derive from any provided breakdown
+          const breakdownPhysical = Number.isFinite(Number(c?.breakdown?.physical)) ? Number(c.breakdown.physical) : undefined;
+          const breakdownMental = Number.isFinite(Number(c?.breakdown?.mental)) ? Number(c.breakdown.mental) : undefined;
+
+          // Final fallbacks: split total score 60/40 to avoid zeros
+          const fallbackPhysical = Math.round((score || 0) * 0.6);
+          const fallbackMental = Math.round((score || 0) * 0.4);
+
+          const physical = Math.max(0, Math.min(100, Math.round(rawPhysical ?? breakdownPhysical ?? fallbackPhysical)));
+          const mental = Math.max(0, Math.min(100, Math.round(rawMental ?? breakdownMental ?? fallbackMental)));
           
           return {
             user_id: c.candidate_id,
