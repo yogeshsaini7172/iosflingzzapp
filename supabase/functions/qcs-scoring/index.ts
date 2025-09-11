@@ -169,7 +169,25 @@ async function aiRefinement(
     });
 
     const data = await response.json();
-    return JSON.parse(data.choices[0].message.content);
+    
+    // Safely parse OpenAI response with fallback
+    let content = data.choices[0].message.content;
+    if (!content) {
+      throw new Error('Empty response from OpenAI');
+    }
+    
+    // Try to extract JSON from response if it's wrapped in markdown or has extra text
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      content = jsonMatch[0];
+    }
+    
+    try {
+      return JSON.parse(content);
+    } catch (parseError) {
+      console.error('Failed to parse OpenAI JSON:', content);
+      throw new Error('Invalid JSON response from OpenAI');
+    }
   } catch (error) {
     console.error('AI refinement error:', error);
     return { final_score: rawScore, reason: 'AI offline', persona };
@@ -202,7 +220,26 @@ async function aiPredictive(physical: string, mental: string, description: strin
     });
 
     const data = await response.json();
-    const result = JSON.parse(data.choices[0].message.content);
+    
+    // Safely parse OpenAI response with fallback
+    let content = data.choices[0].message.content;
+    if (!content) {
+      throw new Error('Empty response from OpenAI');
+    }
+    
+    // Try to extract JSON from response if it's wrapped in markdown or has extra text
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      content = jsonMatch[0];
+    }
+    
+    let result;
+    try {
+      result = JSON.parse(content);
+    } catch (parseError) {
+      console.error('Failed to parse OpenAI JSON:', content);
+      throw new Error('Invalid JSON response from OpenAI');
+    }
     
     // Normalize score
     if (result.predicted_score !== null && result.predicted_score >= 0 && result.predicted_score <= 10) {
@@ -323,10 +360,22 @@ serve(async (req) => {
       .upsert({
         user_id: userId,
         profile_score: Math.floor(finalScore * 0.4),
-        college_tier: 85, // Default tier score
+        college_tier: 85,
         personality_depth: Math.floor(finalScore * 0.3),
-        behavior_score: Math.floor(finalScore * 0.3)
-      });
+        behavior_score: Math.floor(finalScore * 0.3),
+        total_score: Math.floor(finalScore * 0.4) + 85 + Math.floor(finalScore * 0.3) + Math.floor(finalScore * 0.3)
+      }, { onConflict: 'user_id' });
+
+    if (qcsError) {
+      console.error('Error updating QCS:', qcsError);
+    }
+
+    // Sync total_qcs to profiles table
+    const totalQcs = Math.floor(finalScore * 0.4) + 85 + Math.floor(finalScore * 0.3) + Math.floor(finalScore * 0.3);
+    const { error: profileSyncError } = await supabase
+      .from('profiles')
+      .update({ total_qcs: totalQcs })
+      .or(`firebase_uid.eq.${userId},user_id.eq.${userId}`);
 
     if (qcsError) {
       console.error('Error updating QCS:', qcsError);
