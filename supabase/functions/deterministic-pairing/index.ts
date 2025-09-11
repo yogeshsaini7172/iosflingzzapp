@@ -6,27 +6,149 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Deterministic hash function for seeded jitter
-function hashString(str: string): number {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32-bit integer
+// Calculate exact match score based on user's deterministic algorithm
+function calculateMatchScore(userPreferences: any, candidateAttributes: any): {
+  totalScore: number;
+  physicalScore: number; 
+  mentalScore: number;
+  matched: string[];
+  notMatched: string[];
+} {
+  const matched: string[] = [];
+  const notMatched: string[] = [];
+  let physicalScore = 0;
+  let mentalScore = 0;
+  
+  // --- PHYSICAL MATCH (max 40 points) ---
+  
+  // 1. Height match (10 points)
+  if (userPreferences?.height_range_min && userPreferences?.height_range_max && candidateAttributes?.height) {
+    if (candidateAttributes.height >= userPreferences.height_range_min && 
+        candidateAttributes.height <= userPreferences.height_range_max) {
+      physicalScore += 10;
+      matched.push("height");
+    } else {
+      notMatched.push("height");
+    }
+  } else {
+    notMatched.push("height");
   }
-  return Math.abs(hash);
+  
+  // 2. Body type match (10 points)
+  if (userPreferences?.preferred_body_types?.length > 0 && candidateAttributes?.body_type) {
+    if (userPreferences.preferred_body_types.includes(candidateAttributes.body_type)) {
+      physicalScore += 10;
+      matched.push("body_type");
+    } else {
+      notMatched.push("body_type");
+    }
+  } else {
+    notMatched.push("body_type");
+  }
+  
+  // 3. Skin tone match (10 points)
+  if (userPreferences?.preferred_skin_tone?.length > 0 && candidateAttributes?.skin_tone) {
+    if (userPreferences.preferred_skin_tone.includes(candidateAttributes.skin_tone)) {
+      physicalScore += 10;
+      matched.push("skin_tone");
+    } else {
+      notMatched.push("skin_tone");
+    }
+  } else {
+    notMatched.push("skin_tone");
+  }
+  
+  // 4. Face type match (10 points)
+  if (userPreferences?.preferred_face_type?.length > 0 && candidateAttributes?.face_type) {
+    if (userPreferences.preferred_face_type.includes(candidateAttributes.face_type)) {
+      physicalScore += 10;
+      matched.push("face_type");
+    } else {
+      notMatched.push("face_type");
+    }
+  } else {
+    notMatched.push("face_type");
+  }
+  
+  // --- MENTAL/PERSONALITY MATCH (max 40 points) ---
+  
+  // 1. Personality type match (10 points)
+  if (userPreferences?.preferred_personality_traits?.length > 0 && candidateAttributes?.personality_type) {
+    if (userPreferences.preferred_personality_traits.includes(candidateAttributes.personality_type)) {
+      mentalScore += 10;
+      matched.push("personality_type");
+    } else {
+      notMatched.push("personality_type");
+    }
+  } else {
+    notMatched.push("personality_type");
+  }
+  
+  // 2. Values match (10 points) - check if any candidate value matches any preferred value
+  if (userPreferences?.preferred_values?.length > 0 && candidateAttributes?.values) {
+    let valuesMatch = false;
+    const candidateValues = Array.isArray(candidateAttributes.values) ? candidateAttributes.values : [candidateAttributes.values];
+    
+    valuesMatch = candidateValues.some((v: string) => userPreferences.preferred_values.includes(v));
+    
+    if (valuesMatch) {
+      mentalScore += 10;
+      matched.push("values");
+    } else {
+      notMatched.push("values");
+    }
+  } else {
+    notMatched.push("values");
+  }
+  
+  // 3. Mindset match (10 points) - check if any candidate mindset matches any preferred mindset
+  if (userPreferences?.preferred_mindset?.length > 0 && candidateAttributes?.mindset) {
+    let mindsetMatch = false;
+    const candidateMindset = Array.isArray(candidateAttributes.mindset) ? candidateAttributes.mindset : [candidateAttributes.mindset];
+    
+    mindsetMatch = candidateMindset.some((m: string) => userPreferences.preferred_mindset.includes(m));
+    
+    if (mindsetMatch) {
+      mentalScore += 10;
+      matched.push("mindset");
+    } else {
+      notMatched.push("mindset");
+    }
+  } else {
+    notMatched.push("mindset");
+  }
+  
+  // 4. Relationship goals match (10 points) - check if any candidate goal matches any preferred goal
+  if (userPreferences?.preferred_relationship_goal?.length > 0 && candidateAttributes?.relationship_goals) {
+    let relationshipMatch = false;
+    const candidateGoals = Array.isArray(candidateAttributes.relationship_goals) ? candidateAttributes.relationship_goals : [candidateAttributes.relationship_goals];
+    
+    relationshipMatch = candidateGoals.some((r: string) => userPreferences.preferred_relationship_goal.includes(r));
+    
+    if (relationshipMatch) {
+      mentalScore += 10;
+      matched.push("relationship_goal");
+    } else {
+      notMatched.push("relationship_goal");
+    }
+  } else {
+    notMatched.push("relationship_goal");
+  }
+  
+  // Note: Skipping interests bonus for now as we don't have preferred_interests field in partner_preferences
+  
+  const totalScore = physicalScore + mentalScore;
+  
+  return {
+    totalScore,
+    physicalScore,
+    mentalScore,
+    matched,
+    notMatched
+  };
 }
 
-// Generate deterministic jitter between -2.0 and +2.0
-function getDeterministicJitter(user1Id: string, user2Id: string): number {
-  const combined = user1Id + user2Id;
-  const hash = hashString(combined);
-  // Normalize to 0-1, then scale to -2.0 to +2.0
-  const normalized = (hash % 10000) / 10000;
-  return (normalized - 0.5) * 4.0; // Range: -2.0 to +2.0
-}
-
-// Enhanced compatibility calculation with preferences integration
+// Compute compatibility using exact user algorithm - no baselines, no random data
 function computeCompatibilityWithPreferences(
   userA: any, 
   userB: any, 
@@ -39,159 +161,68 @@ function computeCompatibilityWithPreferences(
   debug: any; 
 } {
   let parsing_issue = false;
-  let debug: any = { userA_data: {}, userB_data: {}, matches: [] };
-  let physicalScore = 25; // Start with baseline physical score
-  let mentalScore = 25;   // Start with baseline mental score
-  let matchCount = 0;
   
   try {
-    debug.userA_data = { profile: userA, preferences: userAPrefs };
-    debug.userB_data = { profile: userB };
-    
-    // If no preferences, return reasonable baseline scores
+    // If no preferences, return 0 scores
     if (!userAPrefs) {
       parsing_issue = true;
-      debug.issue = "Missing user preferences data - using baseline scores";
       return { 
-        deterministic_score: 65.0, 
-        physical_score: 35, 
-        mental_score: 30, 
+        deterministic_score: 0, 
+        physical_score: 0, 
+        mental_score: 0, 
         parsing_issue, 
-        debug 
+        debug: { issue: "Missing user preferences data" }
       };
     }
     
-    // Physical scoring (up to 50 points total - baseline 25 + bonuses)
-    // Height compatibility (12 points bonus)
-    if (userAPrefs.height_range_min && userAPrefs.height_range_max && userB.height) {
-      const heightMatch = userB.height >= userAPrefs.height_range_min && 
-                         userB.height <= userAPrefs.height_range_max;
-      if (heightMatch) {
-        physicalScore += 12;
-        matchCount++;
-        debug.matches.push("height_match");
+    // Calculate exact match scores using user's algorithm
+    const { totalScore, physicalScore, mentalScore, matched, notMatched } = calculateMatchScore(userAPrefs, userB);
+    
+    // Convert to percentages (user's formula)
+    const physicalMax = 40; // 4 categories × 10 points each
+    const mentalMax = 40;   // 4 categories × 10 points each
+    const totalMax = 80;    // physicalMax + mentalMax (excluding interests for now)
+    
+    const physicalPercentage = Math.round((physicalScore / physicalMax) * 100);
+    const mentalPercentage = Math.round((mentalScore / mentalMax) * 100);
+    const overallPercentage = Math.round((totalScore / totalMax) * 100);
+    
+    const debug = {
+      userA_data: { profile: userA, preferences: userAPrefs },
+      userB_data: { profile: userB },
+      matched: matched,
+      not_matched: notMatched,
+      raw_scores: {
+        physical_raw: physicalScore,
+        mental_raw: mentalScore,
+        total_raw: totalScore
+      },
+      score_breakdown: {
+        physical_max: physicalMax,
+        mental_max: mentalMax,
+        total_max: totalMax,
+        physical_percentage: physicalPercentage,
+        mental_percentage: mentalPercentage,
+        overall_percentage: overallPercentage
       }
-    }
-    
-    // Body type compatibility (12 points bonus)
-    if (userAPrefs.preferred_body_types?.length > 0 && userB.body_type) {
-      const bodyMatch = userAPrefs.preferred_body_types.includes(userB.body_type);
-      if (bodyMatch) {
-        physicalScore += 12;
-        matchCount++;
-        debug.matches.push("body_type_match");
-      }
-    }
-    
-    // Skin tone compatibility (13 points bonus)
-    if (userAPrefs.preferred_skin_tone?.length > 0 && userB.skin_tone) {
-      const skinMatch = userAPrefs.preferred_skin_tone.includes(userB.skin_tone);
-      if (skinMatch) {
-        physicalScore += 13;
-        matchCount++;
-        debug.matches.push("skin_tone_match");
-      }
-    }
-    
-    // Face type compatibility (13 points bonus)
-    if (userAPrefs.preferred_face_type?.length > 0 && userB.face_type) {
-      const faceMatch = userAPrefs.preferred_face_type.includes(userB.face_type);
-      if (faceMatch) {
-        physicalScore += 13;
-        matchCount++;
-        debug.matches.push("face_type_match");
-      }
-    }
-    
-    // Mental scoring (up to 50 points total - baseline 25 + bonuses)
-    // Values compatibility (15 points bonus)
-    if (userAPrefs.preferred_values?.length > 0 && userB.values) {
-      const valuesMatch = Array.isArray(userB.values) 
-        ? userB.values.some((v: string) => userAPrefs.preferred_values.includes(v))
-        : userAPrefs.preferred_values.includes(userB.values);
-      if (valuesMatch) {
-        mentalScore += 15;
-        matchCount++;
-        debug.matches.push("values_match");
-      }
-    }
-    
-    // Mindset compatibility (10 points bonus)
-    if (userAPrefs.preferred_mindset?.length > 0 && userB.mindset) {
-      const mindsetMatch = Array.isArray(userB.mindset)
-        ? userB.mindset.some((m: string) => userAPrefs.preferred_mindset.includes(m))
-        : userAPrefs.preferred_mindset.includes(userB.mindset);
-      if (mindsetMatch) {
-        mentalScore += 10;
-        matchCount++;
-        debug.matches.push("mindset_match");
-      }
-    }
-    
-    // Personality compatibility (10 points bonus)
-    if (userAPrefs.preferred_personality_traits?.length > 0 && userB.personality_traits) {
-      const personalityMatch = Array.isArray(userB.personality_traits)
-        ? userB.personality_traits.some((p: string) => userAPrefs.preferred_personality_traits.includes(p))
-        : userAPrefs.preferred_personality_traits.includes(userB.personality_type);
-      if (personalityMatch) {
-        mentalScore += 10;
-        matchCount++;
-        debug.matches.push("personality_match");
-      }
-    }
-    
-    // Love language compatibility (8 points bonus)
-    if (userAPrefs.preferred_love_language?.length > 0 && userB.love_language) {
-      const loveLanguageMatch = userAPrefs.preferred_love_language.includes(userB.love_language);
-      if (loveLanguageMatch) {
-        mentalScore += 8;
-        matchCount++;
-        debug.matches.push("love_language_match");
-      }
-    }
-    
-    // Lifestyle compatibility (7 points bonus)
-    if (userAPrefs.preferred_lifestyle?.length > 0) {
-      const userBLifestyle = userB.lifestyle ? 
-        (typeof userB.lifestyle === 'string' ? JSON.parse(userB.lifestyle) : userB.lifestyle) : null;
-      if (userBLifestyle) {
-        const lifestyleMatch = userAPrefs.preferred_lifestyle.some((pref: string) => 
-          Object.keys(userBLifestyle).includes(pref) || Object.values(userBLifestyle).includes(pref)
-        );
-        if (lifestyleMatch) {
-          mentalScore += 7;
-          matchCount++;
-          debug.matches.push("lifestyle_match");
-        }
-      }
-    }
-    
-    // Calculate overall compatibility (baseline 50 + bonus points)
-    const overallScore = Math.round(physicalScore + mentalScore);
-    
-    debug.match_count = matchCount;
-    debug.physical_score = physicalScore;
-    debug.mental_score = mentalScore;
-    debug.overall_score = overallScore;
-    debug.baseline_used = true;
+    };
     
     return {
-      deterministic_score: Math.min(100, Math.max(0, overallScore)),
-      physical_score: Math.min(100, Math.max(0, physicalScore)),
-      mental_score: Math.min(100, Math.max(0, mentalScore)),
+      deterministic_score: overallPercentage,
+      physical_score: physicalPercentage,
+      mental_score: mentalPercentage,
       parsing_issue: false,
       debug
     };
     
   } catch (error) {
     parsing_issue = true;
-    debug.calculation_error = error.message;
     return { 
-      deterministic_score: 65.0, 
-      physical_score: 35, 
-      mental_score: 30, 
+      deterministic_score: 0, 
+      physical_score: 0, 
+      mental_score: 0, 
       parsing_issue, 
-      debug 
+      debug: { calculation_error: error.message }
     };
   }
 }
@@ -285,17 +316,19 @@ serve(async (req) => {
         top_candidates: [],
         message: "No candidates found in QCS range. Try again later or adjust your preferences.",
         algorithm_info: {
-          base_score: 50.0,
-          jitter_range: "±2.0",
+          physical_max: 40,
+          mental_max: 40,
+          total_max: 80,
           deterministic: true,
-          no_random_fallback: true
+          no_baseline_scores: true,
+          no_random_data: true
         }
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Calculate deterministic compatibility for each candidate using new preferences
+    // Calculate deterministic compatibility for each candidate using exact user algorithm
     const results = [];
     for (const candidate of candidates) {
       const { deterministic_score, physical_score, mental_score, parsing_issue, debug } = computeCompatibilityWithPreferences(
@@ -304,9 +337,8 @@ serve(async (req) => {
         user1Preferences
       );
       
-      // Apply deterministic jitter
-      const jitter_applied = getDeterministicJitter(user_id, candidate.user_id);
-      const final_score = Math.min(100, Math.max(0, deterministic_score + jitter_applied));
+      // NO jitter - pure deterministic scoring as requested
+      const final_score = deterministic_score;
       
       // Calculate age
       const age = candidate.date_of_birth 
@@ -321,11 +353,10 @@ serve(async (req) => {
         candidate_bio: candidate.bio,
         candidate_images: candidate.profile_images,
         candidate_qcs: candidate.total_qcs || 0,
-        deterministic_score: Math.round(deterministic_score * 10) / 10,
-        physical_score: Math.round(physical_score),
-        mental_score: Math.round(mental_score),
-        jitter_applied: Math.round(jitter_applied * 10) / 10,
-        final_score: Math.round(final_score * 10) / 10,
+        deterministic_score: deterministic_score,
+        physical_score: physical_score,
+        mental_score: mental_score,
+        final_score: final_score,
         parsing_issue,
         debug_info: debug
       });
@@ -350,10 +381,12 @@ serve(async (req) => {
       total_candidates_found: candidates.length,
       top_candidates: top10,
       algorithm_info: {
-        base_score: 50.0,
-        jitter_range: "±2.0",
+        physical_max: 40,
+        mental_max: 40,
+        total_max: 80,
         deterministic: true,
-        no_random_fallback: true
+        no_baseline_scores: true,
+        no_random_data: true
       }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
