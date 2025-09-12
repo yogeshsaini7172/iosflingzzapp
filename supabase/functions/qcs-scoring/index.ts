@@ -381,19 +381,12 @@ serve(async (req) => {
       console.error('Error updating QCS:', qcsError);
     }
 
-    // Sync to profiles table
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({ total_qcs: finalScore })
-      .or(`firebase_uid.eq.${userId},user_id.eq.${userId}`);
-
-    if (profileError) {
-      console.error('Error syncing QCS to profile:', profileError);
-    }
+    console.log('QCS calculation complete:', { totalQcs, finalScore, userId });
 
     return new Response(JSON.stringify({
       user_id: userId,
-      qcs_score: finalScore,
+      qcs_score: totalQcs, // Return the properly calculated total
+      final_score: totalQcs, // For compatibility
       scoring_details: scoringResult
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
