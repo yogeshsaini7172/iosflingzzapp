@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-
+import { calculateQCS } from "@/services/qcs";
+ 
 export type Gender = "male" | "female" | "non_binary" | "prefer_not_to_say";
 
 export interface Profile {
@@ -214,6 +215,12 @@ export const useProfileData = () => {
         title: "Profile updated",
         description: "Your profile has been updated successfully.",
       });
+
+      try {
+        await calculateQCS(userId);
+      } catch (e) {
+        console.warn("QCS recalculation failed:", e);
+      }
 
       await fetchProfileData();
     } catch (error: any) {
