@@ -15,14 +15,13 @@ const Index = ({ onProfileComplete }: IndexProps) => {
   const [hasProfile, setHasProfile] = useState(false);
   const { user, isLoading } = useAuth();
 
+  // Only check profile on mount or login
   useEffect(() => {
     const checkUserProfile = async () => {
       if (!user) {
         setCurrentStep('auth');
         return;
       }
-
-      // Check if user already has a complete profile
       try {
         const userId = user.uid;
         if (!userId) {
@@ -30,49 +29,28 @@ const Index = ({ onProfileComplete }: IndexProps) => {
           setHasProfile(false);
           return;
         }
-
-        // Check if profile exists via data-management function using fetchWithFirebaseAuth
         const { fetchWithFirebaseAuth } = await import('@/lib/fetchWithFirebaseAuth');
-        
         const checkResponse = await fetchWithFirebaseAuth('/functions/v1/data-management', {
           method: 'POST',
           body: JSON.stringify({ action: 'get_profile' })
         });
-
         if (checkResponse.ok) {
           const result = await checkResponse.json();
           const profile = result?.data?.profile;
-          
-          // Check if profile is complete (has basic required fields)
-          const isComplete = profile && 
-            profile.first_name && 
-            profile.last_name && 
-            profile.bio && 
-            profile.gender;
-
+          const isComplete = profile && profile.first_name && profile.last_name && profile.bio && profile.gender;
           if (isComplete) {
-            console.log('User has complete profile, redirecting to main app...');
-            setHasProfile(true);
-            // Trigger parent to recheck - this will show main app
-            if (onProfileComplete) {
-              await onProfileComplete();
-            }
+            // If profile is complete, redirect to home (prevents popup)
+            window.location.replace('/');
             return;
           }
         }
-        
-        // No complete profile found - show profile setup
-        console.log('User needs profile setup');
         setCurrentStep('profile');
         setHasProfile(false);
       } catch (error) {
-        console.error('Error checking profile:', error);
-        // Default to profile setup on error
         setCurrentStep('profile');
         setHasProfile(false);
       }
     };
-
     if (!isLoading) {
       checkUserProfile();
     }

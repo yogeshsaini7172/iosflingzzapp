@@ -18,6 +18,7 @@ import SubscriptionPage from "./components/subscription/SubscriptionPage";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
+import { useLocation } from "react-router-dom";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,8 +35,22 @@ const AuthenticatedApp = () => {
   const navigate = useNavigate();
   console.log('👤 Current user state:', { user: user?.uid, isLoading });
   
-  const [hasProfile, setHasProfile] = useState(false);
-  const [checkingProfile, setCheckingProfile] = useState(true);
+//   useEffect(() => {
+//   if (user) {
+//     navigate("/profile"); // or "/" for home
+//   }
+// }, [user, navigate]);
+
+const location = useLocation();
+
+useEffect(() => {
+  if (user && (location.pathname === "/" || location.pathname === "/auth")) {
+    navigate("/");
+  }
+}, [user, navigate, location.pathname]);
+
+     const [hasProfile, setHasProfile] = useState(false);
+   const [checkingProfile, setCheckingProfile] = useState(true);
 
   // Function to check if user has completed profile
   const checkUserProfile = async (userId: string) => {
@@ -134,8 +149,8 @@ const AuthenticatedApp = () => {
     }
   }, [user, isLoading]);
 
+  // Show loading spinner until both auth and profile check are done
   if (isLoading || checkingProfile) {
-    console.log('⏳ App loading...', { isLoading, checkingProfile });
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
         <div className="text-center space-y-4">
@@ -146,27 +161,21 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Show authentication/profile setup flow if not complete
+  // If user does NOT have a profile, show profile setup (Index)
   if (!hasProfile) {
-    console.log('🔑 Showing auth/setup flow...', { 
-      hasUser: !!user, 
-      hasProfile
-    });
     return (
       <TooltipProvider>
         <div className="min-h-screen bg-gradient-to-br from-background to-muted">
           <Toaster />
           <Sonner />
           <div id="recaptcha-container"></div>
-          <Index 
-            onProfileComplete={recheckProfile}
-          />
+          <Index onProfileComplete={recheckProfile} />
         </div>
       </TooltipProvider>
     );
   }
 
-  console.log('✅ Showing main app...');
+  // If user has a profile, show main app
   return (
     <TooltipProvider>
       <div className="min-h-screen bg-gradient-to-br from-background to-muted">
@@ -175,7 +184,6 @@ const AuthenticatedApp = () => {
         <div id="recaptcha-container"></div>
         <Routes>
           <Route path="/" element={<FlingzzHome onNavigate={(view) => {
-            // SPA navigation (no full reloads)
             if (view === 'home') navigate('/');
             if (view === 'pairing') navigate('/pairing');
             if (view === 'blind-date') navigate('/blind-date');
