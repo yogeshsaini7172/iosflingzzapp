@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { SocketChatProvider } from "@/contexts/SocketChatContext";
 import { useState, useEffect } from "react";
 import SwipePage from "./pages/SwipePage";
 import PairingPage from "./pages/PairingPage";
@@ -172,11 +173,12 @@ const AuthenticatedApp = () => {
   console.log('✅ Showing main app...');
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted">
-        <Toaster />
-        <Sonner />
-        <div id="recaptcha-container"></div>
-        <Routes>
+      <SocketChatProvider>
+        <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+          <Toaster />
+          <Sonner />
+          <div id="recaptcha-container"></div>
+          <Routes>
           <Route path="/" element={<FlingzzHome onNavigate={(view) => {
             // SPA navigation (no full reloads)
             if (view === 'home') navigate('/');
@@ -227,7 +229,8 @@ const AuthenticatedApp = () => {
           }} />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </div>
+        </div>
+      </SocketChatProvider>
     </TooltipProvider>
   );
 };
