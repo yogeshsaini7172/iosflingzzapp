@@ -350,20 +350,90 @@ serve(async (req) => {
 
     console.log('Scoring for user:', userId, { physicalData, mentalData, descriptionData });
 
-    const scoringResult = await finalCustomerScoring(physicalData, mentalData, descriptionData);
+    // Calculate proper QCS based on actual profile data
+    const { data: fullProfile, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .or(`firebase_uid.eq.${userId},user_id.eq.${userId}`)
+      .single();
 
-    // Update QCS in database
-    const finalScore = scoringResult.rule_based.final_score || scoringResult.rule_based.base_score || 50;
+    if (profileError) throw profileError;
+
+    // Calculate profile score (0-40 points) - Enhanced scoring
+    let profileScore = 0;
     
+    // Bio quality (0-15 points)
+    if (fullProfile.bio) {
+      if (fullProfile.bio.length > 150) profileScore += 15;
+      else if (fullProfile.bio.length > 50) profileScore += 10;
+      else profileScore += 5;
+    }
+    
+    // Images quality (0-15 points)
+    if (fullProfile.profile_images && fullProfile.profile_images.length >= 4) profileScore += 15;
+    else if (fullProfile.profile_images && fullProfile.profile_images.length >= 2) profileScore += 10;
+    else if (fullProfile.profile_images && fullProfile.profile_images.length >= 1) profileScore += 5;
+    
+    // Interests diversity (0-10 points)
+    if (fullProfile.interests && fullProfile.interests.length >= 5) profileScore += 10;
+    else if (fullProfile.interests && fullProfile.interests.length >= 3) profileScore += 7;
+    else if (fullProfile.interests && fullProfile.interests.length >= 1) profileScore += 3;
+
+    // College tier score (0-30 points) - Enhanced with education level
+    const collegeTierMap: Record<string, number> = {
+      tier1: 30,
+      tier2: 25,
+      tier3: 20
+    };
+    let collegeTier = collegeTierMap[fullProfile.college_tier || 'tier3'] || 20;
+    
+    // Bonus for higher education
+    if (fullProfile.education_level === 'phd_doctorate') collegeTier += 5;
+    else if (fullProfile.education_level === 'postgraduate') collegeTier += 3;
+    else if (fullProfile.education_level === 'undergraduate') collegeTier += 1;
+
+    // Personality depth (0-20 points) - Enhanced personality scoring
+    let personalityDepth = 0;
+    
+    // Parse qualities JSON
+    let qualities: any = {};
+    try {
+      qualities = fullProfile.qualities ? JSON.parse(fullProfile.qualities as string) : {};
+    } catch (e) {
+      console.warn("Could not parse qualities JSON:", e);
+      qualities = {};
+    }
+    
+    // Personality traits depth
+    if (qualities.personality_traits && qualities.personality_traits.length >= 3) personalityDepth += 8;
+    else if (qualities.personality_traits && qualities.personality_traits.length >= 1) personalityDepth += 4;
+    
+    // Values depth  
+    if (qualities.values && qualities.values.length >= 3) personalityDepth += 6;
+    else if (qualities.values && qualities.values.length >= 1) personalityDepth += 3;
+    
+    // Mindset clarity
+    if (qualities.mindset && qualities.mindset.length >= 1) personalityDepth += 3;
+    
+    // Relationship goals clarity
+    if (qualities.relationship_goals && qualities.relationship_goals.length >= 1) personalityDepth += 3;
+
+    // Behavior score (0-10 points, reduced by reports)
+    const behaviorScore = Math.max(10 - (fullProfile.reports_count || 0) * 2, 0);
+
+    const totalQcs = Math.min(100, profileScore + collegeTier + personalityDepth + behaviorScore);
+
+    console.log(`QCS calculated for ${userId}: ${totalQcs} (Profile: ${profileScore}, College: ${collegeTier}, Personality: ${personalityDepth}, Behavior: ${behaviorScore})`);
+
+    // Update QCS in database with detailed breakdown
     const { error: qcsError } = await supabase
       .from('qcs')
       .upsert({
         user_id: userId,
-        profile_score: Math.floor(finalScore * 0.4),
-        college_tier: 85,
-        personality_depth: Math.floor(finalScore * 0.3),
-        behavior_score: Math.floor(finalScore * 0.3),
-        total_score: Math.floor(finalScore * 0.4) + 85 + Math.floor(finalScore * 0.3) + Math.floor(finalScore * 0.3)
+        profile_score: profileScore,
+        college_tier: collegeTier,
+        personality_depth: personalityDepth,
+        behavior_score: behaviorScore
       }, { onConflict: 'user_id' });
 
     if (qcsError) {
@@ -371,23 +441,26 @@ serve(async (req) => {
     }
 
     // Sync total_qcs to profiles table
-    const totalQcs = Math.floor(finalScore * 0.4) + 85 + Math.floor(finalScore * 0.3) + Math.floor(finalScore * 0.3);
     const { error: profileSyncError } = await supabase
       .from('profiles')
       .update({ total_qcs: totalQcs })
       .or(`firebase_uid.eq.${userId},user_id.eq.${userId}`);
 
-    if (qcsError) {
-      console.error('Error updating QCS:', qcsError);
+    if (profileSyncError) {
+      console.error('Error syncing QCS to profile:', profileSyncError);
     }
-
-    console.log('QCS calculation complete:', { totalQcs, finalScore, userId });
 
     return new Response(JSON.stringify({
       user_id: userId,
-      qcs_score: totalQcs, // Return the properly calculated total
-      final_score: totalQcs, // For compatibility
-      scoring_details: scoringResult
+      qcs: {
+        total_score: totalQcs,
+        profile_score: profileScore,
+        college_tier: collegeTier,
+        personality_depth: personalityDepth,
+        behavior_score: behaviorScore
+      },
+      updated_qcs: totalQcs, // For compatibility with calculateQCS function
+      final_score: totalQcs
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
