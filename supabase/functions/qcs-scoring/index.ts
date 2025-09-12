@@ -350,7 +350,11 @@ serve(async (req) => {
 
     console.log('Scoring for user:', userId, { physicalData, mentalData, descriptionData });
 
-    // Calculate proper QCS based on actual profile data
+    // Get AI-based scoring first
+    const scoringResult = await finalCustomerScoring(physicalData, mentalData, descriptionData);
+    const aiScore = scoringResult.rule_based.final_score || scoringResult.rule_based.base_score || 50;
+
+    // Calculate logic-based QCS from actual profile data
     const { data: fullProfile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
@@ -421,9 +425,13 @@ serve(async (req) => {
     // Behavior score (0-10 points, reduced by reports)
     const behaviorScore = Math.max(10 - (fullProfile.reports_count || 0) * 2, 0);
 
-    const totalQcs = Math.min(100, profileScore + collegeTier + personalityDepth + behaviorScore);
+    // Calculate logic-based QCS
+    const logicQcs = Math.min(100, profileScore + collegeTier + personalityDepth + behaviorScore);
 
-    console.log(`QCS calculated for ${userId}: ${totalQcs} (Profile: ${profileScore}, College: ${collegeTier}, Personality: ${personalityDepth}, Behavior: ${behaviorScore})`);
+    // Combine AI and Logic scores (60% logic, 40% AI for reliability)
+    const totalQcs = Math.round(logicQcs * 0.6 + aiScore * 0.4);
+
+    console.log(`QCS calculated for ${userId}: Logic=${logicQcs}, AI=${aiScore}, Final=${totalQcs} (Profile: ${profileScore}, College: ${collegeTier}, Personality: ${personalityDepth}, Behavior: ${behaviorScore})`);
 
     // Update QCS in database with detailed breakdown
     const { error: qcsError } = await supabase
@@ -454,13 +462,16 @@ serve(async (req) => {
       user_id: userId,
       qcs: {
         total_score: totalQcs,
+        logic_score: logicQcs,
+        ai_score: aiScore,
         profile_score: profileScore,
         college_tier: collegeTier,
         personality_depth: personalityDepth,
         behavior_score: behaviorScore
       },
       updated_qcs: totalQcs, // For compatibility with calculateQCS function
-      final_score: totalQcs
+      final_score: totalQcs,
+      scoring_details: scoringResult
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
