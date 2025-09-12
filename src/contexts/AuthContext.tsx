@@ -60,9 +60,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const getIdToken = async () => {
     if (!auth.currentUser) return null;
     try {
-      return await auth.currentUser.getIdToken();
+      // Force refresh to get valid token and check signature
+      const token = await auth.currentUser.getIdToken(true);
+      console.log('✅ Fresh Firebase token obtained');
+      return token;
     } catch (error) {
-      console.error('Error getting Firebase token:', error);
+      console.error('❌ Error getting Firebase token:', error);
+      // If token is invalid, sign out user
+      await firebaseSignOut(auth);
+      setUser(null);
+      toast.error('Session expired. Please sign in again.');
       return null;
     }
   };

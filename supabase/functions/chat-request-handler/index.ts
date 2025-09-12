@@ -42,7 +42,27 @@ serve(async (req) => {
     if (!effectiveUserId) throw new Error('Missing user identity');
 
     if (action === 'send_request') {
-      // Send chat request
+      // Check for existing chat request to prevent duplicates
+      const { data: existingRequest } = await supabaseClient
+        .from('chat_requests')
+        .select('id, status')
+        .eq('sender_id', effectiveUserId)
+        .eq('recipient_id', recipient_id)
+        .maybeSingle();
+
+      if (existingRequest) {
+        console.log('⚠️ Chat request already exists:', existingRequest);
+        return new Response(JSON.stringify({ 
+          success: true, 
+          data: existingRequest,
+          message: 'Chat request already sent'
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        });
+      }
+
+      // Send new chat request
       const { data: chatRequest, error: requestError } = await supabaseClient
         .from('chat_requests')
         .insert({
@@ -54,7 +74,10 @@ serve(async (req) => {
         .select()
         .single();
 
-      if (requestError) throw requestError;
+      if (requestError) {
+        console.error('❌ Chat request creation error:', requestError);
+        throw requestError;
+      }
 
       // Create notification for recipient
       await supabaseClient
