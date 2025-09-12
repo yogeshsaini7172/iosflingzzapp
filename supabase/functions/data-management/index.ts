@@ -121,23 +121,26 @@ serve(async (req) => {
         const qualities = {
           // Physical qualities
           height: profileData.height || null,
-          body_type: profileData.body_type || null,
-          skin_tone: profileData.skin_tone || null,
-          face_type: profileData.face_type || null,
+          body_type: profileData.body_type || profileData.bodyType || null,
+          skin_tone: profileData.skin_tone || profileData.skinTone || null,
+          face_type: profileData.face_type || profileData.faceType || null,
           // Mental/Personality qualities
-          personality_type: profileData.personality_type || null,
-          personality_traits: profileData.personality_traits || [],
+          personality_type: profileData.personality_type || profileData.personalityType || null,
+          personality_traits: profileData.personality_traits || profileData.personalityTraits || [],
           values: Array.isArray(profileData.values) ? profileData.values : (profileData.values ? [profileData.values] : []),
           mindset: Array.isArray(profileData.mindset) ? profileData.mindset : (profileData.mindset ? [profileData.mindset] : []),
-          relationship_goals: profileData.relationship_goals || [],
+          relationship_goals: profileData.relationship_goals || profileData.relationshipGoals || [],
           interests: profileData.interests || [],
           // Education and career
           university: profileData.university || null,
-          field_of_study: profileData.field_of_study || null,
-          education_level: profileData.education_level || null,
+          field_of_study: profileData.field_of_study || profileData.fieldOfStudy || null,
+          education_level: profileData.education_level || profileData.educationLevel || null,
           profession: profileData.profession || null,
           // Communication style
           bio_length: profileData.bio ? profileData.bio.length : 0,
+          communication_style: profileData.bio && profileData.bio.length > 100 ? "expressive" : "concise",
+          profile_completeness: (profileData.bio && profileData.profile_images?.length >= 2 && profileData.interests?.length >= 3) ? "detailed" : "basic"
+        };
           communication_style: profileData.bio && profileData.bio.length > 100 ? "expressive" : "concise",
           profile_completeness: (profileData.bio && profileData.profile_images?.length >= 2 && profileData.interests?.length >= 3) ? "detailed" : "basic"
         };
@@ -172,8 +175,27 @@ serve(async (req) => {
         const newProfile = {
           firebase_uid: firebaseUid,
           user_id: firebaseUid, // Keep for compatibility
+          // Map frontend field names to database field names
+          first_name: profileData.first_name || profileData.firstName,
+          last_name: profileData.last_name || profileData.lastName, 
           email: profileData.email || 'user@example.com',
-          ...profileData,
+          date_of_birth: profileData.date_of_birth || profileData.dateOfBirth,
+          gender: profileData.gender,
+          university: profileData.university,
+          year_of_study: profileData.year_of_study || profileData.yearOfStudy,
+          field_of_study: profileData.field_of_study || profileData.fieldOfStudy,
+          height: profileData.height ? Number(profileData.height) : null,
+          body_type: profileData.body_type || profileData.bodyType,
+          face_type: profileData.face_type || profileData.faceType,
+          personality_type: profileData.personality_type || profileData.personalityType,
+          values: profileData.values,
+          mindset: profileData.mindset,
+          relationship_goals: profileData.relationship_goals || profileData.relationshipGoals,
+          interests: profileData.interests,
+          bio: profileData.bio,
+          profile_images: profileData.profile_images,
+          is_profile_public: profileData.is_profile_public,
+          total_qcs: profileData.total_qcs || 0,
           // Add structured JSON fields for QCS/compatibility
           qualities: JSON.stringify(qualities),
           requirements: JSON.stringify(initialRequirements),
