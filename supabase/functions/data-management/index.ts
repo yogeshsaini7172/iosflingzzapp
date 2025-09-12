@@ -141,9 +141,6 @@ serve(async (req) => {
           communication_style: profileData.bio && profileData.bio.length > 100 ? "expressive" : "concise",
           profile_completeness: (profileData.bio && profileData.profile_images?.length >= 2 && profileData.interests?.length >= 3) ? "detailed" : "basic"
         };
-          communication_style: profileData.bio && profileData.bio.length > 100 ? "expressive" : "concise",
-          profile_completeness: (profileData.bio && profileData.profile_images?.length >= 2 && profileData.interests?.length >= 3) ? "detailed" : "basic"
-        };
 
         // Build initial requirements JSON - defaults
         const initialRequirements = {
