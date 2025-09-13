@@ -115,7 +115,7 @@ serve(async (req) => {
         .from('profiles')
         .select('*')
         .eq('firebase_uid', firebaseUser.uid)
-        .single()
+        .maybeSingle()
 
       if (error && error.code !== 'PGRST116') {
         console.error('Profile fetch error:', error)
@@ -154,9 +154,11 @@ serve(async (req) => {
             email: firebaseUser.email,
             ...body,
             updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'firebase_uid'
           })
           .select()
-          .single()
+          .maybeSingle()
 
         if (error) {
           console.error('Profile upsert error:', error)

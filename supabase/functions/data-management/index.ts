@@ -213,7 +213,7 @@ serve(async (req) => {
           .from('profiles')
           .insert(newProfile)
           .select()
-          .single();
+          .maybeSingle();
 
         if (createError) {
           console.error('[DEBUG] Profile creation error:', createError);
@@ -235,7 +235,7 @@ serve(async (req) => {
           .from('profiles')
           .select('*')
           .eq('firebase_uid', firebaseUid)
-          .single();
+          .maybeSingle();
 
         if (getError && getError.code !== 'PGRST116') {
           throw getError;
