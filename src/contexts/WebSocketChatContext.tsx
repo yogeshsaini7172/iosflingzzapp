@@ -27,7 +27,7 @@ export const useSocketChat = () => {
 // Keep the old export for backward compatibility
 export const useWebSocketChat = useSocketChat;
 
-export const SocketChatProvider: React.FC<{ children: React.ReactNode }> =  = ({ children }) => {
+export const SocketChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, userId, getIdToken } = useAuth();
   const [isConnected, setIsConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
