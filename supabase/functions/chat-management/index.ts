@@ -230,7 +230,7 @@ serve(async (req) => {
         }
 
         // Get chat history
-        const { data: messages, error: historyError } = await supabaseClient
+        const { data: historyMessages, error: historyError } = await supabaseClient
           .from('messages')
           .select('*')
           .eq('match_id', match_id)
@@ -238,7 +238,7 @@ serve(async (req) => {
 
         if (historyError) throw historyError;
 
-        if (!messages || messages.length === 0) {
+        if (!historyMessages || historyMessages.length === 0) {
           return new Response(JSON.stringify({
             success: false,
             error: 'No messages found'
@@ -250,7 +250,7 @@ serve(async (req) => {
 
         return new Response(JSON.stringify({
           success: true,
-          data: messages,
+          data: historyMessages,
           message: 'Chat history fetched'
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -501,7 +501,7 @@ serve(async (req) => {
         }
 
         // Get messages for this chat room
-        const { data: messages, error: messagesError } = await supabaseClient
+        const { data: roomMessages, error: messagesError } = await supabaseClient
           .from('chat_messages_enhanced')
           .select('*')
           .eq('chat_room_id', chat_room_id)
@@ -509,10 +509,10 @@ serve(async (req) => {
 
         if (messagesError) throw messagesError;
 
-        console.log(`Fetched ${messages?.length || 0} messages for chat room ${chat_room_id}`);
+        console.log(`Fetched ${roomMessages?.length || 0} messages for chat room ${chat_room_id}`);
         return new Response(JSON.stringify({
           success: true,
-          data: messages || [],
+          data: roomMessages || [],
           message: 'Messages fetched'
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
