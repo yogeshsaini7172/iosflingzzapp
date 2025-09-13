@@ -90,8 +90,13 @@ serve(async (req) => {
 
     // GENDER FILTERING: Apply user's preferred gender filter
     if (preferredGenders && preferredGenders.length > 0) {
-      console.log('🚻 Applying gender filter:', preferredGenders);
-      query = query.in("gender", preferredGenders);
+      const normalizedGenders = preferredGenders
+        .map((g: any) => (typeof g === 'string' ? g.toLowerCase().trim() : ''))
+        .filter((g: string) => g === 'male' || g === 'female');
+      console.log('🚻 Applying gender filter:', normalizedGenders);
+      if (normalizedGenders.length > 0) {
+        query = query.in("gender", normalizedGenders);
+      }
     }
 
     // Apply cursor-based pagination

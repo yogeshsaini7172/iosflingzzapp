@@ -135,8 +135,13 @@ serve(async (req) => {
 
     // GENDER FILTERING: Apply user's preferred gender filter
     if (userPreferences?.preferred_gender?.length > 0) {
-      logStep("Applying gender filter", { preferredGender: userPreferences.preferred_gender });
-      query = query.in('gender', userPreferences.preferred_gender);
+      const normalizedGenders = userPreferences.preferred_gender
+        .map((g: string) => (typeof g === 'string' ? g.toLowerCase().trim() : ''))
+        .filter((g: string) => g === 'male' || g === 'female');
+      logStep("Applying gender filter", { preferredGender: normalizedGenders });
+      if (normalizedGenders.length > 0) {
+        query = query.in('gender', normalizedGenders);
+      }
     }
 
     query = query.limit(limit);

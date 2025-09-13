@@ -300,8 +300,13 @@ serve(async (req) => {
 
     // GENDER FILTERING: Apply user's preferred gender filter
     if (user1Preferences?.preferred_gender?.length > 0) {
-      console.log('Applying gender filter:', user1Preferences.preferred_gender);
-      candidatesQuery = candidatesQuery.in('gender', user1Preferences.preferred_gender);
+      const normalizedGenders = user1Preferences.preferred_gender
+        .map((g: string) => (typeof g === 'string' ? g.toLowerCase().trim() : ''))
+        .filter((g: string) => g === 'male' || g === 'female');
+      console.log('Applying gender filter:', normalizedGenders);
+      if (normalizedGenders.length > 0) {
+        candidatesQuery = candidatesQuery.in('gender', normalizedGenders);
+      }
     }
 
     const { data: candidates, error: candidatesError } = await candidatesQuery.limit(50);

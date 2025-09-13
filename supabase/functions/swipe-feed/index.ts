@@ -144,8 +144,13 @@ serve(async (req) => {
     // GENDER FILTERING: Use stored preferences or request filters
     const preferredGenders = userPreferences?.preferred_gender || filters.gender;
     if (preferredGenders && preferredGenders.length > 0) {
-      console.log('🚻 Applying gender filter:', preferredGenders);
-      query = query.in('gender', preferredGenders)
+      const normalizedGenders = preferredGenders
+        .map((g: any) => (typeof g === 'string' ? g.toLowerCase().trim() : ''))
+        .filter((g: string) => g === 'male' || g === 'female');
+      console.log('🚻 Applying gender filter:', normalizedGenders);
+      if (normalizedGenders.length > 0) {
+        query = query.in('gender', normalizedGenders)
+      }
     }
 
     query = query.limit(limit)
