@@ -235,6 +235,8 @@ serve(async (req) => {
           .from('profiles')
           .select('*')
           .eq('firebase_uid', firebaseUid)
+          .order('updated_at', { ascending: false })
+          .limit(1)
           .maybeSingle();
 
         if (getError && getError.code !== 'PGRST116') {
@@ -291,7 +293,9 @@ serve(async (req) => {
           .update(updatedProfileData)
           .eq('firebase_uid', firebaseUid)
           .select()
-          .single();
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
         if (updateError) throw updateError;
 
@@ -310,7 +314,9 @@ serve(async (req) => {
           .from('partner_preferences')
           .select('*')
           .eq('user_id', firebaseUid)
-          .single();
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
         if (prefError && prefError.code !== 'PGRST116') {
           throw prefError;
@@ -362,7 +368,8 @@ serve(async (req) => {
           .from('partner_preferences')
           .select('user_id')
           .eq('user_id', firebaseUid)
-          .single();
+          .limit(1)
+          .maybeSingle();
 
         let prefResult;
         if (existingPrefs) {
@@ -371,14 +378,16 @@ serve(async (req) => {
             .update({ ...preferencesData, updated_at: new Date().toISOString() })
             .eq('user_id', firebaseUid)
             .select()
-            .single();
+            .order('updated_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
           prefResult = { data, error };
         } else {
           const { data, error } = await supabaseClient
             .from('partner_preferences')
             .insert({ user_id: firebaseUid, ...preferencesData })
             .select()
-            .single();
+            .maybeSingle();
           prefResult = { data, error };
         }
 

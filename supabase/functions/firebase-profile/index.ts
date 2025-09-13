@@ -115,6 +115,8 @@ serve(async (req) => {
         .from('profiles')
         .select('*')
         .eq('firebase_uid', firebaseUser.uid)
+        .order('updated_at', { ascending: false })
+        .limit(1)
         .maybeSingle()
 
       if (error && error.code !== 'PGRST116') {
