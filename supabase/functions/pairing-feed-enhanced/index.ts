@@ -79,6 +79,13 @@ serve(async (req) => {
     
     logStep("Profile retrieved", { planId, userId: user.id });
 
+    // Get user's partner preferences for gender filtering
+    const { data: userPreferences } = await supabaseClient
+      .from('partner_preferences')
+      .select('preferred_gender')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
     // Get users that have been swiped on
     const { data: swipedUsers } = await supabaseClient
       .from('enhanced_swipes')
@@ -124,8 +131,15 @@ serve(async (req) => {
       .eq('is_active', true)
       .not('user_id', 'in', `(${excludedUserIds.join(',')})`)
       .order('priority_score', { ascending: false })
-      .order('last_active', { ascending: false })
-      .limit(limit);
+      .order('last_active', { ascending: false });
+
+    // GENDER FILTERING: Apply user's preferred gender filter
+    if (userPreferences?.preferred_gender?.length > 0) {
+      logStep("Applying gender filter", { preferredGender: userPreferences.preferred_gender });
+      query = query.in('gender', userPreferences.preferred_gender);
+    }
+
+    query = query.limit(limit);
 
     const { data: candidates, error: candidatesError } = await query;
     
