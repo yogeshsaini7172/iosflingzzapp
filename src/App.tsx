@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { SocketChatProvider } from "@/contexts/SocketChatContext";
 import { useState, useEffect } from "react";
 import SwipePage from "./pages/SwipePage";
 import PairingPage from "./pages/PairingPage";
@@ -32,9 +33,9 @@ const queryClient = new QueryClient({
 
 const AuthenticatedApp = () => {
   console.log('🔒 AuthenticatedApp component rendering...');
-  const { user, isLoading, userId } = useAuth();
+  const { user, isLoading, userId, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  console.log('👤 Current user state:', { user: user?.uid, isLoading });
+  console.log('👤 Current user state:', { user: user?.uid, isLoading, isAuthenticated });
   
 //   useEffect(() => {
 //   if (user) {
@@ -128,7 +129,7 @@ useEffect(() => {
 
     const checkProfile = async () => {
       console.log('📋 Checking profile for user:', userId);
-      if (userId) {
+      if (userId && isAuthenticated) {
         // Clear all local storage for real authentication
         clearAllLocalStorage();
         try {
@@ -140,6 +141,8 @@ useEffect(() => {
           setHasProfile(false);
         }
       } else {
+        // User is not authenticated - reset profile state
+        console.log('🚫 User not authenticated, resetting profile state');
         setHasProfile(false);
       }
       setCheckingProfile(false);
@@ -148,7 +151,7 @@ useEffect(() => {
     if (!isLoading) {
       checkProfile();
     }
-  }, [user, isLoading]);
+  }, [user, isLoading, isAuthenticated, userId]);
 
   // Show loading spinner until both auth and profile check are done
   if (isLoading || checkingProfile) {
@@ -162,8 +165,8 @@ useEffect(() => {
     );
   }
 
-  // If user does NOT have a profile, show profile setup (Index)
-  if (!hasProfile) {
+
+  // If user does NOT hav
     return (
       <TooltipProvider>
         <div className="min-h-screen bg-gradient-to-br from-background to-muted">
@@ -179,11 +182,12 @@ useEffect(() => {
   // If user has a profile, show main app
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted">
-        <Toaster />
-        <Sonner />
-        <div id="recaptcha-container"></div>
-        <Routes>
+      <SocketChatProvider>
+        <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+          <Toaster />
+          <Sonner />
+          <div id="recaptcha-container"></div>
+          <Routes>
           <Route path="/" element={<FlingzzHome onNavigate={(view) => {
             if (view === 'home') navigate('/');
             if (view === 'pairing') navigate('/pairing');
@@ -234,7 +238,8 @@ useEffect(() => {
           <Route path="/qcs-test" element={<QCSTestPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </div>
+        </div>
+      </SocketChatProvider>
     </TooltipProvider>
   );
 };
