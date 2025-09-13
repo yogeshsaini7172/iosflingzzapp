@@ -35,6 +35,7 @@ import UnifiedLayout from '@/components/layout/UnifiedLayout';
 import ProfileImageHandler from '@/components/common/ProfileImageHandler';
 import { useAuth } from '@/contexts/AuthContext';
 import { useThreads } from '@/hooks/useThreads';
+import TinderProfileCard from "../dating/TinderProfileCard";
 
 // Thread interface now comes from useThreads hook
 
@@ -287,6 +288,25 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
       setCurrentImageIndex((prev) => (prev - 1 + totalImages) % totalImages);
     }
   };
+
+  const transformProfileForTinderCard = (profile: any) => {
+  return {
+    name: profile?.first_name || '',
+    age: profile ? calculateAge(profile.date_of_birth) : '',
+    location: profile?.university || '',
+    distance: 'Nearby', // You can calculate actual distance if available
+    weight: 'N/A', // Add if available in profile data
+    height: 'N/A', // Add if available in profile data
+    about: profile?.bio || '',
+    interests: profile?.interests?.map((interest: string) => ({
+      icon: '🎯', // Default icon, can be customized
+      text: interest
+    })) || [],
+    image: profile?.profile_images?.[currentImageIndex] || profile?.profile_images?.[0] || '',
+    isPremium: false // Set based on subscription status if available
+  };
+};
+
 
   return (
     <UnifiedLayout title="FLINGZZ Home" showHeader={false}>
@@ -647,157 +667,17 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
         ) : (
           <div className="max-w-sm mx-auto space-y-4">
             {/* Profile Card */}
-            <Card className="overflow-hidden shadow-premium border-0 bg-card/90 backdrop-blur-sm rounded-3xl">
-              <div className="relative">
-                <div className="aspect-[3/4] relative overflow-hidden">
-                  {/* Tinder-style Progress Bars */}
-                  {currentProfile?.profile_images && currentProfile.profile_images.length > 1 && (
-                    <div className="absolute top-3 left-3 right-3 flex gap-1 z-20">
-                      {currentProfile.profile_images.map((_, index) => (
-                        <div 
-                          key={index}
-                          className="flex-1 h-1 bg-black/20 rounded-full overflow-hidden"
-                        >
-                          <div 
-                            className={`h-full bg-white rounded-full transition-all duration-300 ${
-                              index === currentImageIndex ? 'w-full' : index < currentImageIndex ? 'w-full' : 'w-0'
-                            }`}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Main Image */}
-                  <img
-                    src={currentProfile?.profile_images?.[currentImageIndex] || currentProfile?.profile_images?.[0] || 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400'}
-                    alt={`${currentProfile?.first_name}'s profile photo ${currentImageIndex + 1}`}
-                    className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
-                  />
-
-                  {/* Invisible tap areas for navigation */}
-                  {currentProfile?.profile_images && currentProfile.profile_images.length > 1 && (
-                    <>
-                      <div 
-                        className="absolute left-0 top-0 w-1/2 h-full cursor-pointer z-10"
-                        onClick={() => handleImageNavigation('prev')}
-                      />
-                      <div 
-                        className="absolute right-0 top-0 w-1/2 h-full cursor-pointer z-10"
-                        onClick={() => handleImageNavigation('next')}
-                      />
-                    </>
-                  )}
-
-                  {/* Photo count indicator */}
-                  {currentProfile?.profile_images && currentProfile.profile_images.length > 1 && (
-                    <div className="absolute top-16 right-4 bg-black/50 text-white text-sm px-2 py-1 rounded-full backdrop-blur-sm z-20">
-                      {currentImageIndex + 1}/{currentProfile.profile_images.length}
-                    </div>
-                  )}
-                  
-                  {/* Enhanced Gradient Overlays */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-rose-500/20 via-transparent to-pink-500/20" />
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40" />
-                  
-                  {/* Decorative Elements */}
-                  <div className="absolute top-4 left-4 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30">
-                    <div className="w-6 h-6 bg-gradient-to-r from-rose-400 to-pink-500 rounded-full"></div>
-                  </div>
-                  
-                  {/* Age Badge with Modern Design */}
-                  <div className="absolute top-4 right-4 px-4 py-2 bg-card/90 backdrop-blur-md rounded-full border border-border shadow-soft">
-                    <span className="text-foreground font-bold text-sm">
-                      {currentProfile ? calculateAge(currentProfile.date_of_birth) : ''}
-                    </span>
-                  </div>
-                  
-                  {/* University Badge */}
-                  <div className="absolute top-20 right-4 px-3 py-1 bg-black/50 backdrop-blur-sm rounded-full border border-white/30">
-                    <span className="text-white text-xs font-medium flex items-center">
-                      <MapPin className="w-3 h-3 mr-1" />
-                      {currentProfile?.university}
-                    </span>
-                  </div>
-                  
-                  {/* Profile Information Overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                    <div className="space-y-3">
-                      <div>
-                        <h3 className="text-3xl font-bold mb-2 drop-shadow-lg">
-                          {currentProfile?.first_name}
-                        </h3>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            {currentProfile?.total_qcs && (
-                              <div className="px-3 py-1 bg-gradient-primary/90 rounded-full border border-white/30 backdrop-blur-sm">
-                                <div className="flex items-center space-x-1">
-                                  <Shield className="w-4 h-4" />
-                                  <span className="text-sm font-semibold">QCS: {currentProfile.total_qcs}</span>
-                                </div>
-                              </div>
-                            )}
-                            <div className="w-2 h-2 bg-green-400 rounded-full shadow-lg"></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Floating Action Indicator */}
-                </div>
-              </div>
-
-              <CardContent className="p-6 space-y-5 bg-gradient-to-b from-card to-muted/50">
-                {currentProfile?.bio && (
-                  <div className="relative">
-                    <div className="absolute -top-2 left-0 w-8 h-1 bg-gradient-primary rounded-full"></div>
-                    <p className="text-foreground leading-relaxed text-sm pt-3 font-medium">
-                      "{currentProfile.bio}"
-                    </p>
-                  </div>
-                )}
-
-                {currentProfile?.interests && currentProfile.interests.length > 0 && (
-                  <div className="space-y-3">
-                    <h4 className="font-bold text-foreground flex items-center">
-                      <div className="w-2 h-2 bg-primary rounded-full mr-2"></div>
-                      Interests
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {currentProfile.interests.slice(0, 4).map((interest, index) => (
-                        <div
-                          key={index}
-                          className="px-3 py-1 bg-secondary text-secondary-foreground border border-border rounded-full text-xs font-medium hover:shadow-soft transition-shadow duration-300"
-                        >
-                          {interest}
-                        </div>
-                      ))}
-                      {currentProfile.interests.length > 4 && (
-                        <div className="px-3 py-1 bg-primary text-primary-foreground rounded-full text-xs font-bold">
-                          +{currentProfile.interests.length - 4}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Compatibility Score */}
-                <div className="flex items-center justify-between p-4 bg-secondary/50 rounded-2xl border border-border">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center">
-                      <Star className="w-4 h-4 text-primary-foreground" />
-                    </div>
-                    <span className="font-semibold text-foreground">Compatibility</span>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-primary">95%</div>
-                    <div className="text-xs text-muted-foreground">Great Match!</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            {currentProfile ? (
+  <TinderProfileCard
+    profile={transformProfileForTinderCard(currentProfile)}
+    onLike={() => handleSwipe('right')}
+    onDislike={() => handleSwipe('left')}
+    onChat={() => onNavigate('chat')} // Or handle chat initiation
+  />
+) : (
+  // Loading or no profile state
+  <div>Loading...</div>
+)}
 
             {/* Enhanced Action Buttons */}
             <div className="flex justify-center space-x-8 mt-8">
