@@ -131,6 +131,8 @@ serve(async (req) => {
           mindset: Array.isArray(profileData.mindset) ? profileData.mindset : (profileData.mindset ? [profileData.mindset] : []),
           relationship_goals: profileData.relationship_goals || profileData.relationshipGoals || [],
           interests: profileData.interests || [],
+          love_language: profileData.love_language || profileData.loveLanguage || null,
+          lifestyle: profileData.lifestyle || null,
           // Education and career
           university: profileData.university || null,
           field_of_study: profileData.field_of_study || profileData.fieldOfStudy || null,
