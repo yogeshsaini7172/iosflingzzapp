@@ -35,6 +35,7 @@ import UnifiedLayout from '@/components/layout/UnifiedLayout';
 import ProfileImageHandler from '@/components/common/ProfileImageHandler';
 import { useAuth } from '@/contexts/AuthContext';
 import { useThreads } from '@/hooks/useThreads';
+import QCSCalculator from '@/components/QCSCalculator';
 
 // Thread interface now comes from useThreads hook
 
@@ -310,6 +311,10 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
         </div>
       </div>
 
+      {/* QCS Calculator Section */}
+      <div className="p-4">
+        <QCSCalculator />
+      </div>
 
       {/* Threads Section */}
       <div className="bg-card/80 backdrop-blur-md border-b border-border/50 p-4">

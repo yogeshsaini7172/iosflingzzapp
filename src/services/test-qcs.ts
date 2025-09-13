@@ -21,3 +21,22 @@ export async function testQCSCalculation() {
     return 0;
   }
 }
+
+export async function calculateQCSForUser(userId: string) {
+  console.log(`Calculating QCS for user: ${userId}`);
+  
+  try {
+    // Update profile completion first
+    await updateProfileCompletion(userId);
+    
+    // Calculate QCS using the new algorithm
+    const qcsScore = await calculateQCS(userId);
+    
+    console.log(`QCS calculated for user ${userId}: ${qcsScore}`);
+    
+    return qcsScore;
+  } catch (error) {
+    console.error(`Error calculating QCS for user ${userId}:`, error);
+    return 0;
+  }
+}
