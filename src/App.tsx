@@ -17,6 +17,7 @@ import FlingzzHome from "./components/campus/FlingzzHome";
 import SubscriptionPage from "./components/subscription/SubscriptionPage";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
+import QCSTestPage from "./pages/QCSTestPage";
 import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
 import { useLocation } from "react-router-dom";
 
@@ -230,6 +231,7 @@ useEffect(() => {
             if (view === 'home') navigate('/');
             if (view === 'profile') navigate('/profile');
           }} />} />
+          <Route path="/qcs-test" element={<QCSTestPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
