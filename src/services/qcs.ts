@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
 
 export interface QCSScore {
   profile_score: number;
@@ -10,112 +11,34 @@ export interface QCSScore {
 
 export async function calculateQCS(userId: string): Promise<number> {
   try {
-    // Fetch profile data
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("user_id", userId)
-      .single();
+    // Use secure Edge Function that handles auth and persists results
+    const response = await fetchWithFirebaseAuth(
+      "https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/qcs-scoring",
+      {
+        method: "POST",
+        body: JSON.stringify({ user_id: userId }),
+      }
+    );
 
-    if (profileError || !profile) {
-      console.error("Error fetching profile:", profileError);
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({} as any));
+      console.error("QCS scoring function failed:", err);
       return 0;
     }
 
-    // Parse qualities JSON
-    let qualities: any = {};
-    try {
-      qualities = profile.qualities ? JSON.parse(profile.qualities as string) : {};
-    } catch (e) {
-      console.warn("Could not parse qualities JSON:", e);
-      qualities = {};
-    }
+    const result = await response.json();
+    // Try common fields returned by the function; fallback to 0
+    const finalScore =
+      (result?.qcs?.total_score ??
+        result?.updated_qcs ??
+        result?.final_score ??
+        result?.score ??
+        0) as number;
 
-    // Calculate profile score (0-40 points) - Enhanced scoring
-    let profileScore = 0;
-    
-    // Bio quality (0-15 points)
-    if (profile.bio) {
-      if (profile.bio.length > 150) profileScore += 15;
-      else if (profile.bio.length > 50) profileScore += 10;
-      else profileScore += 5;
-    }
-    
-    // Images quality (0-15 points)
-    if (profile.profile_images && profile.profile_images.length >= 4) profileScore += 15;
-    else if (profile.profile_images && profile.profile_images.length >= 2) profileScore += 10;
-    else if (profile.profile_images && profile.profile_images.length >= 1) profileScore += 5;
-    
-    // Interests diversity (0-10 points)
-    if (profile.interests && profile.interests.length >= 5) profileScore += 10;
-    else if (profile.interests && profile.interests.length >= 3) profileScore += 7;
-    else if (profile.interests && profile.interests.length >= 1) profileScore += 3;
-
-    // College tier score (0-30 points) - Enhanced with education level
-    const collegeTierMap: Record<string, number> = {
-      tier1: 30,
-      tier2: 25,
-      tier3: 20
-    };
-    let collegeTier = collegeTierMap[profile.college_tier || 'tier3'] || 20;
-    
-    // Bonus for higher education
-    if (profile.education_level === 'phd_doctorate') collegeTier += 5;
-    else if (profile.education_level === 'postgraduate') collegeTier += 3;
-    else if (profile.education_level === 'undergraduate') collegeTier += 1;
-
-    // Personality depth (0-20 points) - Enhanced personality scoring
-    let personalityDepth = 0;
-    
-    // Personality traits depth
-    if (qualities.personality_traits && qualities.personality_traits.length >= 3) personalityDepth += 8;
-    else if (qualities.personality_traits && qualities.personality_traits.length >= 1) personalityDepth += 4;
-    
-    // Values depth  
-    if (qualities.values && qualities.values.length >= 3) personalityDepth += 6;
-    else if (qualities.values && qualities.values.length >= 1) personalityDepth += 3;
-    
-    // Mindset clarity
-    if (qualities.mindset && qualities.mindset.length >= 1) personalityDepth += 3;
-    
-    // Relationship goals clarity
-    if (qualities.relationship_goals && qualities.relationship_goals.length >= 1) personalityDepth += 3;
-
-    // Behavior score (0-10 points, reduced by reports)
-    const behaviorScore = Math.max(10 - (profile.reports_count || 0) * 2, 0);
-
-    const totalScore = Math.min(100, profileScore + collegeTier + personalityDepth + behaviorScore);
-
-    // Update or insert QCS record with detailed breakdown
-    const { error: qcsError } = await supabase
-      .from("qcs")
-      .upsert({
-        user_id: userId,
-        profile_score: profileScore,
-        college_tier: collegeTier,
-        personality_depth: personalityDepth,
-        behavior_score: behaviorScore,
-        total_score: totalScore
-      });
-
-    if (qcsError) {
-      console.error("Error updating QCS:", qcsError);
-    }
-
-    // CRITICAL FIX: Sync total_qcs to profiles table
-    const { error: profileQcsError } = await supabase
-      .from("profiles")
-      .update({ total_qcs: totalScore })
-      .eq("user_id", userId);
-
-    if (profileQcsError) {
-      console.error("Error syncing QCS to profile:", profileQcsError);
-    }
-
-    console.log(`QCS calculated for ${userId}: ${totalScore} (Profile: ${profileScore}, College: ${collegeTier}, Personality: ${personalityDepth}, Behavior: ${behaviorScore})`);
-    return totalScore;
+    console.log(`QCS (edge) calculated for ${userId}: ${finalScore}`);
+    return typeof finalScore === "number" ? finalScore : 0;
   } catch (error) {
-    console.error("Error calculating QCS:", error);
+    console.error("Error invoking QCS scoring:", error);
     return 0;
   }
 }

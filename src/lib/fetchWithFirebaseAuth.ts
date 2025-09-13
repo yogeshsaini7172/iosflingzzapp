@@ -10,9 +10,18 @@ export async function fetchWithFirebaseAuth(input: RequestInfo | URL, init: Requ
     try {
       const token = await user.getIdToken(true); // Force refresh to get valid token
       headers.set('Authorization', `Bearer ${token}`);
-      console.log(`🔑 Using Firebase token for request - User: ${user.email} (${user.uid})`);
+      console.log(`🔑 Using refreshed Firebase token for request - User: ${user.email} (${user.uid})`);
+      
+      // Validate token format
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        throw new Error('Invalid token format');
+      }
+      
     } catch (error) {
       console.error('❌ Error getting Firebase token:', error);
+      // Clear invalid session
+      await auth.signOut();
       throw new Error('Authentication failed - please sign in again');
     }
   } else {

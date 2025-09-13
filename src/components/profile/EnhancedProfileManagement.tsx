@@ -41,6 +41,13 @@ interface EnhancedProfileManagementProps {
 }
 
 const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProps) => {
+  // Remove photo from profileImages
+  const removePhoto = (index: number) => {
+    const newImages = (formData.profileImages || []).filter((_, i) => i !== index);
+    setFormData(prev => ({ ...prev, profileImages: newImages }));
+    // Optionally, auto-save after removal
+    updateProfile({ profile_images: newImages });
+  };
   const { profile, preferences, isLoading, updateProfile, updatePreferences } = useProfileData();
   const { signOut, user } = useAuth();
   const { toast } = useToast();
@@ -874,34 +881,34 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
     const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
       const files = Array.from(event.target.files || []);
       if (!files.length) return;
-      
+
       const maxFiles = 6 - formData.profileImages.length;
       const filesToProcess = files.slice(0, maxFiles);
-      
+
       console.log(`📸 Starting upload of ${filesToProcess.length} file(s)`);
-      
+
       try {
         const uploadedUrls: string[] = [];
         const userId = getCurrentUserId();
-        
+
         for (let i = 0; i < filesToProcess.length; i++) {
           const file = filesToProcess[i];
           console.log(`📸 Processing file ${i + 1}:`, file.name, file.size);
-          
+
           // Validate file
           if (file.size > 5 * 1024 * 1024) { // 5MB limit
             throw new Error(`File ${file.name} is too large. Maximum size is 5MB.`);
           }
-          
+
           if (!file.type.startsWith('image/')) {
             throw new Error(`File ${file.name} is not an image. Please select image files only.`);
           }
-          
+
           // Create unique filename
           const timestamp = Date.now();
           const fileExt = file.name.split('.').pop()?.toLowerCase();
           const fileName = `${userId}/${timestamp}_${i}.${fileExt}`;
-          
+
           // Upload to Supabase Storage
           const { data, error } = await supabase.storage
             .from('profile-images')
@@ -909,36 +916,32 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
               cacheControl: '3600',
               upsert: false
             });
-            
+
           if (error) {
             console.error('Storage upload error:', error);
             throw new Error(`Failed to upload ${file.name}: ${error.message}`);
           }
-          
+
           // Get public URL
           const { data: urlData } = supabase.storage
             .from('profile-images')
             .getPublicUrl(data.path);
-            
+
           uploadedUrls.push(urlData.publicUrl);
-          console.log(`✅ Uploaded ${file.name} to:`, urlData.publicUrl);
         }
 
         // Update local state immediately
         const newImages = [...formData.profileImages, ...uploadedUrls];
         setFormData(prev => ({ ...prev, profileImages: newImages }));
-        
-        console.log("✅ Photos uploaded successfully:", uploadedUrls);
-        console.log("📸 Total images now:", newImages.length);
-        
-        // Show success message
+
+        // Auto-save to backend
+        await updateProfile({ profile_images: newImages });
+
         toast({
           title: "Photos uploaded",
           description: `Successfully uploaded ${uploadedUrls.length} photo${uploadedUrls.length > 1 ? 's' : ''}`,
         });
-        
       } catch (error: any) {
-        console.error('❌ Error uploading photos:', error);
         toast({
           title: "Upload failed",
           description: error.message || "Failed to upload photos. Please try again.",
@@ -947,10 +950,10 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       }
     };
 
-    const removePhoto = (index: number) => {
-      const newImages = formData.profileImages.filter((_, i) => i !== index);
-      setFormData(prev => ({ ...prev, profileImages: newImages }));
-    };
+    // Filter out empty, null, or invalid image URLs
+    const validImages = (formData.profileImages || []).filter(
+      (img) => typeof img === 'string' && img.trim() !== '' && img.startsWith('http')
+    );
 
     return (
       <div className="space-y-6">
@@ -966,8 +969,8 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
 
         {/* Photo Grid */}
         <div className="grid grid-cols-3 gap-4">
-          {formData.profileImages && formData.profileImages.length > 0 ? (
-            formData.profileImages.map((image, index) => (
+          {validImages.length > 0 ? (
+            validImages.map((image, index) => (
               <div 
                 key={`${image}-${index}`}
                 className="aspect-square relative group overflow-hidden rounded-xl border-2 transition-all duration-300 cursor-pointer border-primary/20 hover:border-primary/60"
@@ -990,13 +993,11 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
                     }}
                   />
                 )}
-                
                 {index === 0 && (
                   <div className="absolute top-2 left-2 bg-primary/90 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
                     Main
                   </div>
                 )}
-                
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <Button
                     size="sm"
@@ -1029,10 +1030,10 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
               </label>
             </div>
           )}
-          
+
           {/* Empty Slots */}
-          {formData.profileImages && formData.profileImages.length > 0 && formData.profileImages.length < 6 && 
-            Array.from({ length: 6 - formData.profileImages.length }).map((_, index) => (
+          {validImages.length > 0 && validImages.length < 6 && 
+            Array.from({ length: 6 - validImages.length }).map((_, index) => (
               <label
                 key={`empty-${index}`}
                 className="aspect-square border-2 border-dashed border-primary/30 rounded-xl flex items-center justify-center hover:border-primary/60 transition-colors cursor-pointer group bg-muted/20"
@@ -1049,12 +1050,11 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
                   className="hidden"
                 />
               </label>
-            ))
-          }
+            ))}
         </div>
 
         {/* Photo Tips */}
-        {formData.profileImages && formData.profileImages.length > 0 && (
+        {validImages.length > 0 && (
           <div className="bg-muted/50 rounded-lg p-4">
             <h4 className="font-medium mb-2">📸 Photo Tips</h4>
             <ul className="text-sm text-muted-foreground space-y-1">
@@ -1146,8 +1146,17 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
             <Button variant="ghost" size="sm" onClick={() => onNavigate('home')} className="text-foreground hover:text-foreground hover:bg-muted p-2">
               <ArrowLeft className="w-4 h-4" />
             </Button>
-            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center shadow-sm">
-              <span className="text-primary-foreground font-bold text-sm">DS</span>
+            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/40 bg-gradient-primary flex items-center justify-center">
+              {formData.profileImages && formData.profileImages.length > 0 && formData.profileImages[0] ? (
+                <img
+                  src={formData.profileImages[0]}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                  onError={e => { (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.user_id || 'default'}`; }}
+                />
+              ) : (
+                <span className="text-primary-foreground font-bold text-sm">DS</span>
+              )}
             </div>
             <h1 className="text-base font-display font-bold text-foreground">Profile</h1>
           </div>

@@ -139,36 +139,46 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         console.log('Uploaded images:', imageUrls);
       }
 
-      // Store complete profile data
+      // Store complete profile data with proper field mapping
       const completeProfile = {
         user_id: userId,
         // Basic info
         first_name: profileData.firstName,
         last_name: profileData.lastName,
+        email: user?.email || `${userId}@firebase.user`,
         date_of_birth: profileData.dateOfBirth,
         gender: profileData.gender,
         university: profileData.university,
-        year_of_study: profileData.yearOfStudy,
+        major: profileData.fieldOfStudy, // Map to major field
+        year_of_study: profileData.yearOfStudy ? Number(profileData.yearOfStudy) : null,
         field_of_study: profileData.fieldOfStudy,
         
-        // What you are
-        height: profileData.height,
+        // What you are - proper field mapping
+        height: profileData.height ? Number(profileData.height) : null,
         body_type: profileData.bodyType,
         skin_tone: profileData.skinTone,
+        face_type: profileData.faceType,
         personality_type: profileData.personalityType,
+        personality_traits: profileData.personalityType ? [profileData.personalityType] : [],
         values: profileData.values,
+        values_array: profileData.values ? [profileData.values] : [],
         mindset: profileData.mindset,
+        love_language: profileData.loveLanguage,
         relationship_goals: profileData.relationshipGoals,
         interests: profileData.interests,
         bio: profileData.bio,
         
         // Images and settings
         profile_images: imageUrls,
+        display_name: `${profileData.firstName} ${profileData.lastName}`.trim(),
+        avatar_url: imageUrls.length > 0 ? imageUrls[0] : null,
         is_profile_public: profileData.isProfilePublic,
         verification_status: 'pending',
         college_tier: 'tier3',
         subscription_tier: 'free',
-        swipes_left: 10
+        swipes_left: 20,
+        show_profile: true,
+        is_active: true
       };
 
       // Store partner preferences (optional, kept in localStorage for demo)

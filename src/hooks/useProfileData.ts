@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-
+import { calculateQCS } from "@/services/qcs";
+ 
 export type Gender = "male" | "female" | "non_binary" | "prefer_not_to_say";
 
 export interface Profile {
@@ -136,16 +137,32 @@ export const useProfileData = () => {
         setProfile(transformedProfile as Profile);
         console.log("✅ Profile set:", transformedProfile);
       } else {
-        // Final fallback to localStorage demo profile
-        const local = localStorage.getItem('demoProfile');
-        if (local) {
-          const parsed = JSON.parse(local);
-          setProfile(parsed as Profile);
-          console.log("🗄️ Loaded profile from localStorage");
-        } else {
-          setProfile(null);
-          console.log("❌ No profile data found");
-        }
+        // No profile found, auto-create a default profile for this user
+        const userId = getCurrentUserId();
+        const defaultProfile: Profile = {
+          id: userId,
+          user_id: userId,
+          first_name: '',
+          last_name: '',
+          email: '',
+          date_of_birth: '',
+          gender: 'prefer_not_to_say',
+          university: '',
+          bio: '',
+          interests: [],
+          profile_images: [],
+          subscription_tier: 'free',
+          swipes_left: 10,
+          pairing_requests_left: 3,
+          blinddate_requests_left: 1,
+          is_profile_public: true,
+          verification_status: 'pending',
+          total_qcs: 0,
+        };
+        // Save to backend
+        await callDataFunction('update_profile', { profile: defaultProfile });
+        setProfile(defaultProfile);
+        console.log("🆕 Created default profile for user:", userId);
       }
 
       // Fetch preferences using data-management function
@@ -183,27 +200,28 @@ export const useProfileData = () => {
     const userId = getCurrentUserId();
     
     try {
-      // Transform array fields back to database format for backward compatibility
+      // Transform only legacy fields, but always keep profile_images as array
       const dbUpdates: any = {
         ...updates,
-        // Convert arrays back to single values for database storage if needed
         personality_type: updates.personality_traits?.[0] || undefined,
-        values: Array.isArray(updates.values) ? updates.values?.[0] : updates.values,
-        mindset: Array.isArray(updates.mindset) ? updates.mindset?.[0] : updates.mindset,
       };
-      // Remove the array versions to avoid conflicts
+      // Remove only personality_traits (legacy), but DO NOT delete or transform profile_images
       delete dbUpdates.personality_traits;
-      if (Array.isArray(updates.values)) delete dbUpdates.values;
-      if (Array.isArray(updates.mindset)) delete dbUpdates.mindset;
 
       const { error: fnError } = await callDataFunction('update_profile', { profile: dbUpdates });
       if (fnError) throw fnError;
-      
+
       toast({
         title: "Profile updated",
         description: "Your profile has been updated successfully.",
       });
-      
+
+      try {
+        await calculateQCS(userId);
+      } catch (e) {
+        console.warn("QCS recalculation failed:", e);
+      }
+
       await fetchProfileData();
     } catch (error: any) {
       console.error("❌ Error updating profile:", error);

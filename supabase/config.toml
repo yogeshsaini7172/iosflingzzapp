@@ -108,3 +108,9 @@ verify_jwt = false
 
 [functions.who-liked-me]
 verify_jwt = false
+
+[functions.batch-qcs-update]
+verify_jwt = false
+
+[functions.fix-data-consistency]
+verify_jwt = false
