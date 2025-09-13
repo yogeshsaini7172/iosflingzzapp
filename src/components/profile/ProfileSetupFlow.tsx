@@ -378,7 +378,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         return (
           <WhatYouAreStep
             data={profileData}
-            onChange={setProfileData}
+            onChange={(updater) => setProfileData(prev => ({ ...prev, ...updater(prev) }))}
           />
         );
       case 3:

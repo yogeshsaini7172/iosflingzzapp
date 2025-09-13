@@ -157,7 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return {};
     } catch (error: unknown) {
       console.error('Sign out error:', error);
-      toast.error(error.message);
+      toast.error(error instanceof Error ? error.message : 'Sign out failed');
       return { error };
     }
   };
