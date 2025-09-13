@@ -65,6 +65,8 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
     preferredMindset: [] as string[],
     preferredPersonality: [] as string[],
     preferredRelationshipGoals: [] as string[],
+    preferredLoveLanguage: [] as string[],
+    preferredLifestyle: [] as string[],
     
     // Photos
     profileImages: [] as File[],
@@ -309,7 +311,9 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
           preferred_face_type: profileData.preferredFaceType,
           preferred_values: profileData.preferredValues,
           preferred_mindset: profileData.preferredMindset,
-          preferred_personality_traits: profileData.preferredPersonality
+          preferred_personality_traits: profileData.preferredPersonality,
+          preferred_love_language: profileData.preferredLoveLanguage || [],
+          preferred_lifestyle: profileData.preferredLifestyle || []
         };
 
         const preferencesResponse = await fetchWithFirebaseAuth(
