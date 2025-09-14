@@ -60,14 +60,17 @@ const ChatConversation = ({
 
     if (!onTyping) return;
 
+    // Clear existing timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
 
+    // Send typing indicator if user is typing
     if (value.trim() && !typingTimeoutRef.current) {
       onTyping(true);
     }
 
+    // Set timeout to stop typing
     typingTimeoutRef.current = setTimeout(() => {
       onTyping(false);
       typingTimeoutRef.current = null;
@@ -78,8 +81,9 @@ const ChatConversation = ({
     if (!newMessage.trim() || sendingMessage) return;
     
     const messageToSend = newMessage.trim();
-    setNewMessage("");
+    setNewMessage(""); // Clear input immediately for better UX
     
+    // Stop typing indicator
     if (onTyping) {
       onTyping(false);
       if (typingTimeoutRef.current) {
@@ -90,7 +94,7 @@ const ChatConversation = ({
     
     const success = await onSendMessage(messageToSend);
     if (!success) {
-      setNewMessage(messageToSend);
+      setNewMessage(messageToSend); // Restore message if failed
     }
     
     inputRef.current?.focus();
@@ -271,6 +275,7 @@ const ChatConversation = ({
           </Button>
         </div>
         
+        {/* Connection Status */}
         {!wsConnected && (
           <div className="mt-2 flex items-center gap-2">
             <Badge variant="secondary" className="text-xs">

@@ -12,6 +12,7 @@ export interface Thread {
   updated_at: string;
   likes_count: number;
   replies_count: number;
+  expiresAt: string;
   author?: {
     first_name: string;
     profile_images?: string[];

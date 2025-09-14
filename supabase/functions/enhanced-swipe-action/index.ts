@@ -104,187 +104,97 @@ serve(async (req) => {
       )
     }
 
-    // Record the swipe
-    const { error: swipeError } = await supabaseClient
-      .from('enhanced_swipes')
-      .insert({
-        user_id: firebaseUid,
-        target_user_id,
-        direction
-      })
+    console.log(`📝 Processing swipe: ${firebaseUid} -> ${target_user_id} (${direction})`);
+    
+    // Use the transaction function to handle the swipe
+    const { data: swipeResult, error: swipeError } = await supabaseClient.rpc(
+      'record_enhanced_swipe',
+      {
+        p_user_id: firebaseUid,
+        p_target_user_id: target_user_id,
+        p_direction: direction
+      }
+    );
 
     if (swipeError) {
-      console.error('Error recording swipe:', swipeError)
+      console.error('Error processing swipe:', swipeError);
+      
+      // Handle specific database errors
+      if (swipeError.code === '23505') { // unique_violation
+        return new Response(
+          JSON.stringify({ 
+            success: false,
+            error: 'Duplicate swipe',
+            message: 'You have already swiped on this profile'
+          }),
+          { 
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
+      }
+      
+      if (swipeError.code === '23503') { // foreign_key_violation
+        return new Response(
+          JSON.stringify({ 
+            success: false,
+            error: 'Invalid user',
+            message: 'One or both users do not exist'
+          }),
+          { 
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
+      }
+      
       return new Response(
-        JSON.stringify({ error: 'Failed to record swipe' }),
+        JSON.stringify({ 
+          success: false,
+          error: 'Failed to process swipe',
+          message: swipeError.message,
+          details: swipeError.details
+        }),
         { 
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
-      )
+      );
     }
 
-    let isMatch = false
-    let chatRoomId = null
-    let matchResult = null
+    console.log('✅ Swipe processed successfully:', swipeResult);
 
-    // If right swipe, check for match
-    if (direction === 'right') {
-      console.log(`🔍 Checking for existing swipe from ${target_user_id} to ${firebaseUid}`);
-      
-      const { data: otherSwipe, error: matchError } = await supabaseClient
-        .from('enhanced_swipes')
-        .select('*')
-        .eq('user_id', target_user_id)
-        .eq('target_user_id', firebaseUid)
-        .eq('direction', 'right')
-        .maybeSingle()
-
-      if (matchError) {
-        console.error('Error checking for match:', matchError)
-      } else if (otherSwipe) {
-        console.log('🎯 Found mutual like! Creating match...', otherSwipe);
-        
-        // Create match and chat room directly using service role client
-        try {
-          // Determine deterministic user ordering
-          const user1 = firebaseUid < target_user_id ? firebaseUid : target_user_id;
-          const user2 = firebaseUid < target_user_id ? target_user_id : firebaseUid;
-
-          console.log(`📝 Creating match between ${user1} and ${user2}`);
-
-          // Insert or get existing match
-          const { data: matchData, error: matchCreateError } = await supabaseClient
-            .from('enhanced_matches')
-            .upsert({ 
-              user1_id: user1, 
-              user2_id: user2, 
-              status: 'matched' 
-            }, { 
-              onConflict: 'user1_id,user2_id',
-              ignoreDuplicates: false 
-            })
-            .select('id')
-            .single();
-
-          if (matchCreateError) {
-            console.error('Match creation error:', matchCreateError);
-            throw matchCreateError;
-          }
-
-          const matchId = matchData.id;
-          console.log('✅ Match created with ID:', matchId);
-
-          // Create or get chat room
-          const { data: chatData, error: chatCreateError } = await supabaseClient
-            .from('chat_rooms')
-            .upsert({
-              match_id: matchId,
-              user1_id: user1,
-              user2_id: user2
-            }, {
-              onConflict: 'match_id',
-              ignoreDuplicates: false
-            })
-            .select('id')
-            .single();
-
-          if (chatCreateError) {
-            console.error('Chat room creation error:', chatCreateError);
-            throw chatCreateError;
-          }
-
-          chatRoomId = chatData.id;
-          console.log('✅ Chat room created with ID:', chatRoomId);
-
-          // Get profile data for notifications
-          const { data: user1Profile } = await supabaseClient
-            .from('profiles')
-            .select('first_name')
-            .eq('firebase_uid', user1)
-            .single();
-
-          const { data: user2Profile } = await supabaseClient
-            .from('profiles')
-            .select('first_name')
-            .eq('firebase_uid', user2)
-            .single();
-
-          // Create notifications for both users
-          const notifications = [
-            {
-              user_id: user1,
-              type: 'new_match',
-              title: 'It\'s a Match! 🎉',
-              message: `You and ${user2Profile?.first_name || 'someone'} liked each other!`,
-              data: { 
-                enhanced_match_id: matchId, 
-                chat_room_id: chatRoomId, 
-                other_user_id: user2 
-              }
-            },
-            {
-              user_id: user2,
-              type: 'new_match',
-              title: 'It\'s a Match! 🎉',
-              message: `You and ${user1Profile?.first_name || 'someone'} liked each other!`,
-              data: { 
-                enhanced_match_id: matchId, 
-                chat_room_id: chatRoomId, 
-                other_user_id: user1 
-              }
-            }
-          ];
-
-          const { error: notifError } = await supabaseClient
-            .from('notifications')
-            .insert(notifications);
-
-          if (notifError) {
-            console.error('Notification creation error:', notifError);
-            // Don't throw - match still created successfully
-          } else {
-            console.log('✅ Notifications created for both users');
-          }
-
-          isMatch = true;
-          matchResult = { match_id: matchId, chat_room_id: chatRoomId };
-          console.log(`🎉 Match created successfully between users ${firebaseUid} and ${target_user_id}`, matchResult);
-
-        } catch (err) {
-          console.error('❌ Error in match creation:', err);
-          // Fallback: still indicate match detected but may not have completed server setup
-          isMatch = true;
-        }
-      } else {
-        console.log('💝 No mutual swipe found yet - like recorded');
-      }
-    }
-
-    return new Response(
+          return new Response(
       JSON.stringify({
         success: true,
-        matched: isMatch,
-        chatRoomId: chatRoomId,
-        message: isMatch ? "It's a match!" : direction === 'right' ? "Like sent!" : "Profile passed"
+        matched: swipeResult.is_match,
+        matchId: swipeResult.match_id,
+        chatRoomId: swipeResult.chat_room_id,
+        message: swipeResult.is_match 
+          ? "It's a match!" 
+          : direction === 'right' 
+            ? "Like sent!" 
+            : "Profile passed"
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
-    )
+    );
 
   } catch (error) {
-    console.error('Unexpected error:', error)
+    console.error('Unexpected error:', error);
     
     return new Response(
       JSON.stringify({ 
+        success: false,
         error: 'Internal server error',
-        details: error.message
+        message: 'An unexpected error occurred',
+        details: error instanceof Error ? error.message : String(error)
       }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
-    )
+    );
   }
-})
+});

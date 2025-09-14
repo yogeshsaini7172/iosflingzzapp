@@ -75,28 +75,19 @@ export const useChat = (userId: string | null) => {
 
   // Fetch messages for a specific chat room
   const fetchMessages = useCallback(async (chatRoomId: string) => {
-    if (!userId) return;
     try {
       console.log('💬 Fetching messages for room:', chatRoomId);
+      
+      const { data, error } = await supabase
+        .from('chat_messages_enhanced')
+        .select('*')
+        .eq('chat_room_id', chatRoomId)
+        .order('created_at', { ascending: true });
 
-      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-management', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'get_messages',
-          chat_room_id: chatRoomId,
-          user_id: userId
-        })
-      });
-
-      if (!response.ok) throw new Error('Failed to fetch messages');
-      const data = await response.json();
-
-      if (data?.success) {
-        console.log('✅ Loaded messages:', data.data?.length || 0);
-        setMessages(data.data || []);
-      } else {
-        throw new Error(data?.error || 'Failed to fetch messages');
-      }
+      if (error) throw error;
+      
+      console.log('✅ Loaded messages:', data?.length || 0);
+      setMessages(data || []);
     } catch (error: any) {
       console.error('❌ Error fetching messages:', error);
       toast({
@@ -105,7 +96,7 @@ export const useChat = (userId: string | null) => {
         variant: "destructive"
       });
     }
-  }, [userId, toast]);
+  }, [toast]);
 
   // Send a message
   const sendMessage = useCallback(async (chatRoomId: string, messageText: string) => {
@@ -114,30 +105,23 @@ export const useChat = (userId: string | null) => {
     setSendingMessage(true);
     try {
       console.log('📤 Sending message to room:', chatRoomId);
-
-      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-management', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'send_message',
+      
+      const { error } = await supabase
+        .from('chat_messages_enhanced')
+        .insert({
           chat_room_id: chatRoomId,
-          user_id: userId,
-          message: messageText.trim()
-        })
-      });
+          sender_id: userId,
+          message_text: messageText.trim()
+        });
 
-      if (!response.ok) throw new Error('Failed to send message');
-      const data = await response.json();
-
-      if (data?.success) {
-        console.log('✅ Message sent successfully');
-        return true;
-      } else {
-        throw new Error(data?.error || 'Failed to send message');
-      }
+      if (error) throw error;
+      
+      console.log('✅ Message sent successfully');
+      return true;
     } catch (error: any) {
       console.error('❌ Error sending message:', error);
       toast({
-        title: "Error",
+        title: "Error", 
         description: "Failed to send message. Please try again.",
         variant: "destructive"
       });
@@ -146,7 +130,6 @@ export const useChat = (userId: string | null) => {
       setSendingMessage(false);
     }
   }, [userId, toast]);
-
 
   // Real-time subscriptions
   useEffect(() => {

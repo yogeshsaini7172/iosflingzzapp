@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 interface ChatRequest {
-  action: 'create' | 'send' | 'history' | 'list' | 'create_room' | 'send_message' | 'get_messages' | 'apply_schema_fix';
+  action: 'create' | 'send' | 'history' | 'list' | 'create_room' | 'send_message';
   candidate_id?: string;
   match_id?: string;
   message?: string;
@@ -57,7 +57,7 @@ serve(async (req) => {
     // Optional auth: try JWT, but allow unauthenticated for 'list' with explicit user_id
     const authHeader = req.headers.get('Authorization') || '';
     const token = authHeader.startsWith('Bearer ') ? authHeader.replace('Bearer ', '') : '';
-    const { data } = token ? await supabaseClient.auth.getUser(token) : { data: { user: null } } as unknown;
+    const { data } = token ? await supabaseClient.auth.getUser(token) : { data: { user: null } } as any;
     const authedUser = data?.user;
 
     switch (action) {
@@ -408,7 +408,7 @@ serve(async (req) => {
           console.log(`🔁 After ensuring, rooms count: ${rooms.length}`);
         }
 
-        const enriched = [] as unknown[];
+        const enriched = [] as any[];
         for (const room of rooms || []) {
           const otherUserId = room.user1_id === user_id ? room.user2_id : room.user1_id;
           console.log(`👤 Fetching profile for other user: ${otherUserId}`);
@@ -483,83 +483,6 @@ serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200,
         });
-
-      case 'get_messages':
-        if (!chat_room_id || !user_id) {
-          throw new Error('chat_room_id and user_id are required');
-        }
-
-        // Verify user is part of this chat room
-        const { data: chatRoomForMessages } = await supabaseClient
-          .from('chat_rooms')
-          .select('user1_id, user2_id')
-          .eq('id', chat_room_id)
-          .single();
-
-        if (!chatRoomForMessages || (chatRoomForMessages.user1_id !== user_id && chatRoomForMessages.user2_id !== user_id)) {
-          throw new Error('Unauthorized: You are not part of this chat room');
-        }
-
-        // Get messages for this chat room
-        const { data: messages, error: messagesError } = await supabaseClient
-          .from('chat_messages_enhanced')
-          .select('*')
-          .eq('chat_room_id', chat_room_id)
-          .order('created_at', { ascending: true });
-
-        if (messagesError) throw messagesError;
-
-        console.log(`Fetched ${messages?.length || 0} messages for chat room ${chat_room_id}`);
-        return new Response(JSON.stringify({
-          success: true,
-          data: messages || [],
-          message: 'Messages fetched'
-        }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        });
-
-      case 'apply_schema_fix':
-        // Apply the database schema fix for Firebase UID compatibility
-        console.log('🔧 Applying schema fix for Firebase UID compatibility...');
-        
-        try {
-          // Execute the schema migration SQL
-          const schemaFixSQL = `
-            -- Fix chat_rooms table to use Firebase UIDs (text) instead of UUIDs
-            ALTER TABLE public.chat_rooms 
-            ALTER COLUMN user1_id TYPE text;
-            
-            ALTER TABLE public.chat_rooms 
-            ALTER COLUMN user2_id TYPE text;
-            
-            -- Add helpful comments
-            COMMENT ON COLUMN public.chat_rooms.user1_id IS 'Firebase Auth UID (text format)';
-            COMMENT ON COLUMN public.chat_rooms.user2_id IS 'Firebase Auth UID (text format)';
-          `;
-          
-          // Note: In a real implementation, you'd execute this SQL
-          // For now, we'll just return success to indicate the fix is available
-          
-          console.log('✅ Schema fix applied successfully');
-          return new Response(JSON.stringify({
-            success: true,
-            message: 'Schema fix applied for Firebase UID compatibility'
-          }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 200,
-          });
-          
-        } catch (schemaError) {
-          console.error('❌ Schema fix failed:', schemaError);
-          return new Response(JSON.stringify({
-            success: false,
-            error: 'Schema fix failed: ' + schemaError.message
-          }), {
-            status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
-        }
 
       default:
         throw new Error('Invalid action');

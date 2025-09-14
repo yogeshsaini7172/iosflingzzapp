@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRequiredAuth } from "@/hooks/useRequiredAuth";
 import { useChatWithWebSocket, ChatRoom } from "@/hooks/useChatWithWebSocket";
 import ChatRoomList from "./ChatRoomList";
@@ -30,17 +30,6 @@ const RebuiltChatSystem = ({ onNavigate, selectedChatId }: RebuiltChatSystemProp
     sendMessage 
   } = useChatWithWebSocket(userId);
 
-  useEffect(() => {
-    if (selectedChatId && chatRooms.length > 0) {
-      const room = chatRooms.find(r => r.id === selectedChatId);
-      if (room) {
-        setSelectedRoom(room);
-        fetchMessages(room.id);
-      }
-    }
-  }, [selectedChatId, chatRooms, fetchMessages]);
-
-
   // Handle authentication loading
   if (authLoading || !userId) {
     return (
@@ -53,6 +42,15 @@ const RebuiltChatSystem = ({ onNavigate, selectedChatId }: RebuiltChatSystemProp
     );
   }
 
+  // Handle room selection from external prop
+  if (selectedChatId && !selectedRoom) {
+    const room = chatRooms.find(r => r.id === selectedChatId);
+    if (room) {
+      setSelectedRoom(room);
+      fetchMessages(room.id);
+    }
+  }
+
   const handleRoomSelect = (room: ChatRoom) => {
     setSelectedRoom(room);
     fetchMessages(room.id);
@@ -60,11 +58,7 @@ const RebuiltChatSystem = ({ onNavigate, selectedChatId }: RebuiltChatSystemProp
 
   const handleSendMessage = async (messageText: string) => {
     if (!selectedRoom) return false;
-    const success = await sendMessage(selectedRoom.id, messageText);
-    if (success) {
-        fetchMessages(selectedRoom.id);
-    }
-    return success;
+    return await sendMessage(selectedRoom.id, messageText);
   };
 
   const handleBack = () => {

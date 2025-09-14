@@ -166,7 +166,8 @@ useEffect(() => {
   }
 
 
-  // If user does NOT hav
+  // If user does NOT have a profile, show profile creation flow
+  if (!hasProfile) {
     return (
       <TooltipProvider>
         <div className="min-h-screen bg-gradient-to-br from-background to-muted">
