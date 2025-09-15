@@ -42,15 +42,19 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
     dateOfBirth: "",
     gender: "",
     college: "",
+    university: "",
+    fieldOfStudy: "",
+    educationLevel: "",
+    profession: "",
     phoneNumber: "",
     
-    // Profile Settings - REPLACED VOICE WITH PUBLIC PROFILE OPTION
+    // Profile Settings
     isProfilePublic: false,
     
     // Media
     profileImages: [] as File[],
     
-    // Physical Attributes (for qualities)
+    // Physical Attributes
     height: "",
     bodyType: "",
     skinTone: "",
@@ -58,12 +62,17 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
     
     // Personality
     personalityType: "",
+    personalityTraits: [] as string[],
     hobbies: [] as string[],
     relationshipGoal: "",
     humorStyle: "",
     loveLanguage: "",
     bio: "",
     interests: [] as string[],
+    values: [] as string[],
+    mindset: [] as string[],
+    communicationStyle: "concise",
+    lifestyle: [] as string[],
     
     // Partner Preferences - Physical
     preferredGender: [] as string[],
@@ -73,12 +82,20 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
     heightRangeMax: 190,
     preferredSkinType: [] as string[],
     preferredBodyShape: [] as string[],
+    preferredFaceTypes: [] as string[],
     
     // Partner Preferences - Mental
     preferredHumorStyle: [] as string[],
     preferredPersonalityType: [] as string[],
     preferredRelationshipGoal: [] as string[],
-    preferredLifestyleHabits: [] as string[]
+    preferredLifestyleHabits: [] as string[],
+    preferredValues: [] as string[],
+    preferredMindset: [] as string[],
+    preferredLoveLanguages: [] as string[],
+    preferredEducationLevels: [] as string[],
+    preferredProfessions: [] as string[],
+    preferredInterests: [] as string[],
+    preferredCommunicationStyle: [] as string[]
   });
 
   const totalSteps = 7;
@@ -141,39 +158,120 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
   const handleSubmit = async () => {
     try {
       setIsLoading(true);
+      const user = (await supabase.auth.getUser()).data.user;
       
-      // Create a mock user ID for demo purposes
-      const mockUserId = `demo_user_${Date.now()}`;
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
 
-      // For demo: Create mock image URLs (in real app these would be uploaded to storage)
-      const imageUrls: string[] = profileData.profileImages.map((_, index) => 
-        `https://via.placeholder.com/400x600?text=Profile+Photo+${index + 1}`
+      // 1. Upload profile images to storage
+      const imageUrls = await Promise.all(
+        profileData.profileImages.map(async (file, index) => {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${user.id}-${Date.now()}-${index}.${fileExt}`;
+          const filePath = `profile-images/${fileName}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('profile-images')
+            .upload(filePath, file);
+          
+          if (uploadError) throw uploadError;
+          
+          const { data: { publicUrl } } = supabase.storage
+            .from('profile-images')
+            .getPublicUrl(filePath);
+            
+          return publicUrl;
+        })
       );
 
-      // For demo: Store profile data in localStorage (in real app this would go to database)
-      const profileDataToStore = {
-        user_id: mockUserId,
-        first_name: profileData.firstName,
-        last_name: profileData.lastName,
-        date_of_birth: profileData.dateOfBirth,
-        gender: profileData.gender,
-        university: profileData.college,
-        bio: profileData.bio,
-        interests: profileData.interests,
-        profile_images: imageUrls,
-        height: profileData.height ? parseInt(profileData.height) : null,
-        body_type: profileData.bodyType,
-        skin_tone: profileData.skinTone,
-        face_type: profileData.faceType,
-        personality_type: profileData.personalityType,
-        humor_type: profileData.humorStyle,
-        love_language: profileData.loveLanguage,
-        relationship_goals: [profileData.relationshipGoal],
+      // 2. Save profile data
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert({
+          user_id: user.id,
+          first_name: profileData.firstName || null,
+          last_name: profileData.lastName || null,
+          date_of_birth: profileData.dateOfBirth || null,
+          gender: profileData.gender || null,
+          college_name: profileData.college || null,
+          university: profileData.university || null,
+          field_of_study: profileData.fieldOfStudy || null,
+          education_level: profileData.educationLevel || null,
+          profession: profileData.profession || null,
+          phone_number: profileData.phoneNumber || null,
+          is_profile_public: profileData.isProfilePublic || false,
+          profile_pictures: imageUrls.length > 0 ? imageUrls : null,
+          bio_length: profileData.bio?.length || 0,
+          updated_at: new Date().toISOString()
+        });
+
+      if (profileError) throw profileError;
+
+      // 3. Save personality data with proper null checks
+      const personalityData = {
+        user_id: user.id,
+        personality_type: profileData.personalityType || 'not_specified',
+        personality_traits: profileData.personalityTraits?.length ? profileData.personalityTraits : ['not_specified'],
+        hobbies: profileData.hobbies?.length ? profileData.hobbies : ['not_specified'],
+        relationship_goal: profileData.relationshipGoal || 'not_specified',
+        humor_style: profileData.humorStyle || 'not_specified',
+        love_language: profileData.loveLanguage || 'not_specified',
+        bio: profileData.bio || 'No bio provided',
+        interests: profileData.interests?.length ? profileData.interests : ['not_specified'],
+        body_type: profileData.bodyType || 'not_specified',
+        skin_tone: profileData.skinTone || 'not_specified',
+        face_type: profileData.faceType || 'not_specified',
+        values: profileData.values?.length ? profileData.values : ['not_specified'],
+        mindset: profileData.mindset?.length ? profileData.mindset : ['not_specified'],
+        communication_style: profileData.communicationStyle || 'not_specified',
+        lifestyle: profileData.lifestyle?.length ? profileData.lifestyle : ['not_specified'],
+        education_level: profileData.educationLevel || 'not_specified',
+        profession: profileData.profession || 'not_specified'
+      };
+
+      const { error: personalityError } = await supabase
+        .from('user_personality')
+        .upsert(personalityData);
+
+      if (personalityError) throw personalityError;
+
+      // 4. Save preferences with proper null checks and default values
+      const preferencesData = {
+        user_id: user.id,
+        bio: profileData.bio || 'No bio provided',
+        interests: profileData.interests?.length ? profileData.interests : ['not_specified'],
+        profile_images: imageUrls.length ? imageUrls : [],
+        height: profileData.height ? parseInt(profileData.height) : 0,
+        body_type: profileData.bodyType || 'not_specified',
+        skin_tone: profileData.skinTone || 'not_specified',
+        face_type: profileData.faceType || 'not_specified',
+        personality_type: profileData.personalityType || 'not_specified',
+        humor_type: profileData.humorStyle || 'not_specified',
+        love_language: profileData.loveLanguage || 'not_specified',
+        relationship_goals: profileData.relationshipGoal ? [profileData.relationshipGoal] : ['not_specified'],
         verification_status: 'pending',
-        is_profile_public: profileData.isProfilePublic,
+        is_profile_public: Boolean(profileData.isProfilePublic),
         college_tier: 'tier3',
         subscription_tier: 'free',
         swipes_left: 10,
+        // Additional fields with proper null checks
+        preferred_body_types: profileData.preferredBodyShape?.length ? profileData.preferredBodyShape : ['not_specified'],
+        preferred_skin_types: profileData.preferredSkinType?.length ? profileData.preferredSkinType : ['not_specified'],
+        preferred_face_types: profileData.preferredFaceTypes?.length ? profileData.preferredFaceTypes : ['not_specified'],
+        preferred_gender: profileData.preferredGender?.length ? profileData.preferredGender : ['not_specified'],
+        age_range_min: Number(profileData.ageRangeMin) || 18,
+        age_range_max: Number(profileData.ageRangeMax) || 30,
+        preferred_personality_traits: profileData.preferredPersonalityType?.length ? profileData.preferredPersonalityType : ['not_specified'],
+        preferred_values: profileData.preferredValues?.length ? profileData.preferredValues : ['not_specified'],
+        preferred_mindset: profileData.preferredMindset?.length ? profileData.preferredMindset : ['not_specified'],
+        preferred_relationship_goals: profileData.preferredRelationshipGoal?.length ? profileData.preferredRelationshipGoal : ['not_specified'],
+        preferred_love_languages: profileData.preferredLoveLanguages?.length ? profileData.preferredLoveLanguages : ['not_specified'],
+        preferred_lifestyle: profileData.preferredLifestyleHabits?.length ? profileData.preferredLifestyleHabits : ['not_specified'],
+        preferred_education_levels: profileData.preferredEducationLevels?.length ? profileData.preferredEducationLevels : ['not_specified'],
+        preferred_professions: profileData.preferredProfessions?.length ? profileData.preferredProfessions : ['not_specified'],
+        preferred_interests: profileData.preferredInterests?.length ? profileData.preferredInterests : ['not_specified'],
+        preferred_communication_style: profileData.preferredCommunicationStyle?.length ? profileData.preferredCommunicationStyle : ['not_specified'],
         // Add qualities and requirements for proper scoring
         qualities: JSON.stringify({
           // Physical qualities
@@ -216,20 +314,27 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
           personality_compatibility: "moderate", // How important personality match is
           lifestyle_compatibility: "important" // How important lifestyle match is
         })
-      };
+      });
 
+      // Store in localStorage for reference
+      const profileDataToStore = {
+        user_id: user.id,
+        first_name: profileData.firstName,
+        last_name: profileData.lastName,
+        profile_images: imageUrls,
+        is_profile_public: profileData.isProfilePublic
+      };
+      
       const preferencesDataToStore = {
-        user_id: mockUserId,
+        user_id: user.id,
         preferred_gender: profileData.preferredGender,
         age_range_min: profileData.ageRangeMin,
         age_range_max: profileData.ageRangeMax,
         preferred_relationship_goal: profileData.preferredRelationshipGoal
       };
-
-      // Store in localStorage for demo
-      localStorage.setItem('demoProfile', JSON.stringify(profileDataToStore));
-      localStorage.setItem('demoPreferences', JSON.stringify(preferencesDataToStore));
-      localStorage.setItem('demoUserId', mockUserId);
+      
+      localStorage.setItem('userProfile', JSON.stringify(profileDataToStore));
+      localStorage.setItem('userPreferences', JSON.stringify(preferencesDataToStore));
 
       toast({
         title: "Profile created successfully! ✨",

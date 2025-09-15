@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useSocketChat } from '@/contexts/SocketChatContext';
 import { toast } from 'sonner';
 
-// Define interfaces for type safety
+// Interfaces (ensure these are defined correctly)
 export interface ChatUser {
   id: string;
   first_name: string;
@@ -11,7 +11,6 @@ export interface ChatUser {
   profile_images: string[];
   university?: string;
 }
-
 export interface ChatRoom {
   id: string;
   user_a_id: string;
@@ -21,7 +20,6 @@ export interface ChatRoom {
   updated_at: string;
   other_user?: ChatUser;
 }
-
 export interface ChatMessage {
   id: string;
   chat_room_id: string;
@@ -74,11 +72,9 @@ export const useChatWithWebSocket = (userId: string | null) => {
 
   useEffect(() => {
     const handleNewMessage = (newMessage: ChatMessage) => {
-      // Add the new message only if it belongs to the currently viewed chat room
       if (messages.length > 0 && messages[0].chat_room_id === newMessage.chat_room_id) {
         setMessages(prev => [...prev, newMessage]);
       }
-      // Refresh chat rooms to show the latest message snippet
       fetchChatRooms();
     };
     onMessage(handleNewMessage);
@@ -88,15 +84,16 @@ export const useChatWithWebSocket = (userId: string | null) => {
   const fetchMessages = async (chatRoomId: string) => {
     if (!chatRoomId) return;
     try {
-      // Corrected column name from "chat_id" to "chat_room_id"
-      const { data, error } = await supabase
-        .from("chat_messages")
-        .select("*")
-        .eq("chat_room_id", chatRoomId)
-        .order("created_at", { ascending: true });
-
+      // Using the Edge Function to fetch messages, which respects RLS policies correctly.
+      const { data, error } = await supabase.functions.invoke('chat-management', {
+        body: { action: 'get_messages', chat_room_id: chatRoomId }
+      });
       if (error) throw error;
-      setMessages(data || []);
+      if (data.success) {
+        setMessages(data.data || []);
+      } else {
+        throw new Error(data.error);
+      }
     } catch (error: any) {
       toast.error("Failed to load messages.", { description: error.message });
     }
@@ -138,17 +135,7 @@ export const useChatWithWebSocket = (userId: string | null) => {
   };
 
   return {
-    chatRooms,
-    messages,
-    loading,
-    sendingMessage,
-    wsConnected,
-    connectionStatus,
-    onlineUsers,
-    handleTyping,
-    getTypingUsers,
-    isUserOnline,
-    fetchMessages,
-    sendMessage,
+    chatRooms, messages, loading, sendingMessage, wsConnected, connectionStatus,
+    onlineUsers, handleTyping, getTypingUsers, isUserOnline, fetchMessages, sendMessage,
   };
 };

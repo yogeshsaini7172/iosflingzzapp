@@ -166,6 +166,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         values_array: profileData.values ? [profileData.values] : [],
         mindset: profileData.mindset,
         love_language: profileData.loveLanguage,
+        lifestyle: profileData.lifestyle,
         relationship_goals: profileData.relationshipGoals,
         interests: profileData.interests,
         bio: profileData.bio,
@@ -180,7 +181,8 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         subscription_tier: 'free',
         swipes_left: 20,
         show_profile: true,
-        is_active: true
+        is_active: true,
+        total_qcs: 0  // Initialize with 0, will be updated after QCS calculation
       };
 
       // Store partner preferences (optional, kept in localStorage for demo)
@@ -192,12 +194,15 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         height_range_min: profileData.heightRangeMin,
         height_range_max: profileData.heightRangeMax,
         preferred_body_types: profileData.preferredBodyTypes,
-        preferred_skin_tone: profileData.preferredSkinTone,
+        preferred_skin_tone: profileData.preferredSkinTone || [],
+        preferred_skin_types: profileData.preferredSkinTone || [], // For backward compatibility
         preferred_face_type: profileData.preferredFaceType,
         preferred_values: profileData.preferredValues,
         preferred_mindset: profileData.preferredMindset,
-        preferred_personality: profileData.preferredPersonality,
-        preferred_relationship_goal: profileData.preferredRelationshipGoals
+        preferred_personality_traits: profileData.preferredPersonality,
+        preferred_relationship_goals: profileData.preferredRelationshipGoals,
+        preferred_love_languages: profileData.preferredLoveLanguage || [],
+        preferred_lifestyle: profileData.preferredLifestyle || []
       };
 
       // Remove demo localStorage - everything is real now
@@ -240,65 +245,54 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       const qcsData = await qcsResponse.json();
 
       const totalScore = qcsData?.qcs_score ?? 0;
+      
+      // Update the completeProfile with the calculated QCS score
+      completeProfile.total_qcs = totalScore;
+      
+      // Create the QCS score object for reference
       const qcsScore = {
         user_id: userId,
         profile_score: Math.floor(totalScore * 0.4),
         college_tier: 85,
         personality_depth: Math.floor(totalScore * 0.3),
-        behavior_score: Math.floor(totalScore * 0.3),
-        total_score: totalScore
+        behavior_score: Math.floor(totalScore * 0.3)
       };
-
-      // QCS will be stored in real database via edge function
       
-      // Create profile via data-management function with Firebase auth
-      const profilePayload = {
-        first_name: profileData.firstName,
-        last_name: profileData.lastName,
-        email: user?.email || `${userId}@firebase.user`,
-        date_of_birth: profileData.dateOfBirth,
-        gender: profileData.gender,
-        university: profileData.university,
-        year_of_study: profileData.yearOfStudy ? Number(profileData.yearOfStudy) : null,
-        field_of_study: profileData.fieldOfStudy,
-        height: profileData.height ? Number(profileData.height) : null,
-        body_type: profileData.bodyType,
-        face_type: profileData.faceType,
-        personality_type: profileData.personalityType,
-        values: profileData.values,
-        mindset: profileData.mindset,
-        relationship_goals: profileData.relationshipGoals,
-        interests: profileData.interests,
-        bio: profileData.bio,
-        profile_images: imageUrls,
-        is_profile_public: profileData.isProfilePublic,
-        total_qcs: totalScore
-      };
+      // Add the full QCS score object to the profile
+      completeProfile.qcs_score = qcsScore;
 
+      // Log the complete profile data before sending
+      console.log('Complete profile data:', JSON.stringify(completeProfile, null, 2));
+
+      // Create profile via data-management function with Firebase auth
       const profileResponse = await fetchWithFirebaseAuth(
         'https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/data-management',
         {
           method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
           body: JSON.stringify({ 
             action: 'create_profile',
-            profile: profilePayload
+            profile: completeProfile
           })
         }
       );
 
       if (!profileResponse.ok) {
-        const profileError = await profileResponse.json();
-        console.error('Profile creation error:', profileError);
-        console.error('Profile response status:', profileResponse.status);
-        console.error('Profile payload that was sent:', profilePayload);
-        throw new Error(profileError.error || profileError.message || 'Failed to complete profile setup');
+        const errorData = await profileResponse.json().catch(() => ({}));
+        console.error('Failed to save profile:', {
+          status: profileResponse.status,
+          error: errorData
+        });
+        throw new Error(errorData.error || 'Failed to save profile');
       }
 
       const profileResult = await profileResponse.json();
-      console.log('Profile creation successful:', profileResult);
+      console.log('Profile saved successfully:', profileResult);
 
       // Create preferences if provided
-      if (profileData.preferredGender.length > 0) {
+      if (profileData.preferredGender && profileData.preferredGender.length > 0) {
         const preferencesPayload = {
           preferred_gender: profileData.preferredGender,
           age_range_min: profileData.ageRangeMin,
@@ -333,9 +327,19 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
           console.log('Preferences created successfully');
         }
       }
-      toast({ title: "Profile Setup Complete! 🎉", description: `Your QCS score: ${totalScore}/100. Ready to start!` });
+      toast({ 
+        title: "Profile Setup Complete! 🎉", 
+        description: `Your QCS score: ${totalScore}/100. Ready to start!` 
+      });
 
-      // Mark profile as complete locally and go directly to app
+      // Save profile data to local storage for quick access
+      localStorage.setItem('user_profile', JSON.stringify({
+        ...completeProfile,
+        qcs_score: totalScore,
+        profile_complete: true
+      }));
+
+      // Mark profile as complete locally and go to app
       localStorage.setItem('profile_complete', 'true');
       onComplete();
     } catch (error: any) {
