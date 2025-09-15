@@ -23,10 +23,12 @@ const TinderProfileCard = ({ profile, onLike, onDislike, onChat }) => {
   return (
     <div className="relative h-screen bg-black flex flex-col">
       {/* Background Image */}
-      <div 
+      <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `url(${profile.image || 'https://placehold.co/400x700/1a1a1a/ffffff?text=Profile+Image'})`,
+          backgroundImage: profile.image && profile.image.trim() !== ''
+            ? `url(${profile.image})`
+            : `url(https://placehold.co/400x700/1a1a1a/ffffff?text=No+Image)`,
         }}
       ></div>
       
@@ -105,25 +107,16 @@ const TinderProfileCard = ({ profile, onLike, onDislike, onChat }) => {
       </div>
 
       {/* Action Buttons */}
-      <div className="relative z-10 flex justify-center items-center p-4 mt-auto">
+      <div className="relative z-10 flex items-center justify-between p-4 mt-auto">
         <button
           onClick={handleDislike}
           className={`w-16 h-12 rounded-full flex items-center justify-center transition-all duration-200 ${
             isDisliked ? 'bg-red-500 text-white' : 'bg-white text-gray-800'
           }`}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M3.172 5.172a7 7 0 119.9 9.9L10 18.9l-6.828-6.829a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-          </svg>
-        </button>
-
-        <button
-          onClick={handleChat}
-          className="w-12 h-12 mx-4 rounded-full bg-gray-800 flex items-center justify-center text-white"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2H9.5v-1H10a1 1 0 000-2H9.5V9H9z" clipRule="evenodd" />
-          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+  <path d="M12.1 8.64l-.1.1-.1-.1A5.34 5.34 0 006 7a5.5 5.5 0 000 11h.28l5.82 5.82 5.82-5.82H18a5.5 5.5 0 000-11 5.34 5.34 0 00-5.9 1.64zm-1.6 4.36l1.5-2 1.5 2-2 2.5 2 2.5-1.5 2-3.5-4.5 3.5-4.5z"/>
+</svg>
         </button>
 
         <button
@@ -133,8 +126,9 @@ const TinderProfileCard = ({ profile, onLike, onDislike, onChat }) => {
           }`}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M3.172 5.172a7 7 0 119.9 9.9L10 18.9l-6.828-6.829a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-          </svg>
+  <path fillRule="evenodd" d="M3.172 5.172a7 7 0 119.9 9.9L10 18.9l-6.828-6.829a7 7 0 010-9.9z" clipRule="evenodd" />
+</svg>
+
         </button>
       </div>
     </div>

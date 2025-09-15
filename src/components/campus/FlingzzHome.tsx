@@ -290,22 +290,31 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
   };
 
   const transformProfileForTinderCard = (profile: any) => {
-  return {
-    name: profile?.first_name || '',
-    age: profile ? calculateAge(profile.date_of_birth) : '',
-    location: profile?.university || '',
-    distance: 'Nearby', // You can calculate actual distance if available
-    weight: 'N/A', // Add if available in profile data
-    height: 'N/A', // Add if available in profile data
-    about: profile?.bio || '',
-    interests: profile?.interests?.map((interest: string) => ({
-      icon: '🎯', // Default icon, can be customized
-      text: interest
-    })) || [],
-    image: profile?.profile_images?.[currentImageIndex] || profile?.profile_images?.[0] || '',
-    isPremium: false // Set based on subscription status if available
+    console.log('Transforming profile for TinderCard:', profile);
+    console.log('Profile images:', profile?.profile_images);
+    console.log('Current image index:', currentImageIndex);
+
+    const transformed = {
+      name: profile?.first_name || '',
+      age: profile ? calculateAge(profile.date_of_birth) : '',
+      location: profile?.university || '',
+      distance: 'Nearby', // You can calculate actual distance if available
+      weight: 'N/A', // Add if available in profile data
+      height: 'N/A', // Add if available in profile data
+      about: profile?.bio || '',
+      interests: profile?.interests?.map((interest: string) => ({
+        icon: '🎯', // Default icon, can be customized
+        text: interest
+      })) || [],
+      image: profile?.profile_images?.[currentImageIndex] || profile?.profile_images?.[0] || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=600&fit=crop&crop=face',
+      isPremium: false // Set based on subscription status if available
+    };
+
+    console.log('Transformed profile for TinderCard:', transformed);
+    console.log('Selected image URL:', transformed.image);
+
+    return transformed;
   };
-};
 
 
   return (
