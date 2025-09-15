@@ -8,9 +8,10 @@ import { useOptionalAuth } from "@/hooks/useRequiredAuth";
 interface HeartNotificationBadgeProps {
   onClick: () => void;
   className?: string;
+  refetch?: () => void;
 }
 
-const HeartNotificationBadge = ({ onClick, className }: HeartNotificationBadgeProps) => {
+const HeartNotificationBadge = ({ onClick, className, refetch }: HeartNotificationBadgeProps) => {
   const [likesCount, setLikesCount] = useState(0);
   const [canSeeLikes, setCanSeeLikes] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -24,7 +25,7 @@ const HeartNotificationBadge = ({ onClick, className }: HeartNotificationBadgePr
       const interval = setInterval(fetchLikesData, 60000);
       return () => clearInterval(interval);
     }
-  }, [userId, isAuthenticated]);
+  }, [userId, isAuthenticated, refetch]);
 
   const fetchLikesData = async () => {
     if (!userId || !isAuthenticated) return;

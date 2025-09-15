@@ -26,6 +26,7 @@ const UnifiedLayout = ({ children, title = "FLINGZZ", showHeader = true }: Unifi
   const navigate = useNavigate();
   const [showWhoLikedMe, setShowWhoLikedMe] = useState(false);
   const [showChatRequests, setShowChatRequests] = useState(false);
+  const [refreshLikes, setRefreshLikes] = useState(0);
 
   // Enable global notifications for all users - this ensures realtime notifications work everywhere
   useNotifications();
@@ -48,6 +49,10 @@ const UnifiedLayout = ({ children, title = "FLINGZZ", showHeader = true }: Unifi
         variant: "destructive",
       });
     }
+  };
+
+  const fetchLikes = () => {
+    // Implement logic to fetch likes here
   };
 
   return (
@@ -75,6 +80,7 @@ const UnifiedLayout = ({ children, title = "FLINGZZ", showHeader = true }: Unifi
               <div className="flex items-center space-x-3">
                 <HeartNotificationBadge 
                   onClick={() => setShowWhoLikedMe(true)}
+                  refetch={fetchLikes}
                 />
                 <ChatNotificationBadge 
                   onClick={() => {
@@ -117,6 +123,7 @@ const UnifiedLayout = ({ children, title = "FLINGZZ", showHeader = true }: Unifi
       <WhoLikedMeModal 
         isOpen={showWhoLikedMe} 
         onClose={() => setShowWhoLikedMe(false)} 
+        onLike={() => setRefreshLikes(prev => prev + 1)}
       />
       <ChatRequestsModal 
         isOpen={showChatRequests} 

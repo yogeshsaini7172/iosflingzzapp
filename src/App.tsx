@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Routes, Route, useNavigate, useLocation, useParams } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation, useParams, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { SocketChatProvider } from "@/contexts/SocketChatContext";
 import { useState, useEffect } from "react";
@@ -206,6 +206,9 @@ const AuthenticatedApp = () => {
             <Route path="/blind-date" element={<BlindDatePage onNavigate={(view) => navigate(`/${view}`)} />} />
             <Route path="/subscription" element={<SubscriptionPage onNavigate={(view) => navigate(`/${view}`)} />} />
             <Route path="/qcs-test" element={<QCSTestPage />} />
+            {/* Redirect /home to root */}
+            <Route path="/home" element={<Navigate to="/" replace />} />
+            {/* Keep the catch-all route for other unknown routes */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
