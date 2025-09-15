@@ -30,12 +30,22 @@ serve(async (req) => {
       }
     }
 
+    // Get user's preferred gender from partner_preferences
+    const { data: userPreferences } = await supabase
+      .from('partner_preferences')
+      .select('preferred_gender')
+      .eq('user_id', userId)
+      .maybeSingle();
+
     const url = new URL(req.url);
     const limit = Number(url.searchParams.get("limit") || "20");
     const cursor = url.searchParams.get("cursor") || null;
     const ageMin = Number(url.searchParams.get("age_min") || "18");
     const ageMax = Number(url.searchParams.get("age_max") || "35");
-    const gender = url.searchParams.get("gender") || null;
+    
+    // Use stored preferences or URL parameter for gender filter
+    const urlGender = url.searchParams.get("gender");
+    const preferredGenders = userPreferences?.preferred_gender || (urlGender ? [urlGender] : null);
 
     console.log(`🔍 Fetching feed for user: ${userId}, limit: ${limit}`);
 
@@ -78,9 +88,15 @@ serve(async (req) => {
       .order("created_at", { ascending: false })
       .limit(limit);
 
-    // Apply gender filter if specified
-    if (gender && gender !== "all") {
-      query = query.eq("gender", gender);
+    // GENDER FILTERING: Apply user's preferred gender filter
+    if (preferredGenders && preferredGenders.length > 0) {
+      const normalizedGenders = preferredGenders
+        .map((g: any) => (typeof g === 'string' ? g.toLowerCase().trim() : ''))
+        .filter((g: string) => g === 'male' || g === 'female');
+      console.log('🚻 Applying gender filter:', normalizedGenders);
+      if (normalizedGenders.length > 0) {
+        query = query.in("gender", normalizedGenders);
+      }
     }
 
     // Apply cursor-based pagination

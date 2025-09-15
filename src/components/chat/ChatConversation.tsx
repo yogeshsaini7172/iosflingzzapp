@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -40,12 +40,10 @@ const ChatConversation = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Cleanup typing timeout on unmount
   useEffect(() => {
     return () => {
       if (typingTimeoutRef.current) {
@@ -54,23 +52,11 @@ const ChatConversation = ({
     };
   }, []);
 
-  // Handle typing indicators
   const handleInputChange = (value: string) => {
     setNewMessage(value);
-
     if (!onTyping) return;
-
-    // Clear existing timeout
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-
-    // Send typing indicator if user is typing
-    if (value.trim() && !typingTimeoutRef.current) {
-      onTyping(true);
-    }
-
-    // Set timeout to stop typing
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    if (value.trim()) onTyping(true);
     typingTimeoutRef.current = setTimeout(() => {
       onTyping(false);
       typingTimeoutRef.current = null;
@@ -79,11 +65,8 @@ const ChatConversation = ({
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || sendingMessage) return;
-    
     const messageToSend = newMessage.trim();
-    setNewMessage(""); // Clear input immediately for better UX
-    
-    // Stop typing indicator
+    setNewMessage("");
     if (onTyping) {
       onTyping(false);
       if (typingTimeoutRef.current) {
@@ -91,12 +74,8 @@ const ChatConversation = ({
         typingTimeoutRef.current = null;
       }
     }
-    
     const success = await onSendMessage(messageToSend);
-    if (!success) {
-      setNewMessage(messageToSend); // Restore message if failed
-    }
-    
+    if (!success) setNewMessage(messageToSend);
     inputRef.current?.focus();
   };
 
@@ -108,17 +87,13 @@ const ChatConversation = ({
   };
 
   const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
+    return new Date(dateString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Get other user ID
-  const otherUserId = room.user1_id === currentUserId ? room.user2_id : room.user1_id;
+  // Corrected column names from user1_id/user2_id to user_a_id/user_b_id
+  const otherUserId = room.user_a_id === currentUserId ? room.user_b_id : room.user_a_id;
   const isTyping = typingUsers.includes(otherUserId);
 
-  // Connection status
   const getConnectionStatusColor = () => {
     switch (connectionStatus) {
       case 'connected': return 'text-green-600';
@@ -130,12 +105,10 @@ const ChatConversation = ({
 
   return (
     <div className="flex flex-col h-screen bg-gradient-soft">
-      {/* Header */}
       <CardHeader className="flex flex-row items-center space-y-0 pb-4 bg-card/90 backdrop-blur-lg border-b border-border">
         <Button variant="ghost" onClick={onBack} className="mr-3">
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        
         <div className="relative mr-3">
           <Avatar className="w-10 h-10">
             <AvatarImage 
@@ -151,7 +124,6 @@ const ChatConversation = ({
             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-background rounded-full" />
           )}
         </div>
-        
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <h2 className="font-semibold">
@@ -176,21 +148,13 @@ const ChatConversation = ({
             )}
           </div>
         </div>
-
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm">
-            <Phone className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="sm">
-            <Video className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="sm">
-            <MoreVertical className="w-4 h-4" />
-          </Button>
+          <Button variant="ghost" size="sm"><Phone className="w-4 h-4" /></Button>
+          <Button variant="ghost" size="sm"><Video className="w-4 h-4" /></Button>
+          <Button variant="ghost" size="sm"><MoreVertical className="w-4 h-4" /></Button>
         </div>
       </CardHeader>
 
-      {/* Messages */}
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
           {messages.length === 0 ? (
@@ -202,25 +166,11 @@ const ChatConversation = ({
           ) : (
             messages.map((message) => {
               const isOwnMessage = message.sender_id === currentUserId;
-              
               return (
-                <div
-                  key={message.id}
-                  className={`flex ${isOwnMessage ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`max-w-[70%] rounded-2xl px-4 py-2 ${
-                      isOwnMessage
-                        ? "bg-gradient-primary text-white"
-                        : "bg-card border border-border shadow-soft"
-                    }`}
-                  >
-                    <p className="text-sm whitespace-pre-wrap">
-                      {message.message_text}
-                    </p>
-                    <p className={`text-xs mt-1 ${
-                      isOwnMessage ? "text-white/70" : "text-muted-foreground"
-                    }`}>
+                <div key={message.id} className={`flex ${isOwnMessage ? "justify-end" : "justify-start"}`}>
+                  <div className={`max-w-[70%] rounded-2xl px-4 py-2 ${isOwnMessage ? "bg-gradient-primary text-white" : "bg-card border border-border shadow-soft"}`}>
+                    <p className="text-sm whitespace-pre-wrap">{message.message_text}</p>
+                    <p className={`text-xs mt-1 ${isOwnMessage ? "text-white/70" : "text-muted-foreground"}`}>
                       {formatTime(message.created_at)}
                     </p>
                   </div>
@@ -228,8 +178,6 @@ const ChatConversation = ({
               );
             })
           )}
-
-          {/* Typing Indicator */}
           {isTyping && (
             <div className="flex justify-start">
               <div className="bg-card border border-border shadow-soft rounded-2xl px-4 py-2 max-w-[70%]">
@@ -246,13 +194,11 @@ const ChatConversation = ({
               </div>
             </div>
           )}
-
           <div ref={scrollRef} />
         </div>
       </ScrollArea>
 
-      {/* Message Input */}
-      <CardContent className="p-4 bg-card/90 backdrop-blur-lg border-t border-border">
+      <div className="p-4 bg-card/90 backdrop-blur-lg border-t border-border">
         <div className="flex items-center gap-3">
           <div className="flex-1 relative">
             <Input
@@ -274,8 +220,6 @@ const ChatConversation = ({
             <Send className="w-4 h-4" />
           </Button>
         </div>
-        
-        {/* Connection Status */}
         {!wsConnected && (
           <div className="mt-2 flex items-center gap-2">
             <Badge variant="secondary" className="text-xs">
@@ -284,7 +228,7 @@ const ChatConversation = ({
             </Badge>
           </div>
         )}
-      </CardContent>
+      </div>
     </div>
   );
 };

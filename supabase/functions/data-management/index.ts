@@ -131,6 +131,8 @@ serve(async (req) => {
           mindset: Array.isArray(profileData.mindset) ? profileData.mindset : (profileData.mindset ? [profileData.mindset] : []),
           relationship_goals: profileData.relationship_goals || profileData.relationshipGoals || [],
           interests: profileData.interests || [],
+          love_language: profileData.love_language || profileData.loveLanguage || null,
+          lifestyle: profileData.lifestyle || null,
           // Education and career
           university: profileData.university || null,
           field_of_study: profileData.field_of_study || profileData.fieldOfStudy || null,
@@ -191,8 +193,11 @@ serve(async (req) => {
           values: profileData.values,
           values_array: profileData.values_array || (profileData.values ? [profileData.values] : []),
           mindset: profileData.mindset,
+          lifestyle: profileData.lifestyle || null,
           love_language: profileData.love_language || profileData.loveLanguage,
           humor_type: profileData.humor_type || profileData.humorType,
+          profession: profileData.profession || null,
+          education_level: profileData.education_level || profileData.educationLevel || null,
           relationship_goals: profileData.relationship_goals || profileData.relationshipGoals || [],
           interests: profileData.interests || [],
           bio: profileData.bio || '',
@@ -266,7 +271,7 @@ serve(async (req) => {
           throw new Error('Profile data is required');
         }
 
-        // Update updateQualities JSON when profile is updated
+          // Update updateQualities JSON when profile is updated
         const updateQualities = {
           // Physical qualities
           height: profileData.height || null,
@@ -280,6 +285,8 @@ serve(async (req) => {
           mindset: Array.isArray(profileData.mindset) ? profileData.mindset : (profileData.mindset ? [profileData.mindset] : []),
           relationship_goals: profileData.relationship_goals || [],
           interests: profileData.interests || [],
+          love_language: profileData.love_language || profileData.loveLanguage || null,
+          lifestyle: profileData.lifestyle || null,
           // Education and career
           university: profileData.university || null,
           field_of_study: profileData.field_of_study || null,
@@ -363,7 +370,7 @@ serve(async (req) => {
           preferred_mindset: preferencesData.preferred_mindset || [],
           preferred_relationship_goals: preferencesData.preferred_relationship_goal || [],
           preferred_interests: preferencesData.preferred_interests || [],
-          preferred_love_languages: preferencesData.preferred_love_language || [],
+          preferred_love_languages: preferencesData.preferred_love_language || preferencesData.preferred_love_languages || [],
           preferred_communication_style: preferencesData.preferred_communication_style || [],
           preferred_lifestyle: preferencesData.preferred_lifestyle || [],
           // Compatibility requirements

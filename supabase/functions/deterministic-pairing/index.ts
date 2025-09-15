@@ -6,6 +6,31 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper function to normalize strings for comparison
+function normalizeForComparison(str: string): string {
+  return str.toLowerCase()
+    .replace(/[-_\s]/g, '') // Remove hyphens, underscores, spaces
+    .trim();
+}
+
+// Helper function to check if arrays contain matching values (case insensitive)
+function arrayContainsMatch(preferredArray: string[], candidateValue: string | string[]): boolean {
+  if (!preferredArray || !candidateValue) return false;
+  
+  const normalizedPreferred = preferredArray.map(normalizeForComparison);
+  const candidateValues = Array.isArray(candidateValue) ? candidateValue : [candidateValue];
+  
+  return candidateValues.some(val => {
+    const normalizedCandidate = normalizeForComparison(val);
+    // Check exact match first, then partial matches
+    return normalizedPreferred.some(pref => 
+      normalizedCandidate === pref || 
+      normalizedCandidate.includes(pref) || 
+      pref.includes(normalizedCandidate)
+    );
+  });
+}
+
 // Calculate exact match score based on user's deterministic algorithm
 function calculateMatchScore(userPreferences: any, candidateAttributes: any): {
   totalScore: number;
@@ -34,9 +59,9 @@ function calculateMatchScore(userPreferences: any, candidateAttributes: any): {
     notMatched.push("height");
   }
   
-  // 2. Body type match (10 points)
+  // 2. Body type match (10 points) - case insensitive
   if (userPreferences?.preferred_body_types?.length > 0 && candidateAttributes?.body_type) {
-    if (userPreferences.preferred_body_types.includes(candidateAttributes.body_type)) {
+    if (arrayContainsMatch(userPreferences.preferred_body_types, candidateAttributes.body_type)) {
       physicalScore += 10;
       matched.push("body_type");
     } else {
@@ -46,9 +71,9 @@ function calculateMatchScore(userPreferences: any, candidateAttributes: any): {
     notMatched.push("body_type");
   }
   
-  // 3. Skin tone match (10 points)
+  // 3. Skin tone match (10 points) - case insensitive
   if (userPreferences?.preferred_skin_tone?.length > 0 && candidateAttributes?.skin_tone) {
-    if (userPreferences.preferred_skin_tone.includes(candidateAttributes.skin_tone)) {
+    if (arrayContainsMatch(userPreferences.preferred_skin_tone, candidateAttributes.skin_tone)) {
       physicalScore += 10;
       matched.push("skin_tone");
     } else {
@@ -58,9 +83,9 @@ function calculateMatchScore(userPreferences: any, candidateAttributes: any): {
     notMatched.push("skin_tone");
   }
   
-  // 4. Face type match (10 points)
+  // 4. Face type match (10 points) - case insensitive
   if (userPreferences?.preferred_face_type?.length > 0 && candidateAttributes?.face_type) {
-    if (userPreferences.preferred_face_type.includes(candidateAttributes.face_type)) {
+    if (arrayContainsMatch(userPreferences.preferred_face_type, candidateAttributes.face_type)) {
       physicalScore += 10;
       matched.push("face_type");
     } else {
@@ -72,9 +97,9 @@ function calculateMatchScore(userPreferences: any, candidateAttributes: any): {
   
   // --- MENTAL/PERSONALITY MATCH (max 40 points) ---
   
-  // 1. Personality type match (10 points)
+  // 1. Personality type match (10 points) - case insensitive
   if (userPreferences?.preferred_personality_traits?.length > 0 && candidateAttributes?.personality_type) {
-    if (userPreferences.preferred_personality_traits.includes(candidateAttributes.personality_type)) {
+    if (arrayContainsMatch(userPreferences.preferred_personality_traits, candidateAttributes.personality_type)) {
       mentalScore += 10;
       matched.push("personality_type");
     } else {
@@ -84,14 +109,9 @@ function calculateMatchScore(userPreferences: any, candidateAttributes: any): {
     notMatched.push("personality_type");
   }
   
-  // 2. Values match (10 points) - check if any candidate value matches any preferred value
+  // 2. Values match (10 points) - case insensitive with format normalization
   if (userPreferences?.preferred_values?.length > 0 && candidateAttributes?.values) {
-    let valuesMatch = false;
-    const candidateValues = Array.isArray(candidateAttributes.values) ? candidateAttributes.values : [candidateAttributes.values];
-    
-    valuesMatch = candidateValues.some((v: string) => userPreferences.preferred_values.includes(v));
-    
-    if (valuesMatch) {
+    if (arrayContainsMatch(userPreferences.preferred_values, candidateAttributes.values)) {
       mentalScore += 10;
       matched.push("values");
     } else {
@@ -101,14 +121,9 @@ function calculateMatchScore(userPreferences: any, candidateAttributes: any): {
     notMatched.push("values");
   }
   
-  // 3. Mindset match (10 points) - check if any candidate mindset matches any preferred mindset
+  // 3. Mindset match (10 points) - case insensitive with partial matching
   if (userPreferences?.preferred_mindset?.length > 0 && candidateAttributes?.mindset) {
-    let mindsetMatch = false;
-    const candidateMindset = Array.isArray(candidateAttributes.mindset) ? candidateAttributes.mindset : [candidateAttributes.mindset];
-    
-    mindsetMatch = candidateMindset.some((m: string) => userPreferences.preferred_mindset.includes(m));
-    
-    if (mindsetMatch) {
+    if (arrayContainsMatch(userPreferences.preferred_mindset, candidateAttributes.mindset)) {
       mentalScore += 10;
       matched.push("mindset");
     } else {
@@ -118,14 +133,9 @@ function calculateMatchScore(userPreferences: any, candidateAttributes: any): {
     notMatched.push("mindset");
   }
   
-  // 4. Relationship goals match (10 points) - check if any candidate goal matches any preferred goal
+  // 4. Relationship goals match (10 points) - case insensitive
   if (userPreferences?.preferred_relationship_goal?.length > 0 && candidateAttributes?.relationship_goals) {
-    let relationshipMatch = false;
-    const candidateGoals = Array.isArray(candidateAttributes.relationship_goals) ? candidateAttributes.relationship_goals : [candidateAttributes.relationship_goals];
-    
-    relationshipMatch = candidateGoals.some((r: string) => userPreferences.preferred_relationship_goal.includes(r));
-    
-    if (relationshipMatch) {
+    if (arrayContainsMatch(userPreferences.preferred_relationship_goal, candidateAttributes.relationship_goals)) {
       mentalScore += 10;
       matched.push("relationship_goal");
     } else {
@@ -282,8 +292,8 @@ serve(async (req) => {
 
     console.log(`USER1 QCS: ${user1QCS}, Range: [${qcsRangeMin}, ${qcsRangeMax}]`);
 
-    // Query candidates within QCS range, excluding USER1
-    const { data: candidates, error: candidatesError } = await supabaseClient
+    // Query candidates within QCS range, excluding USER1, with GENDER FILTERING
+    let candidatesQuery = supabaseClient
       .from('profiles')
       .select(`
         user_id, first_name, last_name, total_qcs,
@@ -296,8 +306,20 @@ serve(async (req) => {
       .neq('user_id', user_id)
       .eq('is_active', true)
       .not('first_name', 'is', null)
-      .not('last_name', 'is', null)
-      .limit(50);
+      .not('last_name', 'is', null);
+
+    // GENDER FILTERING: Apply user's preferred gender filter
+    if (user1Preferences?.preferred_gender?.length > 0) {
+      const normalizedGenders = user1Preferences.preferred_gender
+        .map((g: string) => (typeof g === 'string' ? g.toLowerCase().trim() : ''))
+        .filter((g: string) => g === 'male' || g === 'female');
+      console.log('Applying gender filter:', normalizedGenders);
+      if (normalizedGenders.length > 0) {
+        candidatesQuery = candidatesQuery.in('gender', normalizedGenders);
+      }
+    }
+
+    const { data: candidates, error: candidatesError } = await candidatesQuery.limit(50);
 
     if (candidatesError) throw candidatesError;
 

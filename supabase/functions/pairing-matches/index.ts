@@ -246,6 +246,13 @@ serve(async (req) => {
       ...seen_ids
     ];
 
+    // Get user's partner preferences for gender filtering
+    const { data: userPreferences } = await supabaseClient
+      .from('partner_preferences')
+      .select('preferred_gender')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
     // Get potential candidates (excluding blocked users, already swiped, etc.)
     let candidatesQuery = supabaseClient
       .from('profiles')
@@ -259,6 +266,17 @@ serve(async (req) => {
       `)
       .eq('is_active', true)
       .not('user_id', 'in', `(${excludedIds.join(',')})`);
+
+    // GENDER FILTERING: Apply user's preferred gender filter
+    if (userPreferences?.preferred_gender?.length > 0) {
+      console.log('🚻 Applying gender filter:', userPreferences.preferred_gender);
+      const normalizedGenders = userPreferences.preferred_gender
+        .map((g: string) => (typeof g === 'string' ? g.toLowerCase().trim() : ''))
+        .filter((g: string) => g === 'male' || g === 'female');
+      if (normalizedGenders.length > 0) {
+        candidatesQuery = candidatesQuery.in('gender', normalizedGenders);
+      }
+    }
 
     const { data: candidates, error: candidatesError } = await candidatesQuery.limit(limit * 2);
 

@@ -1,194 +1,103 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useSocketChat } from '@/contexts/SocketChatContext';
 import { supabase } from '@/integrations/supabase/client';
-import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
-import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
-export interface ChatRoom {
-  id: string;
-  match_id: string;
-  user1_id: string;
-  user2_id: string;
-  created_at: string;
-  updated_at: string;
-  other_user?: {
-    first_name: string;
-    last_name: string;
-    profile_images?: string[];
-    university?: string;
-  };
-  last_message?: string;
-  last_message_time?: string;
-}
-
-export interface ChatMessage {
-  id: string;
-  chat_room_id: string;
+interface ChatMessage {
+  id?: number;
+  room_id?: string;
   sender_id: string;
-  message_text: string;
-  created_at: string;
+  content: string;
+  created_at?: string;
 }
 
-export const useChat = (userId: string | null) => {
-  const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
+export const useChat = (roomId: string | undefined) => {
+  const socketChat = useSocketChat();
+  const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [sendingMessage, setSendingMessage] = useState(false);
-  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Fetch chat rooms
-  const fetchChatRooms = useCallback(async () => {
-    if (!userId) return;
-    
-    setLoading(true);
-    try {
-      console.log('🔍 Fetching chat rooms for user:', userId);
-      
-      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-management', {
-        method: 'POST',
-        body: JSON.stringify({ 
-          action: 'list',
-          user_id: userId 
-        })
-      });
-
-      if (!response.ok) throw new Error('Failed to fetch chat rooms');
-      const data = await response.json();
-      
-      if (data?.success) {
-        const rooms = data.data || [];
-        console.log('✅ Loaded chat rooms:', rooms.length);
-        setChatRooms(rooms);
-      } else {
-        throw new Error(data?.error || 'Failed to fetch chat rooms');
-      }
-    } catch (error: any) {
-      console.error('❌ Error fetching chat rooms:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load chats. Please refresh the page.",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
+  const fetchMessages = useCallback(async () => {
+    console.log('useChat: Attempting to fetch messages...');
+    if (!roomId) {
+      console.warn('useChat: No roomId provided, aborting fetch.');
+      setLoading(false); // Make sure to stop loading if there's no room
+      return;
     }
-  }, [userId, toast]);
+    if (!user) {
+      console.warn('useChat: No user found, aborting fetch.');
+      setLoading(false); // Also stop loading if there's no user
+      return;
+    }
 
-  // Fetch messages for a specific chat room
-  const fetchMessages = useCallback(async (chatRoomId: string) => {
     try {
-      console.log('💬 Fetching messages for room:', chatRoomId);
-      
-      const { data, error } = await supabase
-        .from('chat_messages_enhanced')
+      setLoading(true);
+      setError(null);
+      console.log(`useChat: Fetching messages for room: ${roomId}`);
+
+      const { data, error: fetchError } = await supabase
+        .from('messages')
         .select('*')
-        .eq('chat_room_id', chatRoomId)
+        .eq('room_id', roomId)
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
-      
-      console.log('✅ Loaded messages:', data?.length || 0);
-      setMessages(data || []);
-    } catch (error: any) {
-      console.error('❌ Error fetching messages:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load messages",
-        variant: "destructive"
-      });
-    }
-  }, [toast]);
+      if (fetchError) {
+        console.error('useChat: Error fetching messages from Supabase:', fetchError);
+        setError('Failed to load chat history.');
+        return; // Important: exit here if there's an error
+      }
 
-  // Send a message
-  const sendMessage = useCallback(async (chatRoomId: string, messageText: string) => {
-    if (!userId || !messageText.trim()) return false;
+      console.log('useChat: Successfully fetched messages:', data);
+      const formattedMessages = data.map(msg => ({
+        ...msg,
+        sender_id: msg.sender_id,
+        content: msg.content,
+      }));
 
-    setSendingMessage(true);
-    try {
-      console.log('📤 Sending message to room:', chatRoomId);
-      
-      const { error } = await supabase
-        .from('chat_messages_enhanced')
-        .insert({
-          chat_room_id: chatRoomId,
-          sender_id: userId,
-          message_text: messageText.trim()
-        });
+      setMessages(formattedMessages || []);
 
-      if (error) throw error;
-      
-      console.log('✅ Message sent successfully');
-      return true;
-    } catch (error: any) {
-      console.error('❌ Error sending message:', error);
-      toast({
-        title: "Error", 
-        description: "Failed to send message. Please try again.",
-        variant: "destructive"
-      });
-      return false;
+    } catch (err) {
+      console.error('useChat: An unexpected error occurred:', err);
+      setError('An unexpected error occurred.');
     } finally {
-      setSendingMessage(false);
+      // This block will always run, ensuring loading is set to false
+      console.log('useChat: Fetch finished, setting loading to false.');
+      setLoading(false);
     }
-  }, [userId, toast]);
+  }, [roomId, user]);
 
-  // Real-time subscriptions
   useEffect(() => {
-    if (!userId) return;
+    fetchMessages();
+  }, [fetchMessages]);
 
-    // Subscribe to new messages
-    const messagesChannel = supabase
-      .channel('chat-messages')
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'chat_messages_enhanced'
-      }, (payload) => {
-        console.log('📨 New message received:', payload);
-        const newMessage = payload.new as ChatMessage;
-        
-        // Add message if it's for the current conversation
-        setMessages(prev => {
-          const exists = prev.find(m => m.id === newMessage.id);
-          if (exists) return prev;
-          return [...prev, newMessage];
-        });
-        
-        // Refresh chat rooms to update last message
-        fetchChatRooms();
-      })
-      .subscribe();
+  useEffect(() => {
+    if (!socketChat || !roomId) return;
 
-    // Subscribe to new chat rooms
-    const roomsChannel = supabase
-      .channel('chat-rooms')
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'chat_rooms'
-      }, () => {
-        console.log('🏠 New chat room detected, refreshing...');
-        fetchChatRooms();
-      })
-      .subscribe();
+    const handleNewMessage = (newMessage: { sender: string; text: string; }) => {
+      const formattedMessage: ChatMessage = {
+        sender_id: newMessage.sender,
+        content: newMessage.text,
+        created_at: new Date().toISOString(),
+      };
+      setMessages((prevMessages) => [...prevMessages, formattedMessage]);
+    };
+
+    socketChat.joinChatRoom(roomId);
+    socketChat.onMessage(handleNewMessage);
 
     return () => {
-      supabase.removeChannel(messagesChannel);
-      supabase.removeChannel(roomsChannel);
+      socketChat.offMessage(handleNewMessage);
+      socketChat.leaveChatRoom(roomId);
     };
-  }, [userId, fetchChatRooms]);
+  }, [socketChat, roomId]);
 
-  // Load chat rooms on mount
-  useEffect(() => {
-    fetchChatRooms();
-  }, [fetchChatRooms]);
-
-  return {
-    chatRooms,
-    messages,
-    loading,
-    sendingMessage,
-    fetchChatRooms,
-    fetchMessages,
-    sendMessage
+  const sendMessage = (text: string) => {
+    if (!socketChat || !roomId || !text.trim()) {
+      return;
+    }
+    socketChat.sendMessage(roomId, text.trim());
   };
+
+  return { messages, sendMessage, loading, error };
 };

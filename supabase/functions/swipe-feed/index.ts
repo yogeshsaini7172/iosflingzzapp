@@ -45,6 +45,13 @@ serve(async (req) => {
       )
     }
 
+    // Get user's preferred gender from partner_preferences
+    const { data: userPreferences } = await supabaseClient
+      .from('partner_preferences')
+      .select('preferred_gender')
+      .eq('user_id', user_id)
+      .maybeSingle();
+
     // Get already swiped users
     const { data: swipedUsers, error: swipeError } = await supabaseClient
       .from('enhanced_swipes')
@@ -134,9 +141,16 @@ serve(async (req) => {
       query = query.lte('height', filters.heightMax)
     }
 
-    // Apply gender filter
-    if (filters.gender && filters.gender.length > 0) {
-      query = query.in('gender', filters.gender)
+    // GENDER FILTERING: Use stored preferences or request filters
+    const preferredGenders = userPreferences?.preferred_gender || filters.gender;
+    if (preferredGenders && preferredGenders.length > 0) {
+      const normalizedGenders = preferredGenders
+        .map((g: any) => (typeof g === 'string' ? g.toLowerCase().trim() : ''))
+        .filter((g: string) => g === 'male' || g === 'female');
+      console.log('🚻 Applying gender filter:', normalizedGenders);
+      if (normalizedGenders.length > 0) {
+        query = query.in('gender', normalizedGenders)
+      }
     }
 
     query = query.limit(limit)
