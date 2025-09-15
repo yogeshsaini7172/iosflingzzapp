@@ -131,6 +131,8 @@ serve(async (req) => {
           mindset: Array.isArray(profileData.mindset) ? profileData.mindset : (profileData.mindset ? [profileData.mindset] : []),
           relationship_goals: profileData.relationship_goals || profileData.relationshipGoals || [],
           interests: profileData.interests || [],
+          love_language: profileData.love_language || profileData.loveLanguage || null,
+          lifestyle: profileData.lifestyle || null,
           // Education and career
           university: profileData.university || null,
           field_of_study: profileData.field_of_study || profileData.fieldOfStudy || null,
@@ -172,39 +174,51 @@ serve(async (req) => {
         const newProfile = {
           firebase_uid: firebaseUid,
           user_id: firebaseUid, // Keep for compatibility
-          // Map frontend field names to database field names
-          first_name: profileData.first_name || profileData.firstName,
-          last_name: profileData.last_name || profileData.lastName, 
-          email: profileData.email || 'user@example.com',
+          // Map frontend field names to database field names properly
+          first_name: profileData.first_name || profileData.firstName || '',
+          last_name: profileData.last_name || profileData.lastName || '', 
+          email: profileData.email || `${firebaseUid}@firebase.user`,
           date_of_birth: profileData.date_of_birth || profileData.dateOfBirth,
           gender: profileData.gender,
-          university: profileData.university,
+          university: profileData.university || '',
+          major: profileData.major || profileData.field_of_study || profileData.fieldOfStudy,
           year_of_study: profileData.year_of_study || profileData.yearOfStudy,
           field_of_study: profileData.field_of_study || profileData.fieldOfStudy,
           height: profileData.height ? Number(profileData.height) : null,
           body_type: profileData.body_type || profileData.bodyType,
+          skin_tone: profileData.skin_tone || profileData.skinTone,
           face_type: profileData.face_type || profileData.faceType,
           personality_type: profileData.personality_type || profileData.personalityType,
+          personality_traits: profileData.personality_traits || (profileData.personalityType ? [profileData.personalityType] : []),
           values: profileData.values,
+          values_array: profileData.values_array || (profileData.values ? [profileData.values] : []),
           mindset: profileData.mindset,
-          relationship_goals: profileData.relationship_goals || profileData.relationshipGoals,
-          interests: profileData.interests,
-          bio: profileData.bio,
-          profile_images: profileData.profile_images,
-          is_profile_public: profileData.is_profile_public,
+          lifestyle: profileData.lifestyle || null,
+          love_language: profileData.love_language || profileData.loveLanguage,
+          humor_type: profileData.humor_type || profileData.humorType,
+          profession: profileData.profession || null,
+          education_level: profileData.education_level || profileData.educationLevel || null,
+          relationship_goals: profileData.relationship_goals || profileData.relationshipGoals || [],
+          interests: profileData.interests || [],
+          bio: profileData.bio || '',
+          profile_images: profileData.profile_images || [],
+          display_name: profileData.display_name || `${profileData.first_name || profileData.firstName || ''} ${profileData.last_name || profileData.lastName || ''}`.trim(),
+          avatar_url: profileData.avatar_url || (profileData.profile_images && profileData.profile_images.length > 0 ? profileData.profile_images[0] : null),
+          location: profileData.location,
+          is_profile_public: profileData.is_profile_public !== undefined ? profileData.is_profile_public : true,
           total_qcs: profileData.total_qcs || 0,
           // Add structured JSON fields for QCS/compatibility
           qualities: JSON.stringify(qualities),
           requirements: JSON.stringify(initialRequirements),
-          subscription_tier: 'free',
+          subscription_tier: profileData.subscription_tier || 'free',
           daily_outgoing_matches: 0,
           daily_incoming_matches: 0,
           pairing_requests_left: 1,
           blinddate_requests_left: 0,
           swipes_left: 20,
           last_reset: new Date().toISOString(),
-          show_profile: true,
-          is_active: true,
+          show_profile: profileData.show_profile !== undefined ? profileData.show_profile : true,
+          is_active: profileData.is_active !== undefined ? profileData.is_active : true,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         };
@@ -213,7 +227,7 @@ serve(async (req) => {
           .from('profiles')
           .insert(newProfile)
           .select()
-          .single();
+          .maybeSingle();
 
         if (createError) {
           console.error('[DEBUG] Profile creation error:', createError);
@@ -235,7 +249,9 @@ serve(async (req) => {
           .from('profiles')
           .select('*')
           .eq('firebase_uid', firebaseUid)
-          .single();
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
         if (getError && getError.code !== 'PGRST116') {
           throw getError;
@@ -255,7 +271,7 @@ serve(async (req) => {
           throw new Error('Profile data is required');
         }
 
-        // Update updateQualities JSON when profile is updated
+          // Update updateQualities JSON when profile is updated
         const updateQualities = {
           // Physical qualities
           height: profileData.height || null,
@@ -269,6 +285,8 @@ serve(async (req) => {
           mindset: Array.isArray(profileData.mindset) ? profileData.mindset : (profileData.mindset ? [profileData.mindset] : []),
           relationship_goals: profileData.relationship_goals || [],
           interests: profileData.interests || [],
+          love_language: profileData.love_language || profileData.loveLanguage || null,
+          lifestyle: profileData.lifestyle || null,
           // Education and career
           university: profileData.university || null,
           field_of_study: profileData.field_of_study || null,
@@ -291,7 +309,9 @@ serve(async (req) => {
           .update(updatedProfileData)
           .eq('firebase_uid', firebaseUid)
           .select()
-          .single();
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
         if (updateError) throw updateError;
 
@@ -310,7 +330,9 @@ serve(async (req) => {
           .from('partner_preferences')
           .select('*')
           .eq('user_id', firebaseUid)
-          .single();
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
         if (prefError && prefError.code !== 'PGRST116') {
           throw prefError;
@@ -348,7 +370,7 @@ serve(async (req) => {
           preferred_mindset: preferencesData.preferred_mindset || [],
           preferred_relationship_goals: preferencesData.preferred_relationship_goal || [],
           preferred_interests: preferencesData.preferred_interests || [],
-          preferred_love_languages: preferencesData.preferred_love_language || [],
+          preferred_love_languages: preferencesData.preferred_love_language || preferencesData.preferred_love_languages || [],
           preferred_communication_style: preferencesData.preferred_communication_style || [],
           preferred_lifestyle: preferencesData.preferred_lifestyle || [],
           // Compatibility requirements
@@ -362,7 +384,8 @@ serve(async (req) => {
           .from('partner_preferences')
           .select('user_id')
           .eq('user_id', firebaseUid)
-          .single();
+          .limit(1)
+          .maybeSingle();
 
         let prefResult;
         if (existingPrefs) {
@@ -371,14 +394,16 @@ serve(async (req) => {
             .update({ ...preferencesData, updated_at: new Date().toISOString() })
             .eq('user_id', firebaseUid)
             .select()
-            .single();
+            .order('updated_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
           prefResult = { data, error };
         } else {
           const { data, error } = await supabaseClient
             .from('partner_preferences')
             .insert({ user_id: firebaseUid, ...preferencesData })
             .select()
-            .single();
+            .maybeSingle();
           prefResult = { data, error };
         }
 

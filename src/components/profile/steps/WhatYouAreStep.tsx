@@ -5,14 +5,31 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { User, X } from "lucide-react";
 
+interface ProfileData {
+  height?: string;
+  bodyType?: string;
+  skinTone?: string;
+  faceType?: string;
+  personalityType?: string;
+  values?: string;
+  mindset?: string;
+  loveLanguage?: string;
+  lifestyle?: string;
+  relationshipGoals?: string[];
+  interests?: string[];
+  bio?: string;
+  heightRangeMin?: number;
+  heightRangeMax?: number;
+}
+
 interface WhatYouAreStepProps {
-  data: any;
-  onChange: (data: any) => void;
+  data: ProfileData;
+  onChange: (updater: (prev: ProfileData) => ProfileData) => void;
 }
 
 const WhatYouAreStep = ({ data, onChange }: WhatYouAreStepProps) => {
-  const updateField = (field: string, value: any) => {
-    onChange((prev: any) => ({ ...prev, [field]: value }));
+  const updateField = <K extends keyof ProfileData>(field: K, value: ProfileData[K]) => {
+    onChange((prev: ProfileData) => ({ ...prev, [field]: value }));
   };
 
   const personalityTypes = [
@@ -37,7 +54,7 @@ const WhatYouAreStep = ({ data, onChange }: WhatYouAreStepProps) => {
     "Writing", "Volunteering", "Fashion", "Food", "History", "Science", "Politics"
   ];
 
-  const toggleArrayItem = (field: string, item: string, maxItems: number = 10) => {
+  const toggleArrayItem = (field: 'relationshipGoals' | 'interests', item: string, maxItems: number = 10) => {
     const currentArray = data[field] || [];
     const newArray = currentArray.includes(item)
       ? currentArray.filter((i: string) => i !== item)
@@ -59,13 +76,75 @@ const WhatYouAreStep = ({ data, onChange }: WhatYouAreStepProps) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div className="space-y-3">
           <Label className="text-base font-medium">Height (cm)</Label>
-          <Input
-            type="number"
-            placeholder="175"
-            value={data.height}
-            onChange={(e) => updateField('height', e.target.value)}
-            className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors"
-          />
+          <div className="relative">
+            <Input
+              type="text"
+              inputMode="numeric"
+              placeholder="175"
+              value={data.height || ''}
+              onKeyDown={(e) => {
+                // Prevent all non-numeric characters from being typed
+                const allowedKeys = [
+                  'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
+                  'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+                  'Home', 'End'
+                ];
+                
+                // Allow numbers 0-9
+                const isNumber = e.key >= '0' && e.key <= '9';
+                
+                // Allow Ctrl/Cmd combinations for copy/paste/select all
+                const isCtrlCmd = e.ctrlKey || e.metaKey;
+                
+                if (!isNumber && !allowedKeys.includes(e.key) && !isCtrlCmd) {
+                  e.preventDefault();
+                }
+              }}
+              onPaste={(e) => {
+                // Handle paste events to only allow numeric content
+                e.preventDefault();
+                const paste = e.clipboardData.getData('text');
+                const numericOnly = paste.replace(/[^0-9]/g, '').slice(0, 3);
+                if (numericOnly) {
+                  const numValue = parseInt(numericOnly);
+                  if (numValue >= 100 && numValue <= 250) {
+                    updateField('height', numericOnly);
+                  } else if (numValue > 250) {
+                    updateField('height', '250');
+                  } else if (numValue < 100 && numericOnly.length === 3) {
+                    updateField('height', '100');
+                  } else {
+                    updateField('height', numericOnly);
+                  }
+                }
+              }}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Only allow digits and limit to reasonable height range
+                const numericValue = value.replace(/[^0-9]/g, '');
+                // Limit to 3 digits and reasonable height range (100-250 cm)
+                const limitedValue = numericValue.slice(0, 3);
+                const numValue = parseInt(limitedValue);
+                
+                // Only update if it's empty or within reasonable range
+                if (limitedValue === '' || (numValue >= 100 && numValue <= 250)) {
+                  updateField('height', limitedValue);
+                } else if (numValue > 250) {
+                  updateField('height', '250');
+                } else if (numValue < 100 && limitedValue.length === 3) {
+                  updateField('height', '100');
+                } else {
+                  updateField('height', limitedValue);
+                }
+              }}
+              className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors"
+            />
+            {data.height && (parseInt(data.height) < 100 || parseInt(data.height) > 250) && (
+              <p className="text-sm text-destructive mt-1">
+                Please enter a height between 100-250 cm
+              </p>
+            )}
+          </div>
         </div>
         <div className="space-y-3">
           <Label className="text-base font-medium">Body Type</Label>

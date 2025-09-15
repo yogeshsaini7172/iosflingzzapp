@@ -282,8 +282,8 @@ serve(async (req) => {
 
     console.log(`USER1 QCS: ${user1QCS}, Range: [${qcsRangeMin}, ${qcsRangeMax}]`);
 
-    // Query candidates within QCS range, excluding USER1
-    const { data: candidates, error: candidatesError } = await supabaseClient
+    // Query candidates within QCS range, excluding USER1, with GENDER FILTERING
+    let candidatesQuery = supabaseClient
       .from('profiles')
       .select(`
         user_id, first_name, last_name, total_qcs,
@@ -296,8 +296,20 @@ serve(async (req) => {
       .neq('user_id', user_id)
       .eq('is_active', true)
       .not('first_name', 'is', null)
-      .not('last_name', 'is', null)
-      .limit(50);
+      .not('last_name', 'is', null);
+
+    // GENDER FILTERING: Apply user's preferred gender filter
+    if (user1Preferences?.preferred_gender?.length > 0) {
+      const normalizedGenders = user1Preferences.preferred_gender
+        .map((g: string) => (typeof g === 'string' ? g.toLowerCase().trim() : ''))
+        .filter((g: string) => g === 'male' || g === 'female');
+      console.log('Applying gender filter:', normalizedGenders);
+      if (normalizedGenders.length > 0) {
+        candidatesQuery = candidatesQuery.in('gender', normalizedGenders);
+      }
+    }
+
+    const { data: candidates, error: candidatesError } = await candidatesQuery.limit(50);
 
     if (candidatesError) throw candidatesError;
 

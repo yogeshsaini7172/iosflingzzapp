@@ -339,7 +339,6 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
         </div>
       </div>
 
-
       {/* Threads Section */}
       <div className="bg-card/80 backdrop-blur-md border-b border-border/50 p-4">
         <div className="flex items-center justify-between mb-4">

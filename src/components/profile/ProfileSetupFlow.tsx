@@ -13,6 +13,7 @@ import ProgressIndicator from "./steps/ProgressIndicator";
 import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { calculateAge, validateMinimumAge, MINIMUM_AGE } from "@/utils/ageValidation";
 
 interface ProfileSetupFlowProps {
   onComplete: () => void;
@@ -64,6 +65,8 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
     preferredMindset: [] as string[],
     preferredPersonality: [] as string[],
     preferredRelationshipGoals: [] as string[],
+    preferredLoveLanguage: [] as string[],
+    preferredLifestyle: [] as string[],
     
     // Photos
     profileImages: [] as File[],
@@ -115,6 +118,19 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         setIsLoading(false);
         return;
       }
+
+      // Final age validation before profile creation
+      if (!validateMinimumAge(profileData.dateOfBirth)) {
+        const age = calculateAge(profileData.dateOfBirth);
+        toast({ 
+          title: "Age requirement not met", 
+          description: `You must be at least ${MINIMUM_AGE} years old. You are currently ${age} years old.`, 
+          variant: "destructive" 
+        });
+        setCurrentStep(1); // Go back to basic details step
+        setIsLoading(false);
+        return;
+      }
       
       // Upload profile images to Supabase Storage first
       let imageUrls: string[] = [];
@@ -125,36 +141,46 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         console.log('Uploaded images:', imageUrls);
       }
 
-      // Store complete profile data
+      // Store complete profile data with proper field mapping
       const completeProfile = {
         user_id: userId,
         // Basic info
         first_name: profileData.firstName,
         last_name: profileData.lastName,
+        email: user?.email || `${userId}@firebase.user`,
         date_of_birth: profileData.dateOfBirth,
         gender: profileData.gender,
         university: profileData.university,
-        year_of_study: profileData.yearOfStudy,
+        major: profileData.fieldOfStudy, // Map to major field
+        year_of_study: profileData.yearOfStudy ? Number(profileData.yearOfStudy) : null,
         field_of_study: profileData.fieldOfStudy,
         
-        // What you are
-        height: profileData.height,
+        // What you are - proper field mapping
+        height: profileData.height ? Number(profileData.height) : null,
         body_type: profileData.bodyType,
         skin_tone: profileData.skinTone,
+        face_type: profileData.faceType,
         personality_type: profileData.personalityType,
+        personality_traits: profileData.personalityType ? [profileData.personalityType] : [],
         values: profileData.values,
+        values_array: profileData.values ? [profileData.values] : [],
         mindset: profileData.mindset,
+        love_language: profileData.loveLanguage,
         relationship_goals: profileData.relationshipGoals,
         interests: profileData.interests,
         bio: profileData.bio,
         
         // Images and settings
         profile_images: imageUrls,
+        display_name: `${profileData.firstName} ${profileData.lastName}`.trim(),
+        avatar_url: imageUrls.length > 0 ? imageUrls[0] : null,
         is_profile_public: profileData.isProfilePublic,
         verification_status: 'pending',
         college_tier: 'tier3',
         subscription_tier: 'free',
-        swipes_left: 10
+        swipes_left: 20,
+        show_profile: true,
+        is_active: true
       };
 
       // Store partner preferences (optional, kept in localStorage for demo)
@@ -285,7 +311,9 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
           preferred_face_type: profileData.preferredFaceType,
           preferred_values: profileData.preferredValues,
           preferred_mindset: profileData.preferredMindset,
-          preferred_personality_traits: profileData.preferredPersonality
+          preferred_personality_traits: profileData.preferredPersonality,
+          preferred_love_language: profileData.preferredLoveLanguage || [],
+          preferred_lifestyle: profileData.preferredLifestyle || []
         };
 
         const preferencesResponse = await fetchWithFirebaseAuth(
@@ -325,8 +353,9 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
   const canProceed = () => {
     switch (currentStep) {
       case 1: // Basic Details
+        const isAgeValid = validateMinimumAge(profileData.dateOfBirth);
         return profileData.firstName && profileData.lastName && profileData.dateOfBirth && 
-               profileData.gender && profileData.university;
+               profileData.gender && profileData.university && isAgeValid;
       case 2: // What You Are
         return profileData.personalityType && profileData.values && profileData.bio;
       case 3: // Who You Want
@@ -353,7 +382,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         return (
           <WhatYouAreStep
             data={profileData}
-            onChange={setProfileData}
+            onChange={(updater) => setProfileData(prev => ({ ...prev, ...updater(prev) }))}
           />
         );
       case 3:

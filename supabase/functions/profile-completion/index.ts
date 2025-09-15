@@ -92,28 +92,41 @@ serve(async (req) => {
         last_active: new Date().toISOString(),
         total_qcs: qcsScore || 0,
         email: email || userEmail, // Use provided email or Firebase email
-        // Set user qualities (what they offer)
+        // Set user qualities (what they offer) - COMPLETE DATA
         qualities: JSON.stringify({
           height: height || null,
           body_type: bodyType || null,
           skin_tone: skinTone || null,
           face_type: faceType || null,
           personality_type: personalityType || null,
-          values: values || null,
-          mindset: mindset || null,
+          values: values ? [values] : [], // Convert to array for consistency
+          mindset: mindset ? [mindset] : [], // Convert to array for consistency
           university: university || null,
-          field_of_study: fieldOfStudy || null
+          field_of_study: fieldOfStudy || null,
+          interests: interests || [], // ADD: interests array
+          relationship_goals: relationshipGoals || [], // ADD: relationship goals
+          bio: bio || null, // ADD: bio text
+          love_language: preferences?.loveLanguage || null, // ADD: love language
+          lifestyle: preferences?.lifestyle || null // ADD: lifestyle
         }),
-        // Set user requirements (what they want in a partner) from preferences
+        // Set user requirements (what they want in a partner) - COMPLETE DATA
         requirements: JSON.stringify({
           height_range_min: preferences?.heightRangeMin || null,
           height_range_max: preferences?.heightRangeMax || null,
+          age_range_min: preferences?.ageRangeMin || 18, // ADD: age range
+          age_range_max: preferences?.ageRangeMax || 30, // ADD: age range
           preferred_body_types: preferences?.preferredBodyTypes || [],
+          preferred_skin_tone: preferences?.preferredSkinTone || [], // ADD: skin tone prefs
+          preferred_face_type: preferences?.preferredFaceType || [], // ADD: face type prefs
           preferred_values: preferences?.preferredValues || [],
           preferred_mindset: preferences?.preferredMindset || [],
           preferred_personality: preferences?.preferredPersonality || [],
-          preferred_gender: preferences?.preferredGender || []
-        })
+          preferred_gender: preferences?.preferredGender || [],
+          preferred_relationship_goals: preferences?.preferredRelationshipGoals || [] // ADD: relationship goal prefs
+        }),
+        // Also store individual fields for direct access
+        love_language: preferences?.loveLanguage || null,
+        lifestyle: preferences?.lifestyle ? JSON.stringify(preferences.lifestyle) : null
       }, {
         onConflict: 'user_id'
       });

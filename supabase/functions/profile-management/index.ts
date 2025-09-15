@@ -106,7 +106,9 @@ serve(async (req) => {
           .from('profiles')
           .select('*')
           .eq('firebase_uid', firebaseUser.uid)
-          .single();
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
         if (!existingProfile && action === 'create') {
           // Create new profile
@@ -159,7 +161,9 @@ serve(async (req) => {
             .update(updatedProfile)
             .eq('firebase_uid', firebaseUser.uid)
             .select()
-            .single();
+            .order('updated_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
 
           if (updateError) throw updateError;
 
@@ -179,7 +183,9 @@ serve(async (req) => {
           .from('profiles')
           .select('*')
           .eq('firebase_uid', firebaseUser.uid)
-          .single();
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
         if (getError && getError.code !== 'PGRST116') {
           throw getError;

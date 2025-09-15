@@ -1,7 +1,10 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Calendar, GraduationCap } from "lucide-react";
+import { User, Calendar, GraduationCap, AlertCircle } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { validateMinimumAge, getMaxAllowedDate, getAgeValidationError, MINIMUM_AGE } from "@/utils/ageValidation";
 
 interface BasicDetailsStepProps {
   data: any;
@@ -9,7 +12,21 @@ interface BasicDetailsStepProps {
 }
 
 const BasicDetailsStep = ({ data, onChange }: BasicDetailsStepProps) => {
+  const [dobError, setDobError] = useState<string>("");
+
   const updateField = (field: string, value: string) => {
+    // Special handling for date of birth
+    if (field === 'dateOfBirth') {
+      if (value && !validateMinimumAge(value)) {
+        const errorMessage = getAgeValidationError(value);
+        setDobError(errorMessage || "");
+        toast.error(`Age requirement not met. You must be ${MINIMUM_AGE} or older.`);
+        return; // Don't update the field if validation fails
+      } else {
+        setDobError(""); // Clear error if validation passes
+      }
+    }
+    
     onChange(prev => ({ ...prev, [field]: value }));
   };
 
@@ -44,12 +61,29 @@ const BasicDetailsStep = ({ data, onChange }: BasicDetailsStepProps) => {
 
       <div className="space-y-3">
         <Label className="text-base font-medium">Date of Birth</Label>
-        <Input
-          type="date"
-          value={data.dateOfBirth}
-          onChange={(e) => updateField('dateOfBirth', e.target.value)}
-          className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors"
-        />
+        <div className="relative">
+          <Input
+            type="date"
+            value={data.dateOfBirth}
+            max={getMaxAllowedDate()} // Restrict to dates that make user 18+
+            onChange={(e) => updateField('dateOfBirth', e.target.value)}
+            className={`rounded-2xl h-14 text-base px-4 bg-background/50 border-2 transition-colors ${
+              dobError 
+                ? 'border-red-500 focus:border-red-500' 
+                : 'border-border/50 focus:border-primary'
+            }`}
+          />
+          <Calendar className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
+        </div>
+        {dobError && (
+          <div className="flex items-center space-x-2 text-red-500 text-sm mt-2">
+            <AlertCircle className="w-4 h-4" />
+            <span>{dobError}</span>
+          </div>
+        )}
+        <p className="text-xs text-muted-foreground">
+          You must be at least {MINIMUM_AGE} years old to create an account
+        </p>
       </div>
 
       <div className="space-y-3">
