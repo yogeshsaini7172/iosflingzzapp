@@ -5,12 +5,12 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import NotificationCenter from '@/components/notifications/NotificationCenter';
-import { 
-  Home, 
-  Users, 
-  Heart, 
-  MessageCircle, 
-  User, 
+import {
+  Home,
+  Users,
+  Heart,
+  MessageCircle,
+  User,
   Calendar,
   Zap,
   Menu,
@@ -25,7 +25,6 @@ const Navbar = () => {
     { to: '/', label: 'Home', icon: Home },
     { to: '/swipe', label: 'Swipe', icon: Zap },
     { to: '/pairing', label: 'Pairing', icon: Users },
-    { to: '/matches', label: 'Matches', icon: Heart },
     { to: '/chat', label: 'Chat', icon: MessageCircle },
     { to: '/blind-date', label: 'Blind Date', icon: Calendar },
     { to: '/profile', label: 'Profile', icon: User },
@@ -44,7 +43,7 @@ const Navbar = () => {
       className={({ isActive }) =>
         `flex items-center space-x-2 px-3 py-2 rounded-xl transition-all duration-200 hover:bg-muted ${
           isActiveRoute(to)
-            ? 'bg-muted text-foreground font-semibold shadow-sm' 
+            ? 'bg-muted text-foreground font-semibold shadow-sm'
             : 'text-foreground hover:text-foreground'
         } ${mobile ? 'w-full justify-center' : ''}`
       }

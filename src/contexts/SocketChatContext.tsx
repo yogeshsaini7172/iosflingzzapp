@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef, useCallback, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 import { toast } from 'sonner';
 import { io, Socket } from 'socket.io-client';
 
+// Define the shape of the context's public interface
 interface SocketChatContextType {
   isConnected: boolean;
   connectionStatus: 'connecting' | 'connected' | 'disconnected' | 'error';
@@ -10,14 +11,19 @@ interface SocketChatContextType {
   joinChatRoom: (chatRoomId: string) => void;
   leaveChatRoom: (chatRoomId: string) => void;
   onlineUsers: Set<string>;
-  typingUsers: Map<string, string[]>; // chatRoomId -> array of user IDs
+  typingUsers: Map<string, string[]>;
   sendTypingIndicator: (chatRoomId: string, isTyping: boolean) => void;
   onMessage: (callback: (data: any) => void) => void;
   offMessage: (callback: (data: any) => void) => void;
+  emitEvent: (event: string, data: any) => void;
+  onEvent: (event: string, callback: (data: any) => void) => void;
+  offEvent: (event: string, callback: (data: any) => void) => void;
 }
 
+// Create the context
 const SocketChatContext = createContext<SocketChatContextType | undefined>(undefined);
 
+// **THIS IS THE CORRECTED HOOK NAME TO MATCH YOUR NEW STRUCTURE**
 export const useSocketChat = () => {
   const context = useContext(SocketChatContext);
   if (context === undefined) {
@@ -26,10 +32,12 @@ export const useSocketChat = () => {
   return context;
 };
 
-// Keep the old export for backward compatibility
-export const useWebSocketChat = useSocketChat;
+// Define props for the provider component
+interface SocketChatProviderProps {
+  children: ReactNode;
+}
 
-export const SocketChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const SocketChatProvider: React.FC<SocketChatProviderProps> = ({ children }) => {
   const { user, userId, getIdToken } = useAuth();
   const [isConnected, setIsConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
@@ -37,246 +45,134 @@ export const SocketChatProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [typingUsers, setTypingUsers] = useState<Map<string, string[]>>(new Map());
   
   const socketRef = useRef<Socket | null>(null);
-  const reconnectAttempts = useRef(0);
-  const maxReconnectAttempts = 5;
   const joinedRooms = useRef<Set<string>>(new Set());
   const messageCallbacks = useRef<Set<(data: any) => void>>(new Set());
 
+  // --- Main connection logic ---
   const connect = useCallback(async () => {
-    if (!userId || !user) {
-      console.log('🚫 Socket.IO: No user authenticated, skipping connection');
-      return;
-    }
-
-    if (socketRef.current?.connected) {
-      console.log('🔄 Socket.IO: Already connected');
-      return;
-    }
+    if (!userId || !user || socketRef.current?.connected) return;
 
     try {
       setConnectionStatus('connecting');
-      console.log('🔌 Socket.IO: Connecting to chat server...');
-
-      // Get Firebase auth token for Socket.IO authentication
       const token = await getIdToken();
-      if (!token) {
-        throw new Error('No authentication token available');
-      }
+      if (!token) throw new Error('No authentication token available');
 
-      // Socket.IO URL - configurable via environment variable
-      const socketUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
+      // Get socket URL from environment variables, with a fallback for local dev
+      const socketUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3002';
       
-      // Skip Socket.IO connection if no URL is configured
-      if (!socketUrl) {
-        console.log('💡 Socket.IO: No VITE_SOCKET_URL configured, using standard chat mode');
-        setConnectionStatus('disconnected');
-        return;
-      }
-      
-      console.log('🔌 Socket.IO: Attempting to connect to:', socketUrl);
-      
-      // Create Socket.IO connection
       socketRef.current = io(socketUrl, {
-        auth: {
-          token,
-          userId
-        },
-        transports: ['websocket', 'polling'],
-        timeout: 10000,
+        auth: { token, userId }, // Send token and userId for server-side authentication
+        transports: ['websocket'], // Prioritize websocket for better performance
         reconnection: true,
-        reconnectionAttempts: maxReconnectAttempts,
-        reconnectionDelay: 1000
+        reconnectionAttempts: 5,
       });
 
-      // Connection successful
-      socketRef.current.on('connect', () => {
-        console.log('✅ Socket.IO: Connected to chat server');
+      // --- Core Socket Event Listeners ---
+      const socket = socketRef.current;
+
+      socket.on('connect', () => {
         setIsConnected(true);
         setConnectionStatus('connected');
-        reconnectAttempts.current = 0;
-
-        // Rejoin previously joined rooms
+        toast.success('Chat connected!');
+        // Re-join all previously joined rooms upon successful reconnection
         joinedRooms.current.forEach(roomId => {
-          socketRef.current?.emit('join_room', {
-            chatRoomId: roomId,
-            userId
-          });
+          socket.emit('join_room', { chatRoomId: roomId, userId });
         });
       });
 
-      // Handle incoming messages
-      socketRef.current.on('message', (data) => {
-        console.log('📨 Socket.IO: New message received', data);
-        // Notify all message callbacks
-        messageCallbacks.current.forEach(callback => {
-          try {
-            callback(data);
-          } catch (error) {
-            console.error('Error in message callback:', error);
-          }
-        });
-      });
-
-      // Handle typing indicators
-      socketRef.current.on('typing', (data) => {
-        if (data.chatRoomId && data.userId) {
-          setTypingUsers(prev => {
-            const newMap = new Map(prev);
-            const roomTypers = newMap.get(data.chatRoomId) || [];
-            
-            if (data.isTyping) {
-              if (!roomTypers.includes(data.userId)) {
-                newMap.set(data.chatRoomId, [...roomTypers, data.userId]);
-              }
-            } else {
-              newMap.set(data.chatRoomId, roomTypers.filter(id => id !== data.userId));
-            }
-            
-            return newMap;
-          });
-        }
-      });
-
-      // Handle user status updates
-      socketRef.current.on('user_status', (data) => {
-        if (data.userId) {
-          setOnlineUsers(prev => {
-            const newSet = new Set(prev);
-            if (data.isOnline) {
-              newSet.add(data.userId);
-            } else {
-              newSet.delete(data.userId);
-            }
-            return newSet;
-          });
-        }
-      });
-
-      // Handle connection errors
-      socketRef.current.on('connect_error', (error) => {
-        console.error('❌ Socket.IO: Connection error:', error);
-        setConnectionStatus('error');
-        
-        // Only show error toast if this isn't the first connection attempt
-        if (reconnectAttempts.current > 0) {
-          toast.error('Chat connection error. Retrying...');
-        } else {
-          console.log('💡 Socket.IO: Server not available, using standard chat mode');
-        }
-      });
-
-      // Handle disconnection
-      socketRef.current.on('disconnect', (reason) => {
-        console.log('🔌 Socket.IO: Disconnected:', reason);
+      socket.on('disconnect', () => {
         setIsConnected(false);
         setConnectionStatus('disconnected');
-        
-        if (reason === 'io server disconnect') {
-          // Server disconnected the client, reconnect manually
-          socketRef.current?.connect();
-        }
+        toast.info('Chat disconnected.');
       });
 
-      // Handle server errors
-      socketRef.current.on('error', (error) => {
-        console.error('❌ Socket.IO: Server error:', error);
-        toast.error(error.message || 'Chat server error');
+      socket.on('connect_error', (error) => {
+        console.error('Socket connection error:', error);
+        setConnectionStatus('error');
+        toast.error(`Chat connection failed: ${error.message}`);
+      });
+
+      // --- Custom Application Event Listeners ---
+      
+      // Listener for incoming messages
+      socket.on('message', (data) => {
+        messageCallbacks.current.forEach(callback => callback(data));
+      });
+
+      // Listener for updates to the list of online users
+      socket.on('update_online_users', (onlineUserIds: string[]) => {
+        setOnlineUsers(new Set(onlineUserIds));
+      });
+
+      // Listener for when a user starts typing
+      socket.on('typing_started', ({ chatRoomId, userId: typingUserId }) => {
+        setTypingUsers(prev => {
+          const newTypingUsers = new Map(prev);
+          const usersInRoom = newTypingUsers.get(chatRoomId) || [];
+          if (!usersInRoom.includes(typingUserId)) {
+            newTypingUsers.set(chatRoomId, [...usersInRoom, typingUserId]);
+          }
+          return newTypingUsers;
+        });
+      });
+      
+      // Listener for when a user stops typing
+      socket.on('typing_stopped', ({ chatRoomId, userId: typingUserId }) => {
+        setTypingUsers(prev => {
+          const newTypingUsers = new Map(prev);
+          const usersInRoom = newTypingUsers.get(chatRoomId) || [];
+          newTypingUsers.set(chatRoomId, usersInRoom.filter(id => id !== typingUserId));
+          return newTypingUsers;
+        });
       });
 
     } catch (error) {
-      console.error('❌ Socket.IO: Failed to connect:', error);
+      console.error('Socket connection failed:', error);
       setConnectionStatus('error');
-      toast.error('Failed to connect to chat server');
+      toast.error('Could not initiate chat connection.');
     }
   }, [userId, user, getIdToken]);
 
   const disconnect = useCallback(() => {
-    console.log('🔌 Socket.IO: Disconnecting...');
-    
     if (socketRef.current) {
-      socketRef.current.disconnect();
-      socketRef.current = null;
+        socketRef.current.disconnect();
+        socketRef.current = null;
     }
-
     setIsConnected(false);
     setConnectionStatus('disconnected');
-    joinedRooms.current.clear();
   }, []);
 
+  useEffect(() => {
+    if (user && userId) {
+      connect();
+    } else {
+      disconnect();
+    }
+    // The returned function is a cleanup function that runs on component unmount
+    return () => {
+        disconnect();
+    };
+  }, [user, userId, connect, disconnect]);
+
+  // --- Public Methods ---
+
   const sendMessage = useCallback((chatRoomId: string, message: string) => {
-    if (!socketRef.current?.connected) {
-      // Silently fail if Socket.IO is not available - Supabase will handle message delivery
-      return;
-    }
-
-    try {
-      socketRef.current.emit('message', {
-        chatRoomId,
-        message,
-        userId,
-        timestamp: new Date().toISOString()
-      });
-
-      console.log('📤 Socket.IO: Message sent', { chatRoomId, message });
-    } catch (error) {
-      console.warn('⚠️ Socket.IO: Failed to send message, falling back to Supabase only');
-    }
+    socketRef.current?.emit('message', { chatRoomId, message, userId });
   }, [userId]);
 
   const joinChatRoom = useCallback((chatRoomId: string) => {
-    if (!socketRef.current?.connected) {
-      // Silently fail if Socket.IO is not available
-      return;
-    }
-
-    try {
-      joinedRooms.current.add(chatRoomId);
-      
-      socketRef.current.emit('join_room', {
-        chatRoomId,
-        userId
-      });
-
-      console.log('🏠 Socket.IO: Joined room', chatRoomId);
-    } catch (error) {
-      console.warn('⚠️ Socket.IO: Failed to join room');
-    }
+    joinedRooms.current.add(chatRoomId);
+    socketRef.current?.emit('join_room', { chatRoomId, userId });
   }, [userId]);
 
   const leaveChatRoom = useCallback((chatRoomId: string) => {
-    if (!socketRef.current?.connected) {
-      // Silently fail if Socket.IO is not available
-      return;
-    }
-
-    try {
-      joinedRooms.current.delete(chatRoomId);
-      
-      socketRef.current.emit('leave_room', {
-        chatRoomId,
-        userId
-      });
-
-      console.log('🚪 Socket.IO: Left room', chatRoomId);
-    } catch (error) {
-      console.warn('⚠️ Socket.IO: Failed to leave room');
-    }
+    joinedRooms.current.delete(chatRoomId);
+    socketRef.current?.emit('leave_room', { chatRoomId, userId });
   }, [userId]);
 
   const sendTypingIndicator = useCallback((chatRoomId: string, isTyping: boolean) => {
-    if (!socketRef.current?.connected) {
-      return;
-    }
-
-    try {
-      socketRef.current.emit('typing', {
-        chatRoomId,
-        userId,
-        isTyping
-      });
-    } catch (error) {
-      // Silently fail for typing indicators
-    }
+    const event = isTyping ? 'typing_started' : 'typing_stopped';
+    socketRef.current?.emit(event, { chatRoomId, userId });
   }, [userId]);
 
   const onMessage = useCallback((callback: (data: any) => void) => {
@@ -286,20 +182,21 @@ export const SocketChatProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const offMessage = useCallback((callback: (data: any) => void) => {
     messageCallbacks.current.delete(callback);
   }, []);
+  
+  // Generic event emitter and listeners for flexibility
+  const emitEvent = useCallback((event: string, data: any) => {
+    socketRef.current?.emit(event, data);
+  }, []);
 
-  // Connect when user is authenticated
-  useEffect(() => {
-    if (user && userId) {
-      connect();
-    } else {
-      disconnect();
-    }
+  const onEvent = useCallback((event: string, callback: (data: any) => void) => {
+    socketRef.current?.on(event, callback);
+  }, []);
 
-    return () => {
-      disconnect();
-    };
-  }, [user, userId, connect, disconnect]);
+  const offEvent = useCallback((event: string, callback: (data: any) => void) => {
+    socketRef.current?.off(event, callback);
+  }, []);
 
+  // The value provided to child components
   const value = {
     isConnected,
     connectionStatus,
@@ -310,7 +207,10 @@ export const SocketChatProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     typingUsers,
     sendTypingIndicator,
     onMessage,
-    offMessage
+    offMessage,
+    emitEvent,
+    onEvent,
+    offEvent
   };
 
   return (
@@ -319,6 +219,3 @@ export const SocketChatProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     </SocketChatContext.Provider>
   );
 };
-
-// Export both names for compatibility
-export const WebSocketChatProvider = SocketChatProvider;

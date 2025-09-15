@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 interface ChatRequest {
-  action: 'create' | 'send' | 'history' | 'list' | 'create_room' | 'send_message' | 'get_messages' | 'apply_schema_fix';
+  action: 'create' | 'send' | 'history' | 'list' | 'create_room' | 'send_message';
   candidate_id?: string;
   match_id?: string;
   message?: string;
@@ -57,7 +57,7 @@ serve(async (req) => {
     // Optional auth: try JWT, but allow unauthenticated for 'list' with explicit user_id
     const authHeader = req.headers.get('Authorization') || '';
     const token = authHeader.startsWith('Bearer ') ? authHeader.replace('Bearer ', '') : '';
-    const { data } = token ? await supabaseClient.auth.getUser(token) : { data: { user: null } } as unknown;
+    const { data } = token ? await supabaseClient.auth.getUser(token) : { data: { user: null } } as any;
     const authedUser = data?.user;
 
     switch (action) {
@@ -408,7 +408,7 @@ serve(async (req) => {
           console.log(`🔁 After ensuring, rooms count: ${rooms.length}`);
         }
 
-        const enriched = [] as unknown[];
+        const enriched = [] as any[];
         for (const room of rooms || []) {
           const otherUserId = room.user1_id === user_id ? room.user2_id : room.user1_id;
           console.log(`👤 Fetching profile for other user: ${otherUserId}`);

@@ -1,228 +1,78 @@
-// Socket.IO Chat Server
-import { createServer } from 'http';
+// Import required libraries
+import { createClient } from '@supabase/supabase-js';
 import { Server } from 'socket.io';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// --- IMPORTANT ---
+// Make sure you have a .env file in your project's root with these variables,
+// or set them up as environment variables on your server.
+// VITE_SUPABASE_URL=your_supabase_project_url
+// VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-// Create HTTP server
-const httpServer = createServer();
+// Initialize the Supabase client
+const supabaseUrl = "https://cchvsqeqiavhanurnbeo.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjaHZzcWVxaWF2aGFudXJuYmVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1MjI4OTMsImV4cCI6MjA3MjA5ODg5M30.6EII7grfX9gCUx6haU2wIfoiMDPrFTQn2XMDi6cY5-U";
 
-// Create Socket.IO server with CORS configuration
-const io = new Server(httpServer, {
+if (!supabaseUrl || !supabaseKey) {
+  console.error("Supabase URL or Key is not defined. Make sure your environment variables are set.");
+  process.exit(1);
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Initialize the Socket.io server on port 3002
+const io = new Server(3002, {
   cors: {
-    origin: ["http://localhost:5173", "http://localhost:3000", "http://localhost:8080"],
-    methods: ["GET", "POST"],
-    credentials: true
+    origin: '*', // Allow connections from any origin
+    methods: ['GET', 'POST'],
   },
-  transports: ['websocket', 'polling']
 });
 
-// Store connected clients and their rooms
-const clients = new Map(); // userId -> socket
-const rooms = new Map(); // roomId -> Set of userIds
-const userRooms = new Map(); // userId -> Set of roomIds
+console.log('🚀 Socket server starting...');
 
-// Helper function to broadcast to room
-function broadcastToRoom(roomId, event, data, excludeUserId = null) {
-  const roomUsers = rooms.get(roomId);
-  if (!roomUsers) return;
-
-  roomUsers.forEach(userId => {
-    if (userId !== excludeUserId) {
-      const client = clients.get(userId);
-      if (client && client.connected) {
-        client.emit(event, data);
-      }
-    }
-  });
-}
-
-// Helper function to broadcast user status
-function broadcastUserStatus(userId, isOnline) {
-  const userRoomSet = userRooms.get(userId);
-  if (!userRoomSet) return;
-
-  userRoomSet.forEach(roomId => {
-    broadcastToRoom(roomId, 'user_status', {
-      userId,
-      isOnline
-    }, userId);
-  });
-}
-
-// Socket.IO connection handling
 io.on('connection', (socket) => {
-  const { token, userId } = socket.handshake.auth;
+  console.log(`✅ User connected: ${socket.id}`);
 
-  console.log(`User ${userId} connected via Socket.IO`);
-
-  // In production, verify the Firebase token here
-  // For demo purposes, we'll just use the userId
-  if (!userId) {
-    socket.disconnect(true);
-    return;
-  }
-
-  // Store client connection
-  clients.set(userId, socket);
-  
-  // Initialize user rooms if not exists
-  if (!userRooms.has(userId)) {
-    userRooms.set(userId, new Set());
-  }
-
-  // Broadcast that user is online
-  broadcastUserStatus(userId, true);
-
-  // Send connection confirmation
-  socket.emit('connected', {
-    userId,
-    timestamp: new Date().toISOString()
+  // Event to handle a user joining a specific chat room
+  socket.on('joinRoom', (room) => {
+    socket.join(room);
+    console.log(`🚪 User ${socket.id} joined room: ${room}`);
   });
 
-  // Handle joining a chat room
-  socket.on('join_room', (data) => {
-    const { chatRoomId } = data;
-    if (!chatRoomId) return;
+  // Event to handle receiving and processing a new chat message
+  socket.on('chatMessage', async (msg, room) => {
+    console.log(`📩 Message received in room [${room}]:`, msg);
 
-    // Add user to room
-    if (!rooms.has(chatRoomId)) {
-      rooms.set(chatRoomId, new Set());
-    }
-    rooms.get(chatRoomId).add(userId);
-    userRooms.get(userId).add(chatRoomId);
+    try {
+      // Save the incoming message to the Supabase 'messages' table
+      const { data, error } = await supabase
+        .from('messages')
+        .insert([{
+          room_id: room,
+          sender_id: msg.sender, // The sender's Firebase UID
+          content: msg.text,     // The message content
+        }]);
 
-    // Join Socket.IO room for easier broadcasting
-    socket.join(chatRoomId);
-
-    console.log(`User ${userId} joined room ${chatRoomId}`);
-    
-    // Notify others in room
-    socket.to(chatRoomId).emit('user_joined', {
-      userId,
-      chatRoomId,
-      timestamp: new Date().toISOString()
-    });
-  });
-
-  // Handle leaving a chat room
-  socket.on('leave_room', (data) => {
-    const { chatRoomId } = data;
-    if (!chatRoomId) return;
-
-    // Remove user from room
-    if (rooms.has(chatRoomId)) {
-      rooms.get(chatRoomId).delete(userId);
-      if (rooms.get(chatRoomId).size === 0) {
-        rooms.delete(chatRoomId);
+      if (error) {
+        console.error('❌ Supabase error saving message:', error.message);
+        // Optionally, emit an error back to the sender
+        socket.emit('messageError', { message: 'Failed to save message.', error: error.message });
+        return;
       }
+
+      // If saved successfully, broadcast the message to everyone in the room
+      io.to(room).emit('chatMessage', msg);
+      console.log(`📨 Message broadcasted to room [${room}]`);
+
+    } catch (error) {
+      console.error('🔥 An unexpected server error occurred:', error);
+      socket.emit('messageError', { message: 'An unexpected server error occurred.' });
     }
-    userRooms.get(userId).delete(chatRoomId);
-
-    // Leave Socket.IO room
-    socket.leave(chatRoomId);
-
-    console.log(`User ${userId} left room ${chatRoomId}`);
-    
-    // Notify others in room
-    socket.to(chatRoomId).emit('user_left', {
-      userId,
-      chatRoomId,
-      timestamp: new Date().toISOString()
-    });
   });
 
-  // Handle chat messages
-  socket.on('message', (data) => {
-    const { chatRoomId, message } = data;
-    if (!chatRoomId || !message) return;
-
-    console.log(`📨 Message from ${userId} in room ${chatRoomId}: ${message}`);
-
-    // Broadcast message to other users in room (excluding sender)
-    socket.to(chatRoomId).emit('message', {
-      chatRoomId,
-      message,
-      userId,
-      timestamp: new Date().toISOString()
-    });
-  });
-
-  // Handle typing indicators
-  socket.on('typing', (data) => {
-    const { chatRoomId, isTyping } = data;
-    if (!chatRoomId) return;
-
-    // Broadcast typing indicator to room (excluding sender)
-    socket.to(chatRoomId).emit('typing', {
-      chatRoomId,
-      userId,
-      isTyping,
-      timestamp: new Date().toISOString()
-    });
-  });
-
-  // Handle disconnection
-  socket.on('disconnect', (reason) => {
-    console.log(`User ${userId} disconnected:`, reason);
-    
-    // Remove from all rooms
-    const userRoomSet = userRooms.get(userId);
-    if (userRoomSet) {
-      userRoomSet.forEach(roomId => {
-        if (rooms.has(roomId)) {
-          rooms.get(roomId).delete(userId);
-          if (rooms.get(roomId).size === 0) {
-            rooms.delete(roomId);
-          }
-        }
-        // Leave Socket.IO room
-        socket.leave(roomId);
-      });
-    }
-
-    // Broadcast that user is offline
-    broadcastUserStatus(userId, false);
-
-    // Clean up
-    clients.delete(userId);
-    userRooms.delete(userId);
-  });
-
-  // Handle errors
-  socket.on('error', (error) => {
-    console.error(`Socket error for user ${userId}:`, error);
+  // Event for when a user disconnects
+  socket.on('disconnect', () => {
+    console.log(`🔌 User disconnected: ${socket.id}`);
   });
 });
 
-// Start server
-const PORT = process.env.SOCKET_PORT || 3002;
-httpServer.listen(PORT, () => {
-  console.log(`🚀 Socket.IO chat server running on port ${PORT}`);
-  console.log(`📡 Socket.IO URL: http://localhost:${PORT}`);
-  console.log(`🌐 Main app should be running on a different port (like 5173)`);
-});
-
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('Shutting down Socket.IO server...');
-  io.close(() => {
-    httpServer.close(() => {
-      console.log('Server closed');
-      process.exit(0);
-    });
-  });
-});
-
-process.on('SIGINT', () => {
-  console.log('Shutting down Socket.IO server...');
-  io.close(() => {
-    httpServer.close(() => {
-      console.log('Server closed');
-      process.exit(0);
-    });
-  });
-});
+console.log('✅ Socket server is running on port 3002');

@@ -2,25 +2,23 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { SocketChatProvider } from "@/contexts/SocketChatContext";
 import { useState, useEffect } from "react";
 import SwipePage from "./pages/SwipePage";
 import PairingPage from "./pages/PairingPage";
 import MatchesPage from "./pages/MatchesPage";
-import ChatPage from "./pages/ChatPage";
 import ProfilePage from "./pages/ProfilePage";
 import BlindDatePage from "./pages/BlindDatePage";
 import FeedPage from "./pages/FeedPage";
-import AuthPage from "./pages/AuthPage";
 import FlingzzHome from "./components/campus/FlingzzHome";
 import SubscriptionPage from "./components/subscription/SubscriptionPage";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 import QCSTestPage from "./pages/QCSTestPage";
 import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
-import { useLocation } from "react-router-dom";
+import RebuiltChatSystem from "@/components/chat/RebuiltChatSystem";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,24 +33,17 @@ const AuthenticatedApp = () => {
   console.log('🔒 AuthenticatedApp component rendering...');
   const { user, isLoading, userId, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   console.log('👤 Current user state:', { user: user?.uid, isLoading, isAuthenticated });
-  
-//   useEffect(() => {
-//   if (user) {
-//     navigate("/profile"); // or "/" for home
-//   }
-// }, [user, navigate]);
 
-const location = useLocation();
+  useEffect(() => {
+    if (user && (location.pathname === "/" || location.pathname === "/auth")) {
+      navigate("/");
+    }
+  }, [user, navigate, location.pathname]);
 
-useEffect(() => {
-  if (user && (location.pathname === "/" || location.pathname === "/auth")) {
-    navigate("/");
-  }
-}, [user, navigate, location.pathname]);
-
-     const [hasProfile, setHasProfile] = useState(false);
-   const [checkingProfile, setCheckingProfile] = useState(true);
+  const [hasProfile, setHasProfile] = useState(false);
+  const [checkingProfile, setCheckingProfile] = useState(true);
 
   // Function to check if user has completed profile
   const checkUserProfile = async (userId: string) => {
@@ -165,7 +156,6 @@ useEffect(() => {
     );
   }
 
-
   // If user does NOT have a profile, show profile creation flow
   if (!hasProfile) {
     return (
@@ -180,6 +170,13 @@ useEffect(() => {
     );
   }
 
+  // Wrapper component to extra chatId from URL
+  const ChatWrapper = () => {
+    const { chatId } = useParams();
+    const navigate = useNavigate();
+    return <RebuiltChatSystem onNavigate={(view) => navigate(`/${view}`)} selectedChatId={chatId} />;
+  };
+
   // If user has a profile, show main app
   return (
     <TooltipProvider>
@@ -189,56 +186,28 @@ useEffect(() => {
           <Sonner />
           <div id="recaptcha-container"></div>
           <Routes>
-          <Route path="/" element={<FlingzzHome onNavigate={(view) => {
-            if (view === 'home') navigate('/');
-            if (view === 'pairing') navigate('/pairing');
-            if (view === 'blind-date') navigate('/blind-date');
-            if (view === 'profile') navigate('/profile');
-            if (view === 'subscription') navigate('/subscription');
-            if (view === 'chat') navigate('/chat');
-            if (view === 'feed') navigate('/feed');
-          }} />} />
-          <Route path="/swipe" element={<SwipePage onNavigate={(view) => {}} />} />
-          <Route path="/feed" element={<FeedPage onNavigate={(view) => {
-            if (view === 'home') navigate('/');
-            if (view === 'pairing') navigate('/pairing');
-            if (view === 'profile') navigate('/profile');
-          }} />} />
-          <Route path="/pairing" element={<PairingPage onNavigate={(view) => {
-            if (view === 'home') navigate('/');
-            if (view === 'pairing') navigate('/pairing');
-            if (view === 'blind-date') navigate('/blind-date');
-            if (view === 'profile') navigate('/profile');
-            if (view === 'subscription') navigate('/subscription');
-          }} />} />
-          <Route path="/matches" element={<MatchesPage onNavigate={(view) => {
-            if (view === 'home') navigate('/');
-            if (view === 'chat') navigate('/chat');
-          }} />} />
-          <Route path="/chat" element={<ChatPage onNavigate={(view) => {
-            if (view === 'home') navigate('/');
-          }} />} />
-          <Route path="/profile" element={<ProfilePage onNavigate={(view) => {
-            if (view === 'home') navigate('/');
-            if (view === 'pairing') navigate('/pairing');
-            if (view === 'blind-date') navigate('/blind-date');
-            if (view === 'profile') navigate('/profile');
-            if (view === 'subscription') navigate('/subscription');
-          }} />} />
-          <Route path="/blind-date" element={<BlindDatePage onNavigate={(view) => {
-            if (view === 'home') navigate('/');
-            if (view === 'pairing') navigate('/pairing');
-            if (view === 'blind-date') navigate('/blind-date');
-            if (view === 'profile') navigate('/profile');
-            if (view === 'subscription') navigate('/subscription');
-          }} />} />
-          <Route path="/subscription" element={<SubscriptionPage onNavigate={(view) => {
-            if (view === 'home') navigate('/');
-            if (view === 'profile') navigate('/profile');
-          }} />} />
-          <Route path="/qcs-test" element={<QCSTestPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+            <Route path="/" element={<FlingzzHome onNavigate={(view) => navigate(`/${view}`)} />} />
+            <Route path="/swipe" element={<SwipePage onNavigate={(view) => navigate(`/${view}`)} />} />
+            <Route path="/feed" element={<FeedPage onNavigate={(view) => navigate(`/${view}`)} />} />
+            <Route path="/pairing" element={<PairingPage onNavigate={(view) => navigate(`/${view}`)} />} />
+            <Route path="/matches" element={<MatchesPage onNavigate={(view) => navigate(`/${view}`)} />} />
+            
+            {/* --- Correctly integrated chat routes --- */}
+            <Route 
+              path="/chat" 
+              element={<RebuiltChatSystem onNavigate={(view) => navigate(`/${view}`)} />} 
+            />
+            <Route 
+              path="/chat/:chatId" 
+              element={<ChatWrapper />} 
+            />
+            
+            <Route path="/profile" element={<ProfilePage onNavigate={(view) => navigate(`/${view}`)} />} />
+            <Route path="/blind-date" element={<BlindDatePage onNavigate={(view) => navigate(`/${view}`)} />} />
+            <Route path="/subscription" element={<SubscriptionPage onNavigate={(view) => navigate(`/${view}`)} />} />
+            <Route path="/qcs-test" element={<QCSTestPage />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </div>
       </SocketChatProvider>
     </TooltipProvider>
@@ -249,7 +218,7 @@ function App() {
   console.log('📱 App component rendering...');
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthenticatedApp />
+        <AuthenticatedApp />
     </QueryClientProvider>
   );
 }

@@ -1,14 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Crown, MapPin, Users, Eye } from "lucide-react";
+import { Heart, Crown, MapPin, Eye } from "lucide-react";
 import { SubscriptionEnforcementService } from "@/services/subscriptionEnforcement";
 import { useToast } from "@/hooks/use-toast";
 import { useRequiredAuth } from "@/hooks/useRequiredAuth";
 import DetailedProfileModal from '@/components/profile/DetailedProfileModal';
+import { supabase } from '@/integrations/supabase/client';
 
 interface WhoLikedMeModalProps {
   isOpen: boolean;
@@ -36,24 +37,112 @@ const WhoLikedMeModal = ({ isOpen, onClose }: WhoLikedMeModalProps) => {
   const { toast } = useToast();
   const { userId } = useRequiredAuth();
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchLikes();
-    }
-  }, [isOpen]);
-
-  const fetchLikes = async () => {
+  // Keep track of users we've liked back (persisted in localStorage)
+  const [likedUsers, setLikedUsers] = useState<Set<string>>(() => {
     try {
+      const saved = localStorage.getItem('likedUsers');
+      return new Set(saved ? JSON.parse(saved) : []);
+    } catch (error) {
+      console.error('Error loading liked users from localStorage:', error);
+      return new Set();
+    }
+  });
+
+  // Save likedUsers to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('likedUsers', JSON.stringify([...likedUsers]));
+    } catch (error) {
+      console.error('Error saving liked users to localStorage:', error);
+    }
+  }, [likedUsers]);
+
+  const fetchLikes = useCallback(async () => {
+    try {
+      if (!userId) {
+        console.log('No userId available, skipping fetch');
+        return;
+      }
+
       setLoading(true);
+      console.log('Fetching likes for user:', userId);
       
       // Check permission first
       const canSee = await SubscriptionEnforcementService.checkActionPermission('see_who_liked');
       setCanSeeLikes(canSee);
       
       if (canSee) {
+        console.log('Fetching who liked me data...');
         const result = await SubscriptionEnforcementService.getWhoLikedMe();
+        
         if (result.success && result.data) {
-          setLikes(result.data.users || []);
+          const allUsers = result.data.users || [];
+          console.log('Total users who liked you:', allUsers.length);
+          console.log('Previously liked users:', likedUsers.size);
+          
+          // First filter out users we've already liked (from localStorage)
+          const initialFilteredUsers = allUsers.filter(user => {
+            const isLiked = likedUsers.has(user.user_id);
+            if (isLiked) {
+              console.log(`Filtering out previously liked user: ${user.user_id}`);
+            }
+            return !isLiked;
+          });
+          
+          console.log('Users after local filter:', initialFilteredUsers.length);
+          
+          if (initialFilteredUsers.length > 0) {
+            // Get all relevant data in parallel
+            const [swipesResult, matchesResult, existingMatchesResult] = await Promise.all([
+              // Get users you've swiped right on
+              supabase
+                .from('enhanced_swipes')
+                .select('target_user_id')
+                .eq('user_id', userId)
+                .eq('direction', 'right'),
+              
+              // Get all mutual matches
+              supabase
+                .from('enhanced_matches')
+                .select('user1_id, user2_id')
+                .or(`user1_id.eq.${userId},user2_id.eq.${userId}`),
+                
+              // Get existing match records (even if not fully processed)
+              supabase
+                .from('enhanced_swipes')
+                .select('user_id, target_user_id')
+                .eq('direction', 'right')
+                .eq('target_user_id', userId)
+            ]);
+              
+            // Create sets for efficient lookup
+            const usersILiked = new Set(swipesResult.data?.map(swipe => swipe.target_user_id) || []);
+            const matchedUsers = new Set(
+              (matchesResult.data || []).map(match => 
+                match.user1_id === userId ? match.user2_id : match.user1_id
+              )
+            );
+            const mutualLikes = new Set(
+              (existingMatchesResult.data || []).map(swipe => swipe.user_id)
+            );
+
+            console.log('Users you liked:', usersILiked.size);
+            console.log('Matched users:', matchedUsers.size);
+            console.log('Mutual likes:', mutualLikes.size);
+            
+            // Apply additional filters based on database state
+            const finalFilteredUsers = initialFilteredUsers.filter(user => 
+              !usersILiked.has(user.user_id) && 
+              !matchedUsers.has(user.user_id) &&
+              !mutualLikes.has(user.user_id)
+            );
+            
+            console.log('Final filtered users count:', finalFilteredUsers.length);
+            setLikes(finalFilteredUsers);
+          } else {
+            console.log('No users remaining after local filter');
+            setLikes([]);
+          }
         } else {
           console.error("Failed to fetch likes:", result.error);
           setLikes([]);
@@ -65,30 +154,50 @@ const WhoLikedMeModal = ({ isOpen, onClose }: WhoLikedMeModalProps) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId, likedUsers]);
+
+  // Fetch likes whenever modal opens or when userId changes
+  useEffect(() => {
+    if (isOpen && userId) {
+      fetchLikes();
+    }
+  }, [isOpen, userId, fetchLikes]);
 
   const handleLikeBack = async (userLike: UserLike) => {
-    if (!userId) return { isMatch: false };
+    if (!userId) {
+      console.log('No userId available, cannot process like');
+      return { isMatch: false };
+    }
     
     try {
-      const result = await SubscriptionEnforcementService.processSwipe(userLike.user_id, 'right');
+      console.log('Processing like back for user:', userLike.user_id);
       
-      if (result.success && result.data) {
-        // Since this is "Who Liked Me", when we like back it should be a match
-        toast({
-          title: "It's a Match! 🎉",
-          description: `You and ${userLike.first_name} can now start chatting!`,
+      // Remove from UI immediately and add to liked users set
+      setLikes(prev => prev.filter(like => like.user_id !== userLike.user_id));
+      
+      // Store in localStorage and state that we've liked this user
+      const updatedLikedUsers = new Set([...likedUsers, userLike.user_id]);
+      localStorage.setItem('likedUsers', JSON.stringify([...updatedLikedUsers]));
+      setLikedUsers(updatedLikedUsers);
+      
+      // Process the swipe through the service - this handles both enforcement and enhanced actions
+      const result = await SubscriptionEnforcementService.processSwipe(userLike.user_id, 'right');
+      console.log('Swipe result:', result);
+      
+      if (!result.success) {
+        // If swipe failed, show error and revert changes
+        console.error('Swipe failed:', result.error);
+        
+        // Remove from likedUsers set
+        setLikedUsers(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(userLike.user_id);
+          return newSet;
         });
         
-        // Update the local state to show it's now a mutual match
-        setLikes(prev => prev.map(like => 
-          like.user_id === userLike.user_id 
-            ? { ...like, is_mutual_match: true }
-            : like
-        ));
+        // Add back to the UI
+        setLikes(prev => [...prev, userLike]);
         
-        return { isMatch: true };
-      } else {
         toast({
           title: "Error",
           description: result.error || "Failed to send like",
@@ -96,8 +205,27 @@ const WhoLikedMeModal = ({ isOpen, onClose }: WhoLikedMeModalProps) => {
         });
         return { isMatch: false };
       }
+
+      // Check for match from the combined response
+      if (result.data?.isMatch) {
+        // It's a match! Show success message
+        toast({
+          title: "It's a Match! 🎉",
+          description: `You and ${userLike.first_name} can now start chatting!`,
+        });
+        return { isMatch: true };
+      } else {
+        // Successfully liked but no match yet
+        toast({
+          title: "Like sent! ❤️",
+          description: "You'll be notified if they like you back",
+        });
+        return { isMatch: false };
+      }
     } catch (error) {
       console.error("Error liking back:", error);
+      // If error occurred, add user back to list and show error
+      setLikes(prev => [...prev, userLike]);
       toast({
         title: "Error",
         description: "Failed to send like",
@@ -175,12 +303,6 @@ const WhoLikedMeModal = ({ isOpen, onClose }: WhoLikedMeModalProps) => {
                           <h3 className="font-semibold">
                             {userLike.first_name}, {userLike.age}
                           </h3>
-                          {userLike.is_mutual_match && (
-                            <Badge variant="secondary" className="bg-red-100 text-red-700">
-                              <Heart className="w-3 h-3 mr-1" />
-                              Match
-                            </Badge>
-                          )}
                         </div>
                         
                         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
@@ -207,6 +329,22 @@ const WhoLikedMeModal = ({ isOpen, onClose }: WhoLikedMeModalProps) => {
                           <Eye className="w-4 h-4 mr-1" />
                           View Profile
                         </Button>
+                        {!userLike.is_mutual_match && (
+                          <Button
+                            size="sm"
+                            variant="default"
+                            onClick={async () => {
+                              const result = await handleLikeBack(userLike);
+                              if (result?.isMatch) {
+                                setShowProfileModal(false);
+                                setSelectedProfile(null);
+                              }
+                            }}
+                          >
+                            <Heart className="w-4 h-4 mr-1" />
+                            Match
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -234,21 +372,17 @@ const WhoLikedMeModal = ({ isOpen, onClose }: WhoLikedMeModalProps) => {
             bio: selectedProfile.bio,
             age: selectedProfile.age,
             can_chat: selectedProfile.is_mutual_match,
-            compatibility_score: 85, // Mock score
-            total_qcs: 425 // Mock QCS score
+            compatibility_score: 85,
+            total_qcs: 425
           }}
           onSwipe={async (direction) => {
             if (direction === 'right' && !selectedProfile.is_mutual_match) {
               const result = await handleLikeBack(selectedProfile);
               if (result?.isMatch) {
-                // Close profile modal and show match success
                 setShowProfileModal(false);
                 setSelectedProfile(null);
-                // Refresh the likes list to show updated match status
-                fetchLikes();
               }
             } else if (direction === 'left') {
-              // Just close the modal for pass
               setShowProfileModal(false);
               setSelectedProfile(null);
             }

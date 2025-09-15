@@ -6,13 +6,43 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+interface ThreadData {
+  id: string        JSON.stringify({ 
+        error: error instanceof Error ? error.message : 'An unexpected error occurred',
+        details: error instanceof Error ? error : 'Unknown error' 
+      }), user_id: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+  likes_count: number;
+  replies_count: number;
+}
+
+interface ProfileData {
+  user_id: string;
+  first_name: string;
+  profile_images?: string[];
+}
+
+interface ThreadReply {
+  id: string;
+  thread_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  author?: {
+    first_name: string;
+    profile_images?: string[];
+  };
+}
+
 interface ThreadRequest {
   action: 'list' | 'create' | 'update' | 'delete' | 'like' | 'unlike' | 'reply';
   threadId?: string;
   content?: string;
 }
 
-serve(async (req) => {
+serve(async (req: Request) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -87,11 +117,11 @@ serve(async (req) => {
         if (threadsError) throw threadsError;
 
         // Fetch author profile info separately (no FK link exists between threads.user_id and profiles)
-        const userIds = Array.from(new Set((threadsData || []).map((t: any) => t.user_id).filter(Boolean)));
+        const userIds = Array.from(new Set((threadsData || []).map((t: ThreadData) => t.user_id).filter(Boolean)));
 
         // Fetch replies for all threads
-        const threadIds = (threadsData || []).map((t: any) => t.id);
-        let repliesByThreadId: Record<string, any[]> = {};
+        const threadIds = (threadsData || []).map((t: ThreadData) => t.id);
+        let repliesByThreadId: Record<string, ThreadReply[]> = {};
         
         if (threadIds.length > 0) {
           const { data: repliesData, error: repliesError } = await supabase
@@ -103,18 +133,18 @@ serve(async (req) => {
           if (repliesError) throw repliesError;
 
           // Get user IDs from replies for profile lookup
-          const replyUserIds = Array.from(new Set((repliesData || []).map((r: any) => r.user_id).filter(Boolean)));
+          const replyUserIds = Array.from(new Set((repliesData || []).map((r: ThreadReply) => r.user_id).filter(Boolean)));
           userIds.push(...replyUserIds);
 
           // Group replies by thread_id
-          repliesByThreadId = (repliesData || []).reduce((acc: Record<string, any[]>, reply: any) => {
+          repliesByThreadId = (repliesData || []).reduce((acc: Record<string, ThreadReply[]>, reply: ThreadReply) => {
             if (!acc[reply.thread_id]) acc[reply.thread_id] = [];
             acc[reply.thread_id].push(reply);
             return acc;
           }, {});
         }
 
-        let profilesByUserId: Record<string, any> = {};
+        let profilesByUserId: Record<string, ProfileData> = {};
         const uniqueUserIds = Array.from(new Set(userIds));
         if (uniqueUserIds.length > 0) {
           const { data: profiles, error: profilesError } = await supabase
@@ -124,23 +154,30 @@ serve(async (req) => {
 
           if (profilesError) throw profilesError;
 
-          profilesByUserId = (profiles || []).reduce((acc: Record<string, any>, p: any) => {
+          profilesByUserId = (profiles || []).reduce((acc: Record<string, ProfileData>, p: ProfileData) => {
             acc[p.user_id] = {
+              user_id: p.user_id,
               first_name: p.first_name,
               profile_images: p.profile_images,
             };
             return acc;
-          }, {} as Record<string, any>);
+          }, {} as Record<string, ProfileData>);
         }
 
-        const formatted = (threadsData || []).map((t: any) => ({
-          ...t,
-          author: profilesByUserId[t.user_id] || null,
-          replies: (repliesByThreadId[t.id] || []).map((reply: any) => ({
-            ...reply,
-            author: profilesByUserId[reply.user_id] || null,
-          })),
-        }));
+        const formatted = (threadsData || []).map((t: ThreadData) => {
+          const expiresAt = new Date(t.created_at);
+          expiresAt.setHours(expiresAt.getHours() + 24);
+          
+          return {
+            ...t,
+            author: profilesByUserId[t.user_id] || null,
+            replies: (repliesByThreadId[t.id] || []).map((reply: ThreadReply) => ({
+              ...reply,
+              author: profilesByUserId[reply.user_id] || null,
+            })),
+            expiresAt: expiresAt.toISOString(),
+          };
+        });
 
         console.log(`Retrieved ${formatted.length} threads`);
         return new Response(
@@ -148,7 +185,7 @@ serve(async (req) => {
           { headers: corsHeaders }
         );
       }
-      case 'create':
+      case 'create': {
         if (!content || !userId) {
           return new Response(
             JSON.stringify({ error: 'Content is required and user must be authenticated' }),
@@ -173,7 +210,7 @@ serve(async (req) => {
           { headers: corsHeaders }
         );
 
-      case 'update':
+      case 'update': {
         if (!threadId || !content || !userId) {
           return new Response(
             JSON.stringify({ error: 'ThreadId and content are required and user must be authenticated' }),
@@ -300,7 +337,7 @@ serve(async (req) => {
         );
     }
 
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     console.error('Thread management error:', error);
     return new Response(
       JSON.stringify({ 

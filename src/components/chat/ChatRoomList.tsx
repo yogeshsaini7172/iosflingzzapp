@@ -10,7 +10,7 @@ interface ChatRoomListProps {
   loading: boolean;
   wsConnected?: boolean;
   connectionStatus?: 'connecting' | 'connected' | 'disconnected' | 'error';
-  onlineUsers?: string[];
+  onlineUsers?: Set<string>; // Correctly typed as a Set
   currentUserId?: string;
   onRoomSelect: (room: ChatRoom) => void;
   onBack: () => void;
@@ -22,7 +22,7 @@ const ChatRoomList = ({
   loading, 
   wsConnected = false,
   connectionStatus = 'disconnected',
-  onlineUsers = [],
+  onlineUsers = new Set(), // Default to an empty Set
   currentUserId = '',
   onRoomSelect, 
   onBack, 
@@ -32,23 +32,18 @@ const ChatRoomList = ({
     const date = new Date(dateString);
     const now = new Date();
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
-
-    if (diffInHours < 1) {
-      return `${Math.floor(diffInHours * 60)}m`;
-    } else if (diffInHours < 24) {
-      return `${Math.floor(diffInHours)}h`;
-    } else {
-      return `${Math.floor(diffInHours / 24)}d`;
-    }
+    if (diffInHours < 1) return `${Math.floor(diffInHours * 60)}m`;
+    if (diffInHours < 24) return `${Math.floor(diffInHours)}h`;
+    return `${Math.floor(diffInHours / 24)}d`;
   };
 
-  // Check if other user is online
   const isUserOnline = (room: ChatRoom) => {
-    const otherUserId = room.user1_id === currentUserId ? room.user2_id : room.user1_id;
-    return onlineUsers.includes(otherUserId);
+    const otherUserId = room.user_a_id === currentUserId ? room.user_b_id : room.user_a_id;
+    // --- THIS IS THE FIX ---
+    // Changed from onlineUsers.includes() to onlineUsers.has()
+    return onlineUsers.has(otherUserId);
   };
 
-  // Get connection status display
   const getConnectionStatus = () => {
     if (wsConnected && connectionStatus === 'connected') {
       return { icon: Wifi, text: 'Real-time chat active', color: 'text-green-600' };
@@ -74,7 +69,6 @@ const ChatRoomList = ({
 
   return (
     <div className="min-h-screen bg-gradient-soft">
-      {/* Header */}
       <div className="sticky top-0 z-40 bg-card/90 backdrop-blur-lg border-b border-border">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center mb-3">
@@ -87,7 +81,6 @@ const ChatRoomList = ({
                 {chatRooms.length} conversation{chatRooms.length !== 1 ? 's' : ''}
               </p>
             </div>
-            
             <Button 
               variant="outline" 
               size="sm"
@@ -98,8 +91,6 @@ const ChatRoomList = ({
               Requests
             </Button>
           </div>
-
-          {/* Connection Status */}
           <div className="flex items-center gap-2 text-sm">
             {(() => {
               const status = getConnectionStatus();
@@ -115,7 +106,6 @@ const ChatRoomList = ({
         </div>
       </div>
 
-      {/* Chat Rooms List */}
       <div className="container mx-auto px-4 py-6 max-w-md space-y-3">
         {chatRooms.length === 0 ? (
           <div className="text-center py-12">
@@ -128,7 +118,6 @@ const ChatRoomList = ({
         ) : (
           chatRooms.map((room) => {
             const isOnline = isUserOnline(room);
-            
             return (
               <Card
                 key={room.id}
@@ -152,7 +141,6 @@ const ChatRoomList = ({
                         <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-background rounded-full" />
                       )}
                     </div>
-                    
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
@@ -169,11 +157,9 @@ const ChatRoomList = ({
                           {formatTime(room.last_message_time || room.updated_at)}
                         </span>
                       </div>
-                      
                       <p className="text-sm text-muted-foreground truncate">
                         {room.last_message || "Start your conversation..."}
                       </p>
-                      
                       {room.other_user?.university && (
                         <p className="text-xs text-muted-foreground mt-1">
                           {room.other_user.university}
