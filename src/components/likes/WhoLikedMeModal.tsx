@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 interface WhoLikedMeModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onLike?: () => void; // Callback when a like is successful
 }
 
 interface UserLike {
@@ -28,7 +29,7 @@ interface UserLike {
   is_mutual_match: boolean;
 }
 
-const WhoLikedMeModal = ({ isOpen, onClose }: WhoLikedMeModalProps) => {
+const WhoLikedMeModal = ({ isOpen, onClose, onLike }: WhoLikedMeModalProps) => {
   const [likes, setLikes] = useState<UserLike[]>([]);
   const [loading, setLoading] = useState(true);
   const [canSeeLikes, setCanSeeLikes] = useState(false);
@@ -220,6 +221,10 @@ const WhoLikedMeModal = ({ isOpen, onClose }: WhoLikedMeModalProps) => {
           title: "Like sent! ❤️",
           description: "You'll be notified if they like you back",
         });
+        // Notify parent that a like was successful
+        if (onLike) {
+          onLike();
+        }
         return { isMatch: false };
       }
     } catch (error) {

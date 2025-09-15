@@ -24,25 +24,29 @@ serve(async (req: Request) => {
       }
     )
 
-    // Calculate cutoff time (24 hours ago)
+    // Calculate cutoff time (1 minute ago for testing)
     const cutoffTime = new Date()
-    cutoffTime.setHours(cutoffTime.getHours() - 24)
+    cutoffTime.setMinutes(cutoffTime.getMinutes() - 1)
 
-    // Delete threads older than 24 hours
-    const { error } = await supabase
+    // Delete threads older than 1 minute
+    const { error, count } = await supabase
       .from('threads')
       .delete()
       .lt('created_at', cutoffTime.toISOString())
+      .select('*', { count: 'exact', head: true })
 
     if (error) {
       throw error
     }
 
+    console.log(`Deleted ${count} threads older than 1 minute`)
+
     return new Response(
       JSON.stringify({
         success: true,
         message: 'Expired threads cleaned up successfully',
-        cutoffTime: cutoffTime.toISOString()
+        cutoffTime: cutoffTime.toISOString(),
+        threadsDeleted: count || 0
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
