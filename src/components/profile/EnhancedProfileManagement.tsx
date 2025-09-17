@@ -136,16 +136,26 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       console.log("📊 Loading preferences data into form:", preferences);
       setFormData(prev => ({
         ...prev,
-        preferredGender: Array.isArray(preferences.preferred_gender) ? preferences.preferred_gender.map(g => g.toString()) : [],
+        preferredGender: Array.isArray(preferences.preferred_gender) ? preferences.preferred_gender.map(g => g.toString()) : ['male', 'female'], // Default to both genders
         ageRangeMin: preferences.age_range_min || 18,
         ageRangeMax: preferences.age_range_max || 30,
         heightRangeMin: preferences.height_range_min || 150,
         heightRangeMax: preferences.height_range_max || 200,
-        preferredBodyTypes: Array.isArray(preferences.preferred_body_types) ? preferences.preferred_body_types : [],
-        preferredValues: Array.isArray(preferences.preferred_values) ? preferences.preferred_values : [],
-        preferredMindset: Array.isArray(preferences.preferred_mindset) ? preferences.preferred_mindset : [],
-        preferredPersonalityTraits: Array.isArray(preferences.preferred_personality_traits) ? preferences.preferred_personality_traits : [],
-        preferredRelationshipGoal: Array.isArray(preferences.preferred_relationship_goal) ? preferences.preferred_relationship_goal : [],
+        preferredBodyTypes: Array.isArray(preferences.preferred_body_types) && preferences.preferred_body_types.length > 0 
+          ? preferences.preferred_body_types 
+          : ['slim', 'athletic', 'average'], // Provide sensible defaults
+        preferredValues: Array.isArray(preferences.preferred_values) && preferences.preferred_values.length > 0 
+          ? preferences.preferred_values 
+          : ['family_oriented', 'career_focused'], // Default values
+        preferredMindset: Array.isArray(preferences.preferred_mindset) && preferences.preferred_mindset.length > 0 
+          ? preferences.preferred_mindset 
+          : ['growth_mindset'], // Default mindset
+        preferredPersonalityTraits: Array.isArray(preferences.preferred_personality_traits) && preferences.preferred_personality_traits.length > 0 
+          ? preferences.preferred_personality_traits 
+          : ['outgoing', 'empathetic'], // Default traits
+        preferredRelationshipGoal: Array.isArray(preferences.preferred_relationship_goal) && preferences.preferred_relationship_goal.length > 0 
+          ? preferences.preferred_relationship_goal 
+          : ['serious_relationship'], // Default goal
         preferredSkinTone: Array.isArray(preferences.preferred_skin_tone) ? preferences.preferred_skin_tone : [],
         preferredFaceType: Array.isArray(preferences.preferred_face_type) ? preferences.preferred_face_type : [],
         preferredLoveLanguage: Array.isArray(preferences.preferred_love_language) ? preferences.preferred_love_language : [],
@@ -194,23 +204,25 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       show_profile: formData.isVisible
     });
 
-    // Update preferences
-    await updatePreferences({
-      preferred_gender: formData.preferredGender as any,
-      age_range_min: formData.ageRangeMin,
-      age_range_max: formData.ageRangeMax,
-      height_range_min: formData.heightRangeMin,
-      height_range_max: formData.heightRangeMax,
-      preferred_body_types: formData.preferredBodyTypes,
-      preferred_values: formData.preferredValues,
-      preferred_mindset: formData.preferredMindset,
-      preferred_personality_traits: formData.preferredPersonalityTraits,
-      preferred_relationship_goal: formData.preferredRelationshipGoal,
-      preferred_skin_tone: formData.preferredSkinTone,
-      preferred_face_type: formData.preferredFaceType,
-      preferred_love_language: formData.preferredLoveLanguage,
-      preferred_lifestyle: formData.preferredLifestyle
-    });
+  // Update preferences with validation
+  const preferencesToUpdate = {
+    preferred_gender: formData.preferredGender.length > 0 ? formData.preferredGender as any : ['male', 'female'], // Default to both if empty
+    age_range_min: formData.ageRangeMin,
+    age_range_max: formData.ageRangeMax,
+    height_range_min: formData.heightRangeMin,
+    height_range_max: formData.heightRangeMax,
+    preferred_body_types: formData.preferredBodyTypes.length > 0 ? formData.preferredBodyTypes : ['slim', 'athletic', 'average'], // Default to common types
+    preferred_values: formData.preferredValues.length > 0 ? formData.preferredValues : ['family_oriented', 'career_focused'], // Default values
+    preferred_mindset: formData.preferredMindset.length > 0 ? formData.preferredMindset : ['growth_mindset'], // Default mindset
+    preferred_personality_traits: formData.preferredPersonalityTraits.length > 0 ? formData.preferredPersonalityTraits : ['outgoing', 'empathetic'], // Default traits
+    preferred_relationship_goal: formData.preferredRelationshipGoal.length > 0 ? formData.preferredRelationshipGoal : ['serious_relationship'], // Default goal
+    preferred_skin_tone: formData.preferredSkinTone,
+    preferred_face_type: formData.preferredFaceType,
+    preferred_love_language: formData.preferredLoveLanguage,
+    preferred_lifestyle: formData.preferredLifestyle
+  };
+
+  await updatePreferences(preferencesToUpdate);
   };
 
   const toggleArrayItem = (field: keyof typeof formData, item: string, maxItems: number = 10) => {
