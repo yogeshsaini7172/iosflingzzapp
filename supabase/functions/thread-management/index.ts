@@ -235,6 +235,7 @@ serve(async (req: Request) => {
           JSON.stringify({ success: true, data: updatedThread }),
           { headers: corsHeaders }
         );
+      }
 
       case 'delete':
         if (!threadId || !userId) {
