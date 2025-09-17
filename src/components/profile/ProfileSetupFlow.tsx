@@ -290,40 +290,67 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       const profileResult = await profileResponse.json();
       console.log('Profile saved successfully:', profileResult);
 
-      // Create preferences if provided
-      if (profileData.preferredGender && profileData.preferredGender.length > 0) {
-        const preferencesPayload = {
-          preferred_gender: profileData.preferredGender,
-          age_range_min: profileData.ageRangeMin,
-          age_range_max: profileData.ageRangeMax,
-          preferred_relationship_goal: profileData.preferredRelationshipGoals,
-          height_range_min: profileData.heightRangeMin,
-          height_range_max: profileData.heightRangeMax,
-          preferred_body_types: profileData.preferredBodyTypes,
-          preferred_skin_tone: profileData.preferredSkinTone,
-          preferred_face_type: profileData.preferredFaceType,
-          preferred_values: profileData.preferredValues,
-          preferred_mindset: profileData.preferredMindset,
-          preferred_personality_traits: profileData.preferredPersonality,
-          preferred_love_language: profileData.preferredLoveLanguage || [],
-          preferred_lifestyle: profileData.preferredLifestyle || []
-        };
+      // Always create preferences - use defaults for empty values and ensure correct types
+      const preferencesPayload = {
+        preferred_gender: Array.isArray(profileData.preferredGender) ? profileData.preferredGender : [],
+        age_range_min: Number(profileData.ageRangeMin) || 18,
+        age_range_max: Number(profileData.ageRangeMax) || 30,
+        preferred_relationship_goals: Array.isArray(profileData.preferredRelationshipGoals) ? profileData.preferredRelationshipGoals : [],
+        height_range_min: Number(profileData.heightRangeMin) || 150,
+        height_range_max: Number(profileData.heightRangeMax) || 200,
+        preferred_body_types: Array.isArray(profileData.preferredBodyTypes) ? profileData.preferredBodyTypes : [],
+        preferred_skin_tone: Array.isArray(profileData.preferredSkinTone) ? profileData.preferredSkinTone : [],
+        preferred_face_type: Array.isArray(profileData.preferredFaceType) ? profileData.preferredFaceType : [],
+        preferred_values: Array.isArray(profileData.preferredValues) ? profileData.preferredValues : [],
+        preferred_mindset: Array.isArray(profileData.preferredMindset) ? profileData.preferredMindset : [],
+        preferred_personality_traits: Array.isArray(profileData.preferredPersonality) ? profileData.preferredPersonality : [],
+        preferred_love_languages: Array.isArray(profileData.preferredLoveLanguage) ? profileData.preferredLoveLanguage : [],
+        preferred_lifestyle: Array.isArray(profileData.preferredLifestyle) ? profileData.preferredLifestyle : []
+      };
 
-        const preferencesResponse = await fetchWithFirebaseAuth(
-          'https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/data-management',
-          {
-            method: 'POST',
-            body: JSON.stringify({ 
-              action: 'update_preferences',
-              preferences: preferencesPayload
-            })
-          }
-        );
+      console.log('🔄 Sending preferences payload:', JSON.stringify(preferencesPayload, null, 2));
 
-        if (!preferencesResponse.ok) {
-          console.warn('Preferences creation failed, but profile was created successfully');
-        } else {
-          console.log('Preferences created successfully');
+      const preferencesResponse = await fetchWithFirebaseAuth(
+        'https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/data-management',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            action: 'update_preferences',
+            preferences: preferencesPayload
+          })
+        }
+      );
+      
+
+      if (!preferencesResponse.ok) {
+        const errorData = await preferencesResponse.json().catch(() => ({}));
+        console.error('❌ Preferences creation failed:', {
+          status: preferencesResponse.status,
+          statusText: preferencesResponse.statusText,
+          error: errorData,
+          errorDetails: errorData.details,
+          errorMessage: errorData.error
+        });
+        
+        // Show the actual error to help debug
+        toast({
+          title: "Preferences Error (Debug)",
+          description: `${errorData.error || 'Unknown error'} - Status: ${preferencesResponse.status}`,
+          variant: "destructive"
+        });
+        
+        console.warn('Preferences creation failed, but profile was created successfully');
+      } else {
+        const successData = await preferencesResponse.json();
+        console.log('✅ Preferences created successfully:', successData);
+        
+        // Store preferences in localStorage for quick access
+        if (successData.data?.preferences) {
+          localStorage.setItem('user_preferences', JSON.stringify(successData.data.preferences));
+          console.log('💾 Preferences stored in localStorage');
         }
       }
       toast({ 
