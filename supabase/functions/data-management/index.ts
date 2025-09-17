@@ -352,6 +352,8 @@ serve(async (req) => {
           throw new Error('Preferences data is required');
         }
 
+        console.log(`[DEBUG] Raw preferences data:`, preferencesData);
+
         // Build requirements JSON from preferences data
         const requirements = {
           // Physical requirements
@@ -368,7 +370,8 @@ serve(async (req) => {
           preferred_personality_traits: preferencesData.preferred_personality_traits || [],
           preferred_values: preferencesData.preferred_values || [],
           preferred_mindset: preferencesData.preferred_mindset || [],
-          preferred_relationship_goals: preferencesData.preferred_relationship_goal || [],
+          // FIX: Handle both singular and plural forms from frontend
+          preferred_relationship_goals: preferencesData.preferred_relationship_goals || preferencesData.preferred_relationship_goal || [],
           preferred_interests: preferencesData.preferred_interests || [],
           preferred_love_languages: preferencesData.preferred_love_language || preferencesData.preferred_love_languages || [],
           preferred_communication_style: preferencesData.preferred_communication_style || [],
@@ -378,6 +381,8 @@ serve(async (req) => {
           personality_compatibility: preferencesData.personality_compatibility || "moderate",
           lifestyle_compatibility: preferencesData.lifestyle_compatibility || "important"
         };
+
+        console.log(`[DEBUG] Built requirements object:`, requirements);
 
         // Check if record exists
         const { data: existingPrefs } = await supabaseClient
@@ -409,11 +414,11 @@ serve(async (req) => {
 
         if (prefResult.error) throw prefResult.error;
 
-        // Also update the requirements in profiles table
+        // Also update the requirements in profiles table (FIX: Don't double-stringify)
         const { error: profileUpdateError } = await supabaseClient
           .from('profiles')
           .update({ 
-            requirements: JSON.stringify(requirements),
+            requirements: requirements,  // Store as JSON, not stringified JSON
             updated_at: new Date().toISOString()
           })
           .eq('firebase_uid', firebaseUid);
@@ -422,7 +427,9 @@ serve(async (req) => {
           console.warn('Could not update profile requirements:', profileUpdateError);
         }
 
-        console.log(`[DATA-MANAGEMENT] Preferences updated for ${firebaseUid}`);
+        console.log(`[DATA-MANAGEMENT] Preferences updated successfully for ${firebaseUid}`);
+        console.log(`[DEBUG] Final preferences data:`, prefResult.data);
+        
         return new Response(JSON.stringify({
           success: true,
           data: { user_id: firebaseUid, preferences: prefResult.data },
