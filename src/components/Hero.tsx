@@ -13,9 +13,9 @@ const Hero = () => {
       </div>
       
       <div className="container mx-auto px-4 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="flex flex-col lg:grid lg:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
-          <div className="text-center lg:text-left text-white">
+          <div className="order-2 lg:order-1 text-center lg:text-left text-white bg-white/10 backdrop-blur-sm p-6 rounded-3xl lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
             <h1 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
               Build Your
               <br />
@@ -23,11 +23,11 @@ const Hero = () => {
                 Digital Future
               </span>
             </h1>
-            
-            <p className="text-xl lg:text-2xl mb-8 text-white/90 max-w-lg">
+
+            <p className="text-xl lg:text-2xl mb-8 text-white/90 max-w-lg mx-auto lg:mx-0">
               Transform your business with our cutting-edge web solutions. Modern design meets powerful functionality.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Button variant="hero" size="lg" className="text-lg px-8 py-4">
                 Get Started
@@ -36,7 +36,7 @@ const Hero = () => {
                 Learn More
               </Button>
             </div>
-            
+
             <div className="mt-12 flex items-center gap-8 justify-center lg:justify-start text-white/80">
               <div className="text-center">
                 <div className="text-2xl font-bold text-white">500+</div>
@@ -52,13 +52,13 @@ const Hero = () => {
               </div>
             </div>
           </div>
-          
+
           {/* Right Content - Hero Image */}
-          <div className="relative">
+          <div className="order-1 lg:order-2 relative">
             <div className="relative z-10">
-              <img 
-                src={heroImage} 
-                alt="Modern web development and digital solutions" 
+              <img
+                src={heroImage}
+                alt="Modern web development and digital solutions"
                 className="w-full max-w-lg mx-auto rounded-3xl shadow-glow"
               />
             </div>

@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import React, { useState, useEffect, useRef } from "react";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart, X, Filter, RefreshCw, Settings, MoreHorizontal } from "lucide-react";
+import { Heart, X, RefreshCw, Settings, MoreHorizontal } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
-import { supabase } from "@/integrations/supabase/client";
 import DetailedProfileModal from "@/components/profile/DetailedProfileModal";
 import RebuiltChatSystem from "@/components/chat/RebuiltChatSystem";
 import { useRequiredAuth } from "@/hooks/useRequiredAuth";
@@ -28,88 +27,72 @@ interface SwipeProfile {
   mindset: string;
   major: string;
   year_of_study: number;
+  distance?: number;
+  weight?: number;
+  premium?: boolean;
 }
 
 interface EnhancedSwipeInterfaceProps {
   onNavigate: (view: string) => void;
 }
 
-const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => {
+const SWIPE_THRESHOLD = 100;
+
+const EnhancedSwipeInterface: React.FC<EnhancedSwipeInterfaceProps> = ({ onNavigate }) => {
   const [profiles, setProfiles] = useState<SwipeProfile[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [showDetailedProfile, setShowDetailedProfile] = useState(false);
   const [matchedChatId, setMatchedChatId] = useState<string>("");
-  const [filters, setFilters] = useState({
-    ageMin: 18,
-    ageMax: 30,
-    heightMin: 150,
-    heightMax: 200,
-    datingIntentions: [] as string[]
-  });
+
   const { toast } = useToast();
   const { userId, isLoading: authLoading } = useRequiredAuth();
 
-  // Show loading state while auth is being checked
-  if (authLoading || !userId) {
-    return (
-      <div className="flex items-center justify-center h-[600px] bg-gradient-subtle">
-        <div className="text-center animate-fade-in">
-          <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-6 text-primary animate-pulse-glow" />
-          <p className="text-foreground/70 font-modern text-lg">Authenticating...</p>
-        </div>
-      </div>
-    );
-  }
+  // Drag state
+  const [dragX, setDragX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartX = useRef<number | null>(null);
 
-  useEffect(() => {
-    fetchProfiles();
-  }, []);
-
+  // Fetch profiles
   const fetchProfiles = async () => {
     setIsLoading(true);
-
-    console.log("🔍 Starting profile fetch for user:", userId);
-
     try {
-      // Use data-management function to get profiles (has proper access)
-      // Use data-management function with real Firebase token
-      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/data-management', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'get_feed',
-          user_id: userId,
-          limit: 20
-        })
-      });
+      const response = await fetchWithFirebaseAuth(
+        "https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/data-management",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            action: "get_feed",
+            user_id: userId,
+            limit: 20,
+          }),
+        }
+      );
 
       if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        console.error("❌ Error calling data-management (get_feed):", err);
-        throw new Error(err?.error || 'Failed to fetch feed');
+        throw new Error("Failed to fetch feed");
       }
 
       const payload = await response.json();
       const profilesData = payload?.data?.profiles || [];
-      console.log("✅ Fetched profiles from data-management:", profilesData.length);
 
       const formattedProfiles = profilesData.map((profile: any) => ({
         ...profile,
-        age: profile.date_of_birth ? new Date().getFullYear() - new Date(profile.date_of_birth).getFullYear() : 22
+        age: profile.date_of_birth
+          ? new Date().getFullYear() - new Date(profile.date_of_birth).getFullYear()
+          : 22,
+        premium: profile.profile_images && profile.profile_images.length > 0,
       }));
 
-      console.log("✅ Fetched profiles via DB:", formattedProfiles.length);
       setProfiles(formattedProfiles);
-      
       if (formattedProfiles.length > 0) {
         toast({
           title: "Profiles Loaded!",
           description: `Found ${formattedProfiles.length} profiles to explore`,
         });
       }
-    } catch (error: any) {
-      console.error("❌ Error fetching feed profiles:", error);
+    } catch (error) {
       toast({
         title: "Error",
         description: "Failed to load profiles. Please try again.",
@@ -120,85 +103,74 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
     }
   };
 
-  const handleSwipe = async (direction: 'left' | 'right') => {
-    if (currentIndex >= profiles.length) return;
+  useEffect(() => {
+    if (userId) fetchProfiles();
+  }, [userId]);
 
+  // Handle swipe action - sends like/pass to backend and updates UI
+  const handleSwipe = async (direction: "left" | "right") => {
+    if (currentIndex >= profiles.length) return;
     const currentProfile = profiles[currentIndex];
 
-    console.log(`🎯 Processing ${direction} swipe via edge function:`, { userId, targetId: currentProfile.user_id });
-
     try {
-      // Call the enhanced-swipe-action via Supabase client (JWT not required now)
-      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/enhanced-swipe-action', {
-        method: 'POST',
-        body: JSON.stringify({
-          target_user_id: currentProfile.firebase_uid || currentProfile.user_id,
-          direction,
-        })
-      });
+      const response = await fetchWithFirebaseAuth(
+        "https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/enhanced-swipe-action",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            target_user_id: currentProfile.firebase_uid || currentProfile.user_id,
+            direction,
+          }),
+        }
+      );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Enhanced swipe error:', errorData);
-        throw new Error(errorData?.error || 'Failed to swipe');
-      }
+      if (!response.ok) throw new Error("Swipe failed");
 
       const resp = await response.json();
 
-      // Invoke succeeded; resp contains the function response
-
-      console.log('✅ Swipe recorded successfully via enhanced function:', resp);
-
-      // Handle match result
       if (resp?.matched) {
-        const chatRoomId = resp?.chatRoomId;
-        console.log('🎉 Match detected!', { resp, chatRoomId });
-        
         toast({
           title: "It's a Match! 🎉",
           description: `You and ${currentProfile.first_name} liked each other!`,
           duration: 5000,
         });
-        
-        // If we have a chat room ID, show it after a delay
-        if (chatRoomId) {
-          setTimeout(() => {
-            setMatchedChatId(chatRoomId);
-          }, 2000); // Show match notification first, then navigate to chat
+        if (resp?.chatRoomId) {
+          setTimeout(() => setMatchedChatId(resp.chatRoomId), 2000);
         }
-      } else if (direction === 'right') {
-        toast({
-          title: 'Like sent! 💖',
-          description: "We'll let you know if they like you back.",
-        });
+      } else if (direction === "right") {
+        toast({ title: "Like sent! 💖", description: "We'll notify you if they like you back." });
       } else {
-        toast({
-          title: 'Passed',
-          description: `You passed on ${currentProfile.first_name}`,
-        });
+        toast({ title: "Passed", description: `You passed on ${currentProfile.first_name}` });
       }
 
-      // Move to next profile
-      setCurrentIndex(prev => prev + 1);
+      setCurrentIndex((prev) => prev + 1);
       setCurrentImageIndex(0);
-    } catch (error: any) {
-      console.error('❌ Error handling swipe:', error);
+    } catch {
       toast({
-        title: 'Error',
-        description: 'Failed to process swipe. Please try again.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to process swipe. Please try again.",
+        variant: "destructive",
       });
     }
   };
 
+  // Auth Loading
+  if (authLoading || !userId) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-black to-gray-900">
+        <div className="text-center">
+          <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-6 text-pink-500" />
+          <p className="text-white/70 text-lg">Authenticating...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Chat view if matched
   if (matchedChatId) {
     return (
-      <div className="space-y-4">
-        <Button
-          variant="outline"
-          onClick={() => setMatchedChatId("")}
-          className="mb-4"
-        >
+      <div className="space-y-4 min-h-screen bg-gradient-to-br from-black to-gray-900 p-4">
+        <Button variant="outline" onClick={() => setMatchedChatId("")} className="mb-4">
           ← Back to Swiping
         </Button>
         <RebuiltChatSystem onNavigate={onNavigate} selectedChatId={matchedChatId} />
@@ -206,39 +178,29 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
     );
   }
 
+  // Loading profiles
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-[600px] bg-gradient-subtle">
-        <div className="text-center animate-fade-in">
-          <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-6 text-primary animate-pulse-glow" />
-          <p className="text-foreground/70 font-modern text-lg">Finding your perfect matches...</p>
-          <div className="mt-4 flex justify-center space-x-2">
-            <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
-            <div className="w-2 h-2 bg-accent rounded-full animate-bounce delay-100"></div>
-            <div className="w-2 h-2 bg-secondary rounded-full animate-bounce delay-200"></div>
-          </div>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-black to-gray-900">
+        <div className="text-center">
+          <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-6 text-pink-500" />
+          <p className="text-white/70 text-lg">Finding your perfect matches...</p>
         </div>
       </div>
     );
   }
 
+  // No profiles left
   if (currentIndex >= profiles.length) {
     return (
-      <div className="text-center py-20 bg-gradient-subtle min-h-screen flex items-center justify-center">
-        <div className="max-w-md mx-auto space-y-8 animate-elegant-entrance">
-          <div className="w-32 h-32 bg-gradient-royal rounded-full flex items-center justify-center mx-auto shadow-premium animate-float">
-            <Heart className="w-16 h-16 text-white animate-pulse-glow" />
+      <div className="text-center py-20 min-h-screen flex items-center justify-center bg-gradient-to-br from-black to-gray-900">
+        <div className="max-w-md mx-auto space-y-8">
+          <div className="w-32 h-32 bg-gradient-pink rounded-full flex items-center justify-center mx-auto">
+            <Heart className="w-16 h-16 text-white" />
           </div>
-          <div className="space-y-4">
-            <h2 className="text-3xl font-elegant font-bold text-gradient-primary">No More Elite Profiles!</h2>
-            <p className="text-foreground/70 font-modern text-lg leading-relaxed">
-              You've explored all premium matches. New exclusive profiles are added daily.
-            </p>
-          </div>
-          <Button 
-            onClick={fetchProfiles} 
-            className="bg-gradient-primary shadow-premium hover:shadow-glow transition-luxury font-modern font-semibold px-8 py-3 text-lg"
-          >
+          <h2 className="text-3xl font-bold text-gradient-pink">No More Profiles!</h2>
+          <p className="text-white/70 text-lg">New matches are added daily. Check back soon!</p>
+          <Button onClick={fetchProfiles} className="bg-gradient-pink px-8 py-3 text-lg">
             <RefreshCw className="w-5 h-5 mr-2" />
             Discover More
           </Button>
@@ -249,177 +211,175 @@ const EnhancedSwipeInterface = ({ onNavigate }: EnhancedSwipeInterfaceProps) => 
 
   const currentProfile = profiles[currentIndex];
 
-  // Reset image index when profile changes
-  useEffect(() => {
-    setCurrentImageIndex(0);
-  }, [currentIndex]);
+  const [showAbout, setShowAbout] = React.useState(false);
 
-  const handleImageNavigation = (direction: 'prev' | 'next') => {
-    if (!currentProfile?.profile_images || currentProfile.profile_images.length <= 1) return;
-    
-    const totalImages = currentProfile.profile_images.length;
-    if (direction === 'next') {
-      setCurrentImageIndex((prev) => (prev + 1) % totalImages);
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const scrollTop = e.currentTarget.scrollTop;
+    if (scrollTop > 50) {
+      setShowAbout(true);
     } else {
-      setCurrentImageIndex((prev) => (prev - 1 + totalImages) % totalImages);
+      setShowAbout(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
-      <div className="max-w-md mx-auto space-y-6 p-4">
-        
-        
-        {/* Premium Filters Bar */}
-        <div className="flex gap-3 p-2">
-          <Button variant="outline" size="sm" className="rounded-full glass-luxury border-primary/30 hover:bg-primary/10 transition-luxury">
-            <Filter className="w-4 h-4 mr-2 text-primary" />
-            <span className="font-modern">Age ▼</span>
-          </Button>
-          <Button variant="outline" size="sm" className="rounded-full glass-luxury border-accent/30 hover:bg-accent/10 transition-luxury">
-            <span className="font-modern">Height ▼</span>
-          </Button>
-          <Button variant="outline" size="sm" className="rounded-full glass-luxury border-secondary/30 hover:bg-secondary/10 transition-luxury">
-            <span className="font-modern">Dating ▼</span>
-          </Button>
-        </div>
-
-        {/* Premium Profile Card */}
-        <Card className="relative overflow-hidden h-[600px] shadow-premium border-gradient bg-gradient-card hover-elegant">
-          <div className="relative h-full">
-            {/* Profile Image */}
-            <div className="absolute inset-0">
-              {/* Tinder-style Progress Bars */}
-              {currentProfile?.profile_images && currentProfile.profile_images.length > 1 && (
-                <div className="absolute top-3 left-3 right-3 flex gap-1 z-20">
+    <div
+      className="min-h-screen bg-gradient-to-br from-black to-gray-900 flex flex-col items-center justify-start p-4 overflow-y-auto"
+      onScroll={handleScroll}
+      style={{ maxHeight: '100vh' }}
+    >
+      {/* Card */}
+      <Card
+        className="relative overflow-hidden shadow-lg rounded-3xl w-full max-w-md"
+        style={{
+          height: "60vh",
+          transform: `translateX(${dragX}px) rotate(${dragX / 15}deg)`,
+          transition: isDragging ? "none" : "transform 0.3s ease-in-out",
+        }}
+        onTouchStart={(e) => {
+          dragStartX.current = e.touches[0].clientX;
+          setIsDragging(true);
+        }}
+        onTouchMove={(e) => {
+          if (!isDragging || dragStartX.current === null) return;
+          const deltaX = e.touches[0].clientX - dragStartX.current;
+          setDragX(deltaX);
+        }}
+        onTouchEnd={() => {
+          setIsDragging(false);
+          if (dragX > SWIPE_THRESHOLD) handleSwipe("right");
+          else if (dragX < -SWIPE_THRESHOLD) handleSwipe("left");
+          setDragX(0);
+          dragStartX.current = null;
+        }}
+        onMouseDown={(e) => {
+          dragStartX.current = e.clientX;
+          setIsDragging(true);
+        }}
+        onMouseMove={(e) => {
+          if (!isDragging || dragStartX.current === null) return;
+          const deltaX = e.clientX - dragStartX.current;
+          setDragX(deltaX);
+        }}
+        onMouseUp={() => {
+          setIsDragging(false);
+          if (dragX > SWIPE_THRESHOLD) handleSwipe("right");
+          else if (dragX < -SWIPE_THRESHOLD) handleSwipe("left");
+          setDragX(0);
+          dragStartX.current = null;
+        }}
+      >
+        {/* Image */}
+        {currentProfile.profile_images?.length > 0 ? (
+          <>
+            <img
+              src={currentProfile.profile_images[currentImageIndex]}
+              alt={`${currentProfile.first_name}'s profile`}
+              className="w-full h-full object-cover rounded-3xl"
+            />
+            {/* Image Navigation */}
+            {currentProfile.profile_images.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentImageIndex((prev) => (prev > 0 ? prev - 1 : currentProfile.profile_images.length - 1));
+                  }}
+                  className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70"
+                  aria-label="Previous image"
+                >
+                  ‹
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentImageIndex((prev) => (prev < currentProfile.profile_images.length - 1 ? prev + 1 : 0));
+                  }}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70"
+                  aria-label="Next image"
+                >
+                  ›
+                </button>
+                {/* Dots Indicator */}
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-1">
                   {currentProfile.profile_images.map((_, index) => (
-                    <div 
+                    <div
                       key={index}
-                      className="flex-1 h-1 bg-black/20 rounded-full overflow-hidden"
-                    >
-                      <div 
-                        className={`h-full bg-white rounded-full transition-all duration-300 ${
-                          index === currentImageIndex ? 'w-full' : index < currentImageIndex ? 'w-full' : 'w-0'
-                        }`}
-                      />
-                    </div>
+                      className={`w-2 h-2 rounded-full ${index === currentImageIndex ? 'bg-white' : 'bg-white bg-opacity-50'}`}
+                    />
                   ))}
                 </div>
-              )}
-
-              {currentProfile.profile_images && currentProfile.profile_images.length > 0 ? (
-                <div className="relative w-full h-full">
-                  <img
-                    src={currentProfile.profile_images[currentImageIndex]}
-                    alt={`${currentProfile.first_name}'s profile photo ${currentImageIndex + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                  
-                  {/* Invisible tap areas for navigation */}
-                  {currentProfile.profile_images.length > 1 && (
-                    <>
-                      <div 
-                        className="absolute left-0 top-0 w-1/2 h-full cursor-pointer z-10"
-                        onClick={() => handleImageNavigation('prev')}
-                      />
-                      <div 
-                        className="absolute right-0 top-0 w-1/2 h-full cursor-pointer z-10"
-                        onClick={() => handleImageNavigation('next')}
-                      />
-                    </>
-                  )}
-
-                  {/* Photo count indicator */}
-                  {currentProfile.profile_images.length > 1 && (
-                    <div className="absolute top-16 right-4 bg-black/50 text-white text-sm px-2 py-1 rounded-full backdrop-blur-sm z-20">
-                      {currentImageIndex + 1}/{currentProfile.profile_images.length}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="w-full h-full bg-gradient-royal flex items-center justify-center">
-                  <div className="text-center text-white animate-fade-in">
-                    <div className="text-6xl mb-4">✨</div>
-                    <p className="font-elegant text-lg">Premium Profile</p>
-                  </div>
-                </div>
-              )}
-              
-              {/* Premium Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
-            </div>
-
-            {/* Premium Top Controls */}
-            <div className="absolute top-6 left-6 right-6 flex justify-between items-center z-10">
-              <Button variant="ghost" size="icon" className="glass-luxury text-white hover:bg-white/20 transition-luxury shadow-soft">
-                <Settings className="w-5 h-5" />
-              </Button>
-              <Button variant="ghost" size="icon" className="glass-luxury text-white hover:bg-white/20 transition-luxury shadow-soft">
-                <MoreHorizontal className="w-5 h-5" />
-              </Button>
-            </div>
-
-            {/* Premium Profile Info */}
-            <div className="absolute bottom-24 left-6 right-6 text-white z-10 animate-slide-up">
-              <div className="flex items-center gap-3 mb-4">
-                <h2 className="text-4xl font-elegant font-bold tracking-tight">
-                  {currentProfile.first_name}
-                </h2>
-                {currentProfile.age <= 20 && (
-                  <Badge className="bg-gradient-secondary text-black border-0 shadow-gold animate-shimmer">
-                    <span className="font-modern font-semibold">New Elite</span>
-                  </Badge>
-                )}
-              </div>
-              
-              <p className="text-lg opacity-90 mb-4 font-modern">
-                she/her • {currentProfile.age} years
-              </p>
-
-              <div 
-                className="cursor-pointer hover-luxury glass-dark-luxury p-4 rounded-xl border border-white/20 transition-luxury"
-                onClick={() => setShowDetailedProfile(true)}
-              >
-                <p className="text-lg mb-2 font-elegant text-gradient-gold">Together, we could</p>
-                <p className="text-xl font-medium opacity-90 font-modern">
-                  {currentProfile.bio || "explore new adventures together..."}
-                </p>
-              </div>
-            </div>
-
-            {/* Premium Heart Button */}
-            <Button
-              onClick={() => setShowDetailedProfile(true)}
-              size="icon"
-              className="absolute bottom-6 right-6 w-16 h-16 rounded-full bg-gradient-primary shadow-premium hover:shadow-glow transition-luxury animate-pulse-glow z-10"
-            >
-              <Heart className="w-7 h-7 text-white" />
-            </Button>
+              </>
+            )}
+          </>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-pink rounded-3xl">
+            <p className="text-white">Premium Profile</p>
           </div>
-        </Card>
+        )}
+      </Card>
 
-        {/* Premium Action Buttons */}
-        <div className="flex justify-center gap-8 pt-6">
-          <Button
-            onClick={() => handleSwipe('left')}
-            size="icon"
-            variant="outline"
-            className="w-16 h-16 rounded-full border-2 glass-luxury border-red-300/50 hover:bg-red-50 hover:border-red-400 hover:shadow-soft transition-luxury group"
-          >
-            <X className="w-7 h-7 text-red-500 group-hover:scale-110 transition-all" />
-          </Button>
-          
-          <Button
-            onClick={() => handleSwipe('right')}
-            size="icon"
-            className="w-16 h-16 rounded-full bg-gradient-rose shadow-premium hover:shadow-glow transition-luxury group animate-pulse-glow"
-          >
-            <Heart className="w-7 h-7 text-white group-hover:scale-110 transition-all" />
-          </Button>
+      {/* Basic Info Overlay */}
+      <div className="w-full max-w-md bg-black bg-opacity-70 rounded-b-3xl p-4 mt-[-4rem] relative z-10 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold">{currentProfile.first_name} {currentProfile.last_name}, {currentProfile.age}</h2>
+            <div className="flex items-center space-x-2 text-sm opacity-80">
+              <span>⭐ PREMIUM</span>
+              <span>•</span>
+              <span>{currentProfile.university || 'Unknown Location'}</span>
+            </div>
+          </div>
+          <button className="text-pink-500 hover:text-pink-400" aria-label="Like" onClick={() => handleSwipe("right")}>
+            <Heart className="w-8 h-8" />
+          </button>
+        </div>
+        <div className="mt-2 flex space-x-4 text-xs opacity-80">
+          <div className="flex items-center space-x-1">
+            <span>{currentProfile.distance ? `${currentProfile.distance} km` : "N/A"}</span>
+          </div>
+          <div className="flex items-center space-x-1">
+            <span>{currentProfile.weight ? `${currentProfile.weight} Kg` : "N/A"}</span>
+          </div>
+          <div className="flex items-center space-x-1">
+            <span>{currentProfile.height ? `${currentProfile.height} cm` : "N/A"}</span>
+          </div>
         </div>
       </div>
 
-      {/* Detailed Profile Modal */}
+      {/* About Section - shown on scroll */}
+      {showAbout && (
+        <Card className="w-full max-w-md mt-6 p-4 bg-black bg-opacity-80 text-white rounded-3xl">
+          <h3 className="text-xl font-semibold mb-2">About {currentProfile.first_name}</h3>
+          <p>{currentProfile.bio || "No additional information provided."}</p>
+          <div className="mt-4 space-y-1 text-sm opacity-80">
+            <div><strong>Interests:</strong> {currentProfile.interests.join(", ")}</div>
+            <div><strong>Relationship Goals:</strong> {currentProfile.relationship_goals.join(", ")}</div>
+            <div><strong>Height:</strong> {currentProfile.height} cm</div>
+            <div><strong>Personality Type:</strong> {currentProfile.personality_type}</div>
+            <div><strong>Values:</strong> {currentProfile.values}</div>
+            <div><strong>Mindset:</strong> {currentProfile.mindset}</div>
+            <div><strong>University:</strong> {currentProfile.university}</div>
+            <div><strong>Year of Study:</strong> {currentProfile.year_of_study}</div>
+            <div><strong>Major:</strong> {currentProfile.major}</div>
+          </div>
+        </Card>
+      )}
+
+      {/* Actions */}
+      <div className="flex justify-center gap-8 pt-6">
+        <Button onClick={() => handleSwipe("left")} size="icon" variant="outline">
+          <X className="w-8 h-8 text-red-600" />
+        </Button>
+        <Button onClick={() => setShowDetailedProfile(true)} size="icon" variant="outline">
+          <MoreHorizontal className="w-8 h-8 text-gray-400" />
+        </Button>
+        <Button onClick={() => handleSwipe("right")} size="icon" className="bg-gradient-pink">
+          <Heart className="w-8 h-8 text-white" />
+        </Button>
+      </div>
+
+      {/* Modal */}
       <DetailedProfileModal
         profile={currentProfile}
         isOpen={showDetailedProfile}

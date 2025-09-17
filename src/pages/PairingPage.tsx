@@ -319,22 +319,23 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
 
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
             <div>
-              <h1 className="text-3xl font-elegant font-bold text-gradient-primary mb-2">
+              <h1 className="text-2xl sm:text-3xl font-elegant font-bold text-gradient-primary mb-2">
                 Smart Pairing
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground text-sm sm:text-base">
                 AI-powered compatibility matching based on your profile and preferences
               </p>
             </div>
-            <Button 
+            <Button
               onClick={handleRefresh}
               disabled={isLoading}
-              className="bg-gradient-primary shadow-royal hover:opacity-90"
+              className="bg-gradient-primary shadow-royal hover:opacity-90 text-sm px-3 py-2 sm:px-4 sm:py-2 w-full sm:w-auto"
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-              Refresh Matches
+              <span className="hidden xs:inline">Refresh Matches</span>
+              <span className="xs:hidden">Refresh</span>
             </Button>
           </div>
 

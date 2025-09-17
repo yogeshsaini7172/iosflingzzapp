@@ -21,22 +21,22 @@ const TinderProfileCard = ({ profile, onLike, onDislike, onChat }) => {
   };
 
   return (
-    <div className="relative h-screen bg-black flex flex-col">
+    <div className="relative bg-black flex flex-col lg:h-screen">
       {/* Background Image */}
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        className="h-96 lg:absolute lg:inset-0 bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: profile.image && profile.image.trim() !== ''
             ? `url(${profile.image})`
             : `url(https://placehold.co/400x700/1a1a1a/ffffff?text=No+Image)`,
         }}
       ></div>
-      
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-black bg-opacity-60"></div>
+
+      {/* Overlay - only on lg */}
+      <div className="hidden lg:block absolute inset-0 bg-black bg-opacity-60"></div>
 
       {/* Profile Info */}
-      <div className="relative z-10 flex flex-col justify-end p-6 text-white">
+      <div className="lg:relative lg:z-10 lg:flex lg:flex-col lg:justify-end p-6 text-white lg:p-6">
         {/* Premium Badge */}
         {profile.isPremium && (
           <div className="flex items-center space-x-1 mb-2">

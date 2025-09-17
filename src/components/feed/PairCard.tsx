@@ -60,20 +60,22 @@ export function PairCard({ profile, onSwipe, onViewProfile }: PairCardProps) {
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
           
-          {/* Basic info overlay */}
-          <div className="absolute bottom-4 left-4 right-4 text-white">
-            <h3 className="text-xl font-bold mb-1">
-              {profile.display_name}, {profile.age}
-            </h3>
-            <div className="flex items-center gap-2 text-sm opacity-90">
-              <MapPin className="w-3 h-3" />
-              <span>{profile.location || "Location not specified"}</span>
-            </div>
-          </div>
+
         </div>
 
         {/* Content Section */}
         <CardContent className="p-4 space-y-3">
+          {/* Moved Basic info here */}
+          <div className="text-gray-900">
+            <h3 className="text-xl font-bold mb-1">
+              {profile.display_name}, {profile.age}
+            </h3>
+            <div className="flex items-center gap-2 text-sm opacity-90 mb-2">
+              <MapPin className="w-3 h-3" />
+              <span>{profile.location || "Location not specified"}</span>
+            </div>
+          </div>
+
           {/* Bio */}
           {profile.bio && (
             <p className="text-sm text-gray-600 line-clamp-2">

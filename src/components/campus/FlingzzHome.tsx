@@ -340,11 +340,11 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
       </div>
 
       {/* Threads Section */}
-      <div className="bg-card/80 backdrop-blur-md border-b border-border/50 p-4">
-        <div className="flex items-center justify-between mb-4">
+      <div className="bg-card/80 backdrop-blur-md border-b border-border/50 px-6 py-4 sm:px-4">
+        <div className="flex items-center justify-center mb-4">
           <h2 className="text-lg font-display font-bold text-foreground">Community Threads</h2>
         </div>
-        <div className="flex space-x-3 overflow-x-auto scrollbar-hide pb-2">
+        <div className="flex flex-col space-y-3 sm:flex-row sm:space-y-0 sm:space-x-3 sm:overflow-x-auto scrollbar-hide pb-2">
           {/* Add Today's Thread Option OR User's Thread Management */}
           {(() => {
             const userThreads = threads.filter(t => t.user_id === (user?.uid || ''));
@@ -354,10 +354,10 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
               return (
                 <Dialog open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
                   <DialogTrigger asChild>
-                    <div className="flex-shrink-0 w-64">
+                    <div className="flex-shrink-0 w-full sm:w-96">
                       <Card className="p-4 bg-gradient-primary text-primary-foreground border-0 hover:shadow-glow transition-all cursor-pointer">
                         <div className="flex items-center justify-center space-x-2 mb-3">
-                          <Plus className="w-5 h-5" />
+                          <Plus className="w-4 h-5" />
                           <span className="font-semibold text-sm">Share Your Thoughts</span>
                         </div>
                         <p className="text-xs text-primary-foreground/90 text-center">What's on your mind today?</p>
@@ -407,7 +407,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
               const latestUserThread = userThreads[0];
               const threadAuthor = latestUserThread.author?.first_name || 'You';
               return (
-                <div className="flex-shrink-0 w-64">
+                <div className="flex-shrink-0 w-full sm:w-64">
                   <Card className="p-4 bg-gradient-secondary text-secondary-foreground border-0">
                     <div className="space-y-3">
                       <div className="text-center">
@@ -453,7 +453,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
             const hasReplies = thread.replies && thread.replies.length > 0;
             
             return (
-              <div key={thread.id} className="flex-shrink-0 w-72">
+              <div key={thread.id} className="flex-shrink-0 w-full sm:w-72">
                  <Card className="p-4 bg-card/80 backdrop-blur-sm border-border/50 hover:bg-card transition-colors h-full">
                   <div className="flex space-x-3 mb-3">
                     <Avatar className="w-8 h-8">
