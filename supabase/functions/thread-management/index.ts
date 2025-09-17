@@ -207,6 +207,7 @@ serve(async (req: Request) => {
           JSON.stringify({ success: true, data: newThread }),
           { headers: corsHeaders }
         );
+      }
 
       case 'update': {
         if (!threadId || !content || !userId) {
