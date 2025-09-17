@@ -433,6 +433,17 @@ serve(async (req) => {
         });
 
       case 'get_feed':
+        console.log(`[DATA-MANAGEMENT] Fetching feed for user: ${firebaseUid}`);
+        
+        // Get user's gender preferences
+        const { data: userPreferences } = await supabaseClient
+          .from('partner_preferences')
+          .select('preferred_gender, age_range_min, age_range_max')
+          .eq('user_id', firebaseUid)
+          .maybeSingle();
+
+        console.log(`[DATA-MANAGEMENT] User preferences:`, userPreferences);
+
         // Get swiped users to exclude
         const { data: swipedUsers } = await supabaseClient
           .from('enhanced_swipes')
@@ -441,28 +452,89 @@ serve(async (req) => {
 
         const swipedUserIds = swipedUsers?.map(s => s.target_user_id) || []
 
+        // Get blocked users to exclude
+        const { data: blockedUsers } = await supabaseClient
+          .from('user_interactions')
+          .select('target_user_id')
+          .eq('user_id', firebaseUid)
+          .in('interaction_type', ['ghost', 'bench'])
+
+        const blockedUserIds = blockedUsers?.map(b => b.target_user_id) || []
+
+        // Get matched users to exclude
+        const { data: matchedUsers } = await supabaseClient
+          .from('enhanced_matches')
+          .select('user1_id, user2_id')
+          .or(`user1_id.eq.${firebaseUid},user2_id.eq.${firebaseUid}`)
+
+        const matchedUserIds = matchedUsers?.map(m => 
+          m.user1_id === firebaseUid ? m.user2_id : m.user1_id
+        ) || []
+
+        // Build exclusion list
+        const allExcludedIds = [
+          firebaseUid,
+          ...swipedUserIds,
+          ...blockedUserIds,
+          ...matchedUserIds
+        ]
+
+        console.log(`[DATA-MANAGEMENT] Excluding ${allExcludedIds.length} users from feed`);
+
         // Build profile query
         let feedQuery = supabaseClient
           .from('profiles')
           .select('*')
           .eq('is_active', true)
           .eq('show_profile', true)
-          .neq('firebase_uid', firebaseUid)
+          .neq('user_id', firebaseUid)
 
-        // Exclude swiped users
-        if (swipedUserIds.length > 0) {
-          feedQuery = feedQuery.not('firebase_uid', 'in', `(${swipedUserIds.join(',')})`)
+        // Exclude all blocked/swiped/matched users
+        if (allExcludedIds.length > 1) { // More than just the current user
+          feedQuery = feedQuery.not('user_id', 'in', `(${allExcludedIds.join(',')})`)
+        }
+
+        // Apply gender filtering based on user preferences
+        if (userPreferences?.preferred_gender && userPreferences.preferred_gender.length > 0) {
+          const preferredGenders = userPreferences.preferred_gender
+            .map((g: any) => (typeof g === 'string' ? g.toLowerCase().trim() : ''))
+            .filter((g: string) => g && ['male', 'female', 'non_binary'].includes(g))
+
+          console.log(`[DATA-MANAGEMENT] Applying gender filter:`, preferredGenders);
+          
+          if (preferredGenders.length > 0) {
+            feedQuery = feedQuery.in('gender', preferredGenders)
+          }
+        }
+
+        // Apply age filtering based on user preferences
+        if (userPreferences?.age_range_min || userPreferences?.age_range_max) {
+          const currentYear = new Date().getFullYear()
+          
+          if (userPreferences.age_range_max) {
+            // For max age 30, show people born after (currentYear - 30)
+            const minBirthYear = currentYear - userPreferences.age_range_max
+            feedQuery = feedQuery.gte('date_of_birth', `${minBirthYear}-01-01`)
+          }
+          
+          if (userPreferences.age_range_min) {
+            // For min age 18, show people born before (currentYear - 18)
+            const maxBirthYear = currentYear - userPreferences.age_range_min
+            feedQuery = feedQuery.lte('date_of_birth', `${maxBirthYear}-12-31`)
+          }
+          
+          console.log(`[DATA-MANAGEMENT] Applying age filter: ${userPreferences.age_range_min}-${userPreferences.age_range_max}`);
         }
 
         const { data: feedProfiles, error: feedError } = await feedQuery.limit(limit || 20);
 
         if (feedError) throw feedError;
 
-        console.log(`[DATA-MANAGEMENT] Feed fetched: ${feedProfiles?.length} profiles`);
+        console.log(`[DATA-MANAGEMENT] Feed fetched: ${feedProfiles?.length} profiles with gender filtering applied`);
         return new Response(JSON.stringify({
           success: true,
           data: { profiles: feedProfiles || [] },
-          message: 'Feed fetched'
+          message: 'Feed fetched with preferences applied'
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200,
