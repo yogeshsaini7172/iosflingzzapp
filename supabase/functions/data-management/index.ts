@@ -442,8 +442,6 @@ serve(async (req) => {
             .maybeSingle();
           prefResult = { data, error };
         }
-          prefResult = { data, error };
-        }
 
         if (prefResult.error) throw prefResult.error;
 
