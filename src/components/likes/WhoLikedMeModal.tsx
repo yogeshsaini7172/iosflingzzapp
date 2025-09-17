@@ -207,9 +207,13 @@ const WhoLikedMeModal = ({ isOpen, onClose, onLike }: WhoLikedMeModalProps) => {
         return { isMatch: false };
       }
 
-      // Check for match from the combined response
-      if (result.data?.isMatch) {
-        // It's a match! Show success message
+      // Check for match from the combined response  
+      const isMatchResult = result.success && (
+        (result as any).matched === true || 
+        (result as any).isMatch === true || 
+        (result as any).data?.matched === true
+      );
+        if (isMatchResult) {
         toast({
           title: "It's a Match! 🎉",
           description: `You and ${userLike.first_name} can now start chatting!`,

@@ -4,11 +4,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface ChatMessage {
-  id?: number;
+  id?: string;
   room_id?: string;
   sender_id: string;
   content: string;
   created_at?: string;
+  match_id?: string;
 }
 
 export const useChat = (roomId: string | undefined) => {
@@ -22,12 +23,12 @@ export const useChat = (roomId: string | undefined) => {
     console.log('useChat: Attempting to fetch messages...');
     if (!roomId) {
       console.warn('useChat: No roomId provided, aborting fetch.');
-      setLoading(false); // Make sure to stop loading if there's no room
+      setLoading(false);
       return;
     }
     if (!user) {
       console.warn('useChat: No user found, aborting fetch.');
-      setLoading(false); // Also stop loading if there's no user
+      setLoading(false);
       return;
     }
 
@@ -36,36 +37,42 @@ export const useChat = (roomId: string | undefined) => {
       setError(null);
       console.log(`useChat: Fetching messages for room: ${roomId}`);
 
-      const { data, error: fetchError } = await supabase
+      // Simplified message fetching to avoid type issues
+      const response = await (supabase as any)
         .from('messages')
         .select('*')
         .eq('room_id', roomId)
         .order('created_at', { ascending: true });
 
+      const data = response.data;
+      const fetchError = response.error;
+
       if (fetchError) {
         console.error('useChat: Error fetching messages from Supabase:', fetchError);
         setError('Failed to load chat history.');
-        return; // Important: exit here if there's an error
+        return;
       }
 
       console.log('useChat: Successfully fetched messages:', data);
-      const formattedMessages = data.map(msg => ({
-        ...msg,
+      const formattedMessages: ChatMessage[] = (data || []).map((msg: any) => ({
+        id: msg.id?.toString(),
         sender_id: msg.sender_id,
         content: msg.content,
+        created_at: msg.created_at,
+        room_id: roomId,
+        match_id: msg.match_id?.toString()
       }));
 
-      setMessages(formattedMessages || []);
+      setMessages(formattedMessages);
 
     } catch (err) {
       console.error('useChat: An unexpected error occurred:', err);
       setError('An unexpected error occurred.');
     } finally {
-      // This block will always run, ensuring loading is set to false
       console.log('useChat: Fetch finished, setting loading to false.');
       setLoading(false);
     }
-  }, [roomId, user]);
+  }, [roomId, user?.uid]);
 
   useEffect(() => {
     fetchMessages();

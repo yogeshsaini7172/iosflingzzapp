@@ -258,8 +258,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         behavior_score: Math.floor(totalScore * 0.3)
       };
       
-      // Add the full QCS score object to the profile
-      completeProfile.qcs_score = qcsScore;
+      // Note: QCS score will be stored separately in qcs table
 
       // Log the complete profile data before sending
       console.log('Complete profile data:', JSON.stringify(completeProfile, null, 2));

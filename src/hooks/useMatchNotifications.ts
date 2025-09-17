@@ -22,10 +22,15 @@ export const useMatchNotifications = () => {
     }
   }, [queryClient, userId]);
 
-  useRealtime('enhanced_swipes', `target_user_id=eq.${userId}`, handleNewLike);
-  useRealtime(
-    'enhanced_matches',
-    `or=(user1_id.eq.${userId},user2_id.eq.${userId})`,
-    handleNewMatch
-  );
+  useRealtime({
+    table: 'enhanced_swipes',
+    filter: `target_user_id=eq.${userId}`,
+    onInsert: handleNewLike
+  });
+  
+  useRealtime({
+    table: 'enhanced_matches',
+    filter: `or=(user1_id.eq.${userId},user2_id.eq.${userId})`,
+    onInsert: handleNewMatch
+  });
 };

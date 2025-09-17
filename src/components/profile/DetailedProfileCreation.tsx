@@ -192,129 +192,68 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
           user_id: user.id,
           first_name: profileData.firstName || null,
           last_name: profileData.lastName || null,
+          email: user.email || `${user.id}@firebase.user`,
           date_of_birth: profileData.dateOfBirth || null,
-          gender: profileData.gender || null,
-          college_name: profileData.college || null,
+          gender: (profileData.gender as 'male' | 'female' | 'non_binary' | 'prefer_not_to_say') || 'prefer_not_to_say',
           university: profileData.university || null,
           field_of_study: profileData.fieldOfStudy || null,
           education_level: profileData.educationLevel || null,
           profession: profileData.profession || null,
-          phone_number: profileData.phoneNumber || null,
           is_profile_public: profileData.isProfilePublic || false,
-          profile_pictures: imageUrls.length > 0 ? imageUrls : null,
-          bio_length: profileData.bio?.length || 0,
+          profile_images: imageUrls.length > 0 ? imageUrls : null,
+          bio: profileData.bio || null,
+          height: profileData.height ? parseInt(profileData.height) : null,
+          body_type: profileData.bodyType || null,
+          skin_tone: profileData.skinTone || null,
+          face_type: profileData.faceType || null,
+          personality_type: profileData.personalityType || null,
+          love_language: profileData.loveLanguage || null,
+          interests: profileData.interests?.length ? profileData.interests : null,
+          relationship_goals: profileData.relationshipGoal ? [profileData.relationshipGoal] : null,
           updated_at: new Date().toISOString()
         });
 
       if (profileError) throw profileError;
 
-      // 3. Save personality data with proper null checks
-      const personalityData = {
-        user_id: user.id,
-        personality_type: profileData.personalityType || 'not_specified',
-        personality_traits: profileData.personalityTraits?.length ? profileData.personalityTraits : ['not_specified'],
-        hobbies: profileData.hobbies?.length ? profileData.hobbies : ['not_specified'],
-        relationship_goal: profileData.relationshipGoal || 'not_specified',
-        humor_style: profileData.humorStyle || 'not_specified',
-        love_language: profileData.loveLanguage || 'not_specified',
-        bio: profileData.bio || 'No bio provided',
-        interests: profileData.interests?.length ? profileData.interests : ['not_specified'],
-        body_type: profileData.bodyType || 'not_specified',
-        skin_tone: profileData.skinTone || 'not_specified',
-        face_type: profileData.faceType || 'not_specified',
-        values: profileData.values?.length ? profileData.values : ['not_specified'],
-        mindset: profileData.mindset?.length ? profileData.mindset : ['not_specified'],
-        communication_style: profileData.communicationStyle || 'not_specified',
-        lifestyle: profileData.lifestyle?.length ? profileData.lifestyle : ['not_specified'],
-        education_level: profileData.educationLevel || 'not_specified',
-        profession: profileData.profession || 'not_specified'
+      // 3. Update additional profile data (personality traits, values, etc.)
+      const additionalUpdates = {
+        personality_traits: profileData.personalityTraits?.length ? profileData.personalityTraits : null,
+        values_array: profileData.values?.length ? profileData.values : null,
+        mindset: profileData.mindset?.length ? profileData.mindset?.[0] : null,
+        lifestyle: profileData.lifestyle?.length ? profileData.lifestyle?.[0] : null
       };
 
-      const { error: personalityError } = await supabase
-        .from('user_personality')
-        .upsert(personalityData);
+      const { error: additionalError } = await supabase
+        .from('profiles')
+        .update(additionalUpdates)
+        .eq('user_id', user.id);
 
-      if (personalityError) throw personalityError;
+      if (additionalError) throw additionalError;
 
-      // 4. Save preferences with proper null checks and default values
+      // 4. Save partner preferences
       const preferencesData = {
         user_id: user.id,
-        bio: profileData.bio || 'No bio provided',
-        interests: profileData.interests?.length ? profileData.interests : ['not_specified'],
-        profile_images: imageUrls.length ? imageUrls : [],
-        height: profileData.height ? parseInt(profileData.height) : 0,
-        body_type: profileData.bodyType || 'not_specified',
-        skin_tone: profileData.skinTone || 'not_specified',
-        face_type: profileData.faceType || 'not_specified',
-        personality_type: profileData.personalityType || 'not_specified',
-        humor_type: profileData.humorStyle || 'not_specified',
-        love_language: profileData.loveLanguage || 'not_specified',
-        relationship_goals: profileData.relationshipGoal ? [profileData.relationshipGoal] : ['not_specified'],
-        verification_status: 'pending',
-        is_profile_public: Boolean(profileData.isProfilePublic),
-        college_tier: 'tier3',
-        subscription_tier: 'free',
-        swipes_left: 10,
-        // Additional fields with proper null checks
-        preferred_body_types: profileData.preferredBodyShape?.length ? profileData.preferredBodyShape : ['not_specified'],
-        preferred_skin_types: profileData.preferredSkinType?.length ? profileData.preferredSkinType : ['not_specified'],
-        preferred_face_types: profileData.preferredFaceTypes?.length ? profileData.preferredFaceTypes : ['not_specified'],
-        preferred_gender: profileData.preferredGender?.length ? profileData.preferredGender : ['not_specified'],
-        age_range_min: Number(profileData.ageRangeMin) || 18,
-        age_range_max: Number(profileData.ageRangeMax) || 30,
-        preferred_personality_traits: profileData.preferredPersonalityType?.length ? profileData.preferredPersonalityType : ['not_specified'],
-        preferred_values: profileData.preferredValues?.length ? profileData.preferredValues : ['not_specified'],
-        preferred_mindset: profileData.preferredMindset?.length ? profileData.preferredMindset : ['not_specified'],
-        preferred_relationship_goals: profileData.preferredRelationshipGoal?.length ? profileData.preferredRelationshipGoal : ['not_specified'],
-        preferred_love_languages: profileData.preferredLoveLanguages?.length ? profileData.preferredLoveLanguages : ['not_specified'],
-        preferred_lifestyle: profileData.preferredLifestyleHabits?.length ? profileData.preferredLifestyleHabits : ['not_specified'],
-        preferred_education_levels: profileData.preferredEducationLevels?.length ? profileData.preferredEducationLevels : ['not_specified'],
-        preferred_professions: profileData.preferredProfessions?.length ? profileData.preferredProfessions : ['not_specified'],
-        preferred_interests: profileData.preferredInterests?.length ? profileData.preferredInterests : ['not_specified'],
-        preferred_communication_style: profileData.preferredCommunicationStyle?.length ? profileData.preferredCommunicationStyle : ['not_specified'],
-        // Add qualities and requirements for proper scoring
-        qualities: JSON.stringify({
-          // Physical qualities
-          height: profileData.height ? parseInt(profileData.height) : null,
-          body_type: profileData.bodyType || null,
-          skin_tone: profileData.skinTone || null,
-          face_type: profileData.faceType || null,
-          // Mental/Personality qualities
-          personality_type: profileData.personalityType || null,
-          humor_type: profileData.humorStyle || null,
-          love_language: profileData.loveLanguage || null,
-          relationship_goal: profileData.relationshipGoal || null,
-          interests: profileData.interests || [],
-          hobbies: profileData.hobbies || [],
-          // Bio-derived qualities (simplified for now)
-          communication_style: profileData.bio ? "expressive" : "reserved",
-          profile_completeness: profileData.bio ? "detailed" : "basic"
-        }),
-        requirements: JSON.stringify({
-          // Physical requirements
-          height_range_min: profileData.heightRangeMin,
-          height_range_max: profileData.heightRangeMax,
-          preferred_body_types: profileData.preferredBodyShape,
-          preferred_skin_types: profileData.preferredSkinType,
-          preferred_gender: profileData.preferredGender,
-          // Age requirements
-          age_range_min: profileData.ageRangeMin,
-          age_range_max: profileData.ageRangeMax,
-          // Mental/Personality requirements
-          preferred_humor_styles: profileData.preferredHumorStyle,
-          preferred_personality_types: profileData.preferredPersonalityType,
-          preferred_relationship_goals: profileData.preferredRelationshipGoal,
-          preferred_lifestyle_habits: profileData.preferredLifestyleHabits,
-          // Additional mental preferences
-          preferred_interests: [], // Could be expanded to collect specific interests
-          preferred_love_languages: [], // Could be expanded to collect specific love languages
-          preferred_communication_style: [], // Could be expanded to collect communication preferences
-          // Compatibility requirements
-          min_shared_interests: 2, // Minimum number of shared interests desired
-          personality_compatibility: "moderate", // How important personality match is
-          lifestyle_compatibility: "important" // How important lifestyle match is
-        })
+        preferred_gender: profileData.preferredGender?.length ? profileData.preferredGender : [],
+        age_range_min: profileData.ageRangeMin || 18,
+        age_range_max: profileData.ageRangeMax || 30,
+        height_range_min: profileData.heightRangeMin || 150,
+        height_range_max: profileData.heightRangeMax || 200,
+        preferred_body_types: profileData.preferredBodyShape?.length ? profileData.preferredBodyShape : [],
+        preferred_skin_tone: profileData.preferredSkinType?.length ? profileData.preferredSkinType : [],
+        preferred_face_types: profileData.preferredFaceTypes?.length ? profileData.preferredFaceTypes : [],
+        preferred_values: profileData.preferredValues?.length ? profileData.preferredValues : [],
+        preferred_mindset: profileData.preferredMindset?.length ? profileData.preferredMindset : [],
+        preferred_personality_traits: profileData.preferredPersonalityType?.length ? profileData.preferredPersonalityType : [],
+        preferred_relationship_goals: profileData.preferredRelationshipGoal?.length ? profileData.preferredRelationshipGoal : []
       };
+
+      const { error: preferencesError } = await supabase
+        .from('partner_preferences')
+        .upsert(preferencesData);
+
+      if (preferencesError) {
+        console.warn('Failed to save preferences:', preferencesError);
+      }
 
       // Store in localStorage for reference
       const profileDataToStore = {
