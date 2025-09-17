@@ -314,7 +314,7 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
           personality_compatibility: "moderate", // How important personality match is
           lifestyle_compatibility: "important" // How important lifestyle match is
         })
-      });
+      };
 
       // Store in localStorage for reference
       const profileDataToStore = {
