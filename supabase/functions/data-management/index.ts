@@ -208,8 +208,8 @@ serve(async (req) => {
           is_profile_public: profileData.is_profile_public !== undefined ? profileData.is_profile_public : true,
           total_qcs: profileData.total_qcs || 0,
           // Add structured JSON fields for QCS/compatibility
-          qualities: JSON.stringify(qualities),
-          requirements: JSON.stringify(initialRequirements),
+          qualities: qualities,
+          requirements: initialRequirements,
           subscription_tier: profileData.subscription_tier || 'free',
           daily_outgoing_matches: 0,
           daily_incoming_matches: 0,
@@ -257,9 +257,14 @@ serve(async (req) => {
           throw getError;
         }
 
+        // Normalize JSON fields if they were stored as strings
+        let normalizedProfile = profile;
+        try { if (normalizedProfile && typeof normalizedProfile.qualities === 'string') normalizedProfile.qualities = JSON.parse(normalizedProfile.qualities); } catch (_) {}
+        try { if (normalizedProfile && typeof normalizedProfile.requirements === 'string') normalizedProfile.requirements = JSON.parse(normalizedProfile.requirements); } catch (_) {}
+
         return new Response(JSON.stringify({
           success: true,
-          data: { user_id: firebaseUid, profile },
+          data: { user_id: firebaseUid, profile: normalizedProfile },
           message: 'Profile fetched'
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -300,7 +305,7 @@ serve(async (req) => {
 
         const updatedProfileData = {
           ...profileData,
-          qualities: JSON.stringify(updateQualities),
+          qualities: updateQualities,
           updated_at: new Date().toISOString()
         };
 
@@ -393,10 +398,36 @@ serve(async (req) => {
           .maybeSingle();
 
         let prefResult;
+
+        // Map incoming preferences to DB columns robustly
+        const dbPrefs: Record<string, any> = {
+          preferred_gender: preferencesData.preferred_gender ?? [],
+          age_range_min: preferencesData.age_range_min ?? 18,
+          age_range_max: preferencesData.age_range_max ?? 30,
+          height_range_min: preferencesData.height_range_min ?? 150,
+          height_range_max: preferencesData.height_range_max ?? 200,
+          preferred_body_types: preferencesData.preferred_body_types ?? [],
+          preferred_values: preferencesData.preferred_values ?? [],
+          preferred_mindset: preferencesData.preferred_mindset ?? [],
+          preferred_personality_traits: preferencesData.preferred_personality_traits ?? [],
+          preferred_skin_tone: preferencesData.preferred_skin_tone ?? preferencesData.preferred_skin_types ?? [],
+          preferred_lifestyle: preferencesData.preferred_lifestyle ?? [],
+          preferred_face_types: preferencesData.preferred_face_types ?? preferencesData.preferred_face_type ?? [],
+          preferred_love_languages: preferencesData.preferred_love_languages ?? preferencesData.preferred_love_language ?? [],
+          preferred_education_levels: preferencesData.preferred_education_levels ?? [],
+          preferred_professions: preferencesData.preferred_professions ?? [],
+          preferred_interests: preferencesData.preferred_interests ?? [],
+          preferred_communication_style: preferencesData.preferred_communication_style ?? [],
+          min_shared_interests: preferencesData.min_shared_interests ?? 2,
+          personality_compatibility: preferencesData.personality_compatibility ?? 'moderate',
+          lifestyle_compatibility: preferencesData.lifestyle_compatibility ?? 'important',
+          updated_at: new Date().toISOString(),
+        };
+
         if (existingPrefs) {
           const { data, error } = await supabaseClient
             .from('partner_preferences')
-            .update({ ...preferencesData, updated_at: new Date().toISOString() })
+            .update(dbPrefs)
             .eq('user_id', firebaseUid)
             .select()
             .order('updated_at', { ascending: false })
@@ -406,9 +437,11 @@ serve(async (req) => {
         } else {
           const { data, error } = await supabaseClient
             .from('partner_preferences')
-            .insert({ user_id: firebaseUid, ...preferencesData })
+            .insert({ user_id: firebaseUid, ...dbPrefs })
             .select()
             .maybeSingle();
+          prefResult = { data, error };
+        }
           prefResult = { data, error };
         }
 
