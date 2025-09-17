@@ -7,10 +7,8 @@ const corsHeaders = {
 }
 
 interface ThreadData {
-  id: string        JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'An unexpected error occurred',
-        details: error instanceof Error ? error : 'Unknown error' 
-      }), user_id: string;
+  id: string;
+  user_id: string;
   content: string;
   created_at: string;
   updated_at: string;
