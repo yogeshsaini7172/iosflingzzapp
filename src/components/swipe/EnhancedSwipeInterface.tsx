@@ -8,6 +8,7 @@ import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
 import DetailedProfileModal from "@/components/profile/DetailedProfileModal";
 import RebuiltChatSystem from "@/components/chat/RebuiltChatSystem";
 import { useRequiredAuth } from "@/hooks/useRequiredAuth";
+import LocationFinder from "@/components/LocationFinder";
 
 interface SwipeProfile {
   user_id: string;
@@ -53,6 +54,9 @@ const EnhancedSwipeInterface: React.FC<EnhancedSwipeInterfaceProps> = ({ onNavig
   const [dragX, setDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartX = useRef<number | null>(null);
+
+  // Only show LocationFinder if user is logged in
+  const showLocation = !!userId;
 
   // Fetch profiles
   const fetchProfiles = async () => {
@@ -228,6 +232,9 @@ const EnhancedSwipeInterface: React.FC<EnhancedSwipeInterfaceProps> = ({ onNavig
       onScroll={handleScroll}
       style={{ maxHeight: '100vh' }}
     >
+      {/* Location Finder */}
+      {showLocation && <LocationFinder />}
+
       {/* Card */}
       <Card
         className="relative overflow-hidden shadow-lg rounded-3xl w-full max-w-md"

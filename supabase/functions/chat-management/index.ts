@@ -83,14 +83,61 @@ Deno.serve(async (req) => {
         // Update the timestamp and last message on the chat room
         await supabase
             .from('chat_rooms')
-            .update({ 
-                updated_at: new Date().toISOString(), 
-                last_message: message_text, 
-                last_message_time: new Date().toISOString() 
+            .update({
+                updated_at: new Date().toISOString(),
+                last_message: message_text,
+                last_message_time: new Date().toISOString()
             })
             .eq('id', chat_room_id);
 
         return new Response(JSON.stringify({ success: true, data: insertedMessages[0] }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        });
+      }
+
+      case 'mark_seen': {
+        const { chat_room_id, user_id } = body;
+        if (!chat_room_id || !user_id) {
+          throw new Error('Chat room ID and user ID are required.');
+        }
+
+        // Mark all messages in the chat room as seen by the user
+        const { error } = await supabase
+          .from('chat_messages')
+          .update({ seen: true })
+          .eq('chat_room_id', chat_room_id)
+          .neq('sender_id', user_id)
+          .eq('seen', false);
+
+        if (error) throw error;
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        });
+      }
+
+      case 'get_unread_count': {
+        const { user_id } = body;
+        if (!user_id) throw new Error('User ID is required.');
+
+        // Get count of unread messages for the user
+        const { data, error } = await supabase
+          .from('chat_messages')
+          .select('id')
+          .eq('seen', false)
+          .neq('sender_id', user_id)
+          .in('chat_room_id',
+            supabase
+              .from('chat_rooms')
+              .select('id')
+              .or(`user_a_id.eq.${user_id},user_b_id.eq.${user_id}`)
+          );
+
+        if (error) throw error;
+
+        return new Response(JSON.stringify({ success: true, data: data?.length || 0 }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200,
         });

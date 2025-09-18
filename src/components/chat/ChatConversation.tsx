@@ -7,6 +7,8 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Send, MoreVertical, Phone, Video, Wifi, WifiOff } from "lucide-react";
 import { ChatRoom, ChatMessage } from "@/hooks/useChatWithWebSocket";
+import { supabase } from "@/integrations/supabase/client";
+import { useOptionalAuth } from "@/hooks/useRequiredAuth";
 
 interface ChatConversationProps {
   room: ChatRoom;
@@ -51,6 +53,27 @@ const ChatConversation = ({
       }
     };
   }, []);
+
+  // Mark messages as seen when component mounts and messages are loaded
+  useEffect(() => {
+    const markMessagesAsSeen = async () => {
+      if (messages.length > 0 && currentUserId) {
+        try {
+          const { data, error } = await supabase.functions.invoke('chat-management', {
+            body: { action: 'mark_seen', chat_room_id: room.id, user_id: currentUserId }
+          });
+          if (error) throw error;
+          if (data.success) {
+            console.log('Messages marked as seen');
+          }
+        } catch (error) {
+          console.error('Error marking messages as seen:', error);
+        }
+      }
+    };
+
+    markMessagesAsSeen();
+  }, [messages.length, currentUserId, room.id]);
 
   const handleInputChange = (value: string) => {
     setNewMessage(value);
@@ -149,8 +172,6 @@ const ChatConversation = ({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm"><Phone className="w-4 h-4" /></Button>
-          <Button variant="ghost" size="sm"><Video className="w-4 h-4" /></Button>
           <Button variant="ghost" size="sm"><MoreVertical className="w-4 h-4" /></Button>
         </div>
       </CardHeader>

@@ -51,9 +51,7 @@ const UnifiedLayout = ({ children, title = "FLINGZZ", showHeader = true }: Unifi
     }
   };
 
-  const fetchLikes = () => {
-    // Implement logic to fetch likes here
-  };
+  // Removed empty fetchLikes function
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
@@ -78,9 +76,9 @@ const UnifiedLayout = ({ children, title = "FLINGZZ", showHeader = true }: Unifi
 
               {/* Right side - Notifications & Profile */}
               <div className="flex items-center space-x-3">
-                <HeartNotificationBadge 
+                <HeartNotificationBadge
                   onClick={() => setShowWhoLikedMe(true)}
-                  refetch={fetchLikes}
+                  refetch={refreshLikes}
                 />
                 <ChatNotificationBadge 
                   onClick={() => {
