@@ -26,6 +26,10 @@ SELECT cron.unschedule('daily-thread-cleanup');
 SELECT cron.unschedule('every-minute-thread-cleanup');
 
 -- Step 4: Schedule the cleanup job to run every minute for testing
+-- DISABLED: pg_cron may not be available in all environments
+-- Uncomment the following block if pg_cron is properly installed:
+
+/*
 SELECT
   cron.schedule(
     'test-thread-cleanup',
@@ -34,6 +38,7 @@ SELECT
     SELECT public.cleanup_expired_threads();
     $$
   );
+*/
 
 -- Log the scheduling for testing
-SELECT 'Scheduled test cleanup job to run every minute' AS message;
+SELECT 'Thread cleanup function created (cron scheduling disabled to prevent errors)' AS message;

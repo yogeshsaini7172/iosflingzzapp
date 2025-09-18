@@ -109,9 +109,31 @@ export const useThreads = () => {
   };
 
   const createThread = async (content: string): Promise<boolean> => {
-    if (!userId || !content.trim()) return false;
+    if (!userId || !content.trim()) {
+      console.warn('[Threads] Create failed: Missing userId or content', { userId: !!userId, content: !!content.trim() });
+      return false;
+    }
+
+    // Check if user already has a thread from today
+    const userThreadsToday = threads.filter(thread => {
+      if (thread.user_id !== userId) return false;
+      const threadDate = new Date(thread.created_at);
+      const today = new Date();
+      return threadDate.toDateString() === today.toDateString();
+    });
+
+    if (userThreadsToday.length > 0) {
+      toast({
+        title: "One Thread Per Day",
+        description: "You can only post one thread per day. Delete your current thread to post a new one.",
+        variant: "destructive"
+      });
+      return false;
+    }
 
     try {
+      console.log('[Threads] Creating thread:', { userId, contentLength: content.length });
+      
       const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/thread-management', {
         method: 'POST',
         body: JSON.stringify({
@@ -120,12 +142,43 @@ export const useThreads = () => {
         })
       });
 
+      console.log('[Threads] Create response status:', response.status);
+
       if (!response.ok) {
         const errorData = await response.text();
-        console.error('Thread creation failed:', response.status, errorData);
+        console.error('[Threads] Creation failed:', response.status, errorData);
+        
+        // Parse error data to check for specific error codes
+        let parsedError;
+        try {
+          parsedError = JSON.parse(errorData);
+        } catch {
+          parsedError = { error: errorData };
+        }
+        
+        // Provide specific error messages based on status and error code
+        let errorMessage = 'Failed to post thread. Please try again.';
+        if (response.status === 401) {
+          errorMessage = 'Authentication failed. Please sign in again.';
+        } else if (response.status === 403) {
+          errorMessage = 'You do not have permission to post threads.';
+        } else if (response.status === 400) {
+          errorMessage = 'Invalid thread content. Please check your message.';
+        } else if (response.status === 409 && parsedError.code === 'ONE_THREAD_PER_DAY') {
+          errorMessage = 'You can only post one thread per day. Delete your current thread to post a new one.';
+        }
+        
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive"
+        });
+        
         throw new Error(`Failed to create thread: ${response.status} - ${errorData}`);
       }
+      
       const data = await response.json();
+      console.log('[Threads] Create success:', data);
 
       toast({
         title: "Thread posted! 🎉",
@@ -135,12 +188,16 @@ export const useThreads = () => {
       await fetchThreads();
       return true;
     } catch (error) {
-      console.error('Error creating thread:', error);
-      toast({
-        title: "Error",
-        description: "Failed to post thread. Please try again.",
-        variant: "destructive"
-      });
+      console.error('[Threads] Error creating thread:', error);
+      
+      // Only show toast if we haven't already shown one
+      if (!error.message.includes('Failed to create thread:')) {
+        toast({
+          title: "Error",
+          description: "Failed to post thread. Please check your connection and try again.",
+          variant: "destructive"
+        });
+      }
       return false;
     }
   };

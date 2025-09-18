@@ -64,6 +64,17 @@ serve(async (req)=>{
     switch(action){
       case 'list':
         {
+          // AUTOMATIC CLEANUP: Clean up expired threads when listing (happens frequently)
+          const { error: cleanupError } = await supabase
+            .from('threads')
+            .delete()
+            .lt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+          
+          if (cleanupError) {
+            console.warn('Cleanup warning (non-fatal):', cleanupError);
+            // Don't fail thread listing if cleanup fails
+          }
+          
           // List all threads (no userId required for public viewing)
           const { data: threadsData, error: threadsError } = await supabase.from('threads').select('*').order('created_at', {
             ascending: false
@@ -134,6 +145,41 @@ serve(async (req)=>{
               headers: corsHeaders
             });
           }
+          
+          // AUTOMATIC CLEANUP: Delete expired threads (older than 24 hours) before creating new ones
+          const { error: cleanupError } = await supabase
+            .from('threads')
+            .delete()
+            .lt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+          
+          if (cleanupError) {
+            console.warn('Cleanup warning (non-fatal):', cleanupError);
+            // Don't fail thread creation if cleanup fails
+          } else {
+            console.log('Automatic cleanup completed');
+          }
+          
+          // Check if user already has a thread from today
+          const today = new Date().toISOString().split('T')[0]; // Get YYYY-MM-DD format
+          const { data: existingThreads, error: checkError } = await supabase
+            .from('threads')
+            .select('id')
+            .eq('user_id', userId)
+            .gte('created_at', `${today}T00:00:00.000Z`)
+            .lt('created_at', `${today}T23:59:59.999Z`);
+            
+          if (checkError) throw checkError;
+          
+          if (existingThreads && existingThreads.length > 0) {
+            return new Response(JSON.stringify({
+              error: 'You can only post one thread per day. Delete your current thread to post a new one.',
+              code: 'ONE_THREAD_PER_DAY'
+            }), {
+              status: 409, // Conflict
+              headers: corsHeaders
+            });
+          }
+          
           const { data: newThread, error: createError } = await supabase.from('threads').insert({
             user_id: userId,
             content: content.trim()
