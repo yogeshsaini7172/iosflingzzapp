@@ -48,16 +48,31 @@ export const useChatWithWebSocket = (userId: string | null) => {
     if (!userId) return;
     setLoading(true);
     try {
+      // Use edge function to get chat rooms with real user names
       const { data, error } = await supabase.functions.invoke('chat-management', {
         body: { action: 'list', user_id: userId }
       });
+      
       if (error) throw error;
+      
       if (data.success) {
-        setChatRooms(data.data);
+        // Transform data to match expected format
+        const transformedRooms = data.data.map((room: any) => ({
+          id: room.id,
+          user_a_id: room.user1_id === userId ? room.user1_id : room.user2_id,
+          user_b_id: room.user1_id === userId ? room.user2_id : room.user1_id,
+          last_message: room.last_message,
+          last_message_time: room.last_message_time,
+          updated_at: room.updated_at,
+          other_user: room.other_user // This now has real profile data
+        }));
+        
+        setChatRooms(transformedRooms);
       } else {
         throw new Error(data.error);
       }
     } catch (error: any) {
+      console.error('Failed to load chat rooms:', error);
       toast.error("Failed to load conversations.", { description: error.message });
     } finally {
       setLoading(false);
@@ -84,16 +99,15 @@ export const useChatWithWebSocket = (userId: string | null) => {
   const fetchMessages = async (chatRoomId: string) => {
     if (!chatRoomId) return;
     try {
-      // Using the Edge Function to fetch messages, which respects RLS policies correctly.
-      const { data, error } = await supabase.functions.invoke('chat-management', {
-        body: { action: 'get_messages', chat_room_id: chatRoomId }
-      });
+      // Direct query to chat_messages_enhanced table
+      const { data, error } = await supabase
+        .from('chat_messages_enhanced')
+        .select('*')
+        .eq('chat_room_id', chatRoomId)
+        .order('created_at', { ascending: true });
+
       if (error) throw error;
-      if (data.success) {
-        setMessages(data.data || []);
-      } else {
-        throw new Error(data.error);
-      }
+      setMessages(data || []);
     } catch (error: any) {
       toast.error("Failed to load messages.", { description: error.message });
     }
@@ -103,16 +117,39 @@ export const useChatWithWebSocket = (userId: string | null) => {
     if (!userId || !messageText.trim()) return false;
     setSendingMessage(true);
     try {
-      const { data, error } = await supabase.functions.invoke('chat-management', {
-        body: {
-          action: 'send',
+      // Direct insert into chat_messages_enhanced table
+      const { data, error } = await supabase
+        .from('chat_messages_enhanced')
+        .insert({
           chat_room_id: chatRoomId,
           sender_id: userId,
           message_text: messageText,
-        }
-      });
+        })
+        .select()
+        .single();
+
       if (error) throw error;
-      if (!data.success) throw new Error(data.error);
+
+      // Update chat room with last message
+      await supabase
+        .from('chat_rooms')
+        .update({
+          last_message: messageText,
+          last_message_time: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', chatRoomId);
+
+      // Add message to local state immediately
+      const newMessage = {
+        id: data.id,
+        chat_room_id: chatRoomId,
+        sender_id: userId,
+        message_text: messageText,
+        created_at: data.created_at
+      };
+      setMessages(prev => [...prev, newMessage]);
+
       return true;
     } catch (error: any) {
       toast.error("Failed to send message.", { description: error.message });
@@ -130,12 +167,16 @@ export const useChatWithWebSocket = (userId: string | null) => {
     return typingUsers.get(chatRoomId) || [];
   };
 
+  const getOtherUserId = (room: ChatRoom) => {
+    return room.user_a_id === userId ? room.user_b_id : room.user_a_id;
+  };
+
   const isUserOnline = (otherUserId: string) => {
     return onlineUsers.has(otherUserId);
   };
 
   return {
     chatRooms, messages, loading, sendingMessage, wsConnected, connectionStatus,
-    onlineUsers, handleTyping, getTypingUsers, isUserOnline, fetchMessages, sendMessage,
+    onlineUsers, handleTyping, getTypingUsers, getOtherUserId, isUserOnline, fetchMessages, sendMessage,
   };
 };

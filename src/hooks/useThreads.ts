@@ -120,7 +120,11 @@ export const useThreads = () => {
         })
       });
 
-      if (!response.ok) throw new Error('Failed to create thread');
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('Thread creation failed:', response.status, errorData);
+        throw new Error(`Failed to create thread: ${response.status} - ${errorData}`);
+      }
       const data = await response.json();
 
       toast({

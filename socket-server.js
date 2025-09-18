@@ -19,8 +19,8 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Initialize the Socket.io server on port 3002
-const io = new Server(3002, {
+// Initialize the Socket.io server on port 3001 (as per README)
+const io = new Server(3001, {
   cors: {
     origin: '*', // Allow connections from any origin
     methods: ['GET', 'POST'],
@@ -43,13 +43,13 @@ io.on('connection', (socket) => {
     console.log(`📩 Message received in room [${room}]:`, msg);
 
     try {
-      // Save the incoming message to the Supabase 'messages' table
+      // Save the incoming message to the Supabase 'chat_messages_enhanced' table
       const { data, error } = await supabase
-        .from('messages')
+        .from('chat_messages_enhanced')
         .insert([{
-          room_id: room,
-          sender_id: msg.sender, // The sender's Firebase UID
-          content: msg.text,     // The message content
+          chat_room_id: room,
+          sender_id: msg.sender_id || msg.sender, // The sender's Firebase UID
+          message_text: msg.message_text || msg.text,     // The message content
         }]);
 
       if (error) {
@@ -75,4 +75,4 @@ io.on('connection', (socket) => {
   });
 });
 
-console.log('✅ Socket server is running on port 3002');
+console.log('✅ Socket server is running on port 3001');
