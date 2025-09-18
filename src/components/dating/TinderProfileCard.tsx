@@ -1,8 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import { updateUserLocation } from '../../services/profile';
 
-const TinderProfileCard = ({ profile, onLike, onDislike, onChat }) => {
+const reverseGeocode = async (lat, lon) => {
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+    const data = await res.json();
+    return {
+      city: data.address?.city || data.address?.town || data.address?.village || 'Unknown',
+      region: data.address?.state || '',
+      country: data.address?.country || 'Unknown',
+    };
+  } catch {
+    return { city: 'Unknown', region: '', country: 'Unknown' };
+  }
+};
+
+const TinderProfileCard = ({ profile, onLike, onDislike }) => {
+  const { userId } = useAuth();
   const [isLiked, setIsLiked] = useState(false);
   const [isDisliked, setIsDisliked] = useState(false);
+  const [userLocation, setUserLocation] = useState({ lat: null, lon: null, city: null, region: null, country: null, source: null });
+  const [locationError, setLocationError] = useState('');
 
   const handleLike = () => {
     setIsLiked(true);
@@ -16,9 +35,74 @@ const TinderProfileCard = ({ profile, onLike, onDislike, onChat }) => {
     if (onDislike) onDislike(profile);
   };
 
-  const handleChat = () => {
-    if (onChat) onChat(profile);
+  const getDisplayLocation = () => {
+    if (profile.id === userId) {
+      if (userLocation.city && userLocation.country) {
+        return `${userLocation.city}, ${userLocation.country}`;
+      } else if (locationError) {
+        return locationError;
+      } else {
+        return 'Fetching location...';
+      }
+    } else {
+      try {
+        const loc = JSON.parse(profile.location);
+        if (loc.city && loc.country) {
+          return `${loc.city}, ${loc.country}`;
+        } else {
+          return profile.location;
+        }
+      } catch {
+        return profile.location;
+      }
+    }
   };
+
+  useEffect(() => {
+    if (profile.id !== userId) return; // Only fetch and save for own profile
+
+    const fetchLocation = async () => {
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            const { city, region, country } = await reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+            setUserLocation({
+              lat: pos.coords.latitude,
+              lon: pos.coords.longitude,
+              city,
+              region,
+              country,
+              source: "Geolocation API",
+            });
+            await updateUserLocation({ city, region, country, latitude: pos.coords.latitude, longitude: pos.coords.longitude });
+          },
+          async (err) => {
+            console.warn("Geolocation error:", err.message);
+            // Fallback to IP lookup
+            try {
+              const res = await fetch("https://ipapi.co/json/");
+              const data = await res.json();
+              setUserLocation({
+                lat: data.latitude,
+                lon: data.longitude,
+                city: data.city,
+                region: data.region,
+                country: data.country_name,
+                source: "IP-based lookup",
+              });
+              await updateUserLocation({ city: data.city, region: data.region, country: data.country_name, latitude: data.latitude, longitude: data.longitude });
+            } catch (e) {
+              setLocationError("Failed to get location");
+            }
+          },
+          { enableHighAccuracy: true, timeout: 8000 }
+        );
+      } else {
+        setLocationError("Geolocation not supported");
+      }
+    };
+    fetchLocation();
+  }, [profile.id, userId]);
 
   return (
     <div className="relative bg-black flex flex-col lg:h-screen">
@@ -52,18 +136,15 @@ const TinderProfileCard = ({ profile, onLike, onDislike, onChat }) => {
             <h1 className="text-3xl font-bold">{profile.name}</h1>
             <p className="text-xl text-gray-300">{profile.age}</p>
           </div>
-          <button onClick={() => {}} className="text-white">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M3.172 5.172a7 7 0 119.9 9.9L10 18.9l-6.828-6.829a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-            </svg>
-          </button>
         </div>
 
         <div className="flex items-center space-x-2 mb-2">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
           </svg>
-          <span className="text-gray-300">{profile.location}</span>
+          <span className="text-gray-300">
+            {getDisplayLocation()}
+          </span>
         </div>
 
         <div className="flex space-x-2 mb-4">

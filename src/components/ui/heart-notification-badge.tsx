@@ -8,7 +8,7 @@ import { useOptionalAuth } from "@/hooks/useRequiredAuth";
 interface HeartNotificationBadgeProps {
   onClick: () => void;
   className?: string;
-  refetch?: () => void;
+  refetch?: any;
 }
 
 const HeartNotificationBadge = ({ onClick, className, refetch }: HeartNotificationBadgeProps) => {
@@ -38,10 +38,11 @@ const HeartNotificationBadge = ({ onClick, className, refetch }: HeartNotificati
       setCanSeeLikes(canSee);
       
       if (canSee) {
-        // Get actual likes count
+        // Get actual likes count - only count actionable likes (non-mutual matches)
         const result = await SubscriptionEnforcementService.getWhoLikedMe();
         if (result.success && result.data) {
-          setLikesCount(result.data.count || 0);
+          const actionableLikes = result.data.users.filter(u => !u.is_mutual_match).length;
+          setLikesCount(actionableLikes);
         } else {
           setLikesCount(0);
         }

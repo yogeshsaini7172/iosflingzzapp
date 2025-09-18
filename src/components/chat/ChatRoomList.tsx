@@ -1,9 +1,12 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, MessageSquare, Wifi, WifiOff } from "lucide-react";
 import { ChatRoom } from "@/hooks/useChatWithWebSocket";
+import { useRequiredAuth } from "@/hooks/useRequiredAuth";
+import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
 
 interface ChatRoomListProps {
   chatRooms: ChatRoom[];
@@ -17,17 +20,52 @@ interface ChatRoomListProps {
   onShowRequests: () => void;
 }
 
-const ChatRoomList = ({ 
-  chatRooms, 
-  loading, 
+const ChatRoomList = ({
+  chatRooms,
+  loading,
   wsConnected = false,
   connectionStatus = 'disconnected',
   onlineUsers = new Set(), // Default to an empty Set
   currentUserId = '',
-  onRoomSelect, 
-  onBack, 
-  onShowRequests 
+  onRoomSelect,
+  onBack,
+  onShowRequests
 }: ChatRoomListProps) => {
+  const { userId } = useRequiredAuth();
+  const [requestsCount, setRequestsCount] = useState(0);
+
+  useEffect(() => {
+    if (userId) {
+      fetchRequestsCount();
+    }
+  }, [userId]);
+
+  const fetchRequestsCount = async () => {
+    if (!userId) return;
+
+    try {
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-request-handler', {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'get_requests'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch chat requests');
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        setRequestsCount(data?.data?.length || 0);
+      }
+    } catch (error) {
+      console.error("Error fetching chat requests count:", error);
+      setRequestsCount(0);
+    }
+  };
+
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -81,14 +119,21 @@ const ChatRoomList = ({
                 {chatRooms.length} conversation{chatRooms.length !== 1 ? 's' : ''}
               </p>
             </div>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={onShowRequests}
-              className="ml-2"
+              className="ml-2 relative"
             >
               <MessageSquare className="w-4 h-4 mr-2" />
               Requests
+              {requestsCount > 0 && (
+                <Badge
+                  className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500 text-white text-xs p-0 flex items-center justify-center"
+                >
+                  {requestsCount}
+                </Badge>
+              )}
             </Button>
           </div>
           <div className="flex items-center gap-2 text-sm">

@@ -26,22 +26,33 @@ const ChatNotificationBadge = ({ onClick, className }: ChatNotificationBadgeProp
 
   const fetchChatCounts = async () => {
     if (!userId || !isAuthenticated) return;
-    
+
     try {
       // Get total chat rooms
       const { data: rooms, error } = await supabase
         .from("chat_rooms")
         .select("id")
-        .or(`user1_id.eq.${userId},user2_id.eq.${userId}`);
+        .or(`user_a_id.eq.${userId},user_b_id.eq.${userId}`);
 
       if (error) throw error;
 
       setChatCount(rooms?.length || 0);
-      
-      // For demo purposes, set unread count (in real app, this would be based on actual unread messages)
-      setUnreadCount(Math.min(3, rooms?.length || 0));
+
+      // Get actual unread message count from backend
+      const { data: unreadData, error: unreadError } = await supabase.functions.invoke('chat-management', {
+        body: { action: 'get_unread_count', user_id: userId }
+      });
+
+      if (unreadError) throw unreadError;
+
+      if (unreadData.success) {
+        setUnreadCount(unreadData.data || 0);
+      } else {
+        setUnreadCount(0);
+      }
     } catch (error) {
       console.error("Error fetching chat counts:", error);
+      setUnreadCount(0);
     }
   };
 

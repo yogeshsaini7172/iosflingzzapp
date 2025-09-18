@@ -7,6 +7,8 @@ import { ArrowLeft, Phone, Loader2, Shield, KeyRound } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { getCurrentLocation } from '@/utils/locationUtils';
+import { updateUserLocation } from '@/services/profile';
 
 interface AuthScreenProps {
   onBack: () => void;
@@ -24,8 +26,28 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
   const handleGoogleAuth = async () => {
     try {
       setIsLoading(true);
+
+      // Request location permission and get location
+      let location = null;
+      try {
+        location = await getCurrentLocation();
+      } catch (locError) {
+        console.warn('Location permission denied or failed:', locError);
+      }
+
       const { error } = await signInWithGoogle();
-      
+
+      if (!error && location) {
+        // Update user location in database after successful login
+        const { error: updateError } = await updateUserLocation({
+          latitude: location.latitude,
+          longitude: location.longitude,
+        });
+        if (updateError) {
+          console.error('Failed to update user location:', updateError);
+        }
+      }
+
       if (error) {
         console.error('Google auth error:', error);
         toast.error('Failed to sign in with Google');
