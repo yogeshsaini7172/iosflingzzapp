@@ -135,10 +135,12 @@ const AuthenticatedApp = () => {
         // User is not authenticated - reset profile state
         console.log('🚫 User not authenticated, resetting profile state');
         setHasProfile(false);
+        clearAllLocalStorage();
       }
       setCheckingProfile(false);
     };
 
+    // Always check when authentication state changes
     if (!isLoading) {
       checkProfile();
     }
@@ -153,6 +155,21 @@ const AuthenticatedApp = () => {
           <p className="text-muted-foreground">Loading FLINGZZ...</p>
         </div>
       </div>
+    );
+  }
+
+  // If user is not authenticated (logged out), show auth page
+  if (!isAuthenticated || !user) {
+    console.log('🚫 User not authenticated, showing auth page');
+    return (
+      <TooltipProvider>
+        <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+          <Toaster />
+          <Sonner />
+          <div id="recaptcha-container"></div>
+          <Index onProfileComplete={recheckProfile} />
+        </div>
+      </TooltipProvider>
     );
   }
 

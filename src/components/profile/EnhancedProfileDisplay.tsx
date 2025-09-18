@@ -77,11 +77,11 @@ const EnhancedProfileDisplay: React.FC = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { toast } = useToast();
   const { userId } = useRequiredAuth();
+  const { signOut } = useAuth();
 
   // Logout function using Firebase auth
   const handleLogout = async () => {
     try {
-      const { signOut } = useAuth();
       await signOut();
       
       toast({
@@ -95,8 +95,8 @@ const EnhancedProfileDisplay: React.FC = () => {
       localStorage.removeItem('demoUserId');
       localStorage.removeItem('demoQCS');
       
-      // Navigate back to welcome/login page
-      window.location.href = '/';
+      // The AuthContext will handle navigation automatically
+      console.log('✅ Logout completed, AuthContext will handle navigation');
     } catch (error: any) {
       toast({
         title: "Logout error",

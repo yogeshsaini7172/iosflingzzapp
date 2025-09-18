@@ -177,8 +177,8 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       localStorage.removeItem('subscription_plan');
       localStorage.removeItem('profile_complete');
       
-      // Navigate to home 
-      onNavigate('home');
+      // The AuthContext will handle navigation automatically
+      console.log('✅ Logout completed, AuthContext will handle navigation');
     } catch (error) {
       console.error('Logout error:', error);
     }
