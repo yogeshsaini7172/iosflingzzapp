@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useSocketChat } from '@/contexts/SocketChatContext';
 import { toast } from 'sonner';
@@ -36,13 +36,51 @@ export const useChatWithWebSocket = (userId: string | null) => {
     typingUsers,
     onMessage,
     offMessage,
-    sendTypingIndicator
+    sendTypingIndicator,
+    sendMessage: socketSendMessage,
+    joinChatRoom,
+    leaveChatRoom
   } = useSocketChat();
   
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [sendingMessage, setSendingMessage] = useState(false);
+  const currentChatRoom = useRef<string | null>(null);
+
+  // Listen for real-time messages
+  useEffect(() => {
+    const handleNewMessage = (messageData: any) => {
+      console.log('📨 Received real-time message:', messageData);
+      
+      // Convert socket message format to our ChatMessage format
+      const newMessage: ChatMessage = {
+        id: messageData.id || `temp-${Date.now()}`,
+        chat_room_id: messageData.chatRoomId,
+        sender_id: messageData.sender,
+        message_text: messageData.text,
+        created_at: messageData.timestamp || new Date().toISOString()
+      };
+
+      // Only add message if it's for the current chat room
+      if (currentChatRoom.current === messageData.chatRoomId) {
+        setMessages(prev => {
+          // Avoid duplicates by checking if message already exists
+          const exists = prev.some(msg => msg.id === newMessage.id);
+          if (exists) return prev;
+          return [...prev, newMessage];
+        });
+      }
+    };
+
+    // Set up the listener
+    onMessage(handleNewMessage);
+
+    // Cleanup function
+    return () => {
+      offMessage(handleNewMessage);
+    };
+  }, [onMessage, offMessage]);
 
   const fetchChatRooms = useCallback(async () => {
     if (!userId) return;
@@ -98,6 +136,15 @@ export const useChatWithWebSocket = (userId: string | null) => {
   
   const fetchMessages = async (chatRoomId: string) => {
     if (!chatRoomId) return;
+    
+    // Leave previous room and join new room
+    if (currentChatRoom.current) {
+      leaveChatRoom(currentChatRoom.current);
+    }
+    
+    currentChatRoom.current = chatRoomId;
+    joinChatRoom(chatRoomId);
+    
     try {
       // Direct query to chat_messages_enhanced table
       const { data, error } = await supabase
@@ -113,23 +160,16 @@ export const useChatWithWebSocket = (userId: string | null) => {
     }
   };
 
-  const sendMessage = async (chatRoomId: string, messageText: string): Promise<boolean> => {
+  const sendChatMessage = async (chatRoomId: string, messageText: string): Promise<boolean> => {
     if (!userId || !messageText.trim()) return false;
     setSendingMessage(true);
     try {
-      // Direct insert into chat_messages_enhanced table
-      const { data, error } = await supabase
-        .from('chat_messages_enhanced')
-        .insert({
-          chat_room_id: chatRoomId,
-          sender_id: userId,
-          message_text: messageText,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
+      // Send message via WebSocket for real-time delivery
+      socketSendMessage(chatRoomId, messageText);
+      
+      // The socket server will save to database and broadcast to all clients
+      // No need to add to local state here - it will come via socket
+      
       // Update chat room with last message
       await supabase
         .from('chat_rooms')
@@ -139,16 +179,6 @@ export const useChatWithWebSocket = (userId: string | null) => {
           updated_at: new Date().toISOString()
         })
         .eq('id', chatRoomId);
-
-      // Add message to local state immediately
-      const newMessage = {
-        id: data.id,
-        chat_room_id: chatRoomId,
-        sender_id: userId,
-        message_text: messageText,
-        created_at: data.created_at
-      };
-      setMessages(prev => [...prev, newMessage]);
 
       return true;
     } catch (error: any) {
@@ -177,6 +207,6 @@ export const useChatWithWebSocket = (userId: string | null) => {
 
   return {
     chatRooms, messages, loading, sendingMessage, wsConnected, connectionStatus,
-    onlineUsers, handleTyping, getTypingUsers, getOtherUserId, isUserOnline, fetchMessages, sendMessage,
+    onlineUsers, handleTyping, getTypingUsers, getOtherUserId, isUserOnline, fetchMessages, sendMessage: sendChatMessage,
   };
 };

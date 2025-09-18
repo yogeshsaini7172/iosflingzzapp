@@ -19,60 +19,154 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Initialize the Socket.io server on port 3001 (as per README)
-const io = new Server(3001, {
+// Initialize the Socket.io server on port 3002 (updated from 3001)
+const io = new Server(3002, {
   cors: {
     origin: '*', // Allow connections from any origin
     methods: ['GET', 'POST'],
   },
 });
 
-console.log('🚀 Socket server starting...');
+console.log('🚀 Socket server starting on port 3002...');
+
+// Track online users and their rooms
+const onlineUsers = new Map(); // socket.id -> { userId, rooms: Set }
+const typingUsers = new Map(); // roomId -> Set of userIds currently typing
 
 io.on('connection', (socket) => {
   console.log(`✅ User connected: ${socket.id}`);
+  
+  // Handle authentication
+  const token = socket.handshake.auth.token;
+  const userId = socket.handshake.auth.userId;
+  
+  if (userId) {
+    onlineUsers.set(socket.id, { userId, rooms: new Set() });
+    console.log(`👤 Authenticated user: ${userId}`);
+  }
 
-  // Event to handle a user joining a specific chat room
-  socket.on('joinRoom', (room) => {
-    socket.join(room);
-    console.log(`🚪 User ${socket.id} joined room: ${room}`);
+  // Event to handle a user joining a specific chat room (frontend sends 'join_room')
+  socket.on('join_room', ({ chatRoomId, userId: joinUserId }) => {
+    socket.join(chatRoomId);
+    
+    // Track the room for this user
+    const userData = onlineUsers.get(socket.id);
+    if (userData) {
+      userData.rooms.add(chatRoomId);
+    }
+    
+    console.log(`🚪 User ${joinUserId || socket.id} joined room: ${chatRoomId}`);
+    
+    // Notify others in the room that user is online
+    socket.to(chatRoomId).emit('user_joined', { userId: joinUserId, chatRoomId });
   });
 
-  // Event to handle receiving and processing a new chat message
-  socket.on('chatMessage', async (msg, room) => {
-    console.log(`📩 Message received in room [${room}]:`, msg);
+  // Event to handle leaving a chat room
+  socket.on('leave_room', ({ chatRoomId, userId: leaveUserId }) => {
+    socket.leave(chatRoomId);
+    
+    // Remove room tracking
+    const userData = onlineUsers.get(socket.id);
+    if (userData) {
+      userData.rooms.delete(chatRoomId);
+    }
+    
+    console.log(`🚪 User ${leaveUserId || socket.id} left room: ${chatRoomId}`);
+    
+    // Notify others in the room that user left
+    socket.to(chatRoomId).emit('user_left', { userId: leaveUserId, chatRoomId });
+  });
+
+  // Event to handle receiving and processing a new chat message (frontend sends 'message')
+  socket.on('message', async ({ chatRoomId, message, userId: senderId }) => {
+    console.log(`📩 Message received in room [${chatRoomId}]:`, { message, senderId });
 
     try {
       // Save the incoming message to the Supabase 'chat_messages_enhanced' table
       const { data, error } = await supabase
         .from('chat_messages_enhanced')
         .insert([{
-          chat_room_id: room,
-          sender_id: msg.sender_id || msg.sender, // The sender's Firebase UID
-          message_text: msg.message_text || msg.text,     // The message content
-        }]);
+          chat_room_id: chatRoomId,
+          sender_id: senderId,
+          message_text: message,
+        }])
+        .select('*')
+        .single();
 
       if (error) {
         console.error('❌ Supabase error saving message:', error.message);
-        // Optionally, emit an error back to the sender
-        socket.emit('messageError', { message: 'Failed to save message.', error: error.message });
+        socket.emit('message_error', { message: 'Failed to save message.', error: error.message });
         return;
       }
 
       // If saved successfully, broadcast the message to everyone in the room
-      io.to(room).emit('chatMessage', msg);
-      console.log(`📨 Message broadcasted to room [${room}]`);
+      const messageData = {
+        id: data.id,
+        sender: senderId,
+        text: message,
+        chatRoomId: chatRoomId,
+        timestamp: data.created_at
+      };
+      
+      io.to(chatRoomId).emit('message', messageData);
+      console.log(`📨 Message broadcasted to room [${chatRoomId}]`);
 
     } catch (error) {
       console.error('🔥 An unexpected server error occurred:', error);
-      socket.emit('messageError', { message: 'An unexpected server error occurred.' });
+      socket.emit('message_error', { message: 'An unexpected server error occurred.' });
     }
+  });
+
+  // Handle typing indicators
+  socket.on('typing_started', ({ chatRoomId, userId }) => {
+    const roomTyping = typingUsers.get(chatRoomId) || new Set();
+    roomTyping.add(userId);
+    typingUsers.set(chatRoomId, roomTyping);
+    
+    // Broadcast to others in the room (not including sender)
+    socket.to(chatRoomId).emit('typing_started', { chatRoomId, userId });
+    console.log(`⌨️ User ${userId} started typing in ${chatRoomId}`);
+  });
+
+  socket.on('typing_stopped', ({ chatRoomId, userId }) => {
+    const roomTyping = typingUsers.get(chatRoomId);
+    if (roomTyping) {
+      roomTyping.delete(userId);
+      if (roomTyping.size === 0) {
+        typingUsers.delete(chatRoomId);
+      }
+    }
+    
+    // Broadcast to others in the room (not including sender)
+    socket.to(chatRoomId).emit('typing_stopped', { chatRoomId, userId });
+    console.log(`⌨️ User ${userId} stopped typing in ${chatRoomId}`);
   });
 
   // Event for when a user disconnects
   socket.on('disconnect', () => {
-    console.log(`🔌 User disconnected: ${socket.id}`);
+    const userData = onlineUsers.get(socket.id);
+    if (userData) {
+      console.log(`🔌 User disconnected: ${userData.userId} (${socket.id})`);
+      
+      // Clean up typing indicators for this user
+      userData.rooms.forEach(roomId => {
+        const roomTyping = typingUsers.get(roomId);
+        if (roomTyping) {
+          roomTyping.delete(userData.userId);
+          if (roomTyping.size === 0) {
+            typingUsers.delete(roomId);
+          } else {
+            // Notify others that this user stopped typing
+            socket.to(roomId).emit('typing_stopped', { chatRoomId: roomId, userId: userData.userId });
+          }
+        }
+      });
+      
+      onlineUsers.delete(socket.id);
+    } else {
+      console.log(`🔌 User disconnected: ${socket.id}`);
+    }
   });
 });
 
-console.log('✅ Socket server is running on port 3001');
+console.log('✅ Socket server is running on port 3002');
