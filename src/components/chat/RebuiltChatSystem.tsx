@@ -77,7 +77,7 @@ const RebuiltChatSystem = ({ onNavigate, selectedChatId }: RebuiltChatSystemProp
 
   // Get other user ID for the selected room
   const getOtherUserId = (room: ChatRoom) => {
-    return room.user_a_id === userId ? room.user_b_id : room.user_a_id;
+    return room.user1_id === userId ? room.user2_id : room.user1_id;
   };
 
   // Show conversation if a room is selected

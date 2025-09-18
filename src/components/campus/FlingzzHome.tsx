@@ -727,12 +727,11 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
         ) : (
           <div className="max-w-sm mx-auto space-y-4">
             {/* Profile Card */}
-            {currentProfile ? (
+             {currentProfile ? (
   <TinderProfileCard
     profile={transformProfileForTinderCard(currentProfile)}
     onLike={() => handleSwipe('right')}
     onDislike={() => handleSwipe('left')}
-    onChat={() => onNavigate('chat')} // Or handle chat initiation
   />
 ) : (
   // Loading or no profile state
