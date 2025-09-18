@@ -204,10 +204,10 @@ Deno.serve(async (req) => {
         const { user_id } = body;
         if (!user_id) throw new Error('User ID is required.');
 
-        // Get count of unread messages for the user (messages with null read_at)
+        // Get unread messages with sender info for the user
         const { data, error } = await supabase
           .from('chat_messages_enhanced')
-          .select('id, chat_room_id')
+          .select('sender_id, chat_room_id')
           .is('read_at', null)
           .neq('sender_id', user_id);
 
@@ -232,7 +232,11 @@ Deno.serve(async (req) => {
         const userRoomIds = userRooms?.map(room => room.id) || [];
         const unreadMessages = data.filter(msg => userRoomIds.includes(msg.chat_room_id));
 
-        return new Response(JSON.stringify({ success: true, data: unreadMessages.length }), {
+        // Count unique senders instead of total messages
+        const uniqueSenders = new Set(unreadMessages.map(msg => msg.sender_id));
+        const uniqueSenderCount = uniqueSenders.size;
+
+        return new Response(JSON.stringify({ success: true, data: uniqueSenderCount }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200,
         });
