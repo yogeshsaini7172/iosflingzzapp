@@ -52,13 +52,18 @@ export const SocketChatProvider: React.FC<SocketChatProviderProps> = ({ children
   const connect = useCallback(async () => {
     if (!userId || !user || socketRef.current?.connected) return;
 
+    // Check if socket URL is available
+    const socketUrl = import.meta.env.VITE_SOCKET_URL;
+    if (!socketUrl) {
+      console.log('No socket URL configured, chat will work without real-time features');
+      setConnectionStatus('disconnected');
+      return;
+    }
+
     try {
       setConnectionStatus('connecting');
       const token = await getIdToken();
       if (!token) throw new Error('No authentication token available');
-
-      // Get socket URL from environment variables, with a fallback for local dev
-      const socketUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3002';
       
       socketRef.current = io(socketUrl, {
         auth: { token, userId }, // Send token and userId for server-side authentication
@@ -88,8 +93,8 @@ export const SocketChatProvider: React.FC<SocketChatProviderProps> = ({ children
 
       socket.on('connect_error', (error) => {
         console.error('Socket connection error:', error);
-        setConnectionStatus('error');
-        toast.error(`Chat connection failed: ${error.message}`);
+        setConnectionStatus('disconnected');
+        console.log('Falling back to standard chat mode without real-time features');
       });
 
       // --- Custom Application Event Listeners ---
@@ -128,8 +133,8 @@ export const SocketChatProvider: React.FC<SocketChatProviderProps> = ({ children
 
     } catch (error) {
       console.error('Socket connection failed:', error);
-      setConnectionStatus('error');
-      toast.error('Could not initiate chat connection.');
+      setConnectionStatus('disconnected');
+      console.log('Chat will work without real-time features');
     }
   }, [userId, user, getIdToken]);
 
