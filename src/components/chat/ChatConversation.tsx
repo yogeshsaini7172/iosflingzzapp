@@ -9,6 +9,7 @@ import { ArrowLeft, Send, MoreVertical, Phone, Video, Wifi, WifiOff } from "luci
 import { ChatRoom, ChatMessage } from "@/hooks/useChatWithWebSocket";
 import { supabase } from "@/integrations/supabase/client";
 import { useOptionalAuth } from "@/hooks/useRequiredAuth";
+import { useChatNotification } from "@/contexts/ChatNotificationContext";
 
 interface ChatConversationProps {
   room: ChatRoom;
@@ -41,6 +42,7 @@ const ChatConversation = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { refreshBadge } = useChatNotification();
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -65,6 +67,8 @@ const ChatConversation = ({
           if (error) throw error;
           if (data.success) {
             console.log('Messages marked as seen');
+            // Refresh the chat notification badge
+            refreshBadge();
           }
         } catch (error) {
           console.error('Error marking messages as seen:', error);
@@ -73,7 +77,7 @@ const ChatConversation = ({
     };
 
     markMessagesAsSeen();
-  }, [messages.length, currentUserId, room.id]);
+  }, [messages.length, currentUserId, room.id, refreshBadge]);
 
   const handleInputChange = (value: string) => {
     setNewMessage(value);
@@ -113,8 +117,8 @@ const ChatConversation = ({
     return new Date(dateString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Corrected column names from user1_id/user2_id to user_a_id/user_b_id
-  const otherUserId = room.user_a_id === currentUserId ? room.user_b_id : room.user_a_id;
+  // Get the other user's ID using correct column names
+  const otherUserId = room.user1_id === currentUserId ? room.user2_id : room.user1_id;
   const isTyping = typingUsers.includes(otherUserId);
 
   const getConnectionStatusColor = () => {

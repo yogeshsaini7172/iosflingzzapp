@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
 import { MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useOptionalAuth } from "@/hooks/useRequiredAuth";
+import { useChatNotification } from "@/contexts/ChatNotificationContext";
+import { useRealtime } from "@/hooks/useRealtime";
 
 interface ChatNotificationBadgeProps {
   onClick: () => void;
@@ -13,18 +15,9 @@ const ChatNotificationBadge = ({ onClick, className }: ChatNotificationBadgeProp
   const [chatCount, setChatCount] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
   const { userId, isAuthenticated } = useOptionalAuth();
+  const { badgeKey } = useChatNotification();
 
-  useEffect(() => {
-    if (userId && isAuthenticated) {
-      fetchChatCounts();
-      
-      // Refresh every 30 seconds
-      const interval = setInterval(fetchChatCounts, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [userId, isAuthenticated]);
-
-  const fetchChatCounts = async () => {
+  const fetchChatCounts = useCallback(async () => {
     if (!userId || !isAuthenticated) return;
 
     try {
@@ -32,7 +25,7 @@ const ChatNotificationBadge = ({ onClick, className }: ChatNotificationBadgeProp
       const { data: rooms, error } = await supabase
         .from("chat_rooms")
         .select("id")
-        .or(`user_a_id.eq.${userId},user_b_id.eq.${userId}`);
+        .or(`user1_id.eq.${userId},user2_id.eq.${userId}`);
 
       if (error) throw error;
 
@@ -54,7 +47,39 @@ const ChatNotificationBadge = ({ onClick, className }: ChatNotificationBadgeProp
       console.error("Error fetching chat counts:", error);
       setUnreadCount(0);
     }
-  };
+  }, [userId, isAuthenticated]);
+
+  useEffect(() => {
+    if (userId && isAuthenticated) {
+      fetchChatCounts();
+      
+      // Refresh every 30 seconds
+      const interval = setInterval(fetchChatCounts, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [userId, isAuthenticated, fetchChatCounts, badgeKey]);
+
+  // Real-time listener for new messages to refresh count immediately
+  useRealtime({
+    table: 'chat_messages_enhanced',
+    event: 'INSERT',
+    filter: userId ? `!sender_id.eq.${userId}` : 'id=eq.00000000-0000-0000-0000-000000000000',
+    onInsert: () => {
+      // Refresh count when a new message is received (not sent by current user)
+      fetchChatCounts();
+    }
+  });
+
+  // Real-time listener for message read updates to refresh count immediately  
+  useRealtime({
+    table: 'chat_messages_enhanced',
+    event: 'UPDATE',
+    filter: userId ? `sender_id.neq.${userId}` : 'id=eq.00000000-0000-0000-0000-000000000000',
+    onUpdate: () => {
+      // Refresh count when messages are marked as read
+      fetchChatCounts();
+    }
+  });
 
   if (chatCount === 0) {
     return (

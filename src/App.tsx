@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route, useNavigate, useLocation, useParams, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { SocketChatProvider } from "@/contexts/SocketChatContext";
+import { ChatNotificationProvider } from "@/contexts/ChatNotificationContext";
 import { useState, useEffect } from "react";
 import SwipePage from "./pages/SwipePage";
 import PairingPage from "./pages/PairingPage";
@@ -198,37 +199,39 @@ const AuthenticatedApp = () => {
   return (
     <TooltipProvider>
       <SocketChatProvider>
-        <div className="min-h-screen bg-gradient-to-br from-background to-muted">
-          <Toaster />
-          <Sonner />
-          <div id="recaptcha-container"></div>
-          <Routes>
-            <Route path="/" element={<FlingzzHome onNavigate={(view) => navigate(`/${view}`)} />} />
-            <Route path="/swipe" element={<SwipePage onNavigate={(view) => navigate(`/${view}`)} />} />
-            <Route path="/feed" element={<FeedPage onNavigate={(view) => navigate(`/${view}`)} />} />
-            <Route path="/pairing" element={<PairingPage onNavigate={(view) => navigate(`/${view}`)} />} />
-            <Route path="/matches" element={<MatchesPage onNavigate={(view) => navigate(`/${view}`)} />} />
-            
-            {/* --- Correctly integrated chat routes --- */}
-            <Route 
-              path="/chat" 
-              element={<RebuiltChatSystem onNavigate={(view) => navigate(`/${view}`)} />} 
-            />
-            <Route 
-              path="/chat/:chatId" 
-              element={<ChatWrapper />} 
-            />
-            
-            <Route path="/profile" element={<ProfilePage onNavigate={(view) => navigate(`/${view}`)} />} />
-            <Route path="/blind-date" element={<BlindDatePage onNavigate={(view) => navigate(`/${view}`)} />} />
-            <Route path="/subscription" element={<SubscriptionPage onNavigate={(view) => navigate(`/${view}`)} />} />
-            <Route path="/qcs-test" element={<QCSTestPage />} />
-            {/* Redirect /home to root */}
-            <Route path="/home" element={<Navigate to="/" replace />} />
-            {/* Keep the catch-all route for other unknown routes */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </div>
+        <ChatNotificationProvider>
+          <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+            <Toaster />
+            <Sonner />
+            <div id="recaptcha-container"></div>
+            <Routes>
+              <Route path="/" element={<FlingzzHome onNavigate={(view) => navigate(`/${view}`)} />} />
+              <Route path="/swipe" element={<SwipePage onNavigate={(view) => navigate(`/${view}`)} />} />
+              <Route path="/feed" element={<FeedPage onNavigate={(view) => navigate(`/${view}`)} />} />
+              <Route path="/pairing" element={<PairingPage onNavigate={(view) => navigate(`/${view}`)} />} />
+              <Route path="/matches" element={<MatchesPage onNavigate={(view) => navigate(`/${view}`)} />} />
+              
+              {/* --- Correctly integrated chat routes --- */}
+              <Route 
+                path="/chat" 
+                element={<RebuiltChatSystem onNavigate={(view) => navigate(`/${view}`)} />} 
+              />
+              <Route 
+                path="/chat/:chatId" 
+                element={<ChatWrapper />} 
+              />
+              
+              <Route path="/profile" element={<ProfilePage onNavigate={(view) => navigate(`/${view}`)} />} />
+              <Route path="/blind-date" element={<BlindDatePage onNavigate={(view) => navigate(`/${view}`)} />} />
+              <Route path="/subscription" element={<SubscriptionPage onNavigate={(view) => navigate(`/${view}`)} />} />
+              <Route path="/qcs-test" element={<QCSTestPage />} />
+              {/* Redirect /home to root */}
+              <Route path="/home" element={<Navigate to="/" replace />} />
+              {/* Keep the catch-all route for other unknown routes */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </div>
+        </ChatNotificationProvider>
       </SocketChatProvider>
     </TooltipProvider>
   );

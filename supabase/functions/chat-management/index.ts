@@ -184,13 +184,13 @@ Deno.serve(async (req) => {
           throw new Error('Chat room ID and user ID are required.');
         }
 
-        // Mark all messages in the chat room as seen by the user
+        // Mark all messages in the chat room as seen by the user (using read_at timestamp)
         const { error } = await supabase
-          .from('chat_messages')
-          .update({ seen: true })
+          .from('chat_messages_enhanced')
+          .update({ read_at: new Date().toISOString() })
           .eq('chat_room_id', chat_room_id)
           .neq('sender_id', user_id)
-          .eq('seen', false);
+          .is('read_at', null);
 
         if (error) throw error;
 
@@ -204,22 +204,35 @@ Deno.serve(async (req) => {
         const { user_id } = body;
         if (!user_id) throw new Error('User ID is required.');
 
-        // Get count of unread messages for the user
+        // Get count of unread messages for the user (messages with null read_at)
         const { data, error } = await supabase
-          .from('chat_messages')
-          .select('id')
-          .eq('seen', false)
-          .neq('sender_id', user_id)
-          .in('chat_room_id',
-            supabase
-              .from('chat_rooms')
-              .select('id')
-              .or(`user_a_id.eq.${user_id},user_b_id.eq.${user_id}`)
-          );
+          .from('chat_messages_enhanced')
+          .select('id, chat_room_id')
+          .is('read_at', null)
+          .neq('sender_id', user_id);
 
         if (error) throw error;
 
-        return new Response(JSON.stringify({ success: true, data: data?.length || 0 }), {
+        // Filter messages to only include those from chat rooms the user is part of
+        if (!data || data.length === 0) {
+          return new Response(JSON.stringify({ success: true, data: 0 }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200,
+          });
+        }
+
+        // Get user's chat rooms
+        const { data: userRooms, error: roomError } = await supabase
+          .from('chat_rooms')
+          .select('id')
+          .or(`user1_id.eq.${user_id},user2_id.eq.${user_id}`);
+
+        if (roomError) throw roomError;
+
+        const userRoomIds = userRooms?.map(room => room.id) || [];
+        const unreadMessages = data.filter(msg => userRoomIds.includes(msg.chat_room_id));
+
+        return new Response(JSON.stringify({ success: true, data: unreadMessages.length }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200,
         });

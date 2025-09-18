@@ -13,8 +13,8 @@ export interface ChatUser {
 }
 export interface ChatRoom {
   id: string;
-  user_a_id: string;
-  user_b_id: string;
+  user1_id: string;
+  user2_id: string;
   last_message: string | null;
   last_message_time: string | null;
   updated_at: string;
@@ -168,7 +168,7 @@ export const useChatWithWebSocket = (userId: string | null) => {
   };
 
   const getOtherUserId = (room: ChatRoom) => {
-    return room.user_a_id === userId ? room.user_b_id : room.user_a_id;
+    return room.user1_id === userId ? room.user2_id : room.user1_id;
   };
 
   const isUserOnline = (otherUserId: string) => {
