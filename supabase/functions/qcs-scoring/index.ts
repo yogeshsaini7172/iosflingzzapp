@@ -2,11 +2,14 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-// Inlined blend utilities
-function blendScore(logicScore: number, aiScore: number | null): number {
+// Inlined blend utilities with AI weight parameter
+function blendScore(logicScore: number, aiScore: number | null, aiWeight: number = 0.5): number {
+  // Blend based on AI weight (default 50/50)
   if (typeof aiScore === 'number' && aiScore > 0 && !isNaN(aiScore)) {
-    return Math.round(logicScore * 0.6 + aiScore * 0.4);
+    const w = Math.max(0, Math.min(1, aiWeight));
+    return Math.round((1 - w) * logicScore + w * aiScore);
   }
+  // Fallback to pure logic score
   return Math.round(logicScore);
 }
 
@@ -661,6 +664,260 @@ function deterministicScoring(profile: any): { score: number, perCategoryFractio
   return { score: deterministicScore, perCategoryFraction: perCatFraction };
 }
 
+// Big-5 Personality Model (Local Psychology Assessment)
+const PERSONALITY_TO_BIG5: Record<string, Record<string, number>> = {
+  "adventurous": { "openness": 0.8, "extraversion": 0.6 },
+  "analytical": { "openness": 0.6, "conscientiousness": 0.7 },
+  "creative": { "openness": 0.9, "extraversion": 0.3 },
+  "outgoing": { "extraversion": 0.9 },
+  "introverted": { "extraversion": 0.2 },
+  "empathetic": { "agreeableness": 0.9 },
+  "ambitious": { "conscientiousness": 0.9 },
+  "laid-back": { "neuroticism": -0.5 },
+  "intellectual": { "openness": 0.8, "conscientiousness": 0.5 },
+  "spontaneous": { "openness": 0.7, "extraversion": 0.5 },
+  "humorous": { "extraversion": 0.5, "agreeableness": 0.4 },
+  "practical": { "conscientiousness": 0.7 },
+  "responsible": { "conscientiousness": 0.95 },
+  "emotional": { "neuroticism": 0.6 },
+  "calm": { "neuroticism": -0.5 },
+  "positive thinking": { "neuroticism": -0.6, "agreeableness": 0.4 },
+  "philosophical": { "openness": 0.85 }
+};
+
+function computeBig5FromProfile(profile: any): { big5: Record<string, number>, metadata: any } {
+  const dims = { "openness": 0.0, "conscientiousness": 0.0, "extraversion": 0.0, "agreeableness": 0.0, "neuroticism": 0.0 };
+  const weights = { "openness": 0.0, "conscientiousness": 0.0, "extraversion": 0.0, "agreeableness": 0.0, "neuroticism": 0.0 };
+
+  // Process personality traits
+  const personalityTraits = tryParseStringList(profile.personality_traits || profile.personality_type) || [];
+  for (const trait of personalityTraits) {
+    const traitWeight = safeGetOptionWeight(trait, PERSONALITY_WEIGHTS, 0.6);
+    const mapping = PERSONALITY_TO_BIG5[trait];
+    if (mapping) {
+      Object.entries(mapping).forEach(([dim, contrib]) => {
+        dims[dim] += traitWeight * contrib;
+        weights[dim] += traitWeight;
+      });
+    }
+  }
+
+  // Process values
+  const values = tryParseStringList(profile.values) || [];
+  values.forEach(v => {
+    const vWeight = safeGetOptionWeight(v, VALUES_WEIGHTS, 0.6);
+    if (v.includes("open") || v.includes("creative") || v.includes("intellect") || v.includes("adventure")) {
+      dims["openness"] += 0.6 * vWeight;
+      weights["openness"] += vWeight;
+    }
+    if (v.includes("family") || v.includes("financial") || v.includes("responsible")) {
+      dims["agreeableness"] += 0.5 * vWeight;
+      weights["agreeableness"] += vWeight;
+    }
+  });
+
+  // Process mindset
+  const mindset = tryParseStringList(profile.mindset) || [];
+  mindset.forEach(m => {
+    const mWeight = safeGetOptionWeight(m, MINDSET_WEIGHTS, 0.6);
+    if (m.includes("growth") || m.includes("curious")) {
+      dims["openness"] += 0.7 * mWeight;
+      weights["openness"] += mWeight;
+    }
+    if (m.includes("positive")) {
+      dims["neuroticism"] -= 0.6 * mWeight;
+      weights["neuroticism"] += mWeight;
+    }
+  });
+
+  // Process interests
+  const interests = tryParseStringList(profile.interests) || [];
+  interests.forEach(interest => {
+    const iWeight = safeGetOptionWeight(interest, INTERESTS_WEIGHTS, 0.6);
+    if (["reading", "art", "philosophy", "science"].includes(interest)) {
+      dims["openness"] += 0.6 * iWeight;
+      weights["openness"] += iWeight;
+    }
+    if (["fitness", "sports"].includes(interest)) {
+      dims["extraversion"] += 0.5 * iWeight;
+      weights["extraversion"] += iWeight;
+    }
+    if (["volunteering", "family"].includes(interest)) {
+      dims["agreeableness"] += 0.6 * iWeight;
+      weights["agreeableness"] += iWeight;
+    }
+  });
+
+  // Process bio sentiment
+  let bioSentiment = 0.0;
+  if (profile.bio) {
+    const words = profile.bio.toLowerCase().split(/\W+/).filter(w => w.length > 2);
+    const pos = words.filter(w => POSITIVE_WORDS.includes(w)).length;
+    const neg = words.filter(w => NEGATIVE_WORDS.includes(w)).length;
+    
+    if (pos + neg > 0) {
+      bioSentiment = (pos - neg) / (pos + neg);
+      dims["neuroticism"] -= 0.5 * bioSentiment;
+      weights["neuroticism"] += 0.6;
+      dims["agreeableness"] += 0.2 * bioSentiment;
+      weights["agreeableness"] += 0.3;
+    }
+  }
+
+  // Normalize dimensions to 0-1 scale
+  const big5: Record<string, number> = {};
+  Object.keys(dims).forEach(k => {
+    if (weights[k] > 0) {
+      const raw = dims[k] / weights[k];
+      const clamped = Math.max(-1.0, Math.min(1.0, raw));
+      big5[k] = Math.max(0.0, Math.min(1.0, (clamped + 1.0) / 2.0));
+    } else {
+      big5[k] = 0.0;
+    }
+  });
+
+  return { 
+    big5, 
+    metadata: { 
+      dims_raw: dims, 
+      weights, 
+      bio_sentiment: bioSentiment,
+      traits_processed: personalityTraits.length,
+      values_processed: values.length,
+      interests_processed: interests.length
+    } 
+  };
+}
+
+function psychModelAssessor(profile: any): { score: number, reason: string, breakdown: any } {
+  const { big5, metadata } = computeBig5FromProfile(profile);
+  
+  const weights = {
+    "openness": 0.22,
+    "conscientiousness": 0.26,
+    "extraversion": 0.18,
+    "agreeableness": 0.20,
+    "neuroticism": 0.14
+  };
+  
+  const score = (
+    weights["openness"] * big5["openness"] +
+    weights["conscientiousness"] * big5["conscientiousness"] +
+    weights["extraversion"] * big5["extraversion"] +
+    weights["agreeableness"] * big5["agreeableness"] +
+    weights["neuroticism"] * (1.0 - big5["neuroticism"])
+  );
+  
+  const score100 = Math.max(0.0, Math.min(100.0, Math.round(score * 100.0)));
+  
+  const reasons: string[] = [];
+  if (profile.personality_traits) reasons.push(`Traits: ${Array.isArray(profile.personality_traits) ? profile.personality_traits.join(', ') : profile.personality_traits}`);
+  if (profile.values) reasons.push(`Values: ${Array.isArray(profile.values) ? profile.values.join(', ') : profile.values}`);
+  if (profile.interests) {
+    const interestsList = Array.isArray(profile.interests) ? profile.interests : tryParseStringList(profile.interests) || [];
+    reasons.push(`Interests: ${interestsList.slice(0, 6).join(', ')}`);
+  }
+  
+  const bioSnip = profile.bio ? (profile.bio.length > 140 ? profile.bio.substring(0, 140) + "..." : profile.bio) : "";
+  if (bioSnip) reasons.push(`Bio: "${bioSnip}"`);
+  
+  const reason = reasons.length > 0 ? reasons.join(" | ") : "Based on available profile fields.";
+  
+  return {
+    score: score100,
+    reason,
+    breakdown: { big5, metadata, weights_used: weights }
+  };
+}
+
+// Preference Compatibility Scoring (QCS)
+function preferenceCompatibilityScore(seeker: any, candidate: any): number {
+  const scores: number[] = [];
+  const weights: number[] = [];
+
+  // Gender preference matching
+  if (seeker.preferredGender || seeker.preferred_gender) {
+    const preferredGenders = tryParseStringList(seeker.preferredGender || seeker.preferred_gender) || [];
+    const candidateGender = (candidate.gender || "").toLowerCase();
+    const match = preferredGenders.includes("all") || preferredGenders.includes(candidateGender);
+    scores.push(match ? 1.0 : 0.0);
+    weights.push(2.0);
+  }
+
+  // Age compatibility
+  if (seeker.ageRangeMin && seeker.ageRangeMax && candidate.date_of_birth) {
+    try {
+      const candidateAge = Math.floor((Date.now() - new Date(candidate.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+      if (seeker.ageRangeMin <= candidateAge && candidateAge <= seeker.ageRangeMax) {
+        scores.push(1.0);
+      } else {
+        const diff = Math.min(Math.abs(candidateAge - seeker.ageRangeMin), Math.abs(candidateAge - seeker.ageRangeMax));
+        scores.push(Math.max(0.0, 1.0 - (diff / 10.0)));
+      }
+      weights.push(1.5);
+    } catch (e) {
+      scores.push(0.5);
+      weights.push(1.5);
+    }
+  }
+
+  // Height compatibility
+  if (seeker.heightRangeMin && seeker.heightRangeMax && candidate.height) {
+    const height = parseFloat(String(candidate.height));
+    if (seeker.heightRangeMin <= height && height <= seeker.heightRangeMax) {
+      scores.push(1.0);
+    } else {
+      const diff = Math.min(Math.abs(height - seeker.heightRangeMin), Math.abs(height - seeker.heightRangeMax));
+      scores.push(Math.max(0.0, 1.0 - (diff / 80.0)));
+    }
+    weights.push(1.0);
+  }
+
+  // Overlap scoring function (Jaccard similarity)
+  const overlapScore = (listA: string[], listB: string[]): number => {
+    if (!listA || !listB || listA.length === 0 || listB.length === 0) return 0.0;
+    
+    const setA = new Set(listA.map(x => x.toLowerCase()));
+    const setB = new Set(listB.map(x => x.toLowerCase()));
+    
+    const intersection = new Set([...setA].filter(x => setB.has(x)));
+    const union = new Set([...setA, ...setB]);
+    
+    return union.size > 0 ? intersection.size / union.size : 0.0;
+  };
+
+  // Values compatibility
+  const seekerValues = tryParseStringList(seeker.preferredValues || seeker.preferred_values);
+  const candidateValues = tryParseStringList(candidate.values);
+  if (seekerValues && candidateValues) {
+    scores.push(overlapScore(seekerValues, candidateValues));
+    weights.push(1.2);
+  }
+
+  // Personality compatibility
+  const seekerPersonality = tryParseStringList(seeker.preferredPersonality || seeker.preferred_personality);
+  const candidatePersonality = tryParseStringList(candidate.personality_traits || candidate.personality_type);
+  if (seekerPersonality && candidatePersonality) {
+    scores.push(overlapScore(seekerPersonality, candidatePersonality));
+    weights.push(1.5);
+  }
+
+  // Relationship goals compatibility
+  const seekerGoals = tryParseStringList(seeker.preferredRelationshipGoals || seeker.preferred_relationship_goals);
+  const candidateGoals = tryParseStringList(candidate.relationshipGoals || candidate.relationship_goals);
+  if (seekerGoals && candidateGoals) {
+    scores.push(overlapScore(seekerGoals, candidateGoals));
+    weights.push(1.0);
+  }
+
+  if (weights.length === 0) return 50.0;
+
+  const weightedSum = scores.reduce((sum, score, i) => sum + (score * weights[i]), 0);
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+  
+  return Math.max(0.0, Math.min(100.0, (weightedSum / totalWeight) * 100.0));
+}
+
 // Enhanced persona assignment based on comprehensive profile
 function assignPersona(profile: any): string {
   const personality = profile.personality_traits || profile.personality_type || [];
@@ -918,11 +1175,15 @@ function generateFallbackPredictiveScore(profile: any): number {
   return Math.max(20, Math.min(95, score + variation));
 }
 
-// Main scoring pipeline with comprehensive algorithm and robust AI integration
-async function finalCustomerScoring(profile: any, userId: string) {
+// Main scoring pipeline with comprehensive algorithm and robust AI integration + Big-5 model
+async function finalCustomerScoring(profile: any, userId: string, aiWeight: number = 0.5) {
   // Use comprehensive deterministic scoring
   const { score: ruleScore, perCategoryFraction } = deterministicScoring(profile);
   const persona = assignPersona(profile);
+
+  // Add local psychology model assessment
+  const psychAssessment = psychModelAssessor(profile);
+  console.log(`Local psychology assessment for user ${userId}: score=${psychAssessment.score}, reason="${psychAssessment.reason}"`);
 
   console.log(`Starting comprehensive QCS calculation for user ${userId}: per-user circuit breaker check`);
 
@@ -934,18 +1195,39 @@ async function finalCustomerScoring(profile: any, userId: string) {
     else if (fraction < 0.3) behaviors.push(`Needs ${category} improvement`);
   });
 
-  // AI refinement with error handling
+  // AI refinement with error handling (optional)
   let aiRefinedResult = await aiRefinement(profile, ruleScore, behaviors, persona, userId);
 
-  // AI predictive scoring  
+  // AI predictive scoring (optional)
   let aiPredictiveResult = await aiPredictive(profile, perCategoryFraction, userId);
+
+  // Hybrid AI psychology scoring (local model + optional remote AI)
+  let hybridPsychScore = psychAssessment.score;
+  let aiPsychReason = psychAssessment.reason;
+  let aiSource = 'local';
+
+  // Try to enhance with remote AI if available and not circuit-broken
+  if (aiRefinedResult.ai_status === 'success' || aiPredictiveResult.ai_status === 'success') {
+    // Use available AI score as enhancement
+    const aiScore = aiRefinedResult.ai_status === 'success' ? aiRefinedResult.final_score : aiPredictiveResult.predicted_score;
+    hybridPsychScore = blendScore(psychAssessment.score, aiScore, 0.3); // 70% local, 30% AI
+    aiSource = 'hybrid';
+    aiPsychReason = `Hybrid: ${psychAssessment.reason} + AI enhancement`;
+  }
+
+  // Final blended score using aiWeight parameter
+  const finalBlendedScore = blendScore(ruleScore, hybridPsychScore, aiWeight);
 
   // Log AI status for monitoring
   const aiStatus = {
     refinement_status: aiRefinedResult.ai_status || 'unknown',
     predictive_status: aiPredictiveResult.ai_status || 'unknown',
+    psychology_model: aiSource,
+    psychology_score: hybridPsychScore,
+    ai_weight_used: aiWeight,
+    final_blended_score: finalBlendedScore,
     circuit_breaker_per_user: true,
-    scoring_version: 'comprehensive-v3-robust'
+    scoring_version: 'comprehensive-v4-big5-hybrid'
   };
   console.log(`Comprehensive QCS AI status for user ${userId}:`, aiStatus);
 
@@ -957,9 +1239,16 @@ async function finalCustomerScoring(profile: any, userId: string) {
       persona_detected: persona,
       category_breakdown: perCategoryFraction
     },
+    psychology_model: {
+      score: psychAssessment.score,
+      reason: aiPsychReason,
+      breakdown: psychAssessment.breakdown,
+      source: aiSource
+    },
     ai_based: aiPredictiveResult,
+    final_score: finalBlendedScore,
     ai_status: aiStatus,
-    final_judgment: 'Comprehensive multi-dimensional scoring with AI enhancement'
+    final_judgment: 'Comprehensive multi-dimensional scoring with Big-5 psychology model and AI enhancement'
   };
 }
 
@@ -1044,18 +1333,25 @@ serve(async (req) => {
     // Get comprehensive AI-based scoring with enhanced error handling
     let scoringResult: any = { ai_status: { refinement_status: 'skipped', predictive_status: 'skipped' }, rule_based: { final_score: 0 } };
     let aiScore = 0;
+    
+    // Extract AI weight from request body (default 0.5 for 50/50 blend)
+    const aiWeight = Math.max(0, Math.min(1, parseFloat(body?.ai_weight) || 0.5));
+    
     try {
       if (openaiApiKey) {
-        scoringResult = await finalCustomerScoring(fullProfile, userId);
-        aiScore = scoringResult.rule_based.final_score || scoringResult.rule_based.base_score || 50;
+        scoringResult = await finalCustomerScoring(fullProfile, userId, aiWeight);
+        aiScore = scoringResult.final_score || scoringResult.rule_based.final_score || scoringResult.rule_based.base_score || 50;
       } else {
-        // No OpenAI key: skip AI path entirely
-        aiScore = 0;
+        // No OpenAI key: skip AI path entirely, use local psychology model only
+        scoringResult = await finalCustomerScoring(fullProfile, userId, 0.0); // 100% deterministic
+        aiScore = scoringResult.final_score || 0;
         scoringResult.ai_status = { refinement_status: 'disabled', predictive_status: 'disabled' };
       }
     } catch (e) {
       console.log('AI scoring path failed, proceeding with deterministic only:', (e as Error).message);
-      aiScore = 0;
+      // Fallback with pure deterministic scoring
+      scoringResult = await finalCustomerScoring(fullProfile, userId, 0.0);
+      aiScore = scoringResult.final_score || 0;
     }
 
     // Use comprehensive deterministic scoring for logic-based QCS calculation
@@ -1077,16 +1373,20 @@ serve(async (req) => {
     // Use comprehensive logic score
     const logicQcs = Math.min(100, comprehensiveLogicScore);
 
-    // Enhanced blending logic - only use AI if we have a valid score
-    const aiRefinedScore = scoringResult.rule_based?.final_score;
+    // Enhanced blending logic - use the final blended score from comprehensive scoring
+    const aiRefinedScore = scoringResult.psychology_model?.score || scoringResult.rule_based?.final_score;
     const validAiScore = (typeof aiRefinedScore === 'number' && aiRefinedScore > 0 && !isNaN(aiRefinedScore)) ? aiRefinedScore : null;
     
-    // Use robust blending function
-    const totalQcs = blendScore(logicQcs, validAiScore);
+    // Use the final score from comprehensive algorithm
+    const totalQcs = scoringResult.final_score || blendScore(logicQcs, validAiScore, aiWeight);
 
-    // Enhanced logging with AI status
-    const aiStatusSummary = scoringResult.ai_status || {};
-    console.log(`QCS calculated for ${userId}: Logic=${logicQcs}, AI=${validAiScore || 'null'}, Final=${totalQcs} (Profile: ${profileScore}, College: ${collegeTier}, Personality: ${personalityDepth}, Behavior: ${behaviorScore}) | AI Status: ${JSON.stringify(aiStatusSummary)}`);
+    // Enhanced logging with AI status and psychology model
+    const aiStatusSummary = { 
+      ...scoringResult.ai_status, 
+      psychology_model: scoringResult.psychology_model || {},
+      ai_weight_used: aiWeight
+    };
+    console.log(`QCS calculated for ${userId}: Logic=${logicQcs}, Psychology=${scoringResult.psychology_model?.score || 'null'}, Final=${totalQcs} (Profile: ${profileScore}, College: ${collegeTier}, Personality: ${personalityDepth}, Behavior: ${behaviorScore}) | AI Status: ${JSON.stringify(aiStatusSummary)}`);
 
     // ATOMIC DATABASE UPDATE - Single transaction using stored procedure
     const { data: atomicResult, error: atomicError } = await supabase.rpc('atomic_qcs_update', {
@@ -1147,8 +1447,9 @@ serve(async (req) => {
       ai_status: aiStatusSummary,
       metadata: {
         timestamp: new Date().toISOString(),
-        version: '3.0-robust',
-        atomic_update: !atomicError
+        version: '4.0-big5-hybrid',
+        atomic_update: !atomicError,
+        ai_weight_used: aiWeight
       }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
