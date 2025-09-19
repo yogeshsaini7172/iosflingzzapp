@@ -108,6 +108,10 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
     profileImages: [] as string[]
   });
 
+  // Helper function to normalize keys to match UI format
+  const normalizeKey = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '_');
+  const normalizeArray = (arr: string[]) => arr.map(normalizeKey);
+
   // Update form data when profile/preferences load
   useEffect(() => {
     if (profile) {
@@ -119,10 +123,6 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
         mindset: profile.mindset,
         relationship_goals: profile.relationship_goals
       });
-      
-      // Helper function to normalize keys to match UI format
-      const normalizeKey = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '_');
-      const normalizeArray = (arr: string[]) => arr.map(normalizeKey);
       
       const transformedData = {
         firstName: profile.first_name || '',
@@ -137,7 +137,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
         values: profile.values ? normalizeArray(profile.values) : [],
         mindset: profile.mindset ? (Array.isArray(profile.mindset) ? normalizeArray(profile.mindset) : [normalizeKey(profile.mindset)]) : [],
         relationshipGoals: profile.relationship_goals ? normalizeArray(profile.relationship_goals) : [],
-        interests: profile.interests || [],
+        interests: profile.interests ? normalizeArray(profile.interests) : [],
         isVisible: profile.show_profile !== false,
         profileImages: profile.profile_images || []
       };
@@ -154,30 +154,30 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       console.log("📊 Loading preferences data into form:", preferences);
       setFormData(prev => ({
         ...prev,
-        preferredGender: Array.isArray(preferences.preferred_gender) ? preferences.preferred_gender.map(g => g.toString()) : ['male', 'female'], // Default to both genders
+        preferredGender: Array.isArray(preferences.preferred_gender) ? preferences.preferred_gender.map(g => g.toString().toLowerCase()) : ['male', 'female'], // Default to both genders
         ageRangeMin: preferences.age_range_min || 18,
         ageRangeMax: preferences.age_range_max || 30,
         heightRangeMin: preferences.height_range_min || 150,
         heightRangeMax: preferences.height_range_max || 200,
         preferredBodyTypes: Array.isArray(preferences.preferred_body_types) && preferences.preferred_body_types.length > 0 
-          ? preferences.preferred_body_types 
+          ? normalizeArray(preferences.preferred_body_types) 
           : ['slim', 'athletic', 'average'], // Provide sensible defaults
         preferredValues: Array.isArray(preferences.preferred_values) && preferences.preferred_values.length > 0 
-          ? preferences.preferred_values 
+          ? normalizeArray(preferences.preferred_values) 
           : ['family_oriented', 'career_focused'], // Default values
         preferredMindset: Array.isArray(preferences.preferred_mindset) && preferences.preferred_mindset.length > 0 
-          ? preferences.preferred_mindset 
+          ? normalizeArray(preferences.preferred_mindset) 
           : ['growth_mindset'], // Default mindset
         preferredPersonalityTraits: Array.isArray(preferences.preferred_personality_traits) && preferences.preferred_personality_traits.length > 0 
-          ? preferences.preferred_personality_traits 
+          ? normalizeArray(preferences.preferred_personality_traits) 
           : ['outgoing', 'empathetic'], // Default traits
         preferredRelationshipGoal: Array.isArray(preferences.preferred_relationship_goal) && preferences.preferred_relationship_goal.length > 0 
-          ? preferences.preferred_relationship_goal 
+          ? normalizeArray(preferences.preferred_relationship_goal) 
           : ['serious_relationship'], // Default goal
-        preferredSkinTone: Array.isArray(preferences.preferred_skin_tone) ? preferences.preferred_skin_tone : [],
-        preferredFaceType: Array.isArray(preferences.preferred_face_type) ? preferences.preferred_face_type : [],
-        preferredLoveLanguage: Array.isArray(preferences.preferred_love_language) ? preferences.preferred_love_language : [],
-        preferredLifestyle: Array.isArray(preferences.preferred_lifestyle) ? preferences.preferred_lifestyle : []
+        preferredSkinTone: Array.isArray(preferences.preferred_skin_tone) ? normalizeArray(preferences.preferred_skin_tone) : [],
+        preferredFaceType: Array.isArray(preferences.preferred_face_type) ? normalizeArray(preferences.preferred_face_type) : [],
+        preferredLoveLanguage: Array.isArray(preferences.preferred_love_language) ? normalizeArray(preferences.preferred_love_language) : [],
+        preferredLifestyle: Array.isArray(preferences.preferred_lifestyle) ? normalizeArray(preferences.preferred_lifestyle) : []
       }));
     }
   }, [profile, preferences]);
