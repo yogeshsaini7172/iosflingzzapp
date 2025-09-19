@@ -112,6 +112,11 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
   useEffect(() => {
     if (profile) {
       console.log("📊 Loading profile data into form:", profile);
+      
+      // Helper function to normalize keys to match UI format
+      const normalizeKey = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      const normalizeArray = (arr: string[]) => arr.map(normalizeKey);
+      
       setFormData(prev => ({
         ...prev,
         firstName: profile.first_name || '',
@@ -122,10 +127,10 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
         height: profile.height?.toString() || '',
         bodyType: profile.body_type || '',
         skinTone: profile.skin_tone || '',
-        personalityTraits: profile.personality_traits || [],
-        values: Array.isArray(profile.values) ? profile.values : (profile.values ? [profile.values] : []),
-        mindset: Array.isArray(profile.mindset) ? profile.mindset : (profile.mindset ? [profile.mindset] : []),
-        relationshipGoals: profile.relationship_goals || [],
+        personalityTraits: profile.personality_traits ? normalizeArray(profile.personality_traits) : [],
+        values: profile.values ? normalizeArray(profile.values) : [],
+        mindset: profile.mindset ? (Array.isArray(profile.mindset) ? normalizeArray(profile.mindset) : [normalizeKey(profile.mindset)]) : [],
+        relationshipGoals: profile.relationship_goals ? normalizeArray(profile.relationship_goals) : [],
         interests: profile.interests || [],
         isVisible: profile.show_profile !== false,
         profileImages: profile.profile_images || []
