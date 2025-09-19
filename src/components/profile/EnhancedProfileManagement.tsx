@@ -112,13 +112,19 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
   useEffect(() => {
     if (profile) {
       console.log("📊 Loading profile data into form:", profile);
+      console.log("🔍 Raw profile values:", {
+        personality_traits: profile.personality_traits,
+        values: profile.values,
+        values_array: (profile as any).values_array,
+        mindset: profile.mindset,
+        relationship_goals: profile.relationship_goals
+      });
       
       // Helper function to normalize keys to match UI format
       const normalizeKey = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '_');
       const normalizeArray = (arr: string[]) => arr.map(normalizeKey);
       
-      setFormData(prev => ({
-        ...prev,
+      const transformedData = {
         firstName: profile.first_name || '',
         lastName: profile.last_name || '',
         bio: profile.bio || '',
@@ -134,6 +140,13 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
         interests: profile.interests || [],
         isVisible: profile.show_profile !== false,
         profileImages: profile.profile_images || []
+      };
+      
+      console.log("🔄 Transformed data:", transformedData);
+      
+      setFormData(prev => ({
+        ...prev,
+        ...transformedData
       }));
     }
     
