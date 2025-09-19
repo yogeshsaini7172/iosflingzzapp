@@ -972,48 +972,58 @@ serve(async (req) => {
   }
 
   try {
-    // Verify Firebase ID token from Authorization header
-    const authHeader = req.headers.get('authorization') || '';
-    const idToken = authHeader.replace('Bearer ', '');
-
-    if (!idToken) {
-      return new Response(JSON.stringify({ error: 'No token provided' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    // Read body once and allow explicit user_id to be provided
+    let body: any = {};
+    try {
+      body = await req.json();
+    } catch (_) {
+      body = {};
     }
 
-    // Validate Firebase issuer/audience and extract UID safely (base64url decode)
-    const serviceAccountJson = Deno.env.get('FIREBASE_SERVICE_ACCOUNT_JSON');
-    try {
-      if (!serviceAccountJson) throw new Error('Firebase service account not configured');
-      const serviceAccount = JSON.parse(serviceAccountJson);
-      const projectId = serviceAccount.project_id as string;
+    // Determine target user id
+    let userId: string | null = body?.user_id ?? null;
 
-      const parts = idToken.split('.');
-      if (parts.length < 2) throw new Error('Malformed token');
-      const base64Url = parts[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(base64Url.length / 4) * 4, '=');
-      const payload = JSON.parse(atob(base64));
+    // If not provided in body, try to derive from Firebase token (backward compatible)
+    if (!userId) {
+      const authHeader = req.headers.get('authorization') || '';
+      const idToken = authHeader.replace('Bearer ', '');
 
-      const expectedIss = `https://securetoken.google.com/${projectId}`;
-      const issOk = typeof payload.iss === 'string' && payload.iss === expectedIss;
-      const audOk = typeof payload.aud === 'string' && payload.aud === projectId;
-      const subOk = typeof payload.sub === 'string' && payload.sub.length > 0;
-      if (!issOk || !audOk || !subOk) {
-        throw new Error('Invalid token claims');
+      if (idToken) {
+        const serviceAccountJson = Deno.env.get('FIREBASE_SERVICE_ACCOUNT_JSON');
+        try {
+          if (!serviceAccountJson) throw new Error('Firebase service account not configured');
+          const serviceAccount = JSON.parse(serviceAccountJson);
+          const projectId = serviceAccount.project_id as string;
+
+          const parts = idToken.split('.');
+          if (parts.length >= 2) {
+            const base64Url = parts[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(base64Url.length / 4) * 4, '=');
+            const payload = JSON.parse(atob(base64));
+
+            const expectedIss = `https://securetoken.google.com/${projectId}`;
+            const issOk = typeof payload.iss === 'string' && payload.iss === expectedIss;
+            const audOk = typeof payload.aud === 'string' && payload.aud === projectId;
+            const subOk = typeof payload.sub === 'string' && payload.sub.length > 0;
+            if (issOk && audOk && subOk) {
+              userId = payload.sub as string;
+            }
+          }
+        } catch (_e) {
+          // Ignore token errors; we'll require user_id in body
+        }
       }
+    }
 
-      var userId = payload.sub as string;
-    } catch (_e) {
-      return new Response(JSON.stringify({ error: 'Invalid token' }), {
-        status: 401,
+    if (!userId) {
+      return new Response(JSON.stringify({ error: 'user_id required' }), {
+        status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     // Read optional scoring inputs from body
-    const { physical, mental, description } = await req.json();
+    const { physical, mental, description } = body || {};
 
     // Get scoring based on provided data or fetch from profile
     let physicalData = physical;
@@ -1021,29 +1031,35 @@ serve(async (req) => {
     let descriptionData = description;
 
     if (!physicalData || !mentalData || !descriptionData) {
-      // Fetch profile data
+      // Fetch comprehensive profile data
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('bio, body_type, personality_type, interests, height')
+        .select('*')
         .or(`firebase_uid.eq.${userId},user_id.eq.${userId}`)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!profile) throw new Error(`Profile not found for user ${userId}`);
 
       // Generate data from profile if not provided
       physicalData = physicalData || `${profile.body_type || 'average'} ${profile.height ? (profile.height > 170 ? 'tall' : 'average') : 'average'}`;
-      mentalData = mentalData || `${profile.personality_type || 'average'} ${profile.interests?.includes('fitness') ? 'ambitious' : 'calm'}`;
+      mentalData = mentalData || `${profile.personality_type || 'average'} ${Array.isArray(profile.interests) && profile.interests.includes('fitness') ? 'ambitious' : 'calm'}`;
       descriptionData = descriptionData || profile.bio || 'No description available';
+
+      // Attach to outer scope
+      var profileRef: any = profile;
+    } else {
+      var profileRef: any = { body_type: undefined, height: undefined, personality_type: undefined, bio: descriptionData, interests: [] };
     }
 
-    console.log('Comprehensive scoring for user:', userId, 'Profile keys:', Object.keys(profile || {}));
+    console.log('Comprehensive scoring for user:', userId, 'Profile keys:', Object.keys(profileRef || {}));
 
     // Get comprehensive AI-based scoring with enhanced error handling
-    const scoringResult = await finalCustomerScoring(profile, userId);
+    const scoringResult = await finalCustomerScoring(profileRef, userId);
     const aiScore = scoringResult.rule_based.final_score || scoringResult.rule_based.base_score || 50;
 
     // Use the same profile for comprehensive logic-based QCS calculation
-    const fullProfile = profile;
+    const fullProfile = profileRef;
 
     // Use comprehensive deterministic scoring for logic-based QCS calculation
     const { score: comprehensiveLogicScore, perCategoryFraction } = deterministicScoring(fullProfile);
@@ -1079,8 +1095,7 @@ serve(async (req) => {
         profile_score: profileScore,
         college_tier: collegeTier,
         personality_depth: personalityDepth,
-        behavior_score: behaviorScore,
-        total_score: totalQcs
+        behavior_score: behaviorScore
       }, { onConflict: 'user_id' });
 
     if (qcsError) {

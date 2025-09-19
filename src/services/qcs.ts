@@ -11,22 +11,31 @@ export interface QCSScore {
 
 export async function calculateQCS(userId: string): Promise<number> {
   try {
-    console.log('🔄 Calculating QCS for user:', userId);
-    
-    // Use the manual QCS trigger function that works reliably
-    const { data, error } = await supabase.functions.invoke('manual-qcs-trigger', {
-      body: { user_id: userId }
+    // Invoke Supabase Edge Function (reliable logging + auth via Supabase client)
+    const { data, error } = await supabase.functions.invoke('qcs-scoring', {
+      body: { user_id: userId },
     });
 
     if (error) {
-      console.error('❌ QCS calculation error:', error);
+      console.error('QCS scoring function failed:', error);
       return 0;
     }
 
-    console.log('✅ QCS calculation successful:', data);
-    return data?.qcs_score || 0;
+    const result = (data as any) || {};
+    // Try common fields returned by the function; fallback to 0
+    const finalScore = (
+      result?.qcs?.total_score ??
+      result?.updated_qcs ??
+      result?.final_score ??
+      result?.score ??
+      result?.qcs_score ??
+      0
+    ) as number;
+
+    console.log(`QCS (edge) calculated for ${userId}: ${finalScore}`);
+    return typeof finalScore === 'number' ? finalScore : 0;
   } catch (error) {
-    console.error('❌ QCS calculation failed:', error);
+    console.error('Error invoking QCS scoring:', error);
     return 0;
   }
 }
@@ -56,8 +65,8 @@ export async function updateProfileCompletion(userId: string): Promise<void> {
     const { data: profile } = await supabase
       .from("profiles")
       .select("*")
-      .eq("user_id", userId)
-      .single();
+      .or(`firebase_uid.eq.${userId},user_id.eq.${userId}`)
+      .maybeSingle();
 
     if (!profile) return;
 
@@ -73,7 +82,7 @@ export async function updateProfileCompletion(userId: string): Promise<void> {
     await supabase
       .from("profiles")
       .update({ profile_completion_percentage: completionPercentage })
-      .eq("user_id", userId);
+      .or(`firebase_uid.eq.${userId},user_id.eq.${userId}`);
 
     // Recalculate QCS after profile update
     await calculateQCS(userId);
