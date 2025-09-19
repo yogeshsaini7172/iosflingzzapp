@@ -228,7 +228,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       // Calculate QCS via Edge Function (uses profile data)
       toast({ title: "Calculating QCS Score... 📊", description: "Analyzing your profile" });
 
-      const qcsResponse = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/qcs-scoring', {
+      const qcsResponse = await fetchWithFirebaseAuth('/functions/v1/qcs-scoring', {
         method: 'POST',
         body: JSON.stringify({ user_id: userId })
       });
@@ -270,17 +270,49 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       // Log the complete profile data before sending
       console.log('Complete profile data:', JSON.stringify(completeProfile, null, 2));
 
-      // Create profile via data-management function with Firebase auth
+      // Create profile via profile-completion function with Firebase auth
       const profileResponse = await fetchWithFirebaseAuth(
-        'https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/data-management',
+        '/functions/v1/profile-completion',
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ 
-            action: 'create_profile',
-            profile: completeProfile
+          body: JSON.stringify({
+            userId: completeProfile.user_id,
+            firstName: completeProfile.first_name,
+            lastName: completeProfile.last_name,
+            dateOfBirth: completeProfile.date_of_birth,
+            gender: completeProfile.gender,
+            university: completeProfile.university,
+            fieldOfStudy: completeProfile.field_of_study,
+            height: completeProfile.height,
+            bodyType: completeProfile.body_type,
+            skinTone: completeProfile.skin_tone,
+            faceType: completeProfile.face_type,
+            personalityType: completeProfile.personality_type,
+            values: completeProfile.values,
+            mindset: completeProfile.mindset,
+            relationshipGoals: completeProfile.relationship_goals || [],
+            interests: completeProfile.interests || [],
+            bio: completeProfile.bio,
+            profileImages: completeProfile.profile_images || [],
+            isProfilePublic: completeProfile.is_profile_public,
+            qcsScore: completeProfile.total_qcs || 0,
+            preferences: {
+              preferredGender: preferences.preferred_gender || [],
+              ageRangeMin: preferences.age_range_min || 18,
+              ageRangeMax: preferences.age_range_max || 30,
+              heightRangeMin: preferences.height_range_min || 150,
+              heightRangeMax: preferences.height_range_max || 200,
+              preferredBodyTypes: preferences.preferred_body_types || [],
+              preferredSkinTone: preferences.preferred_skin_tone || [],
+              preferredFaceType: preferences.preferred_face_type || [],
+              preferredValues: preferences.preferred_values || [],
+              preferredMindset: preferences.preferred_mindset || [],
+              preferredPersonality: preferences.preferred_personality_traits || [],
+              preferredRelationshipGoals: preferences.preferred_relationship_goals || [],
+              loveLanguage: completeProfile.love_language,
+              lifestyle: completeProfile.lifestyle
+            },
+            email: completeProfile.email
           })
         }
       );
