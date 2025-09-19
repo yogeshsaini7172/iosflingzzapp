@@ -112,6 +112,28 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
   const normalizeKey = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '_');
   const normalizeArray = (arr: string[]) => arr.map(normalizeKey);
 
+  // Alias maps to harmonize legacy/canonical keys to UI keys (display-only)
+  const aliasMaps = {
+    mindset: {
+      growth: 'growth_mindset',
+      positive: 'positive_thinking',
+    } as Record<string, string>,
+    lifestyle: {
+      // From older step component labels
+      active_outdoorsy: 'active',
+      active___outdoorsy: 'active',
+      social_party: 'social',
+      social___party: 'social',
+      quiet_homebody: 'homebody',
+      quiet___homebody: 'homebody',
+      studious_academic: 'intellectual',
+      studious___academic: 'intellectual',
+    } as Record<string, string>,
+  } as const;
+
+  const normalizeWithAliases = (arr: string[], domain: keyof typeof aliasMaps) =>
+    arr.map(normalizeKey).map((k) => aliasMaps[domain][k] || k);
+
   // Update form data when profile/preferences load
   useEffect(() => {
     if (profile) {
@@ -135,7 +157,11 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
         skinTone: profile.skin_tone || '',
         personalityTraits: profile.personality_traits ? normalizeArray(profile.personality_traits) : [],
         values: profile.values ? normalizeArray(profile.values) : [],
-        mindset: profile.mindset ? (Array.isArray(profile.mindset) ? normalizeArray(profile.mindset) : [normalizeKey(profile.mindset)]) : [],
+        mindset: profile.mindset
+          ? (Array.isArray(profile.mindset)
+              ? normalizeWithAliases(profile.mindset as unknown as string[], 'mindset')
+              : [normalizeWithAliases([String(profile.mindset)], 'mindset')[0]])
+          : [],
         relationshipGoals: profile.relationship_goals ? normalizeArray(profile.relationship_goals) : [],
         interests: profile.interests ? normalizeArray(profile.interests) : [],
         isVisible: profile.show_profile !== false,
@@ -166,7 +192,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
           ? normalizeArray(preferences.preferred_values) 
           : ['family_oriented', 'career_focused'], // Default values
         preferredMindset: Array.isArray(preferences.preferred_mindset) && preferences.preferred_mindset.length > 0 
-          ? normalizeArray(preferences.preferred_mindset) 
+          ? normalizeWithAliases(preferences.preferred_mindset as unknown as string[], 'mindset') 
           : ['growth_mindset'], // Default mindset
         preferredPersonalityTraits: Array.isArray(preferences.preferred_personality_traits) && preferences.preferred_personality_traits.length > 0 
           ? normalizeArray(preferences.preferred_personality_traits) 
@@ -187,7 +213,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
           : Array.isArray((preferences as any).preferred_love_languages)
           ? normalizeArray((preferences as any).preferred_love_languages)
           : [],
-        preferredLifestyle: Array.isArray(preferences.preferred_lifestyle) ? normalizeArray(preferences.preferred_lifestyle) : []
+        preferredLifestyle: Array.isArray(preferences.preferred_lifestyle) ? normalizeWithAliases(preferences.preferred_lifestyle as unknown as string[], 'lifestyle') : []
       }));
     }
   }, [profile, preferences]);
