@@ -11,17 +11,21 @@ export interface QCSScore {
 
 export async function calculateQCS(userId: string): Promise<number> {
   try {
+    console.log(`🔄 Starting QCS calculation for user: ${userId}`);
+    
     // Invoke Supabase Edge Function (reliable logging + auth via Supabase client)
     const { data, error } = await supabase.functions.invoke('qcs-scoring', {
       body: { user_id: userId },
     });
 
     if (error) {
-      console.error('QCS scoring function failed:', error);
+      console.error('❌ QCS scoring function failed:', error);
       return 0;
     }
 
     const result = (data as any) || {};
+    console.log(`📊 QCS edge function response for ${userId}:`, result);
+
     // Try common fields returned by the function; fallback to 0
     const finalScore = (
       result?.qcs?.total_score ??
@@ -32,10 +36,16 @@ export async function calculateQCS(userId: string): Promise<number> {
       0
     ) as number;
 
-    console.log(`QCS (edge) calculated for ${userId}: ${finalScore}`);
+    console.log(`✅ QCS calculated for ${userId}: ${finalScore} (ai_score: ${result?.qcs?.ai_score || 'null'}, logic_score: ${result?.qcs?.logic_score || 'null'})`);
+    
+    // Log if we're getting incomplete data
+    if (!result?.qcs?.ai_score && !result?.qcs?.logic_score) {
+      console.warn(`⚠️ Incomplete QCS data for ${userId} - missing AI/logic breakdown`);
+    }
+    
     return typeof finalScore === 'number' ? finalScore : 0;
   } catch (error) {
-    console.error('Error invoking QCS scoring:', error);
+    console.error('❌ Error invoking QCS scoring:', error);
     return 0;
   }
 }
