@@ -11,34 +11,31 @@ export interface QCSScore {
 
 export async function calculateQCS(userId: string): Promise<number> {
   try {
-    // Use secure Edge Function that handles auth and persists results
-    const response = await fetchWithFirebaseAuth(
-      "https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/qcs-scoring",
-      {
-        method: "POST",
-        body: JSON.stringify({ user_id: userId }),
-      }
-    );
+    // Invoke Supabase Edge Function (reliable logging + auth via Supabase client)
+    const { data, error } = await supabase.functions.invoke('qcs-scoring', {
+      body: { user_id: userId },
+    });
 
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({} as any));
-      console.error("QCS scoring function failed:", err);
+    if (error) {
+      console.error('QCS scoring function failed:', error);
       return 0;
     }
 
-    const result = await response.json();
+    const result = (data as any) || {};
     // Try common fields returned by the function; fallback to 0
-    const finalScore =
-      (result?.qcs?.total_score ??
-        result?.updated_qcs ??
-        result?.final_score ??
-        result?.score ??
-        0) as number;
+    const finalScore = (
+      result?.qcs?.total_score ??
+      result?.updated_qcs ??
+      result?.final_score ??
+      result?.score ??
+      result?.qcs_score ??
+      0
+    ) as number;
 
     console.log(`QCS (edge) calculated for ${userId}: ${finalScore}`);
-    return typeof finalScore === "number" ? finalScore : 0;
+    return typeof finalScore === 'number' ? finalScore : 0;
   } catch (error) {
-    console.error("Error invoking QCS scoring:", error);
+    console.error('Error invoking QCS scoring:', error);
     return 0;
   }
 }
