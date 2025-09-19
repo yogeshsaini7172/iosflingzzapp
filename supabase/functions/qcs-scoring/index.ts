@@ -1073,15 +1073,33 @@ serve(async (req) => {
     console.log(`QCS calculated for ${userId}: Logic=${logicQcs}, AI=${aiScore}, Final=${totalQcs} (Profile: ${profileScore}, College: ${collegeTier}, Personality: ${personalityDepth}, Behavior: ${behaviorScore}) | AI Status: ${JSON.stringify(aiStatusSummary)}`);
 
     // Update QCS in database with detailed breakdown and AI status
-    const { error: qcsError } = await supabase
+    const { data: qcsUpserted, error: qcsError } = await supabase
       .from('qcs')
       .upsert({
         user_id: userId,
         profile_score: profileScore,
         college_tier: collegeTier,
         personality_depth: personalityDepth,
-        behavior_score: behaviorScore
-      }, { onConflict: 'user_id' });
+        behavior_score: behaviorScore,
+        total_score: totalQcs,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' })
+      .select()
+      .maybeSingle();
+
+    if (qcsError) {
+      console.error('QCS upsert error:', qcsError.message);
+    }
+
+    // Sync to profiles table immediately so UI sees the updated value
+    const { error: profileUpdateError } = await supabase
+      .from('profiles')
+      .update({ total_qcs: totalQcs, updated_at: new Date().toISOString() })
+      .or(`firebase_uid.eq.${userId},user_id.eq.${userId}`);
+
+    if (profileUpdateError) {
+      console.error('Profile update error:', profileUpdateError.message);
+    }
 
     if (qcsError) {
       console.error(`QCS database update failed for user ${userId}:`, qcsError.message);
