@@ -244,7 +244,19 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
 
       let totalScore = 60; // Default fallback score
       try {
-        totalScore = qcsResult?.qcs?.total_score ?? qcsResult?.updated_qcs ?? qcsResult?.final_score ?? 60;
+        // Handle different response structures - fix type conversion
+        if (qcsResult?.qcs && typeof qcsResult.qcs === 'object') {
+          totalScore = Number(qcsResult.qcs.total_score) || 60;
+        } else if (qcsResult?.total_score !== undefined) {
+          totalScore = Number(qcsResult.total_score) || 60;
+        } else if (qcsResult?.updated_qcs !== undefined) {
+          totalScore = Number(qcsResult.updated_qcs) || 60;
+        } else if (qcsResult?.final_score !== undefined) {
+          totalScore = Number(qcsResult.final_score) || 60;
+        }
+        
+        // Ensure valid range
+        totalScore = Math.max(0, Math.min(100, Math.round(totalScore)));
         console.log('✅ QCS calculated:', totalScore);
       } catch (error) {
         console.warn('QCS response parsing failed, using fallback score:', error);
