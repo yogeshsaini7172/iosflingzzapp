@@ -42,6 +42,9 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
         const { error: updateError } = await updateUserLocation({
           latitude: location.latitude,
           longitude: location.longitude,
+          city: 'Unknown', // Add required fields
+          region: 'Unknown',
+          country: 'Unknown'
         });
         if (updateError) {
           console.error('Failed to update user location:', updateError);

@@ -732,7 +732,6 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
     profile={transformProfileForTinderCard(currentProfile)}
     onLike={() => handleSwipe('right')}
     onDislike={() => handleSwipe('left')}
-    onChat={() => onNavigate('chat')} // Or handle chat initiation
   />
 ) : (
   // Loading or no profile state
