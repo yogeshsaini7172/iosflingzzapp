@@ -739,7 +739,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
 )}
 
             {/* Enhanced Action Buttons */}
-            <div className="flex justify-center space-x-8 mt-8">
+            <div className="flex justify-center space-x-48 mt-8">
               <button
                 onClick={() => handleSwipe('left')}
                 className="group relative w-16 h-16 bg-card rounded-full flex items-center justify-center shadow-premium hover:shadow-glow transition-all duration-300 hover:scale-110 border-2 border-border"
@@ -751,17 +751,6 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                 </div>
               </button>
               
-              <button
-                onClick={() => handleSwipe('right')}
-                className="group relative w-20 h-20 bg-gradient-primary rounded-full flex items-center justify-center shadow-premium hover:shadow-glow transition-all duration-300 hover:scale-110 border-2 border-primary-foreground/20"
-              >
-                <Heart className="w-8 h-8 text-primary-foreground fill-current" />
-                <div className="absolute inset-0 rounded-full bg-primary-foreground/20"></div>
-                <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <span className="text-xs font-semibold text-primary bg-card px-3 py-1 rounded-full shadow-soft">Like</span>
-                </div>
-              </button>
-
               <button className="group relative w-14 h-14 bg-card rounded-full flex items-center justify-center shadow-soft hover:shadow-premium transition-all duration-300 hover:scale-110 border-2 border-border">
                 <div className="absolute inset-0 bg-gradient-to-r from-accent/20 to-accent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <Star className="w-6 h-6 text-accent group-hover:text-accent-foreground relative z-10 transition-colors duration-300" />
