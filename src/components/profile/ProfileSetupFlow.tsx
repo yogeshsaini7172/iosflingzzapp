@@ -228,56 +228,11 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       // Set verification status - use actual status or 'pending' if documents uploaded
       completeProfile.verification_status = verificationStatus === 'verified' ? 'verified' : 'pending';
 
-      // Calculate QCS via Edge Function (uses profile data)
-      toast({ title: "Calculating QCS Score... 📊", description: "Analyzing your profile" });
-
-      const { data: qcsResult, error: qcsError } = await supabase.functions.invoke('qcs-scoring', {
-        body: { user_id: userId }
-      });
-
-      if (qcsError) {
-        console.error('❌ QCS calculation failed:', qcsError);
-        // Use fallback score if QCS fails
-        toast({
-          title: "QCS Calculation Issue",
-          description: "Using estimated score, will recalculate automatically later",
-          variant: "default"
-        });
-      }
-
-      let totalScore = 60; // Default fallback score
-      try {
-        // Handle different response structures - fix type conversion
-        if (qcsResult?.qcs && typeof qcsResult.qcs === 'object') {
-          totalScore = Number(qcsResult.qcs.total_score) || 60;
-        } else if (qcsResult?.total_score !== undefined) {
-          totalScore = Number(qcsResult.total_score) || 60;
-        } else if (qcsResult?.updated_qcs !== undefined) {
-          totalScore = Number(qcsResult.updated_qcs) || 60;
-        } else if (qcsResult?.final_score !== undefined) {
-          totalScore = Number(qcsResult.final_score) || 60;
-        }
-        
-        // Ensure valid range
-        totalScore = Math.max(0, Math.min(100, Math.round(totalScore)));
-        console.log('✅ QCS calculated:', totalScore);
-      } catch (error) {
-        console.warn('QCS response parsing failed, using fallback score:', error);
-      }
+      // Calculate QCS after profile creation (server-side)
+      console.log('🔄 Profile will be created and QCS calculated server-side...');
       
-      // Update the completeProfile with the calculated QCS score
-      completeProfile.total_qcs = totalScore;
-      
-      // Create the QCS score object for reference
-      const qcsScore = {
-        user_id: userId,
-        profile_score: Math.floor(totalScore * 0.4),
-        college_tier: 85,
-        personality_depth: Math.floor(totalScore * 0.3),
-        behavior_score: Math.floor(totalScore * 0.3)
-      };
-      
-      // Note: QCS score will be stored separately in qcs table
+      // Update the completeProfile - QCS will be calculated after profile creation
+      completeProfile.total_qcs = 0; // Will be updated by server
 
       // Log the complete profile data before sending
       console.log('Complete profile data:', JSON.stringify(completeProfile, null, 2));
@@ -304,7 +259,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
           bio: completeProfile.bio,
           profileImages: completeProfile.profile_images || [],
           isProfilePublic: completeProfile.is_profile_public,
-          qcsScore: completeProfile.total_qcs || 0,
+          qcsScore: 0, // Will be calculated server-side
           preferences: {
             preferredGender: preferences.preferred_gender || [],
             ageRangeMin: preferences.age_range_min || 18,
@@ -397,13 +352,12 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       }
       toast({ 
         title: "Profile Setup Complete! 🎉", 
-        description: `Your QCS score: ${totalScore}/100. Ready to start!` 
+        description: "Account created! Calculating your QCS score..." 
       });
 
       // Save profile data to local storage for quick access
       localStorage.setItem('user_profile', JSON.stringify({
         ...completeProfile,
-        qcs_score: totalScore,
         profile_complete: true
       }));
 

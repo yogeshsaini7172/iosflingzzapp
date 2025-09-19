@@ -164,9 +164,25 @@ serve(async (req) => {
 
     console.log('Successfully completed profile for user:', userId);
 
+    // Trigger QCS calculation using the new comprehensive algorithm
+    try {
+      console.log('🔄 Triggering QCS calculation for new profile...');
+      const { error: qcsError } = await supabase.functions.invoke('qcs-scoring', {
+        body: { user_id: userId }
+      });
+      
+      if (qcsError) {
+        console.warn('QCS calculation failed for new profile:', qcsError);
+      } else {
+        console.log('✅ QCS calculation triggered successfully for new profile');
+      }
+    } catch (qcsErr) {
+      console.warn('QCS calculation error:', qcsErr);
+    }
+
     return new Response(JSON.stringify({
       success: true,
-      message: 'Profile completed successfully'
+      message: 'Profile completed successfully and QCS calculation triggered'
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
