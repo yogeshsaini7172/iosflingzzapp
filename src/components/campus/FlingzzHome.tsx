@@ -14,7 +14,6 @@ import {
   Users, 
   Sparkles, 
   User,
-  MapPin,
   Star,
   Shield,
   Plus,
@@ -344,20 +343,20 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
         <div className="flex items-center justify-center mb-4">
           <h2 className="text-lg font-display font-bold text-foreground">Community Threads</h2>
         </div>
-        <div className="flex flex-col space-y-3 sm:flex-row sm:space-y-0 sm:space-x-3 sm:overflow-x-auto scrollbar-hide pb-2">
+        <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
           {/* Add Today's Thread Option OR User's Thread Management */}
           {(() => {
             const userThreads = threads.filter(t => t.user_id === (user?.uid || ''));
-            
+
             if (userThreads.length === 0) {
               // Show "Add Today's Thread" if user has no threads
               return (
                 <Dialog open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
                   <DialogTrigger asChild>
-                    <div className="flex-shrink-0 w-full sm:w-96">
-                      <Card className="p-4 bg-gradient-primary text-primary-foreground border-0 hover:shadow-glow transition-all cursor-pointer">
+                    <div className="w-full sticky top-0 z-10">
+                      <Card className="p-4 bg-gradient-primary text-primary-foreground border-0 rounded-lg shadow-lg cursor-pointer hover:shadow-glow transition-all">
                         <div className="flex items-center justify-center space-x-2 mb-3">
-                          <Plus className="w-4 h-5" />
+                          <Plus className="w-5 h-5" />
                           <span className="font-semibold text-sm">Share Your Thoughts</span>
                         </div>
                         <p className="text-xs text-primary-foreground/90 text-center">What's on your mind today?</p>
@@ -407,15 +406,15 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
               const latestUserThread = userThreads[0];
               const threadAuthor = latestUserThread.author?.first_name || 'You';
               return (
-                <div className="flex-shrink-0 w-full sm:w-64">
-                  <Card className="p-4 bg-gradient-secondary text-secondary-foreground border-0">
+                <div className="w-full sticky top-0 z-10">
+                  <Card className="p-4 bg-gradient-secondary text-secondary-foreground border-0 rounded-lg shadow-lg">
                     <div className="space-y-3">
                       <div className="text-center">
                         <div className="flex items-center justify-center space-x-2 mb-2">
-                          <User className="w-4 h-4" />
+                          <User className="w-5 h-5" />
                           <span className="font-semibold text-sm">Your Thread</span>
                         </div>
-                        <p className="text-xs text-secondary-foreground/90 line-clamp-2">{latestUserThread.content}</p>
+                        <p className="text-sm text-secondary-foreground/90">{latestUserThread.content}</p>
                       </div>
                       <div className="flex space-x-2">
                         <Button 
@@ -451,20 +450,20 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
             const timeAgo = new Date(thread.created_at).toLocaleString();
             const isExpanded = expandedThreads.has(thread.id);
             const hasReplies = thread.replies && thread.replies.length > 0;
-            
+
             return (
-              <div key={thread.id} className="flex-shrink-0 w-full sm:w-72">
-                 <Card className="p-4 bg-card/80 backdrop-blur-sm border-border/50 hover:bg-card transition-colors h-full">
-                  <div className="flex space-x-3 mb-3">
-                    <Avatar className="w-8 h-8">
+              <div key={thread.id} className="w-full">
+                 <Card className="p-4 bg-card/80 backdrop-blur-sm border-border/50 hover:bg-card transition-colors rounded-lg shadow-md">
+                  <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 mb-3">
+                    <Avatar className="w-12 h-12 sm:w-10 sm:h-10 mx-auto sm:mx-0">
                       <AvatarImage src={threadAvatar} alt={threadAuthor} />
-                      <AvatarFallback className="bg-muted text-muted-foreground text-xs font-semibold">
+                      <AvatarFallback className="bg-muted text-muted-foreground text-sm font-semibold">
                         {threadAuthor.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <span className="font-semibold text-sm text-foreground truncate flex items-center">
+                    <div className="flex-1 min-w-0 text-center sm:text-left">
+                      <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-2 mb-1">
+                        <span className="font-semibold text-base text-foreground flex items-center justify-center sm:justify-start">
                           {threadAuthor}
                           {isOwnThread && (
                             <Badge variant="secondary" className="ml-2 text-xs">
@@ -472,13 +471,13 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                             </Badge>
                           )}
                         </span>
-                        <span className="text-xs text-muted-foreground flex-shrink-0">{timeAgo}</span>
+                        <span className="text-xs text-muted-foreground">{timeAgo}</span>
                       </div>
+                      <p className="text-sm text-foreground leading-relaxed line-clamp-3">{thread.content}</p>
                     </div>
                   </div>
-                  <p className="text-sm text-foreground leading-relaxed mb-3 line-clamp-3">{thread.content}</p>
                   
-                  {/* Show replies only when expanded */}
+                  {/* Show replies only when expanded */} 
                   {isExpanded && hasReplies && (
                     <div className="mb-3 space-y-2 max-h-40 overflow-y-auto border-l-2 border-primary/20 pl-3">
                       <div className="text-xs text-muted-foreground mb-2 italic">
@@ -489,7 +488,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                         const replyAvatar = reply.author?.profile_images?.[0];
                         return (
                           <div key={reply.id} className="flex space-x-2 p-2 bg-muted/50 rounded-md border-l-2 border-accent">
-                            <Avatar className="w-5 h-5">
+                            <Avatar className="w-6 h-6">
                               <AvatarImage src={replyAvatar} alt={replyAuthor} />
                               <AvatarFallback className="bg-muted-foreground text-muted text-xs">
                                 {replyAuthor.charAt(0)}
@@ -511,14 +510,14 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                   )}
                   
                   <div className="flex items-center justify-between text-xs">
-                    <div className="flex space-x-3">
+                    <div className="flex space-x-4">
                       <button 
                         className={`flex items-center space-x-1 hover:text-primary transition-colors ${
                           isLiked ? 'text-primary' : 'text-muted-foreground'
                         }`}
                         onClick={() => handleLikeThread(thread.id)}
                       >
-                        <Heart className={`w-3 h-3 ${isLiked ? 'fill-current' : ''}`} />
+                        <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
                         <span>{thread.likes_count}</span>
                       </button>
                       
@@ -529,7 +528,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                           }`}
                           onClick={() => toggleThreadReplies(thread.id)}
                         >
-                          <MessageCircle className="w-3 h-3" />
+                          <MessageCircle className="w-4 h-4" />
                           <span>{isExpanded ? 'Hide' : 'View'} Replies</span>
                         </button>
                       )}
@@ -538,7 +537,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                         className="flex items-center space-x-1 text-muted-foreground hover:text-primary transition-colors"
                         onClick={() => handleReplyToThread(thread)}
                       >
-                        <MessageCircle className="w-3 h-3" />
+                        <MessageCircle className="w-4 h-4" />
                         <span>Reply</span>
                       </button>
                     </div>
@@ -680,7 +679,6 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
     profile={transformProfileForTinderCard(currentProfile)}
     onLike={() => handleSwipe('right')}
     onDislike={() => handleSwipe('left')}
-    onChat={() => onNavigate('chat')} // Or handle chat initiation
   />
 ) : (
   // Loading or no profile state
@@ -780,13 +778,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
         </div>
       </div>
       {/* Who Liked Me Modal */}
-      <WhoLikedMeModal 
-        isOpen={showWhoLikedMe} 
-        onClose={() => setShowWhoLikedMe(false)} 
-      />
-
-      {/* Who Liked Me Modal */}
-      <WhoLikedMeModal 
+      <WhoLikedMeModal
         isOpen={showWhoLikedMe}
         onClose={() => setShowWhoLikedMe(false)}
       />

@@ -184,163 +184,165 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
         </div>
 
         {/* Profile Content */}
-        <div className="p-6 space-y-6 bg-card/95 backdrop-blur-sm">
-          {/* Basic Info */}
-          <div className="text-center space-y-2">
-            <div className="flex items-center justify-center space-x-2">
-              <h2 className="text-3xl font-bold text-foreground">{profile.first_name}</h2>
-              <span className="text-2xl font-semibold text-foreground/80">{mockProfileData.age}</span>
-            </div>
-            
-            <div className="flex items-center justify-center space-x-4 text-sm text-foreground/70">
-              <div className="flex items-center space-x-1">
-                <MapPin className="w-4 h-4" />
-                <span>{mockProfileData.location}</span>
+        {false && (
+          <div className="p-6 space-y-6 bg-card/95 backdrop-blur-sm">
+            {/* Basic Info */}
+            <div className="text-center space-y-2">
+              <div className="flex items-center justify-center space-x-2">
+                <h2 className="text-3xl font-bold text-foreground">{profile.first_name}</h2>
+                <span className="text-2xl font-semibold text-foreground/80">{mockProfileData.age}</span>
               </div>
-              <div className="flex items-center space-x-1">
-                <GraduationCap className="w-4 h-4" />
-                <span>{profile.university}</span>
-              </div>
-            </div>
 
-            {/* Compatibility Score */}
-            <div className="flex justify-center space-x-3 mt-4">
-              <Badge className={`text-lg py-2 px-4 ${
-                (profile.compatibility_score || 0) >= 90 
-                  ? 'bg-green-100 text-green-700 border-green-200' 
-                  : (profile.compatibility_score || 0) >= 80
-                  ? 'bg-blue-100 text-blue-700 border-blue-200'
-                  : 'bg-purple-100 text-purple-700 border-purple-200'
-              }`}>
-                🔥 {profile.compatibility_score}% Match
-              </Badge>
-              
-              {profile.total_qcs && (
-                <Badge variant="outline" className="py-2 px-4">
-                  <Brain className="w-4 h-4 mr-1" />
-                  QCS: {profile.total_qcs}
+              <div className="flex items-center justify-center space-x-4 text-sm text-foreground/70">
+                <div className="flex items-center space-x-1">
+                  <MapPin className="w-4 h-4" />
+                  <span>{mockProfileData.location}</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <GraduationCap className="w-4 h-4" />
+                  <span>{profile.university}</span>
+                </div>
+              </div>
+
+              {/* Compatibility Score */}
+              <div className="flex justify-center space-x-3 mt-4">
+                <Badge className={`text-lg py-2 px-4 ${
+                  (profile.compatibility_score || 0) >= 90
+                    ? 'bg-green-100 text-green-700 border-green-200'
+                    : (profile.compatibility_score || 0) >= 80
+                    ? 'bg-blue-100 text-blue-700 border-blue-200'
+                    : 'bg-purple-100 text-purple-700 border-purple-200'
+                }`}>
+                  🔥 {profile.compatibility_score}% Match
                 </Badge>
-              )}
-            </div>
-          </div>
 
-          {/* Bio */}
-          {profile.bio && (
-            <Card className="bg-card/90 border border-border/50">
-              <CardContent className="p-4">
-                <p className="text-center text-foreground/85 leading-relaxed">
-                  "{profile.bio}"
-                </p>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Interests */}
-          <div>
-            <h3 className="font-semibold mb-3 text-center text-foreground">Interests</h3>
-            <div className="flex flex-wrap justify-center gap-2">
-              {mockProfileData.interests.map((interest, index) => {
-                const IconComponent = getInterestIcon(interest);
-                return (
-                  <Badge 
-                    key={index} 
-                    variant="outline" 
-                    className="py-2 px-3 bg-card/70 border-border/50 text-foreground hover:scale-105 transition-transform"
-                  >
-                    <IconComponent className="w-4 h-4 mr-2" />
-                    {interest}
+                {profile.total_qcs && (
+                  <Badge variant="outline" className="py-2 px-4">
+                    <Brain className="w-4 h-4 mr-1" />
+                    QCS: {profile.total_qcs}
                   </Badge>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Quick Stats */}
-          <div className="grid grid-cols-2 gap-4">
-            <Card className="bg-card/80 border border-border/50">
-              <CardContent className="p-4 text-center">
-                <Briefcase className="w-6 h-6 mx-auto mb-2 text-purple-600" />
-                <p className="font-semibold text-sm text-foreground">{mockProfileData.occupation}</p>
-                <p className="text-xs text-foreground/60">Profession</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-card/80 border border-border/50">
-              <CardContent className="p-4 text-center">
-                <GraduationCap className="w-6 h-6 mx-auto mb-2 text-blue-600" />
-                <p className="font-semibold text-sm text-foreground">{mockProfileData.education}</p>
-                <p className="text-xs text-foreground/60">Education</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Lifestyle Info */}
-          <div className="space-y-3">
-            <h3 className="font-semibold text-center text-foreground">Lifestyle</h3>
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-foreground/70">Height:</span>
-                <span className="font-medium text-foreground">{mockProfileData.height}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-foreground/70">Exercise:</span>
-                <span className="font-medium text-foreground">{mockProfileData.exercise}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-foreground/70">Smoking:</span>
-                <span className="font-medium text-foreground">{mockProfileData.smoking}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-foreground/70">Drinking:</span>
-                <span className="font-medium text-foreground">{mockProfileData.drinking}</span>
+                )}
               </div>
             </div>
-          </div>
 
-          {/* Action Buttons */}
-          <div className="flex space-x-3 pt-4">
-            <Button 
-              variant="outline" 
-              className="flex-1 border-red-200 hover:bg-red-50 text-red-600"
-              onClick={async () => {
-                if (onSwipe) {
-                  await onSwipe("left");
-                }
-                onClose();
-              }}
-            >
-              ❌ Pass
-            </Button>
-            
-            {profile.can_chat && onChatRequest ? (
-              <Button 
-                onClick={() => {
-                  onChatRequest(profile.user_id, true);
-                  onClose();
-                }}
-                className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white"
-              >
-                <MessageCircle className="w-4 h-4 mr-2" />
-                Chat Now
-              </Button>
-            ) : (
-              <Button 
+            {/* Bio */}
+            {profile.bio && (
+              <Card className="bg-card/90 border border-border/50">
+                <CardContent className="p-4">
+                  <p className="text-center text-foreground/85 leading-relaxed">
+                    "{profile.bio}"
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Interests */}
+            <div>
+              <h3 className="font-semibold mb-3 text-center text-foreground">Interests</h3>
+              <div className="flex flex-wrap justify-center gap-2">
+                {mockProfileData.interests.map((interest, index) => {
+                  const IconComponent = getInterestIcon(interest);
+                  return (
+                    <Badge
+                      key={index}
+                      variant="outline"
+                      className="py-2 px-3 bg-card/70 border-border/50 text-foreground hover:scale-105 transition-transform"
+                    >
+                      <IconComponent className="w-4 h-4 mr-2" />
+                      {interest}
+                    </Badge>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-2 gap-4">
+              <Card className="bg-card/80 border border-border/50">
+                <CardContent className="p-4 text-center">
+                  <Briefcase className="w-6 h-6 mx-auto mb-2 text-purple-600" />
+                  <p className="font-semibold text-sm text-foreground">{mockProfileData.occupation}</p>
+                  <p className="text-xs text-foreground/60">Profession</p>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card/80 border border-border/50">
+                <CardContent className="p-4 text-center">
+                  <GraduationCap className="w-6 h-6 mx-auto mb-2 text-blue-600" />
+                  <p className="font-semibold text-sm text-foreground">{mockProfileData.education}</p>
+                  <p className="text-xs text-foreground/60">Education</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Lifestyle Info */}
+            <div className="space-y-3">
+              <h3 className="font-semibold text-center text-foreground">Lifestyle</h3>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-foreground/70">Height:</span>
+                  <span className="font-medium text-foreground">{mockProfileData.height}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-foreground/70">Exercise:</span>
+                  <span className="font-medium text-foreground">{mockProfileData.exercise}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-foreground/70">Smoking:</span>
+                  <span className="font-medium text-foreground">{mockProfileData.smoking}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-foreground/70">Drinking:</span>
+                  <span className="font-medium text-foreground">{mockProfileData.drinking}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex space-x-3 pt-4">
+              <Button
+                variant="outline"
+                className="flex-1 border-red-200 hover:bg-red-50 text-red-600"
                 onClick={async () => {
                   if (onSwipe) {
-                    await onSwipe("right");
-                  } else if (onChatRequest) {
-                    onChatRequest(profile.user_id, false);
+                    await onSwipe("left");
                   }
                   onClose();
                 }}
-                className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
               >
-                <MessageCircle className="w-4 h-4 mr-2" />
-                {onSwipe ? "Like" : "Chat Request"}
+                ❌ Pass
               </Button>
-            )}
+
+              {profile.can_chat && onChatRequest ? (
+                <Button
+                  onClick={() => {
+                    onChatRequest(profile.user_id, true);
+                    onClose();
+                  }}
+                  className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white"
+                >
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Chat Now
+                </Button>
+              ) : (
+                <Button
+                  onClick={async () => {
+                    if (onSwipe) {
+                      await onSwipe("right");
+                    } else if (onChatRequest) {
+                      onChatRequest(profile.user_id, false);
+                    }
+                    onClose();
+                  }}
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
+                >
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  {onSwipe ? "Like" : "Chat Request"}
+                </Button>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </DialogContent>
     </Dialog>
   );
