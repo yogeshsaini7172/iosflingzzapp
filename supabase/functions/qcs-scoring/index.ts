@@ -1118,7 +1118,7 @@ serve(async (req) => {
     }
 
     if (qcsError) {
-      console.error(`QCS database update failed for user ${userId}:`, qcsError.message);
+      console.error(`QCS database update failed for user ${userId || 'unknown'}:`, qcsError.message);
       // Don't throw here - continue with profile sync
     }
 
@@ -1164,7 +1164,7 @@ serve(async (req) => {
     const errorType = error.name || 'UnknownError';
     const errorMessage = error.message || 'Unknown error';
     
-    console.error(`QCS function error for user ${userId}: ${errorType} - ${errorMessage}`);
+    console.error(`QCS function error for user ${userId || 'unknown'}: ${errorType} - ${errorMessage}`);
     
     // For critical failures, attempt to provide fallback score
     try {
@@ -1201,7 +1201,7 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     } catch (fallbackError) {
-      console.error(`Emergency fallback failed for user ${userId}:`, fallbackError.message);
+      console.error(`Emergency fallback failed for user ${userId || 'unknown'}:`, fallbackError.message);
       
       // Last resort - return minimal response
       return new Response(JSON.stringify({ 
