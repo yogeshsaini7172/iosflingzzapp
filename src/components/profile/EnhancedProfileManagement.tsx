@@ -41,6 +41,126 @@ interface EnhancedProfileManagementProps {
 }
 
 const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProps) => {
+  // Transform single database value to UI key format (for dropdowns)
+  const transformSingleValueToUI = (dbValue: string) => {
+    const transformMap: Record<string, string> = {
+      // Body types (for Select dropdown - need key format)
+      'slim': 'slim',
+      'athletic': 'athletic', 
+      'average': 'average',
+      'curvy': 'curvy',
+      'plus_size': 'plus_size',
+      
+      // Skin tones (for Select dropdown - need key format)
+      'very_fair': 'very_fair',
+      'fair': 'fair',
+      'medium': 'medium',
+      'olive': 'olive',
+      'brown': 'brown',
+      'dark': 'dark',
+      
+      // Face types
+      'round': 'round',
+      'oval': 'oval',
+      'square': 'square',
+      'heart': 'heart',
+      'diamond': 'diamond',
+      'long': 'long',
+      'Round': 'round',
+      'Oval': 'oval',
+      'Square': 'square',
+      'Heart': 'heart',
+      'Diamond': 'diamond',
+      'Long': 'long',
+      
+      // Love languages  
+      'words_of_affirmation': 'words_of_affirmation',
+      'acts_of_service': 'acts_of_service',
+      'receiving_gifts': 'receiving_gifts',
+      'quality_time': 'quality_time',
+      'physical_touch': 'physical_touch',
+      'Words of Affirmation': 'words_of_affirmation',
+      'Acts of Service': 'acts_of_service',
+      'Receiving Gifts': 'receiving_gifts',
+      'Quality Time': 'quality_time',
+      'Physical Touch': 'physical_touch',
+      
+      // Lifestyle options (for Badge components)
+      'active': 'active',
+      'relaxed': 'relaxed',
+      'social': 'social',
+      'homebody': 'homebody',
+      'adventurous': 'adventurous',
+      'career_focused': 'career_focused',
+      'family_oriented': 'family_oriented',
+      'health_conscious': 'health_conscious',
+      'party_goer': 'party_goer',
+      'minimalist': 'minimalist',
+      'creative': 'creative',
+      'intellectual': 'intellectual',
+      'Active': 'active',
+      'Relaxed': 'relaxed',
+      'Social': 'social',
+      'Homebody': 'homebody',
+      'Adventurous': 'adventurous',
+      'Career-focused': 'career_focused',
+      'Family-oriented': 'family_oriented',
+      'Health-conscious': 'health_conscious',
+      'Party-goer': 'party_goer',
+      'Minimalist': 'minimalist',
+      'Creative': 'creative',
+      'Intellectual': 'intellectual',
+    };
+    return transformMap[dbValue] || dbValue;
+  };
+
+  // Transform database values to UI format (handle case sensitivity)
+  const transformDatabaseToUI = (dbValues: string[]) => {
+    if (!Array.isArray(dbValues)) return [];
+    return dbValues.map(value => {
+      // Convert database format to UI key format (what the UI logic expects)
+      // The UI logic uses: option.toLowerCase().replace(/[^a-z0-9]/g, '_')
+      // So we need to return the KEY format, not the display format
+      const transformMap: Record<string, string> = {
+        // Personality traits - return key format
+        'adventurous': 'adventurous',
+        'Adventurous': 'adventurous',
+        'analytical': 'analytical', 
+        'Analytical': 'analytical',
+        'creative': 'creative',
+        'Creative': 'creative',
+        'outgoing': 'outgoing',
+        'Outgoing': 'outgoing',
+        'empathetic': 'empathetic',
+        'Empathetic': 'empathetic',
+        
+        // Values - return key format  
+        'family_oriented': 'family_oriented',
+        'Family-oriented': 'family_oriented',
+        'career_focused': 'career_focused',
+        'Career-focused': 'career_focused',
+        'health_conscious': 'health_conscious',
+        'Health-conscious': 'health_conscious',
+        
+        // Mindset - return key format
+        'growth': 'growth_mindset',
+        'Growth Mindset': 'growth_mindset',
+        'growth_mindset': 'growth_mindset',
+        
+        // Relationship goals - return key format
+        'serious_relationship': 'serious_relationship',
+        'Serious relationship': 'serious_relationship'
+      };
+      
+      // If we have a mapping, use it, otherwise convert to key format
+      if (transformMap[value]) {
+        return transformMap[value];
+      }
+      
+      // Default: convert any value to key format
+      return value.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    });
+  };
   // Remove photo from profileImages
   const removePhoto = (index: number) => {
     const newImages = (formData.profileImages || []).filter((_, i) => i !== index);
@@ -77,6 +197,9 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
     height: '',
     bodyType: '',
     skinTone: '',
+    faceType: '',
+    loveLanguage: '',
+    lifestyle: '',
     
     // Personality & Values (arrays)
     personalityTraits: [] as string[],
@@ -112,55 +235,100 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
   useEffect(() => {
     if (profile) {
       console.log("📊 Loading profile data into form:", profile);
+      console.log("📊 Profile keys:", Object.keys(profile));
+      console.log("📊 Profile values:", {
+        first_name: (profile as any).first_name,
+        university: (profile as any).university,
+        // Arrays in database
+        personality_traits: (profile as any).personality_traits, // Array
+        values: (profile as any).values, // Array
+        mindset: (profile as any).mindset, // Array
+        interests: (profile as any).interests, // Array
+        relationship_goals: (profile as any).relationship_goals, // Array
+        // Single values in database
+        personality_type: (profile as any).personality_type, // Single value
+        body_type: (profile as any).body_type, // Single value
+        skin_tone: (profile as any).skin_tone, // Single value
+        love_language: (profile as any).love_language // Single value
+      });
       setFormData(prev => ({
         ...prev,
-        firstName: profile.first_name || '',
-        lastName: profile.last_name || '',
+        firstName: (profile as any).first_name || (profile as any).name?.split(' ')[0] || '',
+        lastName: (profile as any).last_name || (profile as any).name?.split(' ').slice(1).join(' ') || '',
         bio: profile.bio || '',
-        educationLevel: profile.education_level || '',
-        profession: profile.profession || '',
+        educationLevel: (profile as any).education_level || '',
+        profession: (profile as any).profession || '',
         height: profile.height?.toString() || '',
-        bodyType: profile.body_type || '',
-        skinTone: profile.skin_tone || '',
-        personalityTraits: profile.personality_traits || [],
-        values: Array.isArray(profile.values) ? profile.values : (profile.values ? [profile.values] : []),
-        mindset: Array.isArray(profile.mindset) ? profile.mindset : (profile.mindset ? [profile.mindset] : []),
-        relationshipGoals: profile.relationship_goals || [],
-        interests: profile.interests || [],
-        isVisible: profile.show_profile !== false,
+        bodyType: transformSingleValueToUI((profile as any).body_type || ''), // Single value from DB
+        skinTone: transformSingleValueToUI((profile as any).skin_tone || ''), // Single value from DB
+        faceType: transformSingleValueToUI((profile as any).face_type || ''), // Single value from DB
+        loveLanguage: transformSingleValueToUI((profile as any).love_language || ''), // Single value from DB
+        lifestyle: transformSingleValueToUI((profile as any).lifestyle || ''), // Single value from DB
+        // Arrays from database - transform for UI
+        personalityTraits: transformDatabaseToUI((profile as any).personality_traits || []),
+        values: transformDatabaseToUI((profile as any).values || []),
+        mindset: transformDatabaseToUI((profile as any).mindset || []),
+        relationshipGoals: transformDatabaseToUI(profile.relationship_goals || []),
+        interests: Array.isArray(profile.interests) ? profile.interests.map((interest: string) => interest.toLowerCase().replace(/[^a-z0-9]/g, '_')) : [],
+        isVisible: profile.show_profile !== false && (profile as any).is_profile_public !== false,
         profileImages: profile.profile_images || []
       }));
+      
+      // Debug: Log transformed values
+      console.log("🔄 Transformed profile values:", {
+        bodyType: transformSingleValueToUI((profile as any).body_type || ''),
+        skinTone: transformSingleValueToUI((profile as any).skin_tone || ''),
+        personalityTraits: transformDatabaseToUI((profile as any).personality_traits || []),
+        values: transformDatabaseToUI((profile as any).values || []),
+        mindset: transformDatabaseToUI((profile as any).mindset || []),
+        relationshipGoals: transformDatabaseToUI(profile.relationship_goals || [])
+      });
+      
+      // Debug: Log raw database values
+      console.log("🗄️ Raw database values:", {
+        personality_traits: (profile as any).personality_traits,
+        values: (profile as any).values,
+        mindset: (profile as any).mindset,
+        relationship_goals: profile.relationship_goals
+      });
+      
+      // Debug: Log final formData state after transformation
+      console.log("🎯 Final formData after profile update:", {
+        personalityTraits: formData.personalityTraits,
+        values: formData.values,
+        mindset: formData.mindset,
+        relationshipGoals: formData.relationshipGoals
+      });
     }
     
     if (preferences) {
       console.log("📊 Loading preferences data into form:", preferences);
       setFormData(prev => ({
         ...prev,
-        preferredGender: Array.isArray(preferences.preferred_gender) ? preferences.preferred_gender.map(g => g.toString()) : ['male', 'female'], // Default to both genders
+        preferredGender: transformDatabaseToUI(preferences.preferred_gender || []),
         ageRangeMin: preferences.age_range_min || 18,
         ageRangeMax: preferences.age_range_max || 30,
         heightRangeMin: preferences.height_range_min || 150,
         heightRangeMax: preferences.height_range_max || 200,
-        preferredBodyTypes: Array.isArray(preferences.preferred_body_types) && preferences.preferred_body_types.length > 0 
-          ? preferences.preferred_body_types 
-          : ['slim', 'athletic', 'average'], // Provide sensible defaults
-        preferredValues: Array.isArray(preferences.preferred_values) && preferences.preferred_values.length > 0 
-          ? preferences.preferred_values 
-          : ['family_oriented', 'career_focused'], // Default values
-        preferredMindset: Array.isArray(preferences.preferred_mindset) && preferences.preferred_mindset.length > 0 
-          ? preferences.preferred_mindset 
-          : ['growth_mindset'], // Default mindset
-        preferredPersonalityTraits: Array.isArray(preferences.preferred_personality_traits) && preferences.preferred_personality_traits.length > 0 
-          ? preferences.preferred_personality_traits 
-          : ['outgoing', 'empathetic'], // Default traits
-        preferredRelationshipGoal: Array.isArray(preferences.preferred_relationship_goal) && preferences.preferred_relationship_goal.length > 0 
-          ? preferences.preferred_relationship_goal 
-          : ['serious_relationship'], // Default goal
-        preferredSkinTone: Array.isArray(preferences.preferred_skin_tone) ? preferences.preferred_skin_tone : [],
-        preferredFaceType: Array.isArray(preferences.preferred_face_type) ? preferences.preferred_face_type : [],
-        preferredLoveLanguage: Array.isArray(preferences.preferred_love_language) ? preferences.preferred_love_language : [],
-        preferredLifestyle: Array.isArray(preferences.preferred_lifestyle) ? preferences.preferred_lifestyle : []
+        preferredBodyTypes: transformDatabaseToUI(preferences.preferred_body_types || []),
+        preferredValues: transformDatabaseToUI(preferences.preferred_values || []),
+        preferredMindset: transformDatabaseToUI(preferences.preferred_mindset || []),
+        preferredPersonalityTraits: transformDatabaseToUI(preferences.preferred_personality_traits || []),
+        preferredRelationshipGoal: transformDatabaseToUI(preferences.preferred_relationship_goals || []),
+        preferredSkinTone: transformDatabaseToUI(preferences.preferred_skin_types || []),
+        preferredFaceType: transformDatabaseToUI(preferences.preferred_face_types || []),
+        preferredLoveLanguage: transformDatabaseToUI(preferences.preferred_love_languages || []),
+        preferredLifestyle: transformDatabaseToUI(preferences.preferred_lifestyle || [])
       }));
+      
+      // Debug: Log transformed preferences
+      console.log("🔄 Transformed preferences:", {
+        preferredGender: transformDatabaseToUI(preferences.preferred_gender || []),
+        preferredValues: transformDatabaseToUI(preferences.preferred_values || []),
+        preferredMindset: transformDatabaseToUI(preferences.preferred_mindset || []),
+        preferredRelationshipGoals: transformDatabaseToUI(preferences.preferred_relationship_goals || []),
+        preferredSkinTypes: transformDatabaseToUI(preferences.preferred_skin_types || [])
+      });
     }
   }, [profile, preferences]);
 
@@ -195,6 +363,9 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       height: formData.height ? parseInt(formData.height) : undefined,
       body_type: formData.bodyType,
       skin_tone: formData.skinTone,
+      face_type: formData.faceType,
+      love_language: formData.loveLanguage,
+      lifestyle: formData.lifestyle,
       personality_traits: formData.personalityTraits,
       values: formData.values,
       mindset: formData.mindset,
@@ -215,10 +386,10 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
     preferred_values: formData.preferredValues.length > 0 ? formData.preferredValues : ['family_oriented', 'career_focused'], // Default values
     preferred_mindset: formData.preferredMindset.length > 0 ? formData.preferredMindset : ['growth_mindset'], // Default mindset
     preferred_personality_traits: formData.preferredPersonalityTraits.length > 0 ? formData.preferredPersonalityTraits : ['outgoing', 'empathetic'], // Default traits
-    preferred_relationship_goal: formData.preferredRelationshipGoal.length > 0 ? formData.preferredRelationshipGoal : ['serious_relationship'], // Default goal
-    preferred_skin_tone: formData.preferredSkinTone,
-    preferred_face_type: formData.preferredFaceType,
-    preferred_love_language: formData.preferredLoveLanguage,
+    preferred_relationship_goals: formData.preferredRelationshipGoal.length > 0 ? formData.preferredRelationshipGoal : ['serious_relationship'], // Default goal
+    preferred_skin_types: formData.preferredSkinTone,
+    preferred_face_types: formData.preferredFaceType,
+    preferred_love_languages: formData.preferredLoveLanguage,
     preferred_lifestyle: formData.preferredLifestyle
   };
 
@@ -307,7 +478,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
   ];
 
   const lifestyleOptions = [
-    "Active", "Relaxed", "Social", "Homebody", "Adventurous", 
+    "Active", "Active & Outdoorsy", "Relaxed", "Social", "Homebody", "Adventurous", 
     "Career-focused", "Family-oriented", "Health-conscious", 
     "Party-goer", "Minimalist", "Creative", "Intellectual"
   ];
@@ -463,6 +634,10 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
               {personalityTraitOptions.map((trait) => {
                 const traitKey = trait.toLowerCase().replace(/[^a-z0-9]/g, '_');
                 const isSelected = formData.personalityTraits.includes(traitKey);
+                
+                // Simple debug for all traits to see what's happening
+                console.log(`🔍 Trait: "${trait}" -> Key: "${traitKey}" -> Selected: ${isSelected} -> Array: [${formData.personalityTraits.join(', ')}]`);
+                
                 return (
                   <Badge
                     key={trait}
@@ -490,6 +665,10 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
               {valueOptions.map((value) => {
                 const valueKey = value.toLowerCase().replace(/[^a-z0-9]/g, '_');
                 const isSelected = formData.values.includes(valueKey);
+                
+                // Simple debug for all values to see what's happening
+                console.log(`🔍 Value: "${value}" -> Key: "${valueKey}" -> Selected: ${isSelected} -> Array: [${formData.values.join(', ')}]`);
+                
                 return (
                   <Badge
                     key={value}
@@ -593,6 +772,57 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
           </div>
         </CardContent>
       </Card>
+
+      {/* Additional Attributes */}
+      <Card className="border-primary/20">
+        <CardHeader>
+          <CardTitle className="text-base">Additional Attributes</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Face Type</Label>
+              <Select value={formData.faceType} onValueChange={(value) => setFormData(prev => ({...prev, faceType: value}))}>
+                <SelectTrigger className="border-primary/20 focus:border-primary">
+                  <SelectValue placeholder="Select face type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {faceTypeOptions.map((type) => (
+                    <SelectItem key={type} value={type.toLowerCase().replace(/[^a-z0-9]/g, '_')}>{type}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Love Language</Label>
+              <Select value={formData.loveLanguage} onValueChange={(value) => setFormData(prev => ({...prev, loveLanguage: value}))}>
+                <SelectTrigger className="border-primary/20 focus:border-primary">
+                  <SelectValue placeholder="Select love language" />
+                </SelectTrigger>
+                <SelectContent>
+                  {loveLanguageOptions.map((language) => (
+                    <SelectItem key={language} value={language.toLowerCase().replace(/[^a-z0-9]/g, '_')}>{language}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Lifestyle</Label>
+            <Select value={formData.lifestyle} onValueChange={(value) => setFormData(prev => ({...prev, lifestyle: value}))}>
+              <SelectTrigger className="border-primary/20 focus:border-primary">
+                <SelectValue placeholder="Select lifestyle" />
+              </SelectTrigger>
+              <SelectContent>
+                {lifestyleOptions.map((style) => (
+                  <SelectItem key={style} value={style.toLowerCase().replace(/[^a-z0-9]/g, '_')}>{style}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 
@@ -614,17 +844,17 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
             <Label>Preferred Gender</Label>
             <div className="flex flex-wrap gap-2">
               {genderOptions.map((gender) => {
-                const isSelected = formData.preferredGender.includes(gender.label);
+                const isSelected = formData.preferredGender.includes(gender.value);
                 return (
                   <Badge
-                    key={gender.label}
+                    key={gender.value}
                     variant={isSelected ? "default" : "outline"}
                     className={`cursor-pointer ${
                       isSelected 
                         ? 'bg-gradient-primary text-white hover:opacity-90' 
                         : 'border-primary/20 hover:border-primary'
                     }`}
-                    onClick={() => toggleArrayItem('preferredGender', gender.label, 4)}
+                    onClick={() => toggleArrayItem('preferredGender', gender.value, 4)}
                   >
                     {gender.label}
                   </Badge>
