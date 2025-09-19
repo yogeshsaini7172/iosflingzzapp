@@ -973,6 +973,8 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let userId: string | null = null; // Declare userId at function scope
+  
   try {
     // Read body once and allow explicit user_id to be provided
     let body: any = {};
@@ -983,7 +985,7 @@ serve(async (req) => {
     }
 
     // Determine target user id
-    let userId: string | null = body?.user_id ?? null;
+    userId = body?.user_id ?? null;
 
     // If not provided in body, try to derive from Firebase token (backward compatible)
     if (!userId) {
