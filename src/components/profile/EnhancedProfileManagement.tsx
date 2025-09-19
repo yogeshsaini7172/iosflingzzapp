@@ -192,7 +192,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
     bio: '',
     educationLevel: '',
     profession: '',
-    
+
     // Physical Attributes
     height: '',
     bodyType: '',
