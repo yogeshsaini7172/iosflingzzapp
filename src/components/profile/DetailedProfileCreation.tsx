@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
+import { auth } from "@/integrations/firebase/config";
 
 interface DetailedProfileCreationProps {
   onBack: () => void;
@@ -158,122 +160,101 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
   const handleSubmit = async () => {
     try {
       setIsLoading(true);
-      const user = (await supabase.auth.getUser()).data.user;
       
-      if (!user) {
+      // Validate required fields before proceeding
+      if (!profileData.firstName || !profileData.lastName || !profileData.dateOfBirth || 
+          !profileData.gender || !profileData.university) {
+        throw new Error('Please fill in all required fields: First Name, Last Name, Date of Birth, Gender, and University');
+      }
+
+      // Get current Firebase user
+      const firebaseUser = auth.currentUser;
+      if (!firebaseUser) {
         throw new Error('User not authenticated');
       }
 
-      // 1. Upload profile images to storage
-      const imageUrls = await Promise.all(
-        profileData.profileImages.map(async (file, index) => {
-          const fileExt = file.name.split('.').pop();
-          const fileName = `${user.id}-${Date.now()}-${index}.${fileExt}`;
-          const filePath = `profile-images/${fileName}`;
-          
-          const { error: uploadError } = await supabase.storage
-            .from('profile-images')
-            .upload(filePath, file);
-          
-          if (uploadError) throw uploadError;
-          
-          const { data: { publicUrl } } = supabase.storage
-            .from('profile-images')
-            .getPublicUrl(filePath);
+      // 1. Upload profile images to storage first (if any)
+      let imageUrls: string[] = [];
+      if (profileData.profileImages.length > 0) {
+        imageUrls = await Promise.all(
+          profileData.profileImages.map(async (file, index) => {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${firebaseUser.uid}-${Date.now()}-${index}.${fileExt}`;
+            const filePath = `profile-images/${fileName}`;
             
-          return publicUrl;
-        })
-      );
-
-      // 2. Save profile data
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert({
-          user_id: user.id,
-          first_name: profileData.firstName || null,
-          last_name: profileData.lastName || null,
-          email: user.email || `${user.id}@firebase.user`,
-          date_of_birth: profileData.dateOfBirth || null,
-          gender: (profileData.gender as 'male' | 'female' | 'non_binary' | 'prefer_not_to_say') || 'prefer_not_to_say',
-          university: profileData.university || null,
-          field_of_study: profileData.fieldOfStudy || null,
-          education_level: profileData.educationLevel || null,
-          profession: profileData.profession || null,
-          is_profile_public: profileData.isProfilePublic || false,
-          profile_images: imageUrls.length > 0 ? imageUrls : null,
-          bio: profileData.bio || null,
-          height: profileData.height ? parseInt(profileData.height) : null,
-          body_type: profileData.bodyType || null,
-          skin_tone: profileData.skinTone || null,
-          face_type: profileData.faceType || null,
-          personality_type: profileData.personalityType || null,
-          love_language: profileData.loveLanguage || null,
-          interests: profileData.interests?.length ? profileData.interests : null,
-          relationship_goals: profileData.relationshipGoal ? [profileData.relationshipGoal] : null,
-          updated_at: new Date().toISOString()
-        });
-
-      if (profileError) throw profileError;
-
-      // 3. Update additional profile data (personality traits, values, etc.)
-      const additionalUpdates = {
-        personality_traits: profileData.personalityTraits?.length ? profileData.personalityTraits : null,
-        values_array: profileData.values?.length ? profileData.values : null,
-        mindset: profileData.mindset?.length ? profileData.mindset?.[0] : null,
-        lifestyle: profileData.lifestyle?.length ? profileData.lifestyle?.[0] : null
-      };
-
-      const { error: additionalError } = await supabase
-        .from('profiles')
-        .update(additionalUpdates)
-        .eq('user_id', user.id);
-
-      if (additionalError) throw additionalError;
-
-      // 4. Save partner preferences
-      const preferencesData = {
-        user_id: user.id,
-        preferred_gender: profileData.preferredGender?.length ? profileData.preferredGender : [],
-        age_range_min: profileData.ageRangeMin || 18,
-        age_range_max: profileData.ageRangeMax || 30,
-        height_range_min: profileData.heightRangeMin || 150,
-        height_range_max: profileData.heightRangeMax || 200,
-        preferred_body_types: profileData.preferredBodyShape?.length ? profileData.preferredBodyShape : [],
-        preferred_skin_tone: profileData.preferredSkinType?.length ? profileData.preferredSkinType : [],
-        preferred_face_types: profileData.preferredFaceTypes?.length ? profileData.preferredFaceTypes : [],
-        preferred_values: profileData.preferredValues?.length ? profileData.preferredValues : [],
-        preferred_mindset: profileData.preferredMindset?.length ? profileData.preferredMindset : [],
-        preferred_personality_traits: profileData.preferredPersonalityType?.length ? profileData.preferredPersonalityType : [],
-        preferred_relationship_goals: profileData.preferredRelationshipGoal?.length ? profileData.preferredRelationshipGoal : []
-      };
-
-      const { error: preferencesError } = await supabase
-        .from('partner_preferences')
-        .upsert(preferencesData);
-
-      if (preferencesError) {
-        console.warn('Failed to save preferences:', preferencesError);
+            const { error: uploadError } = await supabase.storage
+              .from('profile-images')
+              .upload(filePath, file);
+            
+            if (uploadError) throw uploadError;
+            
+            const { data: { publicUrl } } = supabase.storage
+              .from('profile-images')
+              .getPublicUrl(filePath);
+              
+            return publicUrl;
+          })
+        );
       }
 
-      // Store in localStorage for reference
+      // 2. Use the profile-completion edge function via fetchWithFirebaseAuth
+      const response = await fetchWithFirebaseAuth('/functions/v1/profile-completion', {
+        method: 'POST',
+        body: JSON.stringify({
+          userId: firebaseUser.uid,
+          firstName: profileData.firstName,
+          lastName: profileData.lastName,
+          dateOfBirth: profileData.dateOfBirth,
+          gender: profileData.gender,
+          university: profileData.university,
+          fieldOfStudy: profileData.fieldOfStudy,
+          height: profileData.height ? parseInt(profileData.height) : null,
+          bodyType: profileData.bodyType,
+          skinTone: profileData.skinTone,
+          faceType: profileData.faceType,
+          personalityType: profileData.personalityType,
+          values: profileData.values?.length ? profileData.values[0] : null,
+          mindset: profileData.mindset?.length ? profileData.mindset[0] : null,
+          relationshipGoals: profileData.relationshipGoal ? [profileData.relationshipGoal] : [],
+          interests: profileData.interests,
+          bio: profileData.bio,
+          profileImages: imageUrls,
+          isProfilePublic: profileData.isProfilePublic,
+          qcsScore: 0,
+          preferences: {
+            preferredGender: profileData.preferredGender,
+            ageRangeMin: profileData.ageRangeMin,
+            ageRangeMax: profileData.ageRangeMax,
+            heightRangeMin: profileData.heightRangeMin,
+            heightRangeMax: profileData.heightRangeMax,
+            preferredBodyTypes: profileData.preferredBodyShape,
+            preferredSkinTone: profileData.preferredSkinType,
+            preferredFaceType: profileData.preferredFaceTypes,
+            preferredValues: profileData.preferredValues,
+            preferredMindset: profileData.preferredMindset,
+            preferredPersonality: profileData.preferredPersonalityType,
+            preferredRelationshipGoals: profileData.preferredRelationshipGoal,
+            loveLanguage: profileData.loveLanguage,
+            lifestyle: profileData.lifestyle?.length ? profileData.lifestyle[0] : null
+          },
+          email: firebaseUser.email
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create profile');
+      }
+
+      // Store minimal data in localStorage for reference
       const profileDataToStore = {
-        user_id: user.id,
         first_name: profileData.firstName,
         last_name: profileData.lastName,
         profile_images: imageUrls,
         is_profile_public: profileData.isProfilePublic
       };
       
-      const preferencesDataToStore = {
-        user_id: user.id,
-        preferred_gender: profileData.preferredGender,
-        age_range_min: profileData.ageRangeMin,
-        age_range_max: profileData.ageRangeMax,
-        preferred_relationship_goal: profileData.preferredRelationshipGoal
-      };
-      
       localStorage.setItem('userProfile', JSON.stringify(profileDataToStore));
-      localStorage.setItem('userPreferences', JSON.stringify(preferencesDataToStore));
 
       toast({
         title: "Profile created successfully! ✨",

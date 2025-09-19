@@ -63,10 +63,16 @@ serve(async (req) => {
 
     console.log('Completing profile for user:', userId, 'with email:', userEmail);
 
+    // Validate required fields
+    if (!firstName || !lastName || !dateOfBirth || !gender || !university) {
+      throw new Error('Missing required fields: firstName, lastName, dateOfBirth, gender, and university are required');
+    }
+
     // Upsert profile with service role (bypasses RLS) - creates if doesn't exist
     const { error: upsertError } = await supabase
       .from('profiles')
       .upsert({
+        firebase_uid: userId, // Use firebase_uid as the key
         user_id: userId,
         first_name: firstName,
         last_name: lastName,
@@ -92,8 +98,8 @@ serve(async (req) => {
         last_active: new Date().toISOString(),
         total_qcs: qcsScore || 0,
         email: email || userEmail, // Use provided email or Firebase email
-        // Set user qualities (what they offer) - COMPLETE DATA
-        qualities: JSON.stringify({
+        // Set user qualities (what they offer) - COMPLETE DATA as objects, not strings
+        qualities: {
           height: height || null,
           body_type: bodyType || null,
           skin_tone: skinTone || null,
@@ -108,9 +114,9 @@ serve(async (req) => {
           bio: bio || null, // ADD: bio text
           love_language: preferences?.loveLanguage || null, // ADD: love language
           lifestyle: preferences?.lifestyle || null // ADD: lifestyle
-        }),
-        // Set user requirements (what they want in a partner) - COMPLETE DATA
-        requirements: JSON.stringify({
+        },
+        // Set user requirements (what they want in a partner) - COMPLETE DATA as objects, not strings
+        requirements: {
           height_range_min: preferences?.heightRangeMin || null,
           height_range_max: preferences?.heightRangeMax || null,
           age_range_min: preferences?.ageRangeMin || 18, // ADD: age range
@@ -123,12 +129,12 @@ serve(async (req) => {
           preferred_personality: preferences?.preferredPersonality || [],
           preferred_gender: preferences?.preferredGender || [],
           preferred_relationship_goals: preferences?.preferredRelationshipGoals || [] // ADD: relationship goal prefs
-        }),
+        },
         // Also store individual fields for direct access
         love_language: preferences?.loveLanguage || null,
         lifestyle: preferences?.lifestyle ? JSON.stringify(preferences.lifestyle) : null
       }, {
-        onConflict: 'user_id'
+        onConflict: 'firebase_uid' // Use firebase_uid as conflict target
       });
 
     if (upsertError) {
@@ -146,7 +152,7 @@ serve(async (req) => {
           preferred_gender: preferredGender ?? [],
           age_range_min: ageRangeMin ?? 18,
           age_range_max: ageRangeMax ?? 30,
-          preferred_relationship_goal: preferredRelationshipGoals ?? []
+          preferred_relationship_goals: preferredRelationshipGoals ?? [] // Fix column name
         }, { onConflict: 'user_id' });
 
       if (prefError) {
