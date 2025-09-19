@@ -210,6 +210,17 @@ const SKIN_TONE_WEIGHTS = {
   "prefer not to say": 0.7
 };
 
+const FACE_TYPE_WEIGHTS = {
+  "oval": 0.9,
+  "round": 0.8,
+  "square": 0.85,
+  "heart": 0.9,
+  "diamond": 0.9,
+  "oblong": 0.8,
+  "long": 0.8,
+  "prefer not to say": 0.7
+};
+
 const PERSONALITY_WEIGHTS = {
   "adventurous": 0.95,
   "analytical": 0.9,
@@ -320,10 +331,15 @@ const BODYTYPE_ALIAS: Record<string, string> = {
 
 const SKINTONE_ALIAS: Record<string, string> = {
   "wheatish": "medium",
-  "wheat": "medium",
+  "wheat": "medium",  
   "dusky": "brown",
   "brownish": "brown",
   "light brown": "brown"
+};
+
+const FACETYPE_ALIAS: Record<string, string> = {
+  "elongated": "oblong",
+  "rectangular": "oblong"
 };
 
 const PERSONALITY_ALIAS: Record<string, string> = {
@@ -557,6 +573,11 @@ function deterministicScoring(profile: any): { score: number, perCategoryFractio
     const normalized = normalizeOption(profile.skin_tone, SKINTONE_ALIAS, Object.keys(SKIN_TONE_WEIGHTS));
     physComponents.push(computeSingleOptionFraction(normalized, SKIN_TONE_WEIGHTS));
   }
+  
+  if (profile.face_type) {
+    const normalized = normalizeOption(profile.face_type, FACETYPE_ALIAS, Object.keys(FACE_TYPE_WEIGHTS));
+    physComponents.push(computeSingleOptionFraction(normalized, FACE_TYPE_WEIGHTS));
+  }
 
   if (physComponents.length > 0) {
     const frac = physComponents.reduce((a, b) => a + b, 0) / physComponents.length;
@@ -622,8 +643,9 @@ function deterministicScoring(profile: any): { score: number, perCategoryFractio
   }
 
   // Relationship goals
-  if (profile.relationship_goals) {
-    const normalized = normalizeList(profile.relationship_goals, RELATIONSHIP_ALIAS, Object.keys(RELATIONSHIP_WEIGHTS));
+  const relationshipGoals = profile.relationship_goals || profile.relationshipGoals;
+  if (relationshipGoals) {
+    const normalized = normalizeList(relationshipGoals, RELATIONSHIP_ALIAS, Object.keys(RELATIONSHIP_WEIGHTS));
     if (normalized && normalized.length > 0) {
       const frac = computeMultiselectFraction(normalized, RELATIONSHIP_WEIGHTS, 3);
       perCatFraction["relationship"] = frac;
