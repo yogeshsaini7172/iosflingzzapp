@@ -1025,41 +1025,26 @@ serve(async (req) => {
     // Read optional scoring inputs from body
     const { physical, mental, description } = body || {};
 
-    // Get scoring based on provided data or fetch from profile
-    let physicalData = physical;
-    let mentalData = mental; 
-    let descriptionData = description;
+    // Fetch comprehensive profile data always for accurate scoring
+    const { data: fullProfile, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .or(`firebase_uid.eq.${userId},user_id.eq.${userId}`)
+      .maybeSingle();
 
-    if (!physicalData || !mentalData || !descriptionData) {
-      // Fetch comprehensive profile data
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .or(`firebase_uid.eq.${userId},user_id.eq.${userId}`)
-        .maybeSingle();
+    if (error) throw error;
+    if (!fullProfile) throw new Error(`Profile not found for user ${userId}`);
 
-      if (error) throw error;
-      if (!profile) throw new Error(`Profile not found for user ${userId}`);
+    // Get scoring based on provided data or use profile defaults
+    let physicalData = physical || `${fullProfile.body_type || 'average'} ${fullProfile.height ? (fullProfile.height > 170 ? 'tall' : 'average') : 'average'}`;
+    let mentalData = mental || `${fullProfile.personality_type || 'average'} ${Array.isArray(fullProfile.interests) && fullProfile.interests.includes('fitness') ? 'ambitious' : 'calm'}`;
+    let descriptionData = description || fullProfile.bio || 'No description available';
 
-      // Generate data from profile if not provided
-      physicalData = physicalData || `${profile.body_type || 'average'} ${profile.height ? (profile.height > 170 ? 'tall' : 'average') : 'average'}`;
-      mentalData = mentalData || `${profile.personality_type || 'average'} ${Array.isArray(profile.interests) && profile.interests.includes('fitness') ? 'ambitious' : 'calm'}`;
-      descriptionData = descriptionData || profile.bio || 'No description available';
-
-      // Attach to outer scope
-      var profileRef: any = profile;
-    } else {
-      var profileRef: any = { body_type: undefined, height: undefined, personality_type: undefined, bio: descriptionData, interests: [] };
-    }
-
-    console.log('Comprehensive scoring for user:', userId, 'Profile keys:', Object.keys(profileRef || {}));
+    console.log('Comprehensive scoring for user:', userId, 'Profile keys:', Object.keys(fullProfile || {}));
 
     // Get comprehensive AI-based scoring with enhanced error handling
-    const scoringResult = await finalCustomerScoring(profileRef, userId);
+    const scoringResult = await finalCustomerScoring(fullProfile, userId);
     const aiScore = scoringResult.rule_based.final_score || scoringResult.rule_based.base_score || 50;
-
-    // Use the same profile for comprehensive logic-based QCS calculation
-    const fullProfile = profileRef;
 
     // Use comprehensive deterministic scoring for logic-based QCS calculation
     const { score: comprehensiveLogicScore, perCategoryFraction } = deterministicScoring(fullProfile);
