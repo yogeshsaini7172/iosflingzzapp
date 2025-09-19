@@ -12,54 +12,57 @@ import ProgressIndicator from "../onboarding/ProgressIndicator";
 interface EnhancedProfileCreationProps {
   onComplete: () => void;
   onBack?: () => void;
-      case 2:
-        return (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">Add Your Photo</h3>
-              <p className="text-sm text-muted-foreground">Upload your main profile photo. Only one image allowed here.</p>
-            </div>
-            <div className="flex flex-col items-center gap-4">
-              <label htmlFor="main-photo-upload" className="cursor-pointer">
-                {formData.photos[0] ? (
-                  <img
-                    src={formData.photos[0]}
-                    alt="Main Profile"
-                    className="w-40 h-40 rounded-full object-cover border-4 border-primary shadow"
-                  />
-                ) : (
-                  <div className="w-40 h-40 rounded-full bg-muted flex items-center justify-center border-2 border-dashed border-primary">
-                    <Upload className="w-14 h-14 text-primary" />
-                  </div>
-                )}
-                <input
-                  id="main-photo-upload"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={e => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      const reader = new FileReader();
-                      reader.onloadend = () => {
-                        setFormData({ ...formData, photos: [reader.result as string] });
-                      };
-                      reader.readAsDataURL(file);
-                    }
-                  }}
-                  disabled={!!formData.photos[0]}
-                />
-              </label>
-              <span className="text-lg font-semibold mt-2">Main Photo</span>
-              <span className="text-sm text-muted-foreground">Upload only 1 photo as your main profile image</span>
-              {formData.photos[0] && (
-                <Button size="sm" variant="destructive" onClick={() => setFormData({ ...formData, photos: [] })}>
-                  Remove Photo
-                </Button>
-              )}
-            </div>
-          </div>
-        );
+}
+
+const EnhancedProfileCreation = ({ onComplete, onBack }: EnhancedProfileCreationProps) => {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    dateOfBirth: '',
+    gender: '',
+    university: '',
+    major: '',
+    yearOfStudy: '',
+    photos: [] as string[],
+    selectedPrompts: [] as string[],
+    prompts: {} as Record<string, string>,
+    selectedInterests: [] as string[],
+    preferences: {
+      lookingFor: '',
+      gender: ''
+    }
+  });
+
+  const totalSteps = 4;
+  const stepTitles = [
+    "Basic Info",
+    "Add Photo", 
+    "Your Personality",
+    "Preferences"
+  ];
+
+  const prompts = [
+    "My ideal first date is...",
+    "I'm looking for someone who...",
+    "My biggest passion is...",
+    "I can't live without...",
+    "My friends would describe me as...",
+    "The way to my heart is..."
+  ];
+
+  const interests = [
+    "Photography", "Music", "Sports", "Reading", "Cooking", "Travel",
+    "Gaming", "Art", "Dancing", "Fitness", "Movies", "Technology",
+    "Fashion", "Food", "Nature", "Pets", "Writing", "Volunteering"
+  ];
+
+  const handleNext = () => {
+    if (currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      onComplete();
+    }
   };
 
   const handleBack = () => {
