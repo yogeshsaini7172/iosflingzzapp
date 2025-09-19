@@ -1444,6 +1444,18 @@ export type Database = {
       }
     }
     Functions: {
+      atomic_qcs_update: {
+        Args: {
+          p_ai_meta?: Json
+          p_ai_score?: number
+          p_logic_score: number
+          p_per_category?: Json
+          p_total_score: number
+          p_total_score_float?: number
+          p_user_id: string
+        }
+        Returns: Json
+      }
       calculate_compatibility: {
         Args: { user1_profile: Json; user2_profile: Json }
         Returns: number
