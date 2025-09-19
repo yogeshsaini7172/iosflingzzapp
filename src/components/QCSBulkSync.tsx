@@ -19,6 +19,10 @@ interface SyncResult {
     new_score: number;
     status: 'success' | 'failed';
     error?: string;
+    logic_score?: number;
+    ai_score?: number;
+    psychology_score?: number;
+    ai_status?: string;
   }>;
 }
 
@@ -87,7 +91,7 @@ const QCSBulkSync = () => {
             QCS Bulk Sync System
           </CardTitle>
           <CardDescription>
-            Recalculate and update QCS scores for all user profiles in the database
+            Recalculate and update QCS scores using the new comprehensive algorithm with Big-5 personality model, enhanced deterministic scoring, and AI blending
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -166,6 +170,30 @@ const QCSBulkSync = () => {
                           <div>
                             <p className="font-medium">{detail.name}</p>
                             <p className="text-xs text-muted-foreground">{detail.user_id}</p>
+                            {detail.status === 'success' && (
+                              <div className="flex items-center gap-2 mt-1">
+                                {detail.logic_score && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    Logic: {detail.logic_score}
+                                  </Badge>
+                                )}
+                                {detail.ai_score && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    AI: {detail.ai_score}
+                                  </Badge>
+                                )}
+                                {detail.psychology_score && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    Psych: {detail.psychology_score}
+                                  </Badge>
+                                )}
+                                {detail.ai_status && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {detail.ai_status}
+                                  </Badge>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
                         
@@ -177,7 +205,7 @@ const QCSBulkSync = () => {
                             variant={detail.status === 'success' ? 'default' : 'destructive'}
                           >
                             {detail.status === 'success' ? 
-                              `+${detail.new_score - detail.old_score}` : 
+                              `${detail.new_score > detail.old_score ? '+' : ''}${detail.new_score - detail.old_score}` : 
                               'Failed'
                             }
                           </Badge>

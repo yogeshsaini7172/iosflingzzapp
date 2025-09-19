@@ -56,109 +56,54 @@ serve(async (req) => {
         new_score: number;
         status: 'success' | 'failed';
         error?: string;
+        logic_score?: number;
+        ai_score?: number;
+        psychology_score?: number;
+        ai_status?: string;
       }> = [];
 
-      // Process each profile
+      // Process each profile using the new comprehensive QCS algorithm
       for (const profile of profiles) {
         try {
           const oldScore = profile.total_qcs || 0;
           const name = `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Unknown';
           
-          // Calculate comprehensive QCS score
-          const age = profile.date_of_birth ? 
-            (new Date().getTime() - new Date(profile.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000) : 20;
+          console.log(`🔄 Processing ${name} (${profile.firebase_uid})`);
           
-          // Profile completeness scoring (0-100 scale)
-          let profileScore = 0;
-          
-          // Bio scoring (max 20 points)
-          const bioLength = profile.bio?.length || 0;
-          profileScore += Math.min(20, bioLength / 5); // 1 point per 5 characters, max 20
-          
-          // Interests scoring (max 15 points)
-          const interestsCount = profile.interests?.length || 0;
-          profileScore += Math.min(15, interestsCount * 2.5); // 2.5 points per interest, max 15
-          
-          // Education scoring (max 25 points)
-          let eduScore = 5; // Base score
-          if (profile.university) {
-            const uni = profile.university.toLowerCase();
-            if (uni.includes('iit') || uni.includes('nit') || uni.includes('iiit')) {
-              eduScore = 25; // Top tier institutions
-            } else if (uni.includes('university') || uni.includes('college')) {
-              eduScore = 18; // Regular institutions
-            } else {
-              eduScore = 12; // Other educational backgrounds
+          // Call the comprehensive QCS scoring function
+          const qcsResponse = await supabase.functions.invoke('qcs-scoring', {
+            body: { 
+              user_id: profile.firebase_uid,
+              ai_weight: 0.5 // Use 50/50 blend of deterministic and AI scoring
             }
-          }
-          profileScore += eduScore;
-          
-          // Age scoring (max 20 points) - optimal range 18-26
-          const ageScore = Math.max(0, 20 - Math.abs(age - 22) * 2);
-          profileScore += ageScore;
-          
-          // Physical attributes (max 10 points)
-          let physicalScore = 0;
-          if (profile.height && profile.height > 0) physicalScore += 2;
-          if (profile.body_type) physicalScore += 2;
-          if (profile.skin_tone) physicalScore += 2;
-          physicalScore += 4; // Base physical score
-          profileScore += physicalScore;
-          
-          // Personality & values (max 10 points)
-          let personalityScore = 0;
-          if (profile.personality_type) personalityScore += 3;
-          if (profile.values) personalityScore += 3;
-          if (profile.mindset) personalityScore += 2;
-          if (profile.lifestyle) personalityScore += 2;
-          profileScore += personalityScore;
-          
-          const newScore = Math.min(100, Math.max(0, Math.round(profileScore)));
-          
-          // Update the profile with the new QCS score using atomic function
-          const { data: updateResult, error: updateError } = await supabase.rpc('atomic_qcs_update', {
-            p_user_id: profile.firebase_uid,
-            p_total_score: newScore,
-            p_logic_score: newScore,
-            p_ai_score: null, // Will be calculated by AI later if available
-            p_ai_meta: JSON.stringify({ 
-              bulk_sync: true, 
-              timestamp: new Date().toISOString(),
-              version: 'bulk-sync-v1'
-            }),
-            p_per_category: JSON.stringify({
-              bio: Math.round((Math.min(20, bioLength / 5) / 20) * 100) / 100,
-              interests: Math.round((Math.min(15, interestsCount * 2.5) / 15) * 100) / 100,
-              education: Math.round((eduScore / 25) * 100) / 100,
-              age: Math.round((ageScore / 20) * 100) / 100,
-              physical: Math.round((physicalScore / 10) * 100) / 100,
-              personality: Math.round((personalityScore / 10) * 100) / 100
-            }),
-            p_total_score_float: newScore
           });
 
-          if (updateError) {
-            console.error(`❌ Failed to update QCS for ${profile.firebase_uid}:`, updateError.message);
-            failCount++;
-            details.push({
-              user_id: profile.firebase_uid,
-              name,
-              old_score: oldScore,
-              new_score: oldScore, // Keep old score on failure
-              status: 'failed',
-              error: updateError.message
-            });
-          } else {
-            console.log(`✅ Updated QCS for ${name}: ${oldScore} → ${newScore}`);
-            successCount++;
-            details.push({
-              user_id: profile.firebase_uid,
-              name,
-              old_score: oldScore,
-              new_score: newScore,
-              status: 'success'
-            });
+          if (qcsResponse.error) {
+            throw new Error(`QCS function error: ${qcsResponse.error.message || qcsResponse.error}`);
           }
+
+          const qcsData = qcsResponse.data;
+          
+          if (!qcsData || !qcsData.success) {
+            throw new Error(`QCS calculation failed: ${qcsData?.error || 'Unknown error'}`);
+          }
+
+          const newScore = qcsData.qcs?.total_score || qcsData.final_score || qcsData.updated_qcs || 60;
+          
+          console.log(`✅ Updated QCS for ${name}: ${oldScore} → ${newScore} (Logic: ${qcsData.qcs?.logic_score}, AI: ${qcsData.qcs?.ai_score || 'N/A'})`);
+          
+          successCount++;
+          details.push({
+            user_id: profile.firebase_uid,
+            name,
+            old_score: oldScore,
+            new_score: newScore,
+            status: 'success',
+            logic_score: qcsData.qcs?.logic_score,
+            ai_score: qcsData.qcs?.ai_score,
+            psychology_score: qcsData.scoring_details?.psychology_model?.score,
+            ai_status: qcsData.ai_status?.scoring_version || 'unknown'
+          });
 
         } catch (error) {
           console.error(`❌ Error processing profile ${profile.firebase_uid}:`, error.message);
