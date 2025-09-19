@@ -173,10 +173,20 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
           : ['outgoing', 'empathetic'], // Default traits
         preferredRelationshipGoal: Array.isArray(preferences.preferred_relationship_goal) && preferences.preferred_relationship_goal.length > 0 
           ? normalizeArray(preferences.preferred_relationship_goal) 
+          : Array.isArray((preferences as any).preferred_relationship_goals) && (preferences as any).preferred_relationship_goals.length > 0 
+          ? normalizeArray((preferences as any).preferred_relationship_goals)
           : ['serious_relationship'], // Default goal
         preferredSkinTone: Array.isArray(preferences.preferred_skin_tone) ? normalizeArray(preferences.preferred_skin_tone) : [],
-        preferredFaceType: Array.isArray(preferences.preferred_face_type) ? normalizeArray(preferences.preferred_face_type) : [],
-        preferredLoveLanguage: Array.isArray(preferences.preferred_love_language) ? normalizeArray(preferences.preferred_love_language) : [],
+        preferredFaceType: Array.isArray(preferences.preferred_face_type) 
+          ? normalizeArray(preferences.preferred_face_type) 
+          : Array.isArray((preferences as any).preferred_face_types)
+          ? normalizeArray((preferences as any).preferred_face_types)
+          : [],
+        preferredLoveLanguage: Array.isArray(preferences.preferred_love_language) 
+          ? normalizeArray(preferences.preferred_love_language) 
+          : Array.isArray((preferences as any).preferred_love_languages)
+          ? normalizeArray((preferences as any).preferred_love_languages)
+          : [],
         preferredLifestyle: Array.isArray(preferences.preferred_lifestyle) ? normalizeArray(preferences.preferred_lifestyle) : []
       }));
     }
@@ -632,7 +642,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
             <Label>Preferred Gender</Label>
             <div className="flex flex-wrap gap-2">
               {genderOptions.map((gender) => {
-                const isSelected = formData.preferredGender.includes(gender.label);
+                const isSelected = formData.preferredGender.includes(gender.value);
                 return (
                   <Badge
                     key={gender.label}
@@ -642,7 +652,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
                         ? 'bg-gradient-primary text-white hover:opacity-90' 
                         : 'border-primary/20 hover:border-primary'
                     }`}
-                    onClick={() => toggleArrayItem('preferredGender', gender.label, 4)}
+                    onClick={() => toggleArrayItem('preferredGender', gender.value, 4)}
                   >
                     {gender.label}
                   </Badge>
