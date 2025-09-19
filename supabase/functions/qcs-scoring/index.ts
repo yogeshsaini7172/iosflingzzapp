@@ -1163,6 +1163,8 @@ serve(async (req) => {
     
     console.error(`QCS function error for user ${userId}: ${errorType} - ${errorMessage}`);
     
+    // For critical failures, attempt to provide fallback score
+    try {
       // Do not sync fallback to DB; just return fallback in response
       const fallbackQcs = 60; // Safe middle-ground score
 
