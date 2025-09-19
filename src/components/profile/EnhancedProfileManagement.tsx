@@ -108,12 +108,45 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
     profileImages: [] as string[]
   });
 
+  // Helper function to normalize keys to match UI format
+  const normalizeKey = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '_');
+  const normalizeArray = (arr: string[]) => arr.map(normalizeKey);
+
+  // Alias maps to harmonize legacy/canonical keys to UI keys (display-only)
+  const aliasMaps = {
+    mindset: {
+      growth: 'growth_mindset',
+      positive: 'positive_thinking',
+    } as Record<string, string>,
+    lifestyle: {
+      // From older step component labels
+      active_outdoorsy: 'active',
+      active___outdoorsy: 'active',
+      social_party: 'social',
+      social___party: 'social',
+      quiet_homebody: 'homebody',
+      quiet___homebody: 'homebody',
+      studious_academic: 'intellectual',
+      studious___academic: 'intellectual',
+    } as Record<string, string>,
+  } as const;
+
+  const normalizeWithAliases = (arr: string[], domain: keyof typeof aliasMaps) =>
+    arr.map(normalizeKey).map((k) => aliasMaps[domain][k] || k);
+
   // Update form data when profile/preferences load
   useEffect(() => {
     if (profile) {
       console.log("📊 Loading profile data into form:", profile);
-      setFormData(prev => ({
-        ...prev,
+      console.log("🔍 Raw profile values:", {
+        personality_traits: profile.personality_traits,
+        values: profile.values,
+        values_array: (profile as any).values_array,
+        mindset: profile.mindset,
+        relationship_goals: profile.relationship_goals
+      });
+      
+      const transformedData = {
         firstName: profile.first_name || '',
         lastName: profile.last_name || '',
         bio: profile.bio || '',
@@ -122,13 +155,24 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
         height: profile.height?.toString() || '',
         bodyType: profile.body_type || '',
         skinTone: profile.skin_tone || '',
-        personalityTraits: profile.personality_traits || [],
-        values: Array.isArray(profile.values) ? profile.values : (profile.values ? [profile.values] : []),
-        mindset: Array.isArray(profile.mindset) ? profile.mindset : (profile.mindset ? [profile.mindset] : []),
-        relationshipGoals: profile.relationship_goals || [],
-        interests: profile.interests || [],
+        personalityTraits: profile.personality_traits ? normalizeArray(profile.personality_traits) : [],
+        values: profile.values ? normalizeArray(profile.values) : [],
+        mindset: profile.mindset
+          ? (Array.isArray(profile.mindset)
+              ? normalizeWithAliases(profile.mindset as unknown as string[], 'mindset')
+              : [normalizeWithAliases([String(profile.mindset)], 'mindset')[0]])
+          : [],
+        relationshipGoals: profile.relationship_goals ? normalizeArray(profile.relationship_goals) : [],
+        interests: profile.interests ? normalizeArray(profile.interests) : [],
         isVisible: profile.show_profile !== false,
         profileImages: profile.profile_images || []
+      };
+      
+      console.log("🔄 Transformed data:", transformedData);
+      
+      setFormData(prev => ({
+        ...prev,
+        ...transformedData
       }));
     }
     
@@ -136,30 +180,40 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       console.log("📊 Loading preferences data into form:", preferences);
       setFormData(prev => ({
         ...prev,
-        preferredGender: Array.isArray(preferences.preferred_gender) ? preferences.preferred_gender.map(g => g.toString()) : ['male', 'female'], // Default to both genders
+        preferredGender: Array.isArray(preferences.preferred_gender) ? preferences.preferred_gender.map(g => g.toString().toLowerCase()) : ['male', 'female'], // Default to both genders
         ageRangeMin: preferences.age_range_min || 18,
         ageRangeMax: preferences.age_range_max || 30,
         heightRangeMin: preferences.height_range_min || 150,
         heightRangeMax: preferences.height_range_max || 200,
         preferredBodyTypes: Array.isArray(preferences.preferred_body_types) && preferences.preferred_body_types.length > 0 
-          ? preferences.preferred_body_types 
+          ? normalizeArray(preferences.preferred_body_types) 
           : ['slim', 'athletic', 'average'], // Provide sensible defaults
         preferredValues: Array.isArray(preferences.preferred_values) && preferences.preferred_values.length > 0 
-          ? preferences.preferred_values 
+          ? normalizeArray(preferences.preferred_values) 
           : ['family_oriented', 'career_focused'], // Default values
         preferredMindset: Array.isArray(preferences.preferred_mindset) && preferences.preferred_mindset.length > 0 
-          ? preferences.preferred_mindset 
+          ? normalizeWithAliases(preferences.preferred_mindset as unknown as string[], 'mindset') 
           : ['growth_mindset'], // Default mindset
         preferredPersonalityTraits: Array.isArray(preferences.preferred_personality_traits) && preferences.preferred_personality_traits.length > 0 
-          ? preferences.preferred_personality_traits 
+          ? normalizeArray(preferences.preferred_personality_traits) 
           : ['outgoing', 'empathetic'], // Default traits
         preferredRelationshipGoal: Array.isArray(preferences.preferred_relationship_goal) && preferences.preferred_relationship_goal.length > 0 
-          ? preferences.preferred_relationship_goal 
+          ? normalizeArray(preferences.preferred_relationship_goal) 
+          : Array.isArray((preferences as any).preferred_relationship_goals) && (preferences as any).preferred_relationship_goals.length > 0 
+          ? normalizeArray((preferences as any).preferred_relationship_goals)
           : ['serious_relationship'], // Default goal
-        preferredSkinTone: Array.isArray(preferences.preferred_skin_tone) ? preferences.preferred_skin_tone : [],
-        preferredFaceType: Array.isArray(preferences.preferred_face_type) ? preferences.preferred_face_type : [],
-        preferredLoveLanguage: Array.isArray(preferences.preferred_love_language) ? preferences.preferred_love_language : [],
-        preferredLifestyle: Array.isArray(preferences.preferred_lifestyle) ? preferences.preferred_lifestyle : []
+        preferredSkinTone: Array.isArray(preferences.preferred_skin_tone) ? normalizeArray(preferences.preferred_skin_tone) : [],
+        preferredFaceType: Array.isArray(preferences.preferred_face_type) 
+          ? normalizeArray(preferences.preferred_face_type) 
+          : Array.isArray((preferences as any).preferred_face_types)
+          ? normalizeArray((preferences as any).preferred_face_types)
+          : [],
+        preferredLoveLanguage: Array.isArray(preferences.preferred_love_language) 
+          ? normalizeArray(preferences.preferred_love_language) 
+          : Array.isArray((preferences as any).preferred_love_languages)
+          ? normalizeArray((preferences as any).preferred_love_languages)
+          : [],
+        preferredLifestyle: Array.isArray(preferences.preferred_lifestyle) ? normalizeWithAliases(preferences.preferred_lifestyle as unknown as string[], 'lifestyle') : []
       }));
     }
   }, [profile, preferences]);
@@ -177,8 +231,8 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       localStorage.removeItem('subscription_plan');
       localStorage.removeItem('profile_complete');
       
-      // Navigate to home 
-      onNavigate('home');
+      // The AuthContext will handle navigation automatically
+      console.log('✅ Logout completed, AuthContext will handle navigation');
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -614,7 +668,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
             <Label>Preferred Gender</Label>
             <div className="flex flex-wrap gap-2">
               {genderOptions.map((gender) => {
-                const isSelected = formData.preferredGender.includes(gender.label);
+                const isSelected = formData.preferredGender.includes(gender.value);
                 return (
                   <Badge
                     key={gender.label}
@@ -624,7 +678,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
                         ? 'bg-gradient-primary text-white hover:opacity-90' 
                         : 'border-primary/20 hover:border-primary'
                     }`}
-                    onClick={() => toggleArrayItem('preferredGender', gender.label, 4)}
+                    onClick={() => toggleArrayItem('preferredGender', gender.value, 4)}
                   >
                     {gender.label}
                   </Badge>

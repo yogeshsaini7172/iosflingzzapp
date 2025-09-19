@@ -402,17 +402,69 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                 </Dialog>
               );
             } else {
-              // Show user's thread management options
+              // Show user's thread management options AND post new thread option
               const latestUserThread = userThreads[0];
               const threadAuthor = latestUserThread.author?.first_name || 'You';
               return (
-                <div className="w-full sticky top-0 z-10">
-                  <Card className="p-4 bg-gradient-secondary text-secondary-foreground border-0 rounded-lg shadow-lg">
+                <div className="flex-shrink-0 w-full sm:w-64 space-y-3">
+                  {/* Post New Thread Button */}
+                  <Dialog open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
+                    <DialogTrigger asChild>
+                      <Card className="p-3 bg-gradient-primary text-primary-foreground border-0 hover:shadow-glow transition-all cursor-pointer">
+                        <div className="flex items-center justify-center space-x-2">
+                          <Plus className="w-4 h-4" />
+                          <span className="font-semibold text-sm">Post New Thread</span>
+                        </div>
+                        <p className="text-xs text-primary-foreground/80 text-center mt-1">
+                          One thread per day • Auto-expires in 24h
+                        </p>
+                      </Card>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle className="text-foreground">Share Your Thoughts</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="thread-content">What's on your mind?</Label>
+                          <Textarea
+                            id="thread-content"
+                            placeholder="Share your thoughts, experiences, or advice with the community..."
+                            value={newThreadContent}
+                            onChange={(e) => setNewThreadContent(e.target.value)}
+                            className="min-h-[100px]"
+                            maxLength={280}
+                          />
+                          <div className="text-right text-xs text-muted-foreground">
+                            {newThreadContent.length}/280 characters
+                          </div>
+                        </div>
+                        <div className="flex justify-end space-x-2">
+                          <Button 
+                            variant="outline" 
+                            onClick={() => setIsPostModalOpen(false)}
+                          >
+                            Cancel
+                          </Button>
+                          <Button 
+                            onClick={handlePostThread}
+                            disabled={!newThreadContent.trim()}
+                          >
+                            <Send className="w-4 h-4 mr-2" />
+                            Post Thread
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                  
+                  {/* Existing Thread Management */}
+                  <Card className="p-4 bg-gradient-secondary text-secondary-foreground border-0">
                     <div className="space-y-3">
                       <div className="text-center">
                         <div className="flex items-center justify-center space-x-2 mb-2">
-                          <User className="w-5 h-5" />
-                          <span className="font-semibold text-sm">Your Thread</span>
+                          <User className="w-4 h-4" />
+                          <span className="font-semibold text-sm">Your Latest Thread</span>
                         </div>
                         <p className="text-sm text-secondary-foreground/90">{latestUserThread.content}</p>
                       </div>
@@ -674,7 +726,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
         ) : (
           <div className="max-w-sm mx-auto space-y-4">
             {/* Profile Card */}
-            {currentProfile ? (
+             {currentProfile ? (
   <TinderProfileCard
     profile={transformProfileForTinderCard(currentProfile)}
     onLike={() => handleSwipe('right')}
@@ -686,7 +738,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
 )}
 
             {/* Enhanced Action Buttons */}
-            <div className="flex justify-center space-x-8 mt-8">
+            <div className="flex justify-center space-x-48 mt-8">
               <button
                 onClick={() => handleSwipe('left')}
                 className="group relative w-16 h-16 bg-card rounded-full flex items-center justify-center shadow-premium hover:shadow-glow transition-all duration-300 hover:scale-110 border-2 border-border"
@@ -698,17 +750,6 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                 </div>
               </button>
               
-              <button
-                onClick={() => handleSwipe('right')}
-                className="group relative w-20 h-20 bg-gradient-primary rounded-full flex items-center justify-center shadow-premium hover:shadow-glow transition-all duration-300 hover:scale-110 border-2 border-primary-foreground/20"
-              >
-                <Heart className="w-8 h-8 text-primary-foreground fill-current" />
-                <div className="absolute inset-0 rounded-full bg-primary-foreground/20"></div>
-                <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <span className="text-xs font-semibold text-primary bg-card px-3 py-1 rounded-full shadow-soft">Like</span>
-                </div>
-              </button>
-
               <button className="group relative w-14 h-14 bg-card rounded-full flex items-center justify-center shadow-soft hover:shadow-premium transition-all duration-300 hover:scale-110 border-2 border-border">
                 <div className="absolute inset-0 bg-gradient-to-r from-accent/20 to-accent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <Star className="w-6 h-6 text-accent group-hover:text-accent-foreground relative z-10 transition-colors duration-300" />

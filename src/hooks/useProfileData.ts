@@ -125,9 +125,13 @@ export const useProfileData = () => {
               : [],
           values: Array.isArray((profileData as any).values) 
             ? (profileData as any).values 
-            : (profileData as any).values 
-              ? [(profileData as any).values] 
-              : [],
+            : Array.isArray((profileData as any).values_array)
+              ? (profileData as any).values_array
+              : (profileData as any).values 
+                ? [(profileData as any).values] 
+                : (profileData as any).values_array
+                  ? [(profileData as any).values_array]
+                  : [],
           mindset: Array.isArray((profileData as any).mindset) 
             ? (profileData as any).mindset 
             : (profileData as any).mindset 

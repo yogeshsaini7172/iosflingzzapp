@@ -76,9 +76,7 @@ const ChatRoomList = ({
   };
 
   const isUserOnline = (room: ChatRoom) => {
-    const otherUserId = room.user_a_id === currentUserId ? room.user_b_id : room.user_a_id;
-    // --- THIS IS THE FIX ---
-    // Changed from onlineUsers.includes() to onlineUsers.has()
+    const otherUserId = room.user1_id === currentUserId ? room.user2_id : room.user1_id;
     return onlineUsers.has(otherUserId);
   };
 
