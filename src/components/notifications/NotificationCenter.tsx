@@ -46,6 +46,8 @@ const NotificationCenter = ({ onNavigate }: NotificationCenterProps) => {
           break;
         case 'chat_request_accepted':
         case 'new_message':
+          onNavigate('chat');
+          break;
         case 'new_match':
           onNavigate('matches');
           break;
@@ -58,6 +60,8 @@ const NotificationCenter = ({ onNavigate }: NotificationCenterProps) => {
           break;
         case 'chat_request_accepted':
         case 'new_message':
+          navigate('/chat');
+          break;
         case 'new_match':
           navigate('/matches');
           break;

@@ -141,7 +141,7 @@ const ChatRequestsModal = ({ isOpen, onClose, onNavigate }: ChatRequestsModalPro
           title: "Request accepted! 🎉",
           description: "Chat room created. You can now start chatting!",
         });
-        onNavigate?.('matches');
+        onNavigate?.('chat');
         onClose();
       } else {
         toast({
