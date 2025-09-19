@@ -228,23 +228,30 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       // Calculate QCS via Edge Function (uses profile data)
       toast({ title: "Calculating QCS Score... 📊", description: "Analyzing your profile" });
 
-      const physical = `${profileData.bodyType || 'average'} ${Number(profileData.height) > 170 ? 'tall' : 'average'}`.trim();
-      const mental = `${profileData.personalityType || 'calm'} ${profileData.interests?.includes('fitness') ? 'ambitious' : 'logical'}`.trim();
-      const description = profileData.bio || 'No description available';
-
       const qcsResponse = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/qcs-scoring', {
         method: 'POST',
-        body: JSON.stringify({ physical, mental, description })
+        body: JSON.stringify({ user_id: userId })
       });
 
       if (!qcsResponse.ok) {
-        const errorData = await qcsResponse.json();
-        throw new Error(errorData?.error || 'Failed to calculate QCS');
+        const errorData = await qcsResponse.json().catch(() => ({}));
+        console.error('❌ QCS calculation failed:', errorData);
+        // Use fallback score if QCS fails
+        toast({
+          title: "QCS Calculation Issue",
+          description: "Using estimated score, will recalculate automatically later",
+          variant: "default"
+        });
       }
 
-      const qcsData = await qcsResponse.json();
-
-      const totalScore = qcsData?.qcs_score ?? 0;
+      let totalScore = 60; // Default fallback score
+      try {
+        const qcsData = await qcsResponse.json();
+        totalScore = qcsData?.qcs?.total_score ?? qcsData?.updated_qcs ?? qcsData?.final_score ?? 60;
+        console.log('✅ QCS calculated:', totalScore);
+      } catch (error) {
+        console.warn('QCS response parsing failed, using fallback score:', error);
+      }
       
       // Update the completeProfile with the calculated QCS score
       completeProfile.total_qcs = totalScore;
