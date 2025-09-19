@@ -1043,8 +1043,21 @@ serve(async (req) => {
     console.log('Comprehensive scoring for user:', userId, 'Profile keys:', Object.keys(fullProfile || {}));
 
     // Get comprehensive AI-based scoring with enhanced error handling
-    const scoringResult = await finalCustomerScoring(fullProfile, userId);
-    const aiScore = scoringResult.rule_based.final_score || scoringResult.rule_based.base_score || 50;
+    let scoringResult: any = { ai_status: { refinement_status: 'skipped', predictive_status: 'skipped' }, rule_based: { final_score: 0 } };
+    let aiScore = 0;
+    try {
+      if (openaiApiKey) {
+        scoringResult = await finalCustomerScoring(fullProfile, userId);
+        aiScore = scoringResult.rule_based.final_score || scoringResult.rule_based.base_score || 50;
+      } else {
+        // No OpenAI key: skip AI path entirely
+        aiScore = 0;
+        scoringResult.ai_status = { refinement_status: 'disabled', predictive_status: 'disabled' };
+      }
+    } catch (e) {
+      console.log('AI scoring path failed, proceeding with deterministic only:', (e as Error).message);
+      aiScore = 0;
+    }
 
     // Use comprehensive deterministic scoring for logic-based QCS calculation
     const { score: comprehensiveLogicScore, perCategoryFraction } = deterministicScoring(fullProfile);
@@ -1065,8 +1078,8 @@ serve(async (req) => {
     // Use comprehensive logic score
     const logicQcs = Math.min(100, comprehensiveLogicScore);
 
-    // Combine AI and Logic scores (60% comprehensive logic, 40% AI for reliability)
-    const totalQcs = Math.round(logicQcs * 0.6 + aiScore * 0.4);
+    // Combine scores; if AI disabled/unavailable, use logic only
+    const totalQcs = openaiApiKey ? Math.round(logicQcs * 0.6 + aiScore * 0.4) : Math.round(logicQcs);
 
     // Enhanced logging with AI status
     const aiStatusSummary = scoringResult.ai_status || {};
@@ -1150,23 +1163,9 @@ serve(async (req) => {
     
     console.error(`QCS function error for user ${userId}: ${errorType} - ${errorMessage}`);
     
-    // For critical failures, attempt to provide fallback score
-    try {
-      // Try to provide a minimal fallback score if possible
+      // Do not sync fallback to DB; just return fallback in response
       const fallbackQcs = 60; // Safe middle-ground score
-      
-      // Attempt to sync fallback score to profiles (non-blocking)
-      supabase
-        .from('profiles')
-        .update({ total_qcs: fallbackQcs })
-        .or(`firebase_uid.eq.${userId},user_id.eq.${userId}`)
-        .then(() => {
-          console.log(`Fallback QCS ${fallbackQcs} synced for user ${userId}`);
-        })
-        .catch((syncError) => {
-          console.error(`Fallback sync failed for user ${userId}:`, syncError.message);
-        });
-      
+
       return new Response(JSON.stringify({
         success: false,
         user_id: userId,
@@ -1193,7 +1192,7 @@ serve(async (req) => {
           version: '2.0-fallback-emergency'
         }
       }), {
-        status: 200, // Return 200 to avoid breaking user flows
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     } catch (fallbackError) {
