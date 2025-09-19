@@ -98,8 +98,9 @@ function calculateMatchScore(userPreferences: any, candidateAttributes: any): {
   // --- MENTAL/PERSONALITY MATCH (max 40 points) ---
   
   // 1. Personality type match (10 points) - case insensitive
-  if (userPreferences?.preferred_personality_traits?.length > 0 && candidateAttributes?.personality_type) {
-    if (arrayContainsMatch(userPreferences.preferred_personality_traits, candidateAttributes.personality_type)) {
+  const candidatePersonality = candidateAttributes?.personality_traits || candidateAttributes?.personality_type;
+  if (userPreferences?.preferred_personality_traits?.length > 0 && candidatePersonality) {
+    if (arrayContainsMatch(userPreferences.preferred_personality_traits, candidatePersonality)) {
       mentalScore += 10;
       matched.push("personality_type");
     } else {
@@ -134,15 +135,15 @@ function calculateMatchScore(userPreferences: any, candidateAttributes: any): {
   }
   
   // 4. Relationship goals match (10 points) - case insensitive
-  if (userPreferences?.preferred_relationship_goal?.length > 0 && candidateAttributes?.relationship_goals) {
-    if (arrayContainsMatch(userPreferences.preferred_relationship_goal, candidateAttributes.relationship_goals)) {
+  if (userPreferences?.preferred_relationship_goals?.length > 0 && candidateAttributes?.relationship_goals) {
+    if (arrayContainsMatch(userPreferences.preferred_relationship_goals, candidateAttributes.relationship_goals)) {
       mentalScore += 10;
-      matched.push("relationship_goal");
+      matched.push("relationship_goals");
     } else {
-      notMatched.push("relationship_goal");
+      notMatched.push("relationship_goals");
     }
   } else {
-    notMatched.push("relationship_goal");
+    notMatched.push("relationship_goals");
   }
   
   // Note: Skipping interests bonus for now as we don't have preferred_interests field in partner_preferences
@@ -287,8 +288,8 @@ serve(async (req) => {
     if (prefsError) console.warn('Preferences fetch error:', prefsError);
 
     const user1QCS = user1Profile.total_qcs || 0;
-    const qcsRangeMin = user1QCS - 10;
-    const qcsRangeMax = user1QCS + 10;
+    const qcsRangeMin = Math.max(0, user1QCS - 15);
+    const qcsRangeMax = user1QCS + 15;
 
     console.log(`USER1 QCS: ${user1QCS}, Range: [${qcsRangeMin}, ${qcsRangeMax}]`);
 
@@ -299,7 +300,8 @@ serve(async (req) => {
         user_id, first_name, last_name, total_qcs,
         qualities, requirements, date_of_birth, gender,
         university, bio, profile_images, height, body_type,
-        values, mindset, personality_type
+        skin_tone, face_type, values, mindset, personality_type,
+        personality_traits, relationship_goals
       `)
       .gte('total_qcs', qcsRangeMin)
       .lte('total_qcs', qcsRangeMax)
