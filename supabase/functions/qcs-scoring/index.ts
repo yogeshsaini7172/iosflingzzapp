@@ -1096,8 +1096,7 @@ serve(async (req) => {
         college_tier: collegeTier,
         personality_depth: personalityDepth,
         behavior_score: behaviorScore,
-        total_score: totalQcs,
-        updated_at: new Date().toISOString()
+        total_score: totalQcs
       }, { onConflict: 'user_id' })
       .select()
       .maybeSingle();
