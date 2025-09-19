@@ -197,10 +197,9 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
         );
       }
 
-      // 2. Use the profile-completion edge function via fetchWithFirebaseAuth
-      const response = await fetchWithFirebaseAuth('/functions/v1/profile-completion', {
-        method: 'POST',
-        body: JSON.stringify({
+      // 2. Use the profile-completion edge function via Supabase client
+      const { error: createError } = await supabase.functions.invoke('profile-completion', {
+        body: {
           userId: firebaseUser.uid,
           firstName: profileData.firstName,
           lastName: profileData.lastName,
@@ -238,12 +237,11 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
             lifestyle: profileData.lifestyle?.length ? profileData.lifestyle[0] : null
           },
           email: firebaseUser.email
-        })
+        }
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create profile');
+      if (createError) {
+        throw new Error(createError.message || 'Failed to create profile');
       }
 
       // Store minimal data in localStorage for reference

@@ -228,14 +228,12 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       // Calculate QCS via Edge Function (uses profile data)
       toast({ title: "Calculating QCS Score... 📊", description: "Analyzing your profile" });
 
-      const qcsResponse = await fetchWithFirebaseAuth('/functions/v1/qcs-scoring', {
-        method: 'POST',
-        body: JSON.stringify({ user_id: userId })
+      const { data: qcsResult, error: qcsError } = await supabase.functions.invoke('qcs-scoring', {
+        body: { user_id: userId }
       });
 
-      if (!qcsResponse.ok) {
-        const errorData = await qcsResponse.json().catch(() => ({}));
-        console.error('❌ QCS calculation failed:', errorData);
+      if (qcsError) {
+        console.error('❌ QCS calculation failed:', qcsError);
         // Use fallback score if QCS fails
         toast({
           title: "QCS Calculation Issue",
@@ -246,8 +244,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
 
       let totalScore = 60; // Default fallback score
       try {
-        const qcsData = await qcsResponse.json();
-        totalScore = qcsData?.qcs?.total_score ?? qcsData?.updated_qcs ?? qcsData?.final_score ?? 60;
+        totalScore = qcsResult?.qcs?.total_score ?? qcsResult?.updated_qcs ?? qcsResult?.final_score ?? 60;
         console.log('✅ QCS calculated:', totalScore);
       } catch (error) {
         console.warn('QCS response parsing failed, using fallback score:', error);
@@ -270,63 +267,54 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       // Log the complete profile data before sending
       console.log('Complete profile data:', JSON.stringify(completeProfile, null, 2));
 
-      // Create profile via profile-completion function with Firebase auth
-      const profileResponse = await fetchWithFirebaseAuth(
-        '/functions/v1/profile-completion',
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            userId: completeProfile.user_id,
-            firstName: completeProfile.first_name,
-            lastName: completeProfile.last_name,
-            dateOfBirth: completeProfile.date_of_birth,
-            gender: completeProfile.gender,
-            university: completeProfile.university,
-            fieldOfStudy: completeProfile.field_of_study,
-            height: completeProfile.height,
-            bodyType: completeProfile.body_type,
-            skinTone: completeProfile.skin_tone,
-            faceType: completeProfile.face_type,
-            personalityType: completeProfile.personality_type,
-            values: completeProfile.values,
-            mindset: completeProfile.mindset,
-            relationshipGoals: completeProfile.relationship_goals || [],
-            interests: completeProfile.interests || [],
-            bio: completeProfile.bio,
-            profileImages: completeProfile.profile_images || [],
-            isProfilePublic: completeProfile.is_profile_public,
-            qcsScore: completeProfile.total_qcs || 0,
-            preferences: {
-              preferredGender: preferences.preferred_gender || [],
-              ageRangeMin: preferences.age_range_min || 18,
-              ageRangeMax: preferences.age_range_max || 30,
-              heightRangeMin: preferences.height_range_min || 150,
-              heightRangeMax: preferences.height_range_max || 200,
-              preferredBodyTypes: preferences.preferred_body_types || [],
-              preferredSkinTone: preferences.preferred_skin_tone || [],
-              preferredFaceType: preferences.preferred_face_type || [],
-              preferredValues: preferences.preferred_values || [],
-              preferredMindset: preferences.preferred_mindset || [],
-              preferredPersonality: preferences.preferred_personality_traits || [],
-              preferredRelationshipGoals: preferences.preferred_relationship_goals || [],
-              loveLanguage: completeProfile.love_language,
-              lifestyle: completeProfile.lifestyle
-            },
-            email: completeProfile.email
-          })
+      // Create profile via profile-completion function (Supabase client handles CORS/auth)
+      const { data: profileResult, error: profileError } = await supabase.functions.invoke('profile-completion', {
+        body: {
+          userId: completeProfile.user_id,
+          firstName: completeProfile.first_name,
+          lastName: completeProfile.last_name,
+          dateOfBirth: completeProfile.date_of_birth,
+          gender: completeProfile.gender,
+          university: completeProfile.university,
+          fieldOfStudy: completeProfile.field_of_study,
+          height: completeProfile.height,
+          bodyType: completeProfile.body_type,
+          skinTone: completeProfile.skin_tone,
+          faceType: completeProfile.face_type,
+          personalityType: completeProfile.personality_type,
+          values: completeProfile.values,
+          mindset: completeProfile.mindset,
+          relationshipGoals: completeProfile.relationship_goals || [],
+          interests: completeProfile.interests || [],
+          bio: completeProfile.bio,
+          profileImages: completeProfile.profile_images || [],
+          isProfilePublic: completeProfile.is_profile_public,
+          qcsScore: completeProfile.total_qcs || 0,
+          preferences: {
+            preferredGender: preferences.preferred_gender || [],
+            ageRangeMin: preferences.age_range_min || 18,
+            ageRangeMax: preferences.age_range_max || 30,
+            heightRangeMin: preferences.height_range_min || 150,
+            heightRangeMax: preferences.height_range_max || 200,
+            preferredBodyTypes: preferences.preferred_body_types || [],
+            preferredSkinTone: preferences.preferred_skin_tone || [],
+            preferredFaceType: preferences.preferred_face_type || [],
+            preferredValues: preferences.preferred_values || [],
+            preferredMindset: preferences.preferred_mindset || [],
+            preferredPersonality: preferences.preferred_personality_traits || [],
+            preferredRelationshipGoals: preferences.preferred_relationship_goals || [],
+            loveLanguage: completeProfile.love_language,
+            lifestyle: completeProfile.lifestyle
+          },
+          email: completeProfile.email
         }
-      );
+      });
 
-      if (!profileResponse.ok) {
-        const errorData = await profileResponse.json().catch(() => ({}));
-        console.error('Failed to save profile:', {
-          status: profileResponse.status,
-          error: errorData
-        });
-        throw new Error(errorData.error || 'Failed to save profile');
+      if (profileError) {
+        console.error('Failed to save profile (invoke):', profileError);
+        throw new Error(profileError.message || 'Failed to save profile');
       }
 
-      const profileResult = await profileResponse.json();
       console.log('Profile saved successfully:', profileResult);
 
       // Always create preferences - use defaults for empty values and ensure correct types
