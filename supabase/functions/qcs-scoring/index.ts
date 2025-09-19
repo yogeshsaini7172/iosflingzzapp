@@ -807,6 +807,7 @@ async function finalCustomerScoring(profile: any, userId: string) {
   const requestBody = {
     model: 'gpt-5-mini-2025-08-07',
     max_completion_tokens: 400,
+    response_format: { type: 'json_object' },
     messages: [
       {
         role: 'system',
@@ -873,6 +874,7 @@ Return JSON format:
   const predictiveRequestBody = {
     model: 'gpt-5-mini-2025-08-07',
     max_completion_tokens: 400,
+    response_format: { type: 'json_object' },
     messages: [
       {
         role: 'system',
