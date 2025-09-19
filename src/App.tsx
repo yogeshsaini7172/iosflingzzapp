@@ -18,6 +18,9 @@ import SubscriptionPage from "./components/subscription/SubscriptionPage";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 import QCSTestPage from "./pages/QCSTestPage";
+import QCSDiagnostics from "./components/QCSDiagnostics";
+import QCSSystemRepair from "./components/QCSSystemRepair";
+import QCSBulkSync from "./components/QCSBulkSync";
 import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
 import RebuiltChatSystem from "@/components/chat/RebuiltChatSystem";
 
@@ -225,6 +228,9 @@ const AuthenticatedApp = () => {
               <Route path="/blind-date" element={<BlindDatePage onNavigate={(view) => navigate(`/${view}`)} />} />
               <Route path="/subscription" element={<SubscriptionPage onNavigate={(view) => navigate(`/${view}`)} />} />
               <Route path="/qcs-test" element={<QCSTestPage />} />
+              <Route path="/qcs-diagnostics" element={<QCSDiagnostics />} />
+              <Route path="/qcs-repair" element={<QCSSystemRepair />} />
+              <Route path="/qcs-bulk-sync" element={<QCSBulkSync />} />
               {/* Redirect /home to root */}
               <Route path="/home" element={<Navigate to="/" replace />} />
               {/* Keep the catch-all route for other unknown routes */}

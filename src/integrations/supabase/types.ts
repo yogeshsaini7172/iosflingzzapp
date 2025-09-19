@@ -50,6 +50,36 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_request_failures: {
+        Row: {
+          created_at: string | null
+          failures: number
+          first_failure_at: string | null
+          last_failure_at: string | null
+          next_allowed_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          failures?: number
+          first_failure_at?: string | null
+          last_failure_at?: string | null
+          next_allowed_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          failures?: number
+          first_failure_at?: string | null
+          last_failure_at?: string | null
+          next_allowed_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       blind_dates: {
         Row: {
           created_at: string
@@ -736,6 +766,7 @@ export type Database = {
           profession: string | null
           profile_completion_percentage: number | null
           profile_images: string[] | null
+          qcs_synced_at: string | null
           qualities: Json | null
           questions_answered: number | null
           relationship_goals: string[] | null
@@ -813,6 +844,7 @@ export type Database = {
           profession?: string | null
           profile_completion_percentage?: number | null
           profile_images?: string[] | null
+          qcs_synced_at?: string | null
           qualities?: Json | null
           questions_answered?: number | null
           relationship_goals?: string[] | null
@@ -890,6 +922,7 @@ export type Database = {
           profession?: string | null
           profile_completion_percentage?: number | null
           profile_images?: string[] | null
+          qcs_synced_at?: string | null
           qualities?: Json | null
           questions_answered?: number | null
           relationship_goals?: string[] | null
@@ -917,35 +950,50 @@ export type Database = {
       }
       qcs: {
         Row: {
+          ai_meta: Json | null
+          ai_score: number | null
           behavior_score: number | null
           college_tier: number | null
           created_at: string
           id: string
+          logic_score: number | null
+          per_category: Json | null
           personality_depth: number | null
           profile_score: number | null
           total_score: number | null
+          total_score_float: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          ai_meta?: Json | null
+          ai_score?: number | null
           behavior_score?: number | null
           college_tier?: number | null
           created_at?: string
           id?: string
+          logic_score?: number | null
+          per_category?: Json | null
           personality_depth?: number | null
           profile_score?: number | null
           total_score?: number | null
+          total_score_float?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          ai_meta?: Json | null
+          ai_score?: number | null
           behavior_score?: number | null
           college_tier?: number | null
           created_at?: string
           id?: string
+          logic_score?: number | null
+          per_category?: Json | null
           personality_depth?: number | null
           profile_score?: number | null
           total_score?: number | null
+          total_score_float?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -1396,6 +1444,18 @@ export type Database = {
       }
     }
     Functions: {
+      atomic_qcs_update: {
+        Args: {
+          p_ai_meta?: Json
+          p_ai_score?: number
+          p_logic_score: number
+          p_per_category?: Json
+          p_total_score: number
+          p_total_score_float?: number
+          p_user_id: string
+        }
+        Returns: Json
+      }
       calculate_compatibility: {
         Args: { user1_profile: Json; user2_profile: Json }
         Returns: number
@@ -1496,6 +1556,10 @@ export type Database = {
           user2_id: string
         }[]
       }
+      increment_failure_count: {
+        Args: { p_user_id: string }
+        Returns: number
+      }
       increment_reports_count: {
         Args: { user_id: string }
         Returns: undefined
@@ -1503,6 +1567,10 @@ export type Database = {
       receiver_id_from_room: {
         Args: { room_id_text: string }
         Returns: string
+      }
+      reset_ai_failures: {
+        Args: { p_user_id: string }
+        Returns: undefined
       }
       reset_daily_limits: {
         Args: Record<PropertyKey, never>

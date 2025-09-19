@@ -11,31 +11,60 @@ export interface QCSScore {
 
 export async function calculateQCS(userId: string): Promise<number> {
   try {
+    console.log(`🔄 Starting QCS calculation for user: ${userId}`);
+    
     // Invoke Supabase Edge Function (reliable logging + auth via Supabase client)
     const { data, error } = await supabase.functions.invoke('qcs-scoring', {
       body: { user_id: userId },
     });
 
     if (error) {
-      console.error('QCS scoring function failed:', error);
+      console.error('❌ QCS scoring function failed:', error);
       return 0;
     }
 
     const result = (data as any) || {};
-    // Try common fields returned by the function; fallback to 0
-    const finalScore = (
-      result?.qcs?.total_score ??
-      result?.updated_qcs ??
-      result?.final_score ??
-      result?.score ??
-      result?.qcs_score ??
-      0
-    ) as number;
+    console.log(`📊 QCS edge function response for ${userId}:`, result);
 
-    console.log(`QCS (edge) calculated for ${userId}: ${finalScore}`);
-    return typeof finalScore === 'number' ? finalScore : 0;
+    // Handle different response structures - fix type conversion issues
+    let finalScore = 0;
+    
+    // Check if response has qcs object structure
+    if (result?.qcs && typeof result.qcs === 'object') {
+      finalScore = result.qcs.total_score;
+    }
+    // Check for direct total_score
+    else if (result?.total_score !== undefined) {
+      finalScore = result.total_score;
+    }
+    // Check for other possible field names
+    else if (result?.updated_qcs !== undefined) {
+      finalScore = result.updated_qcs;
+    }
+    else if (result?.final_score !== undefined) {
+      finalScore = result.final_score;
+    }
+    else if (result?.score !== undefined) {
+      finalScore = result.score;
+    }
+    else if (result?.qcs_score !== undefined) {
+      finalScore = result.qcs_score;
+    }
+
+    // Ensure we have a valid number
+    finalScore = Number(finalScore) || 0;
+    finalScore = Math.max(0, Math.min(100, Math.round(finalScore)));
+
+    console.log(`✅ QCS calculated for ${userId}: ${finalScore} (ai_score: ${result?.qcs?.ai_score || result?.ai_score || 'null'}, logic_score: ${result?.qcs?.logic_score || result?.logic_score || 'null'})`);
+    
+    // Log if we're getting incomplete data
+    if (!result?.qcs?.ai_score && !result?.ai_score && !result?.qcs?.logic_score && !result?.logic_score) {
+      console.warn(`⚠️ Incomplete QCS data for ${userId} - missing AI/logic breakdown`);
+    }
+    
+    return finalScore;
   } catch (error) {
-    console.error('Error invoking QCS scoring:', error);
+    console.error('❌ Error invoking QCS scoring:', error);
     return 0;
   }
 }
