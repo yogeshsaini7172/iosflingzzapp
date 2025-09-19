@@ -13,6 +13,7 @@ interface IndexProps {
 const Index = ({ onProfileComplete }: IndexProps) => {
   const [currentStep, setCurrentStep] = useState<'auth' | 'splash' | 'profile'>('auth');
   const [hasProfile, setHasProfile] = useState(false);
+  const [isCheckingProfile, setIsCheckingProfile] = useState(false);
   const { user, isLoading } = useAuth();
 
   // Only check profile on mount or login
@@ -22,11 +23,14 @@ const Index = ({ onProfileComplete }: IndexProps) => {
         setCurrentStep('auth');
         return;
       }
+      
+      setIsCheckingProfile(true);
       try {
         const userId = user.uid;
         if (!userId) {
           setCurrentStep('profile');
           setHasProfile(false);
+          setIsCheckingProfile(false);
           return;
         }
         const { fetchWithFirebaseAuth } = await import('@/lib/fetchWithFirebaseAuth');
@@ -39,24 +43,30 @@ const Index = ({ onProfileComplete }: IndexProps) => {
           const profile = result?.data?.profile;
           const isComplete = profile && profile.first_name && profile.last_name && profile.bio && profile.gender;
           if (isComplete) {
-            // If profile is complete, redirect to home (prevents popup)
-            window.location.replace('/');
+            // Profile is complete - trigger parent recheck
+            console.log('✅ Profile complete, triggering parent recheck');
+            if (onProfileComplete) {
+              await onProfileComplete();
+            }
+            setIsCheckingProfile(false);
             return;
           }
         }
         setCurrentStep('profile');
         setHasProfile(false);
       } catch (error) {
+        console.error('❌ Error checking profile:', error);
         setCurrentStep('profile');
         setHasProfile(false);
       }
+      setIsCheckingProfile(false);
     };
-    if (!isLoading) {
+    if (!isLoading && user) {
       checkUserProfile();
     }
   }, [user, isLoading, onProfileComplete]);
 
-  if (isLoading) {
+  if (isLoading || isCheckingProfile) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse text-xl">Loading...</div>

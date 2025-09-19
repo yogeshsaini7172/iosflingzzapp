@@ -40,14 +40,9 @@ const AuthenticatedApp = () => {
   const location = useLocation();
   console.log('👤 Current user state:', { user: user?.uid, isLoading, isAuthenticated });
 
-  useEffect(() => {
-    if (user && (location.pathname === "/" || location.pathname === "/auth")) {
-      navigate("/");
-    }
-  }, [user, navigate, location.pathname]);
-
   const [hasProfile, setHasProfile] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(true);
+  const [profileCheckComplete, setProfileCheckComplete] = useState(false);
 
   // Function to check if user has completed profile
   const checkUserProfile = async (userId: string) => {
@@ -91,13 +86,18 @@ const AuthenticatedApp = () => {
     }
     
     try {
+      setCheckingProfile(true);
       const profileComplete = await checkUserProfile(userId);
-      console.log('✅ Profile check result:', profileComplete);
+      console.log('✅ Profile recheck result:', profileComplete);
       setHasProfile(!!profileComplete);
+      setProfileCheckComplete(true);
+      setCheckingProfile(false);
       return !!profileComplete;
     } catch (error) {
       console.error('❌ Error checking profile:', error);
       setHasProfile(false);
+      setProfileCheckComplete(true);
+      setCheckingProfile(false);
       return false;
     }
   };
@@ -131,14 +131,17 @@ const AuthenticatedApp = () => {
           const profileComplete = await checkUserProfile(userId);
           console.log('✅ Profile check result:', { profileComplete });
           setHasProfile(!!profileComplete);
+          setProfileCheckComplete(true);
         } catch (error) {
           console.error('❌ Error in profile check:', error);
           setHasProfile(false);
+          setProfileCheckComplete(true);
         }
       } else {
         // User is not authenticated - reset profile state
         console.log('🚫 User not authenticated, resetting profile state');
         setHasProfile(false);
+        setProfileCheckComplete(false);
         clearAllLocalStorage();
       }
       setCheckingProfile(false);
@@ -148,7 +151,7 @@ const AuthenticatedApp = () => {
     if (!isLoading) {
       checkProfile();
     }
-  }, [user, isLoading, isAuthenticated, userId]);
+  }, [userId, isLoading, isAuthenticated]);
 
   // Show loading spinner until both auth and profile check are done
   if (isLoading || checkingProfile) {
@@ -162,7 +165,7 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // If user is not authenticated (logged out), show auth page
+  // If user is not authenticated, show auth page
   if (!isAuthenticated || !user) {
     console.log('🚫 User not authenticated, showing auth page');
     return (
@@ -177,8 +180,8 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // If user does NOT have a profile, show profile creation flow
-  if (!hasProfile) {
+  // If authenticated but profile check not complete or no profile, show profile setup
+  if (isAuthenticated && user && (!profileCheckComplete || !hasProfile)) {
     return (
       <TooltipProvider>
         <div className="min-h-screen bg-gradient-to-br from-background to-muted">

@@ -29,6 +29,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   console.log('🔐 AuthProvider initializing...');
   const [user, setUser] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [initialAuthCheck, setInitialAuthCheck] = useState(false);
 
   useEffect(() => {
     console.log('🔥 Setting up Firebase auth listener...');
@@ -44,7 +45,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (firebaseUser) {
         console.log('🔑 Firebase user authenticated');
-        if (!wasAuthenticated) {
+        // Only show success message for new logins, not page refreshes
+        if (!wasAuthenticated && initialAuthCheck) {
           toast.success('Successfully signed in!');
         }
       } else {
@@ -55,11 +57,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
       
+      // Mark initial auth check as complete
+      if (!initialAuthCheck) {
+        setInitialAuthCheck(true);
+      }
+      
       setIsLoading(false);
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, [user, initialAuthCheck]);
 
   const getIdToken = async () => {
     if (!auth.currentUser) return null;
