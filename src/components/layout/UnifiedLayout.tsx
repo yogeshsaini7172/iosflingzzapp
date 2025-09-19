@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProfileData } from '@/hooks/useProfileData';
 import { useToast } from "@/hooks/use-toast";
 import BottomNav from "@/components/navigation/BottomNav";
 import ChatNotificationBadge from '@/components/ui/chat-notification-badge';
@@ -22,6 +23,7 @@ interface UnifiedLayoutProps {
 
 const UnifiedLayout = ({ children, title = "FLINGZZ", showHeader = true }: UnifiedLayoutProps) => {
   const { signOut } = useAuth();
+  const { profile } = useProfileData();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [showWhoLikedMe, setShowWhoLikedMe] = useState(false);
@@ -90,10 +92,17 @@ const UnifiedLayout = ({ children, title = "FLINGZZ", showHeader = true }: Unifi
                 {/* Profile & Logout */}
                 <div className="flex items-center space-x-2 pl-2 border-border/50">
                   <Avatar className="w-8 h-8">
-                    <AvatarFallback>
-                      <User className="w-4 h-4" />
-                    </AvatarFallback>
+                    {profile?.profile_images?.[0] ? (
+                      <AvatarImage src={profile.profile_images[0]} alt="Profile" />
+                    ) : (
+                      <AvatarFallback>
+                        <User className="w-4 h-4" />
+                      </AvatarFallback>
+                    )}
                   </Avatar>
+                  {profile?.first_name && (
+                    <span className="font-medium text-sm text-primary-foreground">{profile.first_name}</span>
+                  )}
                   <Button
                     variant="ghost"
                     size="sm"

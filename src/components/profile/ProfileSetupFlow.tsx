@@ -135,10 +135,13 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       // Upload profile images to Supabase Storage first
       let imageUrls: string[] = [];
       if (profileData.profileImages && profileData.profileImages.length > 0) {
-        toast({ title: "Uploading photos... 📸", description: "Please wait while we save your images" });
-        const uploadedImages = await uploadMultipleImages(profileData.profileImages, 'profile-images');
-        imageUrls = uploadedImages.map(img => img.path);
-        console.log('Uploaded images:', imageUrls);
+        toast({ title: "Uploading photo... 📸", description: "Please wait while we save your main image" });
+        // Only allow one image (main photo) for initial profile creation
+  const mainImageFile = profileData.profileImages[0];
+  const uploadedImages = await uploadMultipleImages([mainImageFile], 'profile-images');
+  // Save the public URL, not just the path
+  imageUrls = uploadedImages.map(img => img.url);
+  console.log('Uploaded main image public URLs:', imageUrls);
       }
 
       // Store complete profile data with proper field mapping

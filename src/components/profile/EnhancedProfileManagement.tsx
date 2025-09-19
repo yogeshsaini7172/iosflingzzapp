@@ -1208,95 +1208,105 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
           </p>
         </div>
 
-        {/* Photo Grid */}
-        <div className="grid grid-cols-3 gap-4">
-          {validImages.length > 0 ? (
-            validImages.map((image, index) => (
-              <div 
-                key={`${image}-${index}`}
-                className="aspect-square relative group overflow-hidden rounded-xl border-2 transition-all duration-300 cursor-pointer border-primary/20 hover:border-primary/60"
-              >
-                {image.includes('placeholder') || image.includes('via.placeholder') ? (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/10">
-                    <div className="text-center">
-                      <Camera className="w-6 h-6 text-primary/60 mx-auto mb-1" />
-                      <p className="text-xs text-primary/60">Demo Photo {index + 1}</p>
-                    </div>
-                  </div>
-                ) : (
+        {/* Main Photo Avatar */}
+        <div className="flex flex-col items-center mb-6">
+          {validImages[0] ? (
+            <div className="relative">
+              <img
+                src={validImages[0]}
+                alt="Main Profile"
+                className="w-32 h-32 rounded-full object-cover border-4 border-primary shadow"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = '/placeholder.svg';
+                }}
+              />
+              <div className="absolute top-2 left-2 bg-primary/90 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+                Main
+              </div>
+              <div className="absolute bottom-2 right-2">
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  className="bg-red-500/80 hover:bg-red-600/80"
+                  onClick={() => removePhoto(0)}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <label className="w-32 h-32 rounded-full bg-muted flex items-center justify-center border-2 border-dashed border-border cursor-pointer">
+              <Camera className="w-10 h-10 text-muted-foreground" />
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handlePhotoUpload}
+                className="hidden"
+              />
+            </label>
+          )}
+          <span className="text-sm text-muted-foreground mt-2">Main Profile Photo</span>
+        </div>
+
+        {/* Remaining 5 Slots */}
+        <div className="grid grid-cols-5 gap-4">
+          {Array.from({ length: 5 }).map((_, idx) => {
+            const image = validImages[idx + 1];
+            if (image) {
+              return (
+                <div
+                  key={`profile-img-${idx + 1}`}
+                  className="aspect-square relative group overflow-hidden rounded-xl border-2 transition-all duration-300 cursor-pointer border-primary/20 hover:border-primary/60"
+                >
                   <img
                     src={image}
-                    alt={`Profile ${index + 1}`}
+                    alt={`Profile ${idx + 2}`}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.src = '/placeholder.svg';
                     }}
                   />
-                )}
-                {index === 0 && (
-                  <div className="absolute top-2 left-2 bg-primary/90 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
-                    Main
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="bg-red-500/80 hover:bg-red-600/80"
+                      onClick={() => removePhoto(idx + 1)}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
                   </div>
-                )}
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    className="bg-red-500/80 hover:bg-red-600/80"
-                    onClick={() => removePhoto(index)}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
                 </div>
-              </div>
-            ))
-          ) : (
-            <div className="col-span-3 text-center py-12 bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg border border-primary/20">
-              <Camera className="w-20 h-20 mx-auto mb-4 text-primary/60" />
-              <h4 className="text-lg font-semibold mb-2">Add Your First Photo</h4>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Photos are the most important part of your profile. Add at least 3 photos to get better matches.
-              </p>
-              <label className="inline-flex items-center gap-3 px-6 py-3 bg-primary text-white rounded-lg cursor-pointer hover:bg-primary/90 transition-colors shadow-lg">
-                <Camera className="w-5 h-5" />
-                Choose Your First Photo
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handlePhotoUpload}
-                  className="hidden"
-                />
-              </label>
-            </div>
-          )}
-
-          {/* Empty Slots */}
-          {validImages.length > 0 && validImages.length < 6 && 
-            Array.from({ length: 6 - validImages.length }).map((_, index) => (
-              <label
-                key={`empty-${index}`}
-                className="aspect-square border-2 border-dashed border-primary/30 rounded-xl flex items-center justify-center hover:border-primary/60 transition-colors cursor-pointer group bg-muted/20"
-              >
-                <div className="text-center">
-                  <Camera className="w-8 h-8 text-primary/60 group-hover:text-primary transition-colors mx-auto mb-2" />
-                  <span className="text-xs text-muted-foreground">Add Photo</span>
-                </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handlePhotoUpload}
-                  className="hidden"
-                />
-              </label>
-            ))}
+              );
+            } else {
+              return (
+                <label
+                  key={`empty-slot-${idx}`}
+                  className="aspect-square border-2 border-dashed border-primary/30 rounded-xl flex items-center justify-center hover:border-primary/60 transition-colors cursor-pointer group bg-muted/20"
+                >
+                  <div className="text-center">
+                    <Camera className="w-8 h-8 text-primary/60 group-hover:text-primary transition-colors mx-auto mb-2" />
+                    <span className="text-xs text-muted-foreground">Add Photo</span>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handlePhotoUpload}
+                    className="hidden"
+                  />
+                </label>
+              );
+            }
+          })}
         </div>
 
         {/* Photo Tips */}
         {validImages.length > 0 && (
-          <div className="bg-muted/50 rounded-lg p-4">
+          <div className="bg-muted/50 rounded-lg p-4 mt-6">
             <h4 className="font-medium mb-2">📸 Photo Tips</h4>
             <ul className="text-sm text-muted-foreground space-y-1">
               <li>• Use high-quality, well-lit photos</li>
