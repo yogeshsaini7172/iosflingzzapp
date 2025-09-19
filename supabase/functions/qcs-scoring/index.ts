@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { sendOpenAIRequest } from '../../../lib/openai-client.ts';
+import { blendScore } from '../../../lib/blend.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -554,226 +556,206 @@ function assignPersona(profile: any): string {
   return bestMatch;
 }
 
-// Circuit breaker state management
-let circuitBreakerActive = false;
-let consecutiveFailures = 0;
-const MAX_CONSECUTIVE_FAILURES = 3;
-const CIRCUIT_BREAKER_RESET_TIME = 5 * 60 * 1000; // 5 minutes
-
-// Reset circuit breaker after timeout
-function resetCircuitBreaker() {
-  setTimeout(() => {
-    if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
-      console.log('Circuit breaker reset attempt - clearing failure count');
-      consecutiveFailures = 0;
-      circuitBreakerActive = false;
+// Per-user circuit breaker helpers
+async function recordAiFailure(userId: string): Promise<void> {
+  try {
+    const { error } = await supabase.rpc('increment_failure_count', { p_user_id: userId });
+    if (error) {
+      console.error('Failed to record AI failure:', error.message);
     }
-  }, CIRCUIT_BREAKER_RESET_TIME);
+  } catch (error) {
+    console.error('Error recording AI failure:', error.message);
+  }
 }
 
-// Enhanced OpenAI call with retry and fallback
+async function resetAiFailures(userId: string): Promise<void> {
+  try {
+    const { error } = await supabase.rpc('reset_ai_failures', { p_user_id: userId });
+    if (error) {
+      console.error('Failed to reset AI failures:', error.message);
+    }
+  } catch (error) {
+    console.error('Error resetting AI failures:', error.message);
+  }
+}
+
+async function getPerUserBackoffInfo(userId: string): Promise<any> {
+  try {
+    const { data, error } = await supabase
+      .from('ai_request_failures')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+    
+    if (error && error.code !== 'PGRST116') {
+      console.error('Failed to read ai_request_failures:', error.message);
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error getting backoff info:', error.message);
+    return null;
+  }
+}
+
+// Enhanced OpenAI call with per-user circuit breaker
 async function callOpenAIWithFallback(
-  requestBody: any,
+  messages: Array<{ role: string; content: string }>,
   userId: string,
   operationType: 'refinement' | 'predictive'
 ): Promise<any> {
-  // Circuit breaker check
-  if (circuitBreakerActive) {
-    console.log(`Circuit breaker active for ${operationType} - using fallback immediately`);
+  // Check per-user circuit breaker
+  const backoffInfo = await getPerUserBackoffInfo(userId);
+  if (backoffInfo?.next_allowed_at && new Date(backoffInfo.next_allowed_at) > new Date()) {
+    console.log(`AI request blocked by per-user circuit breaker for ${userId}, next allowed: ${backoffInfo.next_allowed_at}`);
     return null;
   }
 
-  for (let attempt = 1; attempt <= 2; attempt++) {
-    try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openaiApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
+  try {
+    const result = await sendOpenAIRequest({
+      apiKey: openaiApiKey,
+      messages,
+      maxTokens: 400,
+      parseJson: true
+    });
 
-      // Handle rate limiting and other HTTP errors
-      if (!response.ok) {
-        const errorText = await response.text();
-        
-        if (response.status === 429) {
-          consecutiveFailures++;
-          console.log(`OpenAI quota exceeded (429) for user ${userId}, attempt ${attempt}, consecutive failures: ${consecutiveFailures}`);
-          
-          if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
-            circuitBreakerActive = true;
-            console.log('Circuit breaker activated due to consecutive 429 errors');
-            resetCircuitBreaker();
-            return null;
-          }
-          
-          if (attempt === 1) {
-            // Wait before retry
-            await new Promise(resolve => setTimeout(resolve, 750));
-            continue;
-          }
-        }
-        
-        throw new Error(`HTTP ${response.status}: ${errorText}`);
-      }
-
-      const data = await response.json();
-      
-      // Validate response structure
-      if (!data.choices || !Array.isArray(data.choices) || data.choices.length === 0) {
-        throw new Error('Invalid OpenAI response structure: no choices array');
-      }
-
-      const content = data.choices[0]?.message?.content;
-      if (!content) {
-        throw new Error('Empty content in OpenAI response');
-      }
-
-      // Reset failure count on successful call
-      consecutiveFailures = 0;
-      circuitBreakerActive = false;
-      
-      return { content, success: true };
-    } catch (error) {
-      console.log(`OpenAI ${operationType} attempt ${attempt} failed for user ${userId}:`, error.message);
-      
-      if (attempt === 1) {
-        // Wait before retry
-        await new Promise(resolve => setTimeout(resolve, 500));
-      } else {
-        // Final attempt failed
-        consecutiveFailures++;
-        console.log(`OpenAI ${operationType} final failure for user ${userId}, consecutive failures: ${consecutiveFailures}`);
-        
-        if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
-          circuitBreakerActive = true;
-          console.log('Circuit breaker activated due to consecutive failures');
-          resetCircuitBreaker();
-        }
-      }
-    }
+    console.log(`OpenAI ${operationType} success for user ${userId} using model ${result.model}`);
+    
+    // Reset failures on success
+    await resetAiFailures(userId);
+    
+    return { parsedContent: result.parsedContent, model: result.model, success: true };
+    
+  } catch (error) {
+    console.log(`OpenAI ${operationType} failed for user ${userId}:`, error.message);
+    
+    // Record failure for this user
+    await recordAiFailure(userId);
+    
+    return null;
   }
-  
-  return null;
 }
 
-// AI refinement using OpenAI with fallback
+// AI refinement using robust OpenAI client
 async function aiRefinement(
-  physical: string, 
-  mental: string, 
-  description: string, 
+  profile: any,
   rawScore: number, 
   behaviors: string[], 
   persona: string,
   userId: string
 ) {
-  const requestBody = {
-    model: 'gpt-5-mini-2025-08-07',
-    max_completion_tokens: 400,
-    messages: [
-      {
-        role: 'system',
-        content: 'You are a psychologist bot. Refine scores with reasoning.'
-      },
-      {
-        role: 'user',
-        content: `Physical: ${physical}\nMental: ${mental}\nDescription: ${description}\nRaw Score: ${rawScore}\nBehaviors: ${behaviors.join(', ')}\nPersona: ${persona}\n\nReturn JSON:\n{"final_score": number, "reason": "string", "persona": "${persona}"}`
-      }
-    ],
-  };
+  const messages = [
+    {
+      role: 'system',
+      content: 'You are a comprehensive dating profile evaluator. Return valid JSON with refined score and reasoning.'
+    },
+    {
+      role: 'user',
+      content: `Profile Analysis:
+Bio: ${profile.bio || 'Not provided'}
+Personality: ${JSON.stringify(profile.personality_traits || profile.personality_type || 'Not provided')}
+Values: ${JSON.stringify(profile.values || 'Not provided')}
+Interests: ${JSON.stringify(profile.interests || 'Not provided')}
+Education: ${profile.field_of_study || 'Not provided'}
 
-  const result = await callOpenAIWithFallback(requestBody, userId, 'refinement');
+Rule-based Score: ${rawScore}
+Detected Persona: ${persona}
+Key Behaviors: ${behaviors.join(', ')}
+
+Return JSON: {"final_score": number, "reason": "string", "persona": "${persona}", "insights": "brief analysis"}`
+    }
+  ];
+
+  const result = await callOpenAIWithFallback(messages, userId, 'refinement');
   
   if (!result) {
-    console.log(`AI refinement fallback for user ${userId}: using rule-based score`);
+    console.log(`AI refinement fallback for user ${userId}: using deterministic score`);
     return { 
       final_score: rawScore, 
-      reason: 'Deterministic rule-based calculation (AI fallback)', 
+      reason: 'Comprehensive deterministic calculation (AI fallback)', 
       persona,
+      insights: 'Rule-based multi-dimensional analysis',
       ai_status: 'fallback'
     };
   }
 
   try {
-    let { content } = result;
-    
-    // Try to extract JSON from response if it's wrapped in markdown or has extra text
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      content = jsonMatch[0];
+    const parsed = result.parsedContent;
+    if (parsed && typeof parsed.final_score === 'number') {
+      // Validate and clamp the score
+      parsed.final_score = Math.max(0, Math.min(100, Math.round(parsed.final_score)));
+      return { ...parsed, ai_status: 'success', model: result.model };
+    } else {
+      throw new Error('Invalid AI response format');
     }
-    
-    const parsed = JSON.parse(content);
-    return { ...parsed, ai_status: 'success' };
   } catch (parseError) {
-    console.log(`AI refinement JSON parse failed for user ${userId}, using fallback`);
+    console.log(`AI refinement parse failed for user ${userId}, using fallback`);
     return { 
       final_score: rawScore, 
-      reason: 'Deterministic rule-based calculation (JSON parse fallback)', 
+      reason: 'Comprehensive deterministic calculation (parse fallback)', 
       persona,
+      insights: 'Rule-based multi-dimensional analysis',
       ai_status: 'fallback'
     };
   }
 }
 
-// AI predictive scoring with fallback
-async function aiPredictive(physical: string, mental: string, description: string, userId: string) {
-  const requestBody = {
-    model: 'gpt-5-mini-2025-08-07',
-    max_completion_tokens: 400,
-    messages: [
-      {
-        role: 'system',
-        content: 'You are a psychologist bot that predicts quality independently.'
-      },
-      {
-        role: 'user',
-        content: `Physical: ${physical}\nMental: ${mental}\nDescription: ${description}\n\nReturn JSON:\n{"predicted_score": number, "insights": "string", "red_flags": "string"}`
-      }
-    ],
-  };
+// AI predictive scoring with robust client
+async function aiPredictive(profile: any, perCategoryFraction: Record<string, number>, userId: string) {
+  const messages = [
+    {
+      role: 'system',
+      content: 'You are a psychologist that predicts dating compatibility using comprehensive profile analysis. Return valid JSON.'
+    },
+    {
+      role: 'user',
+      content: `Comprehensive Profile Analysis:
+Bio Quality: ${profile.bio ? `"${profile.bio.substring(0, 100)}..." (${profile.bio.length} chars)` : 'Missing'}
+Personality: ${JSON.stringify(profile.personality_traits || 'Unknown')}
+Values: ${JSON.stringify(profile.values || 'Unknown')} 
+Interests: ${JSON.stringify(profile.interests || 'Unknown')}
+Education: ${profile.field_of_study || 'Unknown'}
+Category Scores: ${JSON.stringify(perCategoryFraction)}
 
-  const result = await callOpenAIWithFallback(requestBody, userId, 'predictive');
+Return JSON: {"predicted_score": number, "insights": "analysis", "red_flags": "concerns", "compatibility_factors": "strengths"}`
+    }
+  ];
+
+  const result = await callOpenAIWithFallback(messages, userId, 'predictive');
   
   if (!result) {
-    console.log(`AI predictive fallback for user ${userId}: using deterministic score`);
-    // Generate deterministic fallback score based on input characteristics
-    const fallbackScore = generateFallbackPredictiveScore(physical, mental, description);
+    console.log(`AI predictive fallback for user ${userId}: using comprehensive deterministic score`);
+    const fallbackScore = generateFallbackPredictiveScore(profile);
     return { 
-      predicted_score: fallbackScore, 
-      insights: 'Deterministic analysis based on profile characteristics (AI fallback)', 
-      red_flags: '',
+      predicted_score: fallbackScore,
+      insights: 'Comprehensive deterministic analysis based on multi-dimensional profile evaluation (AI fallback)',
+      red_flags: perCategoryFraction.bio < 0.3 ? 'Limited bio information' : '',
+      compatibility_factors: Object.entries(perCategoryFraction).filter(([_, v]) => v > 0.7).map(([k, _]) => k).join(', ') || 'Balanced profile',
       ai_status: 'fallback'
     };
   }
 
   try {
-    let { content } = result;
-    
-    // Try to extract JSON from response if it's wrapped in markdown or has extra text
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      content = jsonMatch[0];
+    const parsed = result.parsedContent;
+    if (parsed && typeof parsed.predicted_score === 'number') {
+      // Normalize score (handle 0-10 scale)
+      if (parsed.predicted_score >= 0 && parsed.predicted_score <= 10) {
+        parsed.predicted_score = Math.floor(parsed.predicted_score * 10);
+      }
+      parsed.predicted_score = Math.max(0, Math.min(100, Math.round(parsed.predicted_score)));
+      
+      return { ...parsed, ai_status: 'success', model: result.model };
+    } else {
+      throw new Error('Invalid AI response format');
     }
-    
-    const parsed = JSON.parse(content);
-    
-    // Normalize score
-    if (parsed.predicted_score !== null && parsed.predicted_score >= 0 && parsed.predicted_score <= 10) {
-      parsed.predicted_score = Math.floor(parsed.predicted_score * 10);
-    }
-    parsed.predicted_score = Math.max(0, Math.min(100, parsed.predicted_score || 0));
-    
-    return { ...parsed, ai_status: 'success' };
   } catch (parseError) {
-    console.log(`AI predictive JSON parse failed for user ${userId}, using fallback`);
-    const fallbackScore = generateFallbackPredictiveScore(physical, mental, description);
+    console.log(`AI predictive parse failed for user ${userId}, using fallback`);
+    const fallbackScore = generateFallbackPredictiveScore(profile);
     return { 
-      predicted_score: fallbackScore, 
-      insights: 'Deterministic analysis based on profile characteristics (JSON parse fallback)', 
-      red_flags: '',
+      predicted_score: fallbackScore,
+      insights: 'Comprehensive deterministic analysis (parse fallback)',
+      red_flags: perCategoryFraction.bio < 0.3 ? 'Limited bio information' : '',
+      compatibility_factors: Object.entries(perCategoryFraction).filter(([_, v]) => v > 0.7).map(([k, _]) => k).join(', ') || 'Balanced profile',
       ai_status: 'fallback'
     };
   }
@@ -787,13 +769,13 @@ function generateFallbackPredictiveScore(profile: any): number {
   return Math.max(20, Math.min(95, score + variation));
 }
 
-// Main scoring pipeline with comprehensive algorithm and enhanced error handling
+// Main scoring pipeline with comprehensive algorithm and robust AI integration
 async function finalCustomerScoring(profile: any, userId: string) {
   // Use comprehensive deterministic scoring
   const { score: ruleScore, perCategoryFraction } = deterministicScoring(profile);
   const persona = assignPersona(profile);
 
-  console.log(`Starting comprehensive QCS calculation for user ${userId}: circuit_breaker=${circuitBreakerActive}, failures=${consecutiveFailures}`);
+  console.log(`Starting comprehensive QCS calculation for user ${userId}: per-user circuit breaker check`);
 
   // Create behaviors array from category fractions for compatibility
   const behaviors: string[] = [];
@@ -803,154 +785,18 @@ async function finalCustomerScoring(profile: any, userId: string) {
     else if (fraction < 0.3) behaviors.push(`Needs ${category} improvement`);
   });
 
-  // AI refinement with comprehensive profile data
-  const requestBody = {
-    model: 'gpt-5-mini-2025-08-07',
-    max_completion_tokens: 400,
-    response_format: { type: 'json_object' },
-    messages: [
-      {
-        role: 'system',
-        content: 'You are a comprehensive dating profile evaluator. Refine scores with detailed reasoning based on multi-dimensional profile analysis.'
-      },
-      {
-        role: 'user',
-        content: `Profile Analysis:
-Bio: ${profile.bio || 'Not provided'}
-Personality: ${JSON.stringify(profile.personality_traits || profile.personality_type || 'Not provided')}
-Values: ${JSON.stringify(profile.values || 'Not provided')}
-Interests: ${JSON.stringify(profile.interests || 'Not provided')}
-Education: ${profile.field_of_study || 'Not provided'} (${profile.year_of_study || 'Not provided'})
-Physical: ${profile.body_type || 'Not provided'}, Height: ${profile.height || 'Not provided'}cm
+  // AI refinement with error handling
+  let aiRefinedResult = await aiRefinement(profile, ruleScore, behaviors, persona, userId);
 
-Deterministic Score: ${ruleScore}
-Category Breakdown: ${JSON.stringify(perCategoryFraction)}
-Detected Persona: ${persona}
-Key Behaviors: ${behaviors.join(', ')}
-
-Return JSON format:
-{"final_score": number, "reason": "string", "persona": "${persona}", "insights": "string"}`
-      }
-    ],
-  };
-
-  const aiRuleResult = await callOpenAIWithFallback(requestBody, userId, 'refinement');
-  
-  let aiRefinedResult;
-  if (!aiRuleResult) {
-    console.log(`AI refinement fallback for user ${userId}: using deterministic score`);
-    aiRefinedResult = { 
-      final_score: ruleScore, 
-      reason: 'Comprehensive deterministic calculation (AI fallback)', 
-      persona,
-      insights: `Multi-dimensional analysis: ${Object.keys(perCategoryFraction).join(', ')} evaluated`,
-      ai_status: 'fallback'
-    };
-  } else {
-    try {
-      let { content } = aiRuleResult;
-      
-      // Try to extract JSON from response
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        content = jsonMatch[0];
-      }
-      
-      const parsed = JSON.parse(content);
-      aiRefinedResult = { ...parsed, ai_status: 'success' };
-    } catch (parseError) {
-      console.log(`AI refinement JSON parse failed for user ${userId}, using fallback`);
-      aiRefinedResult = { 
-        final_score: ruleScore, 
-        reason: 'Comprehensive deterministic calculation (JSON parse fallback)', 
-        persona,
-        insights: `Multi-dimensional analysis: ${Object.keys(perCategoryFraction).join(', ')} evaluated`,
-        ai_status: 'fallback'
-      };
-    }
-  }
-
-  // AI predictive scoring
-  const predictiveRequestBody = {
-    model: 'gpt-5-mini-2025-08-07',
-    max_completion_tokens: 400,
-    response_format: { type: 'json_object' },
-    messages: [
-      {
-        role: 'system',
-        content: 'You are a psychologist that predicts dating compatibility independently using comprehensive profile analysis.'
-      },
-      {
-        role: 'user',
-        content: `Comprehensive Profile Analysis:
-Bio Quality: ${profile.bio ? `${profile.bio.length} chars` : 'Missing'}
-Personality Depth: ${profile.personality_traits ? profile.personality_traits.length : 0} traits
-Values Alignment: ${profile.values ? profile.values.length : 0} values
-Interest Diversity: ${profile.interests ? profile.interests.length : 0} interests
-Education Level: ${profile.field_of_study || 'Unknown'} (${profile.year_of_study || 'Unknown'})
-Physical Attributes: ${profile.body_type || 'Unknown'} body type
-
-Category Scores: ${JSON.stringify(perCategoryFraction)}
-Detected Persona: ${persona}
-
-Return JSON:
-{"predicted_score": number, "insights": "comprehensive analysis", "red_flags": "any concerns", "compatibility_factors": "key strengths"}`
-      }
-    ],
-  };
-
-  const aiPredictiveCall = await callOpenAIWithFallback(predictiveRequestBody, userId, 'predictive');
-  
-  let aiPredictiveResult;
-  if (!aiPredictiveCall) {
-    console.log(`AI predictive fallback for user ${userId}: using comprehensive deterministic score`);
-    const fallbackScore = generateFallbackPredictiveScore(profile);
-    aiPredictiveResult = { 
-      predicted_score: fallbackScore,
-      insights: 'Comprehensive deterministic analysis based on multi-dimensional profile evaluation (AI fallback)',
-      red_flags: perCategoryFraction.bio < 0.3 ? 'Limited bio information' : '',
-      compatibility_factors: Object.entries(perCategoryFraction).filter(([_, v]) => v > 0.7).map(([k, _]) => k).join(', ') || 'Balanced profile',
-      ai_status: 'fallback'
-    };
-  } else {
-    try {
-      let { content } = aiPredictiveCall;
-      
-      // Try to extract JSON from response
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        content = jsonMatch[0];
-      }
-      
-      const parsed = JSON.parse(content);
-      
-      // Normalize score
-      if (parsed.predicted_score !== null && parsed.predicted_score >= 0 && parsed.predicted_score <= 10) {
-        parsed.predicted_score = Math.floor(parsed.predicted_score * 10);
-      }
-      parsed.predicted_score = Math.max(0, Math.min(100, parsed.predicted_score || 0));
-      
-      aiPredictiveResult = { ...parsed, ai_status: 'success' };
-    } catch (parseError) {
-      console.log(`AI predictive JSON parse failed for user ${userId}, using fallback`);
-      const fallbackScore = generateFallbackPredictiveScore(profile);
-      aiPredictiveResult = { 
-        predicted_score: fallbackScore,
-        insights: 'Comprehensive deterministic analysis based on multi-dimensional profile evaluation (JSON parse fallback)',
-        red_flags: perCategoryFraction.bio < 0.3 ? 'Limited bio information' : '',
-        compatibility_factors: Object.entries(perCategoryFraction).filter(([_, v]) => v > 0.7).map(([k, _]) => k).join(', ') || 'Balanced profile',
-        ai_status: 'fallback'
-      };
-    }
-  }
+  // AI predictive scoring  
+  let aiPredictiveResult = await aiPredictive(profile, perCategoryFraction, userId);
 
   // Log AI status for monitoring
   const aiStatus = {
     refinement_status: aiRefinedResult.ai_status || 'unknown',
     predictive_status: aiPredictiveResult.ai_status || 'unknown',
-    circuit_breaker_active: circuitBreakerActive,
-    consecutive_failures: consecutiveFailures,
-    scoring_version: 'comprehensive-v2'
+    circuit_breaker_per_user: true,
+    scoring_version: 'comprehensive-v3-robust'
   };
   console.log(`Comprehensive QCS AI status for user ${userId}:`, aiStatus);
 
@@ -1082,55 +928,55 @@ serve(async (req) => {
     // Use comprehensive logic score
     const logicQcs = Math.min(100, comprehensiveLogicScore);
 
-    // Combine scores; if AI disabled/unavailable, use logic only
-    const totalQcs = openaiApiKey ? Math.round(logicQcs * 0.6 + aiScore * 0.4) : Math.round(logicQcs);
+    // Enhanced blending logic - only use AI if we have a valid score
+    const aiRefinedScore = scoringResult.rule_based?.final_score;
+    const validAiScore = (typeof aiRefinedScore === 'number' && aiRefinedScore > 0 && !isNaN(aiRefinedScore)) ? aiRefinedScore : null;
+    
+    // Use robust blending function
+    const totalQcs = blendScore(logicQcs, validAiScore);
 
     // Enhanced logging with AI status
     const aiStatusSummary = scoringResult.ai_status || {};
-    console.log(`QCS calculated for ${userId}: Logic=${logicQcs}, AI=${aiScore}, Final=${totalQcs} (Profile: ${profileScore}, College: ${collegeTier}, Personality: ${personalityDepth}, Behavior: ${behaviorScore}) | AI Status: ${JSON.stringify(aiStatusSummary)}`);
+    console.log(`QCS calculated for ${userId}: Logic=${logicQcs}, AI=${validAiScore || 'null'}, Final=${totalQcs} (Profile: ${profileScore}, College: ${collegeTier}, Personality: ${personalityDepth}, Behavior: ${behaviorScore}) | AI Status: ${JSON.stringify(aiStatusSummary)}`);
 
-    // Update QCS in database with detailed breakdown and AI status
-    const { data: qcsUpserted, error: qcsError } = await supabase
-      .from('qcs')
-      .upsert({
-        user_id: userId,
-        profile_score: profileScore,
-        college_tier: collegeTier,
-        personality_depth: personalityDepth,
-        behavior_score: behaviorScore,
-        total_score: totalQcs
-      }, { onConflict: 'user_id' })
-      .select()
-      .maybeSingle();
+    // ATOMIC DATABASE UPDATE - Single transaction using stored procedure
+    const { data: atomicResult, error: atomicError } = await supabase.rpc('atomic_qcs_update', {
+      p_user_id: userId,
+      p_total_score: totalQcs,
+      p_logic_score: Math.round(logicQcs),
+      p_ai_score: validAiScore ? Math.round(validAiScore) : null,
+      p_ai_meta: aiStatusSummary ? JSON.stringify(aiStatusSummary) : null,
+      p_per_category: JSON.stringify(perCategoryFraction),
+      p_total_score_float: totalQcs
+    });
 
-    if (qcsError) {
-      console.error('QCS upsert error:', qcsError.message);
-    }
-
-    // Sync to profiles table immediately so UI sees the updated value
-    const { error: profileUpdateError } = await supabase
-      .from('profiles')
-      .update({ total_qcs: totalQcs, updated_at: new Date().toISOString() })
-      .or(`firebase_uid.eq.${userId},user_id.eq.${userId}`);
-
-    if (profileUpdateError) {
-      console.error('Profile update error:', profileUpdateError.message);
-    }
-
-    if (qcsError) {
-      console.error(`QCS database update failed for user ${userId || 'unknown'}:`, qcsError.message);
-      // Don't throw here - continue with profile sync
-    }
-
-    // Sync total_qcs to profiles table with retry logic
-    const { error: profileSyncError } = await supabase
-      .from('profiles')
-      .update({ total_qcs: totalQcs })
-      .or(`firebase_uid.eq.${userId},user_id.eq.${userId}`);
-
-    if (profileSyncError) {
-      console.error(`Profile QCS sync failed for user ${userId}:`, profileSyncError.message);
-      // Don't throw here - still return successful result
+    if (atomicError) {
+      console.error(`Atomic QCS update failed for user ${userId}:`, atomicError.message);
+      
+      // Fallback to manual updates if atomic update fails
+      try {
+        await supabase.from('qcs').upsert({
+          user_id: userId,
+          profile_score: profileScore,
+          college_tier: collegeTier,
+          personality_depth: personalityDepth,
+          behavior_score: behaviorScore,
+          total_score: totalQcs,
+          logic_score: Math.round(logicQcs),
+          ai_score: validAiScore ? Math.round(validAiScore) : null,
+          per_category: perCategoryFraction
+        });
+        
+        await supabase.from('profiles')
+          .update({ total_qcs: totalQcs, qcs_synced_at: new Date().toISOString() })
+          .or(`firebase_uid.eq.${userId},user_id.eq.${userId}`);
+          
+        console.log(`Fallback updates completed for user ${userId}`);
+      } catch (fallbackError) {
+        console.error(`Fallback updates also failed for user ${userId}:`, fallbackError.message);
+      }
+    } else {
+      console.log(`Atomic QCS update successful for user ${userId}:`, atomicResult);
     }
 
     // Success response with enhanced metadata
@@ -1139,8 +985,8 @@ serve(async (req) => {
       user_id: userId,
       qcs: {
         total_score: totalQcs,
-        logic_score: logicQcs,
-        ai_score: aiScore,
+        logic_score: Math.round(logicQcs),
+        ai_score: validAiScore ? Math.round(validAiScore) : null,
         profile_score: profileScore,
         college_tier: collegeTier,
         personality_depth: personalityDepth,
@@ -1150,10 +996,10 @@ serve(async (req) => {
       final_score: totalQcs,
       scoring_details: scoringResult,
       ai_status: aiStatusSummary,
-      circuit_breaker_active: circuitBreakerActive,
       metadata: {
         timestamp: new Date().toISOString(),
-        version: '2.0-fallback'
+        version: '3.0-robust',
+        atomic_update: !atomicError
       }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -1177,7 +1023,7 @@ serve(async (req) => {
         qcs: {
           total_score: fallbackQcs,
           logic_score: fallbackQcs,
-          ai_score: fallbackQcs,
+          ai_score: null,
           profile_score: 15,
           college_tier: 20,
           personality_depth: 15,
@@ -1189,12 +1035,11 @@ serve(async (req) => {
         fallback_mode: true,
         ai_status: { 
           error_type: errorType,
-          circuit_breaker_active: circuitBreakerActive,
-          consecutive_failures: consecutiveFailures 
+          per_user_circuit_breaker: true
         },
         metadata: {
           timestamp: new Date().toISOString(),
-          version: '2.0-fallback-emergency'
+          version: '3.0-robust-emergency'
         }
       }), {
         status: 200,
