@@ -7,7 +7,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Heart, Brain, Star, MapPin, GraduationCap, Sparkles, Users, RefreshCw, MessageCircle, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import DetailedProfileModal from '@/components/profile/DetailedProfileModal';
+import DetailedProfileModal from '@/components/profile/DetailedProfileModalNew';
 import RebuiltChatSystem from '@/components/chat/RebuiltChatSystem';
 import { useRequiredAuth } from '@/hooks/useRequiredAuth';
 import UnifiedLayout from '@/components/layout/UnifiedLayout';
