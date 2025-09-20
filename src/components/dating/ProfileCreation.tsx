@@ -12,6 +12,7 @@ interface ProfileCreationProps {
   onComplete: () => void;
 }
 
+
 const ProfileCreation = ({ onComplete }: ProfileCreationProps) => {
   const [formData, setFormData] = useState({
     firstName: '',
@@ -28,7 +29,23 @@ const ProfileCreation = ({ onComplete }: ProfileCreationProps) => {
   });
 
   const [currentInterest, setCurrentInterest] = useState('');
-  const [step, setStep] = useState<'basic' | 'verification' | 'complete'>('basic');
+  const [step, setStep] = useState<'basic' | 'photo' | 'complete'>('basic');
+  // Profile photo state
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const [profilePhotoFile, setProfilePhotoFile] = useState<File | null>(null);
+
+  // Handle profile photo upload
+  const handleProfilePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setProfilePhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfilePhoto(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const suggestedInterests = [
     'Photography', 'Music', 'Sports', 'Reading', 'Cooking', 'Travel', 
@@ -54,7 +71,7 @@ const ProfileCreation = ({ onComplete }: ProfileCreationProps) => {
 
   const handleBasicSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setStep('verification');
+    setStep('photo');
   };
 
   const handleVerificationSubmit = () => {
@@ -233,60 +250,52 @@ const ProfileCreation = ({ onComplete }: ProfileCreationProps) => {
     </Card>
   );
 
-  const renderVerification = () => (
+  const renderPhotoStep = () => (
     <Card className="max-w-2xl mx-auto">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl bg-gradient-primary bg-clip-text text-transparent flex items-center justify-center gap-2">
           <Shield className="w-6 h-6" />
-          Identity Verification
+          Upload Photo
         </CardTitle>
-        <p className="text-muted-foreground">Upload your documents to verify your identity and student status</p>
+        <p className="text-muted-foreground">Create your perfect GenZ profile 🚀</p>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <h3 className="font-semibold flex items-center gap-2">
-              <Camera className="w-5 h-5" />
-              Government ID
-            </h3>
-            <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer">
-              <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">
-                Upload your driver's license, passport, or national ID
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="font-semibold flex items-center gap-2">
-              <Camera className="w-5 h-5" />
-              Student ID
-            </h3>
-            <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer">
-              <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">
-                Upload your current student ID card
-              </p>
-            </div>
-          </div>
+      <CardContent className="space-y-8">
+        <div className="flex flex-col items-center gap-4">
+          <label htmlFor="profile-photo-upload" className="cursor-pointer">
+            {profilePhoto ? (
+              <img
+                src={profilePhoto}
+                alt="Profile Preview"
+                className="w-40 h-40 rounded-full object-cover border-4 border-primary shadow"
+              />
+            ) : (
+              <div className="w-40 h-40 rounded-full bg-muted flex items-center justify-center border-2 border-dashed border-primary">
+                <Upload className="w-14 h-14 text-primary" />
+              </div>
+            )}
+            <input
+              id="profile-photo-upload"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleProfilePhotoChange}
+              disabled={!!profilePhoto}
+            />
+          </label>
+          <span className="text-lg font-semibold mt-2">Main Photo</span>
+          <span className="text-sm text-muted-foreground">Upload only 1 photo as your main profile image</span>
+          {profilePhoto && (
+            <Button size="sm" variant="destructive" onClick={() => { setProfilePhoto(null); setProfilePhotoFile(null); }}>
+              Remove Photo
+            </Button>
+          )}
         </div>
-
-        <div className="bg-muted/50 rounded-lg p-4">
-          <h4 className="font-semibold mb-2">Verification Process</h4>
-          <ul className="text-sm text-muted-foreground space-y-1">
-            <li>• Your documents are securely encrypted and stored</li>
-            <li>• Verification typically takes 24-48 hours</li>
-            <li>• You'll receive an email notification when approved</li>
-            <li>• Only verified users can see and match with each other</li>
-          </ul>
-        </div>
-
-        <div className="flex gap-4">
+        <div className="flex gap-4 mt-8">
           <Button variant="outline" onClick={() => setStep('basic')} className="flex-1">
             Back
           </Button>
-          <Button onClick={handleVerificationSubmit} className="flex-1">
-            Submit for Verification
+          <Button onClick={handleVerificationSubmit} className="flex-1" disabled={!profilePhotoFile}>
+            Save & Continue
           </Button>
         </div>
       </CardContent>
@@ -312,9 +321,9 @@ const ProfileCreation = ({ onComplete }: ProfileCreationProps) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4 pt-20">
       <div className="container mx-auto">
-        {step === 'basic' && renderBasicInfo()}
-        {step === 'verification' && renderVerification()}
-        {step === 'complete' && renderComplete()}
+  {step === 'basic' && renderBasicInfo()}
+  {step === 'photo' && renderPhotoStep()}
+  {step === 'complete' && renderComplete()}
       </div>
     </div>
   );

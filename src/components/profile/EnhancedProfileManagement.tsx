@@ -41,6 +41,126 @@ interface EnhancedProfileManagementProps {
 }
 
 const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProps) => {
+  // Transform single database value to UI key format (for dropdowns)
+  const transformSingleValueToUI = (dbValue: string) => {
+    const transformMap: Record<string, string> = {
+      // Body types (for Select dropdown - need key format)
+      'slim': 'slim',
+      'athletic': 'athletic', 
+      'average': 'average',
+      'curvy': 'curvy',
+      'plus_size': 'plus_size',
+      
+      // Skin tones (for Select dropdown - need key format)
+      'very_fair': 'very_fair',
+      'fair': 'fair',
+      'medium': 'medium',
+      'olive': 'olive',
+      'brown': 'brown',
+      'dark': 'dark',
+      
+      // Face types
+      'round': 'round',
+      'oval': 'oval',
+      'square': 'square',
+      'heart': 'heart',
+      'diamond': 'diamond',
+      'long': 'long',
+      'Round': 'round',
+      'Oval': 'oval',
+      'Square': 'square',
+      'Heart': 'heart',
+      'Diamond': 'diamond',
+      'Long': 'long',
+      
+      // Love languages  
+      'words_of_affirmation': 'words_of_affirmation',
+      'acts_of_service': 'acts_of_service',
+      'receiving_gifts': 'receiving_gifts',
+      'quality_time': 'quality_time',
+      'physical_touch': 'physical_touch',
+      'Words of Affirmation': 'words_of_affirmation',
+      'Acts of Service': 'acts_of_service',
+      'Receiving Gifts': 'receiving_gifts',
+      'Quality Time': 'quality_time',
+      'Physical Touch': 'physical_touch',
+      
+      // Lifestyle options (for Badge components)
+      'active': 'active',
+      'relaxed': 'relaxed',
+      'social': 'social',
+      'homebody': 'homebody',
+      'adventurous': 'adventurous',
+      'career_focused': 'career_focused',
+      'family_oriented': 'family_oriented',
+      'health_conscious': 'health_conscious',
+      'party_goer': 'party_goer',
+      'minimalist': 'minimalist',
+      'creative': 'creative',
+      'intellectual': 'intellectual',
+      'Active': 'active',
+      'Relaxed': 'relaxed',
+      'Social': 'social',
+      'Homebody': 'homebody',
+      'Adventurous': 'adventurous',
+      'Career-focused': 'career_focused',
+      'Family-oriented': 'family_oriented',
+      'Health-conscious': 'health_conscious',
+      'Party-goer': 'party_goer',
+      'Minimalist': 'minimalist',
+      'Creative': 'creative',
+      'Intellectual': 'intellectual',
+    };
+    return transformMap[dbValue] || dbValue;
+  };
+
+  // Transform database values to UI format (handle case sensitivity)
+  const transformDatabaseToUI = (dbValues: string[]) => {
+    if (!Array.isArray(dbValues)) return [];
+    return dbValues.map(value => {
+      // Convert database format to UI key format (what the UI logic expects)
+      // The UI logic uses: option.toLowerCase().replace(/[^a-z0-9]/g, '_')
+      // So we need to return the KEY format, not the display format
+      const transformMap: Record<string, string> = {
+        // Personality traits - return key format
+        'adventurous': 'adventurous',
+        'Adventurous': 'adventurous',
+        'analytical': 'analytical', 
+        'Analytical': 'analytical',
+        'creative': 'creative',
+        'Creative': 'creative',
+        'outgoing': 'outgoing',
+        'Outgoing': 'outgoing',
+        'empathetic': 'empathetic',
+        'Empathetic': 'empathetic',
+        
+        // Values - return key format  
+        'family_oriented': 'family_oriented',
+        'Family-oriented': 'family_oriented',
+        'career_focused': 'career_focused',
+        'Career-focused': 'career_focused',
+        'health_conscious': 'health_conscious',
+        'Health-conscious': 'health_conscious',
+        
+        // Mindset - return key format
+        'growth': 'growth_mindset',
+        'Growth Mindset': 'growth_mindset',
+        'growth_mindset': 'growth_mindset',
+        
+        // Relationship goals - return key format
+        'serious_relationship': 'serious_relationship',
+        'Serious relationship': 'serious_relationship'
+      };
+      
+      // If we have a mapping, use it, otherwise convert to key format
+      if (transformMap[value]) {
+        return transformMap[value];
+      }
+      
+      // Default: convert any value to key format
+      return value.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    });
+  };
   // Remove photo from profileImages
   const removePhoto = (index: number) => {
     const newImages = (formData.profileImages || []).filter((_, i) => i !== index);
@@ -72,11 +192,14 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
     bio: '',
     educationLevel: '',
     profession: '',
-    
+
     // Physical Attributes
     height: '',
     bodyType: '',
     skinTone: '',
+    faceType: '',
+    loveLanguage: '',
+    lifestyle: '',
     
     // Personality & Values (arrays)
     personalityTraits: [] as string[],
@@ -138,32 +261,21 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
   useEffect(() => {
     if (profile) {
       console.log("📊 Loading profile data into form:", profile);
-      console.log("🔍 Raw profile values:", {
-        personality_traits: profile.personality_traits,
-        values: profile.values,
-        values_array: (profile as any).values_array,
-        mindset: profile.mindset,
-        relationship_goals: profile.relationship_goals
-      });
-      
-      const transformedData = {
+      setFormData(prev => ({
+        ...prev,
         firstName: profile.first_name || '',
         lastName: profile.last_name || '',
         bio: profile.bio || '',
-        educationLevel: profile.education_level || '',
-        profession: profile.profession || '',
+        educationLevel: (profile as any).education_level || '',
+        profession: (profile as any).profession || '',
         height: profile.height?.toString() || '',
         bodyType: profile.body_type || '',
         skinTone: profile.skin_tone || '',
-        personalityTraits: profile.personality_traits ? normalizeArray(profile.personality_traits) : [],
-        values: profile.values ? normalizeArray(profile.values) : [],
-        mindset: profile.mindset
-          ? (Array.isArray(profile.mindset)
-              ? normalizeWithAliases(profile.mindset as unknown as string[], 'mindset')
-              : [normalizeWithAliases([String(profile.mindset)], 'mindset')[0]])
-          : [],
-        relationshipGoals: profile.relationship_goals ? normalizeArray(profile.relationship_goals) : [],
-        interests: profile.interests ? normalizeArray(profile.interests) : [],
+        personalityTraits: profile.personality_traits || [],
+        values: Array.isArray(profile.values) ? profile.values : (profile.values ? [profile.values] : []),
+        mindset: Array.isArray(profile.mindset) ? profile.mindset : (profile.mindset ? [profile.mindset] : []),
+        relationshipGoals: profile.relationship_goals || [],
+        interests: profile.interests || [],
         isVisible: profile.show_profile !== false,
         profileImages: profile.profile_images || []
       };
@@ -174,46 +286,62 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
         ...prev,
         ...transformedData
       }));
+      
+      // Debug: Log transformed values
+      console.log("🔄 Transformed profile values:", {
+        bodyType: transformSingleValueToUI((profile as any).body_type || ''),
+        skinTone: transformSingleValueToUI((profile as any).skin_tone || ''),
+        personalityTraits: transformDatabaseToUI((profile as any).personality_traits || []),
+        values: transformDatabaseToUI((profile as any).values || []),
+        mindset: transformDatabaseToUI((profile as any).mindset || []),
+        relationshipGoals: transformDatabaseToUI(profile.relationship_goals || [])
+      });
+      
+      // Debug: Log raw database values
+      console.log("🗄️ Raw database values:", {
+        personality_traits: (profile as any).personality_traits,
+        values: (profile as any).values,
+        mindset: (profile as any).mindset,
+        relationship_goals: profile.relationship_goals
+      });
+      
+      // Debug: Log final formData state after transformation
+      console.log("🎯 Final formData after profile update:", {
+        personalityTraits: formData.personalityTraits,
+        values: formData.values,
+        mindset: formData.mindset,
+        relationshipGoals: formData.relationshipGoals
+      });
     }
     
     if (preferences) {
       console.log("📊 Loading preferences data into form:", preferences);
       setFormData(prev => ({
         ...prev,
-        preferredGender: Array.isArray(preferences.preferred_gender) ? preferences.preferred_gender.map(g => g.toString().toLowerCase()) : ['male', 'female'], // Default to both genders
+        preferredGender: Array.isArray(preferences.preferred_gender) ? preferences.preferred_gender.map(g => g.toString()) : ['male', 'female'], // Default to both genders
         ageRangeMin: preferences.age_range_min || 18,
         ageRangeMax: preferences.age_range_max || 30,
         heightRangeMin: preferences.height_range_min || 150,
         heightRangeMax: preferences.height_range_max || 200,
         preferredBodyTypes: Array.isArray(preferences.preferred_body_types) && preferences.preferred_body_types.length > 0 
-          ? normalizeArray(preferences.preferred_body_types) 
+          ? preferences.preferred_body_types 
           : ['slim', 'athletic', 'average'], // Provide sensible defaults
         preferredValues: Array.isArray(preferences.preferred_values) && preferences.preferred_values.length > 0 
-          ? normalizeArray(preferences.preferred_values) 
+          ? preferences.preferred_values 
           : ['family_oriented', 'career_focused'], // Default values
         preferredMindset: Array.isArray(preferences.preferred_mindset) && preferences.preferred_mindset.length > 0 
-          ? normalizeWithAliases(preferences.preferred_mindset as unknown as string[], 'mindset') 
+          ? preferences.preferred_mindset 
           : ['growth_mindset'], // Default mindset
         preferredPersonalityTraits: Array.isArray(preferences.preferred_personality_traits) && preferences.preferred_personality_traits.length > 0 
-          ? normalizeArray(preferences.preferred_personality_traits) 
+          ? preferences.preferred_personality_traits 
           : ['outgoing', 'empathetic'], // Default traits
         preferredRelationshipGoal: Array.isArray(preferences.preferred_relationship_goal) && preferences.preferred_relationship_goal.length > 0 
-          ? normalizeArray(preferences.preferred_relationship_goal) 
-          : Array.isArray((preferences as any).preferred_relationship_goals) && (preferences as any).preferred_relationship_goals.length > 0 
-          ? normalizeArray((preferences as any).preferred_relationship_goals)
+          ? preferences.preferred_relationship_goal 
           : ['serious_relationship'], // Default goal
-        preferredSkinTone: Array.isArray(preferences.preferred_skin_tone) ? normalizeArray(preferences.preferred_skin_tone) : [],
-        preferredFaceType: Array.isArray(preferences.preferred_face_type) 
-          ? normalizeArray(preferences.preferred_face_type) 
-          : Array.isArray((preferences as any).preferred_face_types)
-          ? normalizeArray((preferences as any).preferred_face_types)
-          : [],
-        preferredLoveLanguage: Array.isArray(preferences.preferred_love_language) 
-          ? normalizeArray(preferences.preferred_love_language) 
-          : Array.isArray((preferences as any).preferred_love_languages)
-          ? normalizeArray((preferences as any).preferred_love_languages)
-          : [],
-        preferredLifestyle: Array.isArray(preferences.preferred_lifestyle) ? normalizeWithAliases(preferences.preferred_lifestyle as unknown as string[], 'lifestyle') : []
+        preferredSkinTone: Array.isArray(preferences.preferred_skin_tone) ? preferences.preferred_skin_tone : [],
+        preferredFaceType: Array.isArray(preferences.preferred_face_type) ? preferences.preferred_face_type : [],
+        preferredLoveLanguage: Array.isArray(preferences.preferred_love_language) ? preferences.preferred_love_language : [],
+        preferredLifestyle: Array.isArray(preferences.preferred_lifestyle) ? preferences.preferred_lifestyle : []
       }));
     }
   }, [profile, preferences]);
@@ -249,9 +377,11 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       height: formData.height ? parseInt(formData.height) : undefined,
       body_type: formData.bodyType,
       skin_tone: formData.skinTone,
+      // love_language: formData.loveLanguage, // Temporarily commented - type issue
+      // lifestyle: formData.lifestyle, // Temporarily commented - type issue
       personality_traits: formData.personalityTraits,
-      values: formData.values,
-      mindset: formData.mindset,
+      // values: formData.values, // Temporarily commented - type issue
+      // mindset: formData.mindset, // Temporarily commented - type issue
       relationship_goals: formData.relationshipGoals,
       interests: formData.interests,
       profile_images: formData.profileImages,
@@ -269,10 +399,10 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
     preferred_values: formData.preferredValues.length > 0 ? formData.preferredValues : ['family_oriented', 'career_focused'], // Default values
     preferred_mindset: formData.preferredMindset.length > 0 ? formData.preferredMindset : ['growth_mindset'], // Default mindset
     preferred_personality_traits: formData.preferredPersonalityTraits.length > 0 ? formData.preferredPersonalityTraits : ['outgoing', 'empathetic'], // Default traits
-    preferred_relationship_goal: formData.preferredRelationshipGoal.length > 0 ? formData.preferredRelationshipGoal : ['serious_relationship'], // Default goal
-    preferred_skin_tone: formData.preferredSkinTone,
-    preferred_face_type: formData.preferredFaceType,
-    preferred_love_language: formData.preferredLoveLanguage,
+    preferred_relationship_goals: formData.preferredRelationshipGoal.length > 0 ? formData.preferredRelationshipGoal : ['serious_relationship'], // Default goal
+    preferred_skin_types: formData.preferredSkinTone,
+    preferred_face_types: formData.preferredFaceType,
+    preferred_love_languages: formData.preferredLoveLanguage,
     preferred_lifestyle: formData.preferredLifestyle
   };
 
@@ -361,7 +491,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
   ];
 
   const lifestyleOptions = [
-    "Active", "Relaxed", "Social", "Homebody", "Adventurous", 
+    "Active", "Active & Outdoorsy", "Relaxed", "Social", "Homebody", "Adventurous", 
     "Career-focused", "Family-oriented", "Health-conscious", 
     "Party-goer", "Minimalist", "Creative", "Intellectual"
   ];
@@ -517,6 +647,10 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
               {personalityTraitOptions.map((trait) => {
                 const traitKey = trait.toLowerCase().replace(/[^a-z0-9]/g, '_');
                 const isSelected = formData.personalityTraits.includes(traitKey);
+                
+                // Simple debug for all traits to see what's happening
+                console.log(`🔍 Trait: "${trait}" -> Key: "${traitKey}" -> Selected: ${isSelected} -> Array: [${formData.personalityTraits.join(', ')}]`);
+                
                 return (
                   <Badge
                     key={trait}
@@ -544,6 +678,10 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
               {valueOptions.map((value) => {
                 const valueKey = value.toLowerCase().replace(/[^a-z0-9]/g, '_');
                 const isSelected = formData.values.includes(valueKey);
+                
+                // Simple debug for all values to see what's happening
+                console.log(`🔍 Value: "${value}" -> Key: "${valueKey}" -> Selected: ${isSelected} -> Array: [${formData.values.join(', ')}]`);
+                
                 return (
                   <Badge
                     key={value}
@@ -647,6 +785,57 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
           </div>
         </CardContent>
       </Card>
+
+      {/* Additional Attributes */}
+      <Card className="border-primary/20">
+        <CardHeader>
+          <CardTitle className="text-base">Additional Attributes</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Face Type</Label>
+              <Select value={formData.faceType} onValueChange={(value) => setFormData(prev => ({...prev, faceType: value}))}>
+                <SelectTrigger className="border-primary/20 focus:border-primary">
+                  <SelectValue placeholder="Select face type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {faceTypeOptions.map((type) => (
+                    <SelectItem key={type} value={type.toLowerCase().replace(/[^a-z0-9]/g, '_')}>{type}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Love Language</Label>
+              <Select value={formData.loveLanguage} onValueChange={(value) => setFormData(prev => ({...prev, loveLanguage: value}))}>
+                <SelectTrigger className="border-primary/20 focus:border-primary">
+                  <SelectValue placeholder="Select love language" />
+                </SelectTrigger>
+                <SelectContent>
+                  {loveLanguageOptions.map((language) => (
+                    <SelectItem key={language} value={language.toLowerCase().replace(/[^a-z0-9]/g, '_')}>{language}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Lifestyle</Label>
+            <Select value={formData.lifestyle} onValueChange={(value) => setFormData(prev => ({...prev, lifestyle: value}))}>
+              <SelectTrigger className="border-primary/20 focus:border-primary">
+                <SelectValue placeholder="Select lifestyle" />
+              </SelectTrigger>
+              <SelectContent>
+                {lifestyleOptions.map((style) => (
+                  <SelectItem key={style} value={style.toLowerCase().replace(/[^a-z0-9]/g, '_')}>{style}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 
@@ -671,7 +860,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
                 const isSelected = formData.preferredGender.includes(gender.value);
                 return (
                   <Badge
-                    key={gender.label}
+                    key={gender.value}
                     variant={isSelected ? "default" : "outline"}
                     className={`cursor-pointer ${
                       isSelected 
@@ -1033,95 +1222,105 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
           </p>
         </div>
 
-        {/* Photo Grid */}
-        <div className="grid grid-cols-3 gap-4">
-          {validImages.length > 0 ? (
-            validImages.map((image, index) => (
-              <div 
-                key={`${image}-${index}`}
-                className="aspect-square relative group overflow-hidden rounded-xl border-2 transition-all duration-300 cursor-pointer border-primary/20 hover:border-primary/60"
-              >
-                {image.includes('placeholder') || image.includes('via.placeholder') ? (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/10">
-                    <div className="text-center">
-                      <Camera className="w-6 h-6 text-primary/60 mx-auto mb-1" />
-                      <p className="text-xs text-primary/60">Demo Photo {index + 1}</p>
-                    </div>
-                  </div>
-                ) : (
+        {/* Main Photo Avatar */}
+        <div className="flex flex-col items-center mb-6">
+          {validImages[0] ? (
+            <div className="relative">
+              <img
+                src={validImages[0]}
+                alt="Main Profile"
+                className="w-32 h-32 rounded-full object-cover border-4 border-primary shadow"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = '/placeholder.svg';
+                }}
+              />
+              <div className="absolute top-2 left-2 bg-primary/90 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+                Main
+              </div>
+              <div className="absolute bottom-2 right-2">
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  className="bg-red-500/80 hover:bg-red-600/80"
+                  onClick={() => removePhoto(0)}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <label className="w-32 h-32 rounded-full bg-muted flex items-center justify-center border-2 border-dashed border-border cursor-pointer">
+              <Camera className="w-10 h-10 text-muted-foreground" />
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handlePhotoUpload}
+                className="hidden"
+              />
+            </label>
+          )}
+          <span className="text-sm text-muted-foreground mt-2">Main Profile Photo</span>
+        </div>
+
+        {/* Remaining 5 Slots */}
+        <div className="grid grid-cols-5 gap-4">
+          {Array.from({ length: 5 }).map((_, idx) => {
+            const image = validImages[idx + 1];
+            if (image) {
+              return (
+                <div
+                  key={`profile-img-${idx + 1}`}
+                  className="aspect-square relative group overflow-hidden rounded-xl border-2 transition-all duration-300 cursor-pointer border-primary/20 hover:border-primary/60"
+                >
                   <img
                     src={image}
-                    alt={`Profile ${index + 1}`}
+                    alt={`Profile ${idx + 2}`}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.src = '/placeholder.svg';
                     }}
                   />
-                )}
-                {index === 0 && (
-                  <div className="absolute top-2 left-2 bg-primary/90 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
-                    Main
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      className="bg-red-500/80 hover:bg-red-600/80"
+                      onClick={() => removePhoto(idx + 1)}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
                   </div>
-                )}
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    className="bg-red-500/80 hover:bg-red-600/80"
-                    onClick={() => removePhoto(index)}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
                 </div>
-              </div>
-            ))
-          ) : (
-            <div className="col-span-3 text-center py-12 bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg border border-primary/20">
-              <Camera className="w-20 h-20 mx-auto mb-4 text-primary/60" />
-              <h4 className="text-lg font-semibold mb-2">Add Your First Photo</h4>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Photos are the most important part of your profile. Add at least 3 photos to get better matches.
-              </p>
-              <label className="inline-flex items-center gap-3 px-6 py-3 bg-primary text-white rounded-lg cursor-pointer hover:bg-primary/90 transition-colors shadow-lg">
-                <Camera className="w-5 h-5" />
-                Choose Your First Photo
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handlePhotoUpload}
-                  className="hidden"
-                />
-              </label>
-            </div>
-          )}
-
-          {/* Empty Slots */}
-          {validImages.length > 0 && validImages.length < 6 && 
-            Array.from({ length: 6 - validImages.length }).map((_, index) => (
-              <label
-                key={`empty-${index}`}
-                className="aspect-square border-2 border-dashed border-primary/30 rounded-xl flex items-center justify-center hover:border-primary/60 transition-colors cursor-pointer group bg-muted/20"
-              >
-                <div className="text-center">
-                  <Camera className="w-8 h-8 text-primary/60 group-hover:text-primary transition-colors mx-auto mb-2" />
-                  <span className="text-xs text-muted-foreground">Add Photo</span>
-                </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handlePhotoUpload}
-                  className="hidden"
-                />
-              </label>
-            ))}
+              );
+            } else {
+              return (
+                <label
+                  key={`empty-slot-${idx}`}
+                  className="aspect-square border-2 border-dashed border-primary/30 rounded-xl flex items-center justify-center hover:border-primary/60 transition-colors cursor-pointer group bg-muted/20"
+                >
+                  <div className="text-center">
+                    <Camera className="w-8 h-8 text-primary/60 group-hover:text-primary transition-colors mx-auto mb-2" />
+                    <span className="text-xs text-muted-foreground">Add Photo</span>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handlePhotoUpload}
+                    className="hidden"
+                  />
+                </label>
+              );
+            }
+          })}
         </div>
 
         {/* Photo Tips */}
         {validImages.length > 0 && (
-          <div className="bg-muted/50 rounded-lg p-4">
+          <div className="bg-muted/50 rounded-lg p-4 mt-6">
             <h4 className="font-medium mb-2">📸 Photo Tips</h4>
             <ul className="text-sm text-muted-foreground space-y-1">
               <li>• Use high-quality, well-lit photos</li>

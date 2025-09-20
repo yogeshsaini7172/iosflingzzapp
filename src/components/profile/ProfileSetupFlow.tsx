@@ -135,10 +135,13 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       // Upload profile images to Supabase Storage first
       let imageUrls: string[] = [];
       if (profileData.profileImages && profileData.profileImages.length > 0) {
-        toast({ title: "Uploading photos... 📸", description: "Please wait while we save your images" });
-        const uploadedImages = await uploadMultipleImages(profileData.profileImages, 'profile-images');
-        imageUrls = uploadedImages.map(img => img.path);
-        console.log('Uploaded images:', imageUrls);
+        toast({ title: "Uploading photo... 📸", description: "Please wait while we save your main image" });
+        // Only allow one image (main photo) for initial profile creation
+  const mainImageFile = profileData.profileImages[0];
+  const uploadedImages = await uploadMultipleImages([mainImageFile], 'profile-images');
+  // Save the public URL, not just the path
+  imageUrls = uploadedImages.map(img => img.url);
+  console.log('Uploaded main image public URLs:', imageUrls);
       }
 
       // Store complete profile data with proper field mapping
@@ -225,69 +228,63 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       // Set verification status - use actual status or 'pending' if documents uploaded
       completeProfile.verification_status = verificationStatus === 'verified' ? 'verified' : 'pending';
 
-      // Calculate QCS via Edge Function (uses profile data)
-      toast({ title: "Calculating QCS Score... 📊", description: "Analyzing your profile" });
-
-      const physical = `${profileData.bodyType || 'average'} ${Number(profileData.height) > 170 ? 'tall' : 'average'}`.trim();
-      const mental = `${profileData.personalityType || 'calm'} ${profileData.interests?.includes('fitness') ? 'ambitious' : 'logical'}`.trim();
-      const description = profileData.bio || 'No description available';
-
-      const qcsResponse = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/qcs-scoring', {
-        method: 'POST',
-        body: JSON.stringify({ physical, mental, description })
-      });
-
-      if (!qcsResponse.ok) {
-        const errorData = await qcsResponse.json();
-        throw new Error(errorData?.error || 'Failed to calculate QCS');
-      }
-
-      const qcsData = await qcsResponse.json();
-
-      const totalScore = qcsData?.qcs_score ?? 0;
+      // Calculate QCS after profile creation (server-side)
+      console.log('🔄 Profile will be created and QCS calculated server-side...');
       
-      // Update the completeProfile with the calculated QCS score
-      completeProfile.total_qcs = totalScore;
-      
-      // Create the QCS score object for reference
-      const qcsScore = {
-        user_id: userId,
-        profile_score: Math.floor(totalScore * 0.4),
-        college_tier: 85,
-        personality_depth: Math.floor(totalScore * 0.3),
-        behavior_score: Math.floor(totalScore * 0.3)
-      };
-      
-      // Note: QCS score will be stored separately in qcs table
+      // Update the completeProfile - QCS will be calculated after profile creation
+      completeProfile.total_qcs = 0; // Will be updated by server
 
       // Log the complete profile data before sending
       console.log('Complete profile data:', JSON.stringify(completeProfile, null, 2));
 
-      // Create profile via data-management function with Firebase auth
-      const profileResponse = await fetchWithFirebaseAuth(
-        'https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/data-management',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
+      // Create profile via profile-completion function (Supabase client handles CORS/auth)
+      const { data: profileResult, error: profileError } = await supabase.functions.invoke('profile-completion', {
+        body: {
+          userId: completeProfile.user_id,
+          firstName: completeProfile.first_name,
+          lastName: completeProfile.last_name,
+          dateOfBirth: completeProfile.date_of_birth,
+          gender: completeProfile.gender,
+          university: completeProfile.university,
+          fieldOfStudy: completeProfile.field_of_study,
+          height: completeProfile.height,
+          bodyType: completeProfile.body_type,
+          skinTone: completeProfile.skin_tone,
+          faceType: completeProfile.face_type,
+          personalityType: completeProfile.personality_type,
+          values: completeProfile.values,
+          mindset: completeProfile.mindset,
+          relationshipGoals: completeProfile.relationship_goals || [],
+          interests: completeProfile.interests || [],
+          bio: completeProfile.bio,
+          profileImages: completeProfile.profile_images || [],
+          isProfilePublic: completeProfile.is_profile_public,
+          qcsScore: 0, // Will be calculated server-side
+          preferences: {
+            preferredGender: preferences.preferred_gender || [],
+            ageRangeMin: preferences.age_range_min || 18,
+            ageRangeMax: preferences.age_range_max || 30,
+            heightRangeMin: preferences.height_range_min || 150,
+            heightRangeMax: preferences.height_range_max || 200,
+            preferredBodyTypes: preferences.preferred_body_types || [],
+            preferredSkinTone: preferences.preferred_skin_tone || [],
+            preferredFaceType: preferences.preferred_face_type || [],
+            preferredValues: preferences.preferred_values || [],
+            preferredMindset: preferences.preferred_mindset || [],
+            preferredPersonality: preferences.preferred_personality_traits || [],
+            preferredRelationshipGoals: preferences.preferred_relationship_goals || [],
+            loveLanguage: completeProfile.love_language,
+            lifestyle: completeProfile.lifestyle
           },
-          body: JSON.stringify({ 
-            action: 'create_profile',
-            profile: completeProfile
-          })
+          email: completeProfile.email
         }
-      );
+      });
 
-      if (!profileResponse.ok) {
-        const errorData = await profileResponse.json().catch(() => ({}));
-        console.error('Failed to save profile:', {
-          status: profileResponse.status,
-          error: errorData
-        });
-        throw new Error(errorData.error || 'Failed to save profile');
+      if (profileError) {
+        console.error('Failed to save profile (invoke):', profileError);
+        throw new Error(profileError.message || 'Failed to save profile');
       }
 
-      const profileResult = await profileResponse.json();
       console.log('Profile saved successfully:', profileResult);
 
       // Always create preferences - use defaults for empty values and ensure correct types
@@ -355,13 +352,12 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       }
       toast({ 
         title: "Profile Setup Complete! 🎉", 
-        description: `Your QCS score: ${totalScore}/100. Ready to start!` 
+        description: "Account created! Calculating your QCS score..." 
       });
 
       // Save profile data to local storage for quick access
       localStorage.setItem('user_profile', JSON.stringify({
         ...completeProfile,
-        qcs_score: totalScore,
         profile_complete: true
       }));
 

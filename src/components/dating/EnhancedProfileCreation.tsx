@@ -14,44 +14,48 @@ interface EnhancedProfileCreationProps {
   onBack?: () => void;
 }
 
-const prompts = [
-  "My weekend vibe is...",
-  "A random fact about me...",
-  "I'm looking for...",
-  "My ideal date would be...",
-  "You should message me if...",
-  "I'm passionate about...",
-];
-
-const interests = [
-  "Art", "Music", "Sports", "Travel", "Movies", "Books", "Cooking", "Gaming",
-  "Photography", "Dancing", "Fitness", "Technology", "Fashion", "Nature",
-  "Comedy", "Coffee", "Wine", "Hiking", "Beach", "Concerts"
-];
-
 const EnhancedProfileCreation = ({ onComplete, onBack }: EnhancedProfileCreationProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    dateOfBirth: "",
-    gender: "",
-    university: "",
-    major: "",
-    yearOfStudy: "",
+    firstName: '',
+    lastName: '',
+    dateOfBirth: '',
+    gender: '',
+    university: '',
+    major: '',
+    yearOfStudy: '',
     photos: [] as string[],
-    prompts: {} as Record<string, string>,
     selectedPrompts: [] as string[],
+    prompts: {} as Record<string, string>,
     selectedInterests: [] as string[],
     preferences: {
-      ageRange: [18, 25],
-      gender: "",
-      lookingFor: ""
+      lookingFor: '',
+      gender: ''
     }
   });
 
-  const stepTitles = ["Basic Info", "Photos & Videos", "Prompts & Bio", "Preferences"];
   const totalSteps = 4;
+  const stepTitles = [
+    "Basic Info",
+    "Add Photo", 
+    "Your Personality",
+    "Preferences"
+  ];
+
+  const prompts = [
+    "My ideal first date is...",
+    "I'm looking for someone who...",
+    "My biggest passion is...",
+    "I can't live without...",
+    "My friends would describe me as...",
+    "The way to my heart is..."
+  ];
+
+  const interests = [
+    "Photography", "Music", "Sports", "Reading", "Cooking", "Travel",
+    "Gaming", "Art", "Dancing", "Fitness", "Movies", "Technology",
+    "Fashion", "Food", "Nature", "Pets", "Writing", "Volunteering"
+  ];
 
   const handleNext = () => {
     if (currentStep < totalSteps) {
@@ -198,52 +202,48 @@ const EnhancedProfileCreation = ({ onComplete, onBack }: EnhancedProfileCreation
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">Add Your Photos</h3>
-              <p className="text-sm text-muted-foreground">Upload up to 6 photos. First photo will be your main profile picture.</p>
+              <h3 className="text-lg font-semibold mb-2">Add Your Photo</h3>
+              <p className="text-sm text-muted-foreground">Upload your main profile photo. Only one image allowed here.</p>
             </div>
-            
-            <div className="grid grid-cols-3 gap-4">
-              {Array.from({ length: 6 }, (_, index) => (
-                <div
-                  key={index}
-                  className="aspect-square border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
-                >
-                  {formData.photos[index] ? (
-                    <div className="relative w-full h-full">
-                      <img
-                        src={formData.photos[index]}
-                        alt={`Photo ${index + 1}`}
-                        className="w-full h-full object-cover rounded-lg"
-                      />
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        className="absolute -top-2 -right-2 rounded-full w-6 h-6 p-0"
-                        onClick={() => {
-                          const newPhotos = [...formData.photos];
-                          newPhotos.splice(index, 1);
-                          setFormData({ ...formData, photos: newPhotos });
-                        }}
-                      >
-                        <X className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="text-center">
-                      <Upload className="w-8 h-8 text-muted-foreground mb-2" />
-                      <p className="text-xs text-muted-foreground">
-                        {index === 0 ? "Main Photo" : `Photo ${index + 1}`}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              ))}
+            <div className="flex flex-col items-center gap-4">
+              <label htmlFor="main-photo-upload" className="cursor-pointer">
+                {formData.photos[0] ? (
+                  <img
+                    src={formData.photos[0]}
+                    alt="Main Profile"
+                    className="w-40 h-40 rounded-full object-cover border-4 border-primary shadow"
+                  />
+                ) : (
+                  <div className="w-40 h-40 rounded-full bg-muted flex items-center justify-center border-2 border-dashed border-primary">
+                    <Upload className="w-14 h-14 text-primary" />
+                  </div>
+                )}
+                <input
+                  id="main-photo-upload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={e => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setFormData({ ...formData, photos: [reader.result as string] });
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  disabled={!!formData.photos[0]}
+                />
+              </label>
+              <span className="text-lg font-semibold mt-2">Main Photo</span>
+              <span className="text-sm text-muted-foreground">Upload only 1 photo as your main profile image</span>
+              {formData.photos[0] && (
+                <Button size="sm" variant="destructive" onClick={() => setFormData({ ...formData, photos: [] })}>
+                  Remove Photo
+                </Button>
+              )}
             </div>
-            
-            <Button variant="outline" className="w-full">
-              <Upload className="w-4 h-4 mr-2" />
-              Upload Photos
-            </Button>
           </div>
         );
 

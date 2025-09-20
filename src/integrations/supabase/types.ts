@@ -50,6 +50,36 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_request_failures: {
+        Row: {
+          created_at: string | null
+          failures: number
+          first_failure_at: string | null
+          last_failure_at: string | null
+          next_allowed_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          failures?: number
+          first_failure_at?: string | null
+          last_failure_at?: string | null
+          next_allowed_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          failures?: number
+          first_failure_at?: string | null
+          last_failure_at?: string | null
+          next_allowed_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       blind_dates: {
         Row: {
           created_at: string
@@ -172,6 +202,13 @@ export type Database = {
             referencedRelation: "chat_rooms"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "chat_messages_enhanced_chat_room_id_fkey"
+            columns: ["chat_room_id"]
+            isOneToOne: false
+            referencedRelation: "chat_rooms_with_details"
+            referencedColumns: ["id"]
+          },
         ]
       }
       chat_requests: {
@@ -240,6 +277,8 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          last_message: string | null
+          last_message_time: string | null
           match_id: string | null
           updated_at: string
           user1_id: string
@@ -248,6 +287,8 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          last_message?: string | null
+          last_message_time?: string | null
           match_id?: string | null
           updated_at?: string
           user1_id: string
@@ -256,6 +297,8 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          last_message?: string | null
+          last_message_time?: string | null
           match_id?: string | null
           updated_at?: string
           user1_id?: string
@@ -524,6 +567,7 @@ export type Database = {
           created_at: string
           id: string
           match_id: string
+          room_id: string
           sender_id: string
         }
         Insert: {
@@ -531,6 +575,7 @@ export type Database = {
           created_at?: string
           id?: string
           match_id: string
+          room_id: string
           sender_id: string
         }
         Update: {
@@ -538,6 +583,7 @@ export type Database = {
           created_at?: string
           id?: string
           match_id?: string
+          room_id?: string
           sender_id?: string
         }
         Relationships: []
@@ -586,15 +632,23 @@ export type Database = {
           height_range_max: number | null
           height_range_min: number | null
           id: string
+          lifestyle_compatibility: string | null
+          min_shared_interests: number | null
+          personality_compatibility: string | null
           preferred_body_types: string[] | null
-          preferred_face_type: string[] | null
+          preferred_communication_style: string[] | null
+          preferred_education_levels: string[] | null
+          preferred_face_types: string[] | null
           preferred_gender: string[] | null
+          preferred_interests: string[] | null
           preferred_lifestyle: string[] | null
-          preferred_love_language: string[] | null
+          preferred_love_languages: string[] | null
           preferred_mindset: string[] | null
           preferred_personality_traits: string[] | null
-          preferred_relationship_goal: string[] | null
+          preferred_professions: string[] | null
+          preferred_relationship_goals: string[]
           preferred_skin_tone: string[] | null
+          preferred_skin_types: string[] | null
           preferred_values: string[] | null
           updated_at: string
           user_id: string
@@ -606,15 +660,23 @@ export type Database = {
           height_range_max?: number | null
           height_range_min?: number | null
           id?: string
+          lifestyle_compatibility?: string | null
+          min_shared_interests?: number | null
+          personality_compatibility?: string | null
           preferred_body_types?: string[] | null
-          preferred_face_type?: string[] | null
+          preferred_communication_style?: string[] | null
+          preferred_education_levels?: string[] | null
+          preferred_face_types?: string[] | null
           preferred_gender?: string[] | null
+          preferred_interests?: string[] | null
           preferred_lifestyle?: string[] | null
-          preferred_love_language?: string[] | null
+          preferred_love_languages?: string[] | null
           preferred_mindset?: string[] | null
           preferred_personality_traits?: string[] | null
-          preferred_relationship_goal?: string[] | null
+          preferred_professions?: string[] | null
+          preferred_relationship_goals?: string[]
           preferred_skin_tone?: string[] | null
+          preferred_skin_types?: string[] | null
           preferred_values?: string[] | null
           updated_at?: string
           user_id: string
@@ -626,15 +688,23 @@ export type Database = {
           height_range_max?: number | null
           height_range_min?: number | null
           id?: string
+          lifestyle_compatibility?: string | null
+          min_shared_interests?: number | null
+          personality_compatibility?: string | null
           preferred_body_types?: string[] | null
-          preferred_face_type?: string[] | null
+          preferred_communication_style?: string[] | null
+          preferred_education_levels?: string[] | null
+          preferred_face_types?: string[] | null
           preferred_gender?: string[] | null
+          preferred_interests?: string[] | null
           preferred_lifestyle?: string[] | null
-          preferred_love_language?: string[] | null
+          preferred_love_languages?: string[] | null
           preferred_mindset?: string[] | null
           preferred_personality_traits?: string[] | null
-          preferred_relationship_goal?: string[] | null
+          preferred_professions?: string[] | null
+          preferred_relationship_goals?: string[]
           preferred_skin_tone?: string[] | null
+          preferred_skin_types?: string[] | null
           preferred_values?: string[] | null
           updated_at?: string
           user_id?: string
@@ -646,6 +716,7 @@ export type Database = {
           ai_insights_enabled: boolean | null
           avatar_url: string | null
           bio: string | null
+          bio_length: number | null
           blinddate_requests_left: number | null
           body_type: string | null
           boosts_remaining: number | null
@@ -680,7 +751,7 @@ export type Database = {
           last_name: string
           last_reset: string | null
           last_swipe_reset: string | null
-          lifestyle: Json | null
+          lifestyle: string | null
           location: string | null
           love_language: string | null
           major: string | null
@@ -695,6 +766,7 @@ export type Database = {
           profession: string | null
           profile_completion_percentage: number | null
           profile_images: string[] | null
+          qcs_synced_at: string | null
           qualities: Json | null
           questions_answered: number | null
           relationship_goals: string[] | null
@@ -722,6 +794,7 @@ export type Database = {
           ai_insights_enabled?: boolean | null
           avatar_url?: string | null
           bio?: string | null
+          bio_length?: number | null
           blinddate_requests_left?: number | null
           body_type?: string | null
           boosts_remaining?: number | null
@@ -756,7 +829,7 @@ export type Database = {
           last_name: string
           last_reset?: string | null
           last_swipe_reset?: string | null
-          lifestyle?: Json | null
+          lifestyle?: string | null
           location?: string | null
           love_language?: string | null
           major?: string | null
@@ -771,6 +844,7 @@ export type Database = {
           profession?: string | null
           profile_completion_percentage?: number | null
           profile_images?: string[] | null
+          qcs_synced_at?: string | null
           qualities?: Json | null
           questions_answered?: number | null
           relationship_goals?: string[] | null
@@ -798,6 +872,7 @@ export type Database = {
           ai_insights_enabled?: boolean | null
           avatar_url?: string | null
           bio?: string | null
+          bio_length?: number | null
           blinddate_requests_left?: number | null
           body_type?: string | null
           boosts_remaining?: number | null
@@ -832,7 +907,7 @@ export type Database = {
           last_name?: string
           last_reset?: string | null
           last_swipe_reset?: string | null
-          lifestyle?: Json | null
+          lifestyle?: string | null
           location?: string | null
           love_language?: string | null
           major?: string | null
@@ -847,6 +922,7 @@ export type Database = {
           profession?: string | null
           profile_completion_percentage?: number | null
           profile_images?: string[] | null
+          qcs_synced_at?: string | null
           qualities?: Json | null
           questions_answered?: number | null
           relationship_goals?: string[] | null
@@ -874,35 +950,50 @@ export type Database = {
       }
       qcs: {
         Row: {
+          ai_meta: Json | null
+          ai_score: number | null
           behavior_score: number | null
           college_tier: number | null
           created_at: string
           id: string
+          logic_score: number | null
+          per_category: Json | null
           personality_depth: number | null
           profile_score: number | null
           total_score: number | null
+          total_score_float: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          ai_meta?: Json | null
+          ai_score?: number | null
           behavior_score?: number | null
           college_tier?: number | null
           created_at?: string
           id?: string
+          logic_score?: number | null
+          per_category?: Json | null
           personality_depth?: number | null
           profile_score?: number | null
           total_score?: number | null
+          total_score_float?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          ai_meta?: Json | null
+          ai_score?: number | null
           behavior_score?: number | null
           college_tier?: number | null
           created_at?: string
           id?: string
+          logic_score?: number | null
+          per_category?: Json | null
           personality_depth?: number | null
           profile_score?: number | null
           total_score?: number | null
+          total_score_float?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -1203,6 +1294,81 @@ export type Database = {
         }
         Relationships: []
       }
+      user_personality: {
+        Row: {
+          bio: string | null
+          body_type: string | null
+          communication_style: string | null
+          created_at: string
+          education_level: string | null
+          face_type: string | null
+          height: number | null
+          hobbies: string[] | null
+          humor_style: string | null
+          id: string
+          interests: string[] | null
+          lifestyle: string[] | null
+          love_language: string | null
+          mindset: string[] | null
+          personality_traits: string[] | null
+          personality_type: string | null
+          profession: string | null
+          relationship_goal: string | null
+          skin_tone: string | null
+          updated_at: string
+          user_id: string
+          values: string[] | null
+        }
+        Insert: {
+          bio?: string | null
+          body_type?: string | null
+          communication_style?: string | null
+          created_at?: string
+          education_level?: string | null
+          face_type?: string | null
+          height?: number | null
+          hobbies?: string[] | null
+          humor_style?: string | null
+          id?: string
+          interests?: string[] | null
+          lifestyle?: string[] | null
+          love_language?: string | null
+          mindset?: string[] | null
+          personality_traits?: string[] | null
+          personality_type?: string | null
+          profession?: string | null
+          relationship_goal?: string | null
+          skin_tone?: string | null
+          updated_at?: string
+          user_id: string
+          values?: string[] | null
+        }
+        Update: {
+          bio?: string | null
+          body_type?: string | null
+          communication_style?: string | null
+          created_at?: string
+          education_level?: string | null
+          face_type?: string | null
+          height?: number | null
+          hobbies?: string[] | null
+          humor_style?: string | null
+          id?: string
+          interests?: string[] | null
+          lifestyle?: string[] | null
+          love_language?: string | null
+          mindset?: string[] | null
+          personality_traits?: string[] | null
+          personality_type?: string | null
+          profession?: string | null
+          relationship_goal?: string | null
+          skin_tone?: string | null
+          updated_at?: string
+          user_id?: string
+          values?: string[] | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       candidate_profiles: {
@@ -1244,8 +1410,52 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_rooms_with_details: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          last_message: string | null
+          last_message_time: string | null
+          match_id: string | null
+          updated_at: string | null
+          user1_first_name: string | null
+          user1_id: string | null
+          user1_last_name: string | null
+          user2_first_name: string | null
+          user2_id: string | null
+          user2_last_name: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_rooms_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: true
+            referencedRelation: "enhanced_matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_chat_rooms_match_enhanced"
+            columns: ["match_id"]
+            isOneToOne: true
+            referencedRelation: "enhanced_matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      atomic_qcs_update: {
+        Args: {
+          p_ai_meta?: Json
+          p_ai_score?: number
+          p_logic_score: number
+          p_per_category?: Json
+          p_total_score: number
+          p_total_score_float?: number
+          p_user_id: string
+        }
+        Returns: Json
+      }
       calculate_compatibility: {
         Args: { user1_profile: Json; user2_profile: Json }
         Returns: number
@@ -1258,6 +1468,19 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      create_chat_room: {
+        Args: { p_match_id?: string; p_user1_id: string; p_user2_id: string }
+        Returns: {
+          created_at: string
+          id: string
+          last_message: string
+          last_message_time: string
+          match_id: string
+          updated_at: string
+          user1_id: string
+          user2_id: string
+        }[]
+      }
       create_enhanced_match_if_not_exists: {
         Args: { uid_a: string; uid_b: string }
         Returns: undefined
@@ -1265,6 +1488,42 @@ export type Database = {
       create_match_and_chat: {
         Args: { p_a: string; p_actor_id: string; p_b: string }
         Returns: Json
+      }
+      create_thread_as_user: {
+        Args: { p_content: string; p_user_id: string }
+        Returns: {
+          content: string
+          created_at: string
+          id: string
+          likes_count: number
+          replies_count: number
+          updated_at: string
+          user_id: string
+        }[]
+      }
+      create_thread_reply_as_user: {
+        Args: { p_content: string; p_thread_id: string; p_user_id: string }
+        Returns: {
+          content: string
+          created_at: string
+          id: string
+          thread_id: string
+          user_id: string
+        }[]
+      }
+      firebase_uid: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_chat_messages: {
+        Args: { p_chat_room_id: string }
+        Returns: {
+          chat_room_id: string
+          created_at: string
+          id: string
+          message_text: string
+          sender_id: string
+        }[]
       }
       get_profile_by_firebase_uid: {
         Args: { uid: string }
@@ -1282,8 +1541,35 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_user_chat_rooms: {
+        Args: { p_user_id: string }
+        Returns: {
+          created_at: string
+          id: string
+          last_message: string
+          last_message_time: string
+          match_id: string
+          other_user_id: string
+          other_user_name: string
+          updated_at: string
+          user1_id: string
+          user2_id: string
+        }[]
+      }
+      increment_failure_count: {
+        Args: { p_user_id: string }
+        Returns: number
+      }
       increment_reports_count: {
         Args: { user_id: string }
+        Returns: undefined
+      }
+      receiver_id_from_room: {
+        Args: { room_id_text: string }
+        Returns: string
+      }
+      reset_ai_failures: {
+        Args: { p_user_id: string }
         Returns: undefined
       }
       reset_daily_limits: {
@@ -1315,6 +1601,27 @@ export type Database = {
           total_qcs: number
           university: string
           user_id: string
+        }[]
+      }
+      send_chat_message: {
+        Args: {
+          p_chat_room_id: string
+          p_message_text: string
+          p_sender_id: string
+        }
+        Returns: {
+          chat_room_id: string
+          created_at: string
+          id: string
+          message_text: string
+          sender_id: string
+        }[]
+      }
+      update_preferences_transaction: {
+        Args: { p_preferences: Json; p_requirements: Json; p_user_id: string }
+        Returns: {
+          preferences: Json
+          requirements: Json
         }[]
       }
     }

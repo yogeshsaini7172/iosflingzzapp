@@ -30,9 +30,8 @@ const UploadPhotosStep = ({ data, onChange }: UploadPhotosStepProps) => {
     updateField('profileImages', [...data.profileImages, ...files]);
   };
 
-  const removeImage = (index: number) => {
-    const newImages = data.profileImages.filter((_, i) => i !== index);
-    updateField('profileImages', newImages);
+  const removeImage = () => {
+    updateField('profileImages', []);
   };
 
   return (
@@ -40,56 +39,38 @@ const UploadPhotosStep = ({ data, onChange }: UploadPhotosStepProps) => {
       <div className="text-center mb-6">
         <Camera className="w-16 h-16 text-primary mx-auto mb-4" />
         <h3 className="text-2xl font-bold mb-3">Show Your Best Self ✨</h3>
-        <p className="text-muted-foreground text-lg">Upload up to 6 photos that represent you</p>
+        <p className="text-muted-foreground text-lg">Upload your main profile photo</p>
       </div>
-
-      {/* Mobile-Optimized Photo Upload Grid */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4">
-        {Array.from({ length: 6 }).map((_, index) => (
-          <div
-            key={index}
-            className="aspect-[3/4] bg-gradient-card rounded-2xl border-2 border-dashed border-border/50 flex items-center justify-center relative overflow-hidden hover:border-primary/50 transition-smooth hover:shadow-soft touch-manipulation"
-          >
-            {data.profileImages[index] ? (
-              <>
-                <img
-                  src={URL.createObjectURL(data.profileImages[index])}
-                  alt={`Profile ${index + 1}`}
-                  className="w-full h-full object-cover rounded-2xl"
-                />
-                <Button
-                  onClick={() => removeImage(index)}
-                  size="sm"
-                  variant="destructive"
-                  className="absolute top-2 right-2 rounded-full w-8 h-8 p-0 touch-manipulation shadow-lg"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-                {index === 0 && (
-                  <div className="absolute bottom-2 left-2 bg-primary/90 text-white text-xs px-2 py-1 rounded-full font-medium">
-                    Main
-                  </div>
-                )}
-              </>
-            ) : (
-              <label className="cursor-pointer flex flex-col items-center p-3 text-center w-full h-full justify-center touch-manipulation">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  multiple
-                />
-                <Camera className="w-10 h-10 text-muted-foreground mb-2" />
-                <span className="text-sm text-muted-foreground font-medium text-center leading-tight">
-                  {index === 0 ? "Main Photo" : `Photo ${index + 1}`}
-                </span>
-              </label>
-            )}
-          </div>
-        ))}
+      <div className="flex flex-col items-center gap-4">
+        <label htmlFor="main-photo-upload" className="cursor-pointer">
+          {data.profileImages[0] ? (
+            <img
+              src={URL.createObjectURL(data.profileImages[0])}
+              alt="Main Profile"
+              className="w-40 h-40 rounded-full object-cover border-4 border-primary shadow"
+            />
+          ) : (
+            <div className="w-40 h-40 rounded-full bg-muted flex items-center justify-center border-2 border-dashed border-primary">
+              <Camera className="w-14 h-14 text-primary" />
+            </div>
+          )}
+          <input
+            id="main-photo-upload"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleImageUpload}
+            disabled={!!data.profileImages[0]}
+          />
+        </label>
+        <span className="text-lg font-semibold mt-2">Main Photo</span>
+        <span className="text-sm text-muted-foreground">Upload only 1 photo as your main profile image</span>
+        {data.profileImages[0] && (
+          <Button size="sm" variant="destructive" onClick={() => removeImage()}>
+            Remove Photo
+          </Button>
+        )}
       </div>
-
       {/* Mobile-Optimized Photo Tips */}
       <Card className="border-primary/20 bg-primary/5">
         <CardContent className="p-5">

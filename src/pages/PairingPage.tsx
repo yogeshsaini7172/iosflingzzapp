@@ -85,7 +85,7 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
       
       // Fetch current user's QCS and requirements via Edge Function (bypasses RLS)
       try {
-        const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/data-management', {
+        const response = await fetchWithFirebaseAuth('/functions/v1/data-management', {
           method: 'POST',
           body: JSON.stringify({ action: 'get_profile' })
         });
@@ -216,7 +216,7 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
     // If compatibility score is 80% or below, send a chat request
     if (compatibilityScore <= 80) {
       try {
-        const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-request-handler', {
+        const response = await fetchWithFirebaseAuth('/functions/v1/chat-request-handler', {
           method: 'POST',
           body: JSON.stringify({
             action: 'send_request',

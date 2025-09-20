@@ -140,6 +140,21 @@ serve(async (req) => {
           if (createError) throw createError;
 
           console.log(`Profile created for ${firebaseUser.uid}`);
+          
+          // Trigger QCS calculation for new profile
+          try {
+            const { error: qcsError } = await supabaseClient.functions.invoke('qcs-scoring', {
+              body: { user_id: firebaseUser.uid }
+            });
+            if (qcsError) {
+              console.warn('QCS calculation failed for new profile:', qcsError);
+            } else {
+              console.log('QCS calculation triggered for new profile');
+            }
+          } catch (qcsErr) {
+            console.warn('QCS calculation error:', qcsErr);
+          }
+
           return new Response(JSON.stringify({
             success: true,
             data: { user_id: firebaseUser.uid, profile: createdProfile },
