@@ -186,32 +186,6 @@ const TinderProfileCard = ({ profile, onLike, onDislike }) => {
           ))}
         </div>
       </div>
-
-      {/* Action Buttons */}
-      <div className="relative z-10 flex items-center justify-between p-4 mt-auto">
-        <button
-          onClick={handleDislike}
-          className={`w-16 h-12 rounded-full flex items-center justify-center transition-all duration-200 ${
-            isDisliked ? 'bg-red-500 text-white' : 'bg-white text-gray-800'
-          }`}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
-  <path d="M12.1 8.64l-.1.1-.1-.1A5.34 5.34 0 006 7a5.5 5.5 0 000 11h.28l5.82 5.82 5.82-5.82H18a5.5 5.5 0 000-11 5.34 5.34 0 00-5.9 1.64zm-1.6 4.36l1.5-2 1.5 2-2 2.5 2 2.5-1.5 2-3.5-4.5 3.5-4.5z"/>
-</svg>
-        </button>
-
-        <button
-          onClick={handleLike}
-          className={`w-16 h-12 rounded-full flex items-center justify-center transition-all duration-200 ${
-            isLiked ? 'bg-pink-500 text-white' : 'bg-pink-500 text-white'
-          }`}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
-  <path fillRule="evenodd" d="M3.172 5.172a7 7 0 119.9 9.9L10 18.9l-6.828-6.829a7 7 0 010-9.9z" clipRule="evenodd" />
-</svg>
-
-        </button>
-      </div>
     </div>
   );
 };
