@@ -221,6 +221,13 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
     return age;
   };
 
+  // Utility function to show only first two words of thread content
+  const getFirstTwoWords = (content: string) => {
+    if (!content) return '';
+    const words = content.trim().split(/\s+/);
+    return words.length >= 2 ? `${words[0]} ${words[1]}` : content;
+  };
+
   const handleSwipe = async (direction: 'left' | 'right') => {
     if (currentIndex >= profiles.length || !user?.uid) return;
 
@@ -461,10 +468,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                           <span className="font-semibold text-sm sm:text-base">Your Latest Thread</span>
                         </div>
                         <p className="text-xs sm:text-sm text-secondary-foreground/90 leading-relaxed break-words text-center px-2">
-                          {latestUserThread.content.length > 80
-                            ? `${latestUserThread.content.substring(0, 80)}...`
-                            : latestUserThread.content
-                          }
+                          {getFirstTwoWords(latestUserThread.content)}...
                         </p>
                       </div>
                       <div className="flex space-x-2 mt-2">
@@ -525,7 +529,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                       </span>
                       <span className="text-xs text-muted-foreground">{timeAgo}</span>
                     </div>
-                    <p className="text-sm text-foreground leading-relaxed line-clamp-3">{thread.content}</p>
+                    <p className="text-sm text-foreground leading-relaxed line-clamp-3">{getFirstTwoWords(thread.content)}...</p>
                   </div>
                 </div>
 
@@ -533,7 +537,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                 {isExpanded && hasReplies && (
                   <div className="mb-3 space-y-2 max-h-40 overflow-y-auto border-l-2 border-primary/20 pl-3">
                     <div className="text-xs text-muted-foreground mb-2 italic">
-                      Replying to: "{thread.content.length > 50 ? thread.content.substring(0, 50) + '...' : thread.content}"
+                      Replying to: "{getFirstTwoWords(thread.content)}..."
                     </div>
                     {thread.replies.map((reply: any) => {
                       const replyAuthor = reply.author?.first_name || 'Anonymous';
