@@ -259,92 +259,107 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
 
   // Update form data when profile/preferences load
   useEffect(() => {
-    if (profile) {
-      console.log("📊 Loading profile data into form:", profile);
-      setFormData(prev => ({
-        ...prev,
-        firstName: profile.first_name || '',
-        lastName: profile.last_name || '',
-        bio: profile.bio || '',
-        educationLevel: (profile as any).education_level || '',
-        profession: (profile as any).profession || '',
-        height: profile.height?.toString() || '',
-        bodyType: profile.body_type || '',
-        skinTone: profile.skin_tone || '',
-        personalityTraits: profile.personality_traits || [],
-        values: Array.isArray(profile.values) ? profile.values : (profile.values ? [profile.values] : []),
-        mindset: Array.isArray(profile.mindset) ? profile.mindset : (profile.mindset ? [profile.mindset] : []),
-        relationshipGoals: profile.relationship_goals || [],
-        interests: profile.interests || [],
-        isVisible: profile.show_profile !== false,
-        profileImages: profile.profile_images || []
-      };
-      
-      console.log("🔄 Transformed data:", transformedData);
-      
-      setFormData(prev => ({
-        ...prev,
-        ...transformedData
-      }));
-      
-      // Debug: Log transformed values
-      console.log("🔄 Transformed profile values:", {
-        bodyType: transformSingleValueToUI((profile as any).body_type || ''),
-        skinTone: transformSingleValueToUI((profile as any).skin_tone || ''),
-        personalityTraits: transformDatabaseToUI((profile as any).personality_traits || []),
-        values: transformDatabaseToUI((profile as any).values || []),
-        mindset: transformDatabaseToUI((profile as any).mindset || []),
-        relationshipGoals: transformDatabaseToUI(profile.relationship_goals || [])
-      });
-      
-      // Debug: Log raw database values
-      console.log("🗄️ Raw database values:", {
-        personality_traits: (profile as any).personality_traits,
-        values: (profile as any).values,
-        mindset: (profile as any).mindset,
-        relationship_goals: profile.relationship_goals
-      });
-      
-      // Debug: Log final formData state after transformation
-      console.log("🎯 Final formData after profile update:", {
-        personalityTraits: formData.personalityTraits,
-        values: formData.values,
-        mindset: formData.mindset,
-        relationshipGoals: formData.relationshipGoals
-      });
-    }
-    
-    if (preferences) {
-      console.log("📊 Loading preferences data into form:", preferences);
-      setFormData(prev => ({
-        ...prev,
-        preferredGender: Array.isArray(preferences.preferred_gender) ? preferences.preferred_gender.map(g => g.toString()) : ['male', 'female'], // Default to both genders
-        ageRangeMin: preferences.age_range_min || 18,
-        ageRangeMax: preferences.age_range_max || 30,
-        heightRangeMin: preferences.height_range_min || 150,
-        heightRangeMax: preferences.height_range_max || 200,
-        preferredBodyTypes: Array.isArray(preferences.preferred_body_types) && preferences.preferred_body_types.length > 0 
-          ? preferences.preferred_body_types 
-          : ['slim', 'athletic', 'average'], // Provide sensible defaults
-        preferredValues: Array.isArray(preferences.preferred_values) && preferences.preferred_values.length > 0 
-          ? preferences.preferred_values 
-          : ['family_oriented', 'career_focused'], // Default values
-        preferredMindset: Array.isArray(preferences.preferred_mindset) && preferences.preferred_mindset.length > 0 
-          ? preferences.preferred_mindset 
-          : ['growth_mindset'], // Default mindset
-        preferredPersonalityTraits: Array.isArray(preferences.preferred_personality_traits) && preferences.preferred_personality_traits.length > 0 
-          ? preferences.preferred_personality_traits 
-          : ['outgoing', 'empathetic'], // Default traits
-        preferredRelationshipGoal: Array.isArray(preferences.preferred_relationship_goal) && preferences.preferred_relationship_goal.length > 0 
-          ? preferences.preferred_relationship_goal 
-          : ['serious_relationship'], // Default goal
-        preferredSkinTone: Array.isArray(preferences.preferred_skin_tone) ? preferences.preferred_skin_tone : [],
-        preferredFaceType: Array.isArray(preferences.preferred_face_type) ? preferences.preferred_face_type : [],
-        preferredLoveLanguage: Array.isArray(preferences.preferred_love_language) ? preferences.preferred_love_language : [],
-        preferredLifestyle: Array.isArray(preferences.preferred_lifestyle) ? preferences.preferred_lifestyle : []
-      }));
-    }
-  }, [profile, preferences]);
+  if (profile) {
+    console.log("📊 Loading profile data into form:", profile);
+
+    // Step 1: Transform profile data
+    const transformedData = {
+      firstName: profile.first_name || '',
+      lastName: profile.last_name || '',
+      bio: profile.bio || '',
+      educationLevel: (profile as any).education_level || '',
+      profession: (profile as any).profession || '',
+      height: profile.height?.toString() || '',
+      bodyType: profile.body_type || '',
+      skinTone: profile.skin_tone || '',
+      personalityTraits: profile.personality_traits || [],
+      values: Array.isArray(profile.values)
+        ? profile.values
+        : profile.values
+        ? [profile.values]
+        : [],
+      mindset: Array.isArray(profile.mindset)
+        ? profile.mindset
+        : profile.mindset
+        ? [profile.mindset]
+        : [],
+      relationshipGoals: profile.relationship_goals || [],
+      interests: profile.interests || [],
+      isVisible: profile.show_profile !== false,
+      profileImages: profile.profile_images || [],
+    };
+
+    // Step 2: Debug transformed data
+    console.log("🔄 Transformed data:", transformedData);
+
+    // Step 3: Update formData
+    setFormData(prev => ({
+      ...prev,
+      ...transformedData,
+    }));
+
+    // Debug: Log transformed values
+    console.log("🔄 Transformed profile values:", {
+      bodyType: transformSingleValueToUI((profile as any).body_type || ''),
+      skinTone: transformSingleValueToUI((profile as any).skin_tone || ''),
+      personalityTraits: transformDatabaseToUI((profile as any).personality_traits || []),
+      values: transformDatabaseToUI((profile as any).values || []),
+      mindset: transformDatabaseToUI((profile as any).mindset || []),
+      relationshipGoals: transformDatabaseToUI(profile.relationship_goals || []),
+    });
+
+    // Debug: Log raw database values
+    console.log("🗄️ Raw database values:", {
+      personality_traits: (profile as any).personality_traits,
+      values: (profile as any).values,
+      mindset: (profile as any).mindset,
+      relationship_goals: profile.relationship_goals,
+    });
+
+    // ❗ At this point `formData` is NOT updated yet because `setFormData` is async
+    // If you want to log the final state, use another useEffect([formData]) instead
+  }
+
+  if (preferences) {
+    console.log("📊 Loading preferences data into form:", preferences);
+
+    setFormData(prev => ({
+      ...prev,
+      preferredGender: Array.isArray(preferences.preferred_gender)
+        ? preferences.preferred_gender.map(g => g.toString())
+        : ['male', 'female'], // Default to both genders
+      ageRangeMin: preferences.age_range_min || 18,
+      ageRangeMax: preferences.age_range_max || 30,
+      heightRangeMin: preferences.height_range_min || 150,
+      heightRangeMax: preferences.height_range_max || 200,
+      preferredBodyTypes:
+        Array.isArray(preferences.preferred_body_types) && preferences.preferred_body_types.length > 0
+          ? preferences.preferred_body_types
+          : ['slim', 'athletic', 'average'],
+      preferredValues:
+        Array.isArray(preferences.preferred_values) && preferences.preferred_values.length > 0
+          ? preferences.preferred_values
+          : ['family_oriented', 'career_focused'],
+      preferredMindset:
+        Array.isArray(preferences.preferred_mindset) && preferences.preferred_mindset.length > 0
+          ? preferences.preferred_mindset
+          : ['growth_mindset'],
+      preferredPersonalityTraits:
+        Array.isArray(preferences.preferred_personality_traits) && preferences.preferred_personality_traits.length > 0
+          ? preferences.preferred_personality_traits
+          : ['outgoing', 'empathetic'],
+      preferredRelationshipGoal:
+        Array.isArray(preferences.preferred_relationship_goal) && preferences.preferred_relationship_goal.length > 0
+          ? preferences.preferred_relationship_goal
+          : ['serious_relationship'],
+      preferredSkinTone: Array.isArray(preferences.preferred_skin_tone) ? preferences.preferred_skin_tone : [],
+      preferredFaceType: Array.isArray(preferences.preferred_face_type) ? preferences.preferred_face_type : [],
+      preferredLoveLanguage: Array.isArray(preferences.preferred_love_language) ? preferences.preferred_love_language : [],
+      preferredLifestyle: Array.isArray(preferences.preferred_lifestyle) ? preferences.preferred_lifestyle : [],
+    }));
+  }
+}, [profile, preferences]);
+
 
   const handleLogout = async () => {
     try {
