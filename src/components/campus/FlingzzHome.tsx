@@ -453,33 +453,38 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
 
 
                   {/* Existing Thread Management */}
-                  <Card className="w-full h-80 flex-shrink-0 p-4 bg-gradient-secondary text-secondary-foreground border-0 rounded-full">
-                    <div className="space-y-3">
-                      <div className="text-center">
-                        <div className="flex items-center space-x-2 mb-2">
+                  <Card className="w-full h-48 flex-shrink-0 p-4 bg-gradient-secondary text-secondary-foreground border-0 rounded-full shadow-lg overflow-hidden">
+                    <div className="space-y-2 h-full flex flex-col justify-center items-center">
+                      <div className="text-center flex-1 flex flex-col justify-center">
+                        <div className="flex items-center justify-center space-x-2 mb-2">
                           <User className="w-4 h-4 sm:w-5 sm:h-5" />
-                          <span className="font-semibold text-sm">Your Latest Thread</span>
+                          <span className="font-semibold text-sm sm:text-base">Your Latest Thread</span>
                         </div>
-                        <p className="text-sm text-secondary-foreground/90">{latestUserThread.content}</p>
+                        <p className="text-xs sm:text-sm text-secondary-foreground/90 leading-relaxed break-words text-center px-2">
+                          {latestUserThread.content.length > 80
+                            ? `${latestUserThread.content.substring(0, 80)}...`
+                            : latestUserThread.content
+                          }
+                        </p>
                       </div>
-                      <div className="flex flex-row space-x-2 overflow-hidden">
+                      <div className="flex space-x-2 mt-2">
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="flex flex-1 h-7 px-2 sm:h-9 sm:px-3 text-secondary-foreground hover:bg-secondary-foreground/20"
+                          className="h-7 w-7 p-0 text-secondary-foreground hover:bg-secondary-foreground/20"
                           onClick={() => handleRewriteThread(latestUserThread)}
+                          title="Edit"
                         >
-                          <Edit className="w-4 h-4" />
-                          <span className="hidden sm:inline text-xs">Edit</span>
+                          <Edit className="w-3 h-3" />
                         </Button>
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="flex flex-1 h-7 px-2 sm:h-9 sm:px-3 text-secondary-foreground hover:bg-destructive/20"
+                          className="h-7 w-7 p-0 text-secondary-foreground hover:bg-destructive/20"
                           onClick={() => handleDeleteThread(latestUserThread.id)}
+                          title="Delete"
                         >
-                          <Trash className="w-4 h-4" />
-                          <span className="hidden sm:inline text-xs">Delete</span>
+                          <Trash className="w-3 h-3" />
                         </Button>
                       </div>
                     </div>
