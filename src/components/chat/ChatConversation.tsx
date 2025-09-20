@@ -5,11 +5,20 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Send, MoreVertical, Phone, Video, Wifi, WifiOff } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ArrowLeft, Send, MoreVertical, Phone, Video, Wifi, WifiOff, AlertTriangle, UserX } from "lucide-react";
 import { ChatRoom, ChatMessage } from "@/hooks/useChatWithWebSocket";
 import { supabase } from "@/integrations/supabase/client";
 import { useOptionalAuth } from "@/hooks/useRequiredAuth";
 import { useChatNotification } from "@/contexts/ChatNotificationContext";
+import { reportUser, blockUser } from "@/services/reports";
+import { useToast } from "@/hooks/use-toast";
 
 interface ChatConversationProps {
   room: ChatRoom;
@@ -43,6 +52,7 @@ const ChatConversation = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { refreshBadge } = useChatNotification();
+  const { toast } = useToast();
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -130,6 +140,69 @@ const ChatConversation = ({
     }
   };
 
+  const handleReportUser = async () => {
+    if (!currentUserId || !otherUserId) return;
+
+    try {
+      const success = await reportUser(
+        currentUserId,
+        otherUserId,
+        'harassment', // Default report type
+        'User reported from chat conversation'
+      );
+
+      if (success) {
+        toast({
+          title: "Report Submitted",
+          description: "Thank you for your report. We will review it shortly.",
+        });
+      } else {
+        toast({
+          title: "Report Failed",
+          description: "There was an error submitting your report. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error reporting user:', error);
+      toast({
+        title: "Report Failed",
+        description: "There was an error submitting your report. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleBlockUser = async () => {
+    if (!currentUserId || !otherUserId) return;
+
+    try {
+      const success = await blockUser(currentUserId, otherUserId);
+
+      if (success) {
+        toast({
+          title: "User Blocked",
+          description: `${room.other_user?.first_name} has been blocked and will no longer be able to contact you.`,
+        });
+        // Optionally navigate back or close the chat
+        onBack();
+      } else {
+        toast({
+          title: "Block Failed",
+          description: "There was an error blocking this user. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error blocking user:', error);
+      toast({
+        title: "Block Failed",
+        description: "There was an error blocking this user. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gradient-soft">
       <CardHeader className="flex flex-row items-center space-y-0 pb-4 bg-card/90 backdrop-blur-lg border-b border-border">
@@ -176,7 +249,24 @@ const ChatConversation = ({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm"><MoreVertical className="w-4 h-4" /></Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <MoreVertical className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={handleReportUser} className="text-orange-600">
+                <AlertTriangle className="mr-2 h-4 w-4" />
+                Report User
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleBlockUser} className="text-red-600">
+                <UserX className="mr-2 h-4 w-4" />
+                Block User
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </CardHeader>
 
