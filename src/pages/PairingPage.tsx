@@ -29,6 +29,22 @@ interface Match {
   mental_score?: number;
   matched_criteria?: string[];
   not_matched_criteria?: string[];
+  // Additional fields for detailed profile view
+  face_type?: string;
+  personality_type?: string;
+  personality_traits?: string[];
+  body_type?: string;
+  skin_tone?: string;
+  values?: string[];
+  mindset?: string[];
+  relationship_goals?: string[];
+  height?: number;
+  location?: string;
+  lifestyle?: string;
+  love_language?: string;
+  field_of_study?: string;
+  profession?: string;
+  education_level?: string;
 }
 
 interface PairingPageProps {
@@ -188,14 +204,30 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
             bio: c.candidate_bio || 'No bio available',
             profile_images: c.candidate_images || [],
             age: c.candidate_age || 0,
-            interests: [],
+            interests: c.candidate_interests || [],
             total_qcs: c.candidate_qcs || 0,
             compatibility_score: Math.round(compatibilityScore),
             physical_score: Math.round(physicalScore),
             mental_score: Math.round(mentalScore),
             // Add debugging info for display
             matched_criteria: c.debug_info?.matched || [],
-            not_matched_criteria: c.debug_info?.not_matched || []
+            not_matched_criteria: c.debug_info?.not_matched || [],
+            // Map additional profile fields from deterministic-pairing response
+            face_type: c.candidate_face_type,
+            personality_type: c.candidate_personality_type,
+            personality_traits: c.candidate_personality_traits,
+            body_type: c.candidate_body_type,
+            skin_tone: c.candidate_skin_tone,
+            values: c.candidate_values,
+            mindset: c.candidate_mindset,
+            relationship_goals: c.candidate_relationship_goals,
+            height: c.candidate_height,
+            location: c.candidate_location,
+            lifestyle: c.candidate_lifestyle,
+            love_language: c.candidate_love_language,
+            field_of_study: c.candidate_field_of_study,
+            profession: c.candidate_profession,
+            education_level: c.candidate_education_level
           };
         })
         .sort((a: any, b: any) => (b.compatibility_score || 0) - (a.compatibility_score || 0));
@@ -545,7 +577,39 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
         {/* Profile Modal */}
         {selectedProfile && (
           <DetailedProfileModal
-            profile={selectedProfile}
+            profile={{
+              user_id: selectedProfile.user_id,
+              first_name: selectedProfile.first_name,
+              last_name: selectedProfile.last_name,
+              university: selectedProfile.university,
+              profile_images: selectedProfile.profile_images,
+              bio: selectedProfile.bio,
+              age: selectedProfile.age,
+              can_chat: selectedProfile.compatibility_score ? selectedProfile.compatibility_score > 80 : false,
+              compatibility_score: selectedProfile.compatibility_score,
+              physical_score: selectedProfile.physical_score,
+              mental_score: selectedProfile.mental_score,
+              total_qcs: selectedProfile.total_qcs,
+              matched_criteria: selectedProfile.matched_criteria,
+              not_matched_criteria: selectedProfile.not_matched_criteria,
+              interests: selectedProfile.interests,
+              // Pass all additional profile fields for complete display
+              face_type: selectedProfile.face_type,
+              personality_type: selectedProfile.personality_type,
+              personality_traits: selectedProfile.personality_traits,
+              body_type: selectedProfile.body_type,
+              skin_tone: selectedProfile.skin_tone,
+              values: selectedProfile.values,
+              mindset: selectedProfile.mindset,
+              relationship_goals: selectedProfile.relationship_goals,
+              height: selectedProfile.height,
+              location: selectedProfile.location,
+              lifestyle: selectedProfile.lifestyle,
+              love_language: selectedProfile.love_language,
+              field_of_study: selectedProfile.field_of_study,
+              profession: selectedProfile.profession,
+              education_level: selectedProfile.education_level
+            }}
             isOpen={!!selectedProfile}
             onClose={() => setSelectedProfile(null)}
             onChatRequest={(userId) => {
