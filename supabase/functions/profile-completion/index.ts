@@ -64,8 +64,8 @@ serve(async (req) => {
     console.log('Completing profile for user:', userId, 'with email:', userEmail);
 
     // Validate required fields
-    if (!firstName || !lastName || !dateOfBirth || !gender || !university) {
-      throw new Error('Missing required fields: firstName, lastName, dateOfBirth, gender, and university are required');
+    if (!firstName || !lastName || !dateOfBirth || !gender) {
+      throw new Error('Missing required fields: firstName, lastName, dateOfBirth, and gender are required');
     }
 
     // Upsert profile with service role (bypasses RLS) - creates if doesn't exist
