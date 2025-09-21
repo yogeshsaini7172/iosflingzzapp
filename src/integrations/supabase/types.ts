@@ -247,21 +247,7 @@ export type Database = {
             foreignKeyName: "chat_requests_recipient_id_fkey"
             columns: ["recipient_id"]
             isOneToOne: false
-            referencedRelation: "candidate_profiles"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "chat_requests_recipient_id_fkey"
-            columns: ["recipient_id"]
-            isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "chat_requests_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "candidate_profiles"
             referencedColumns: ["user_id"]
           },
           {
@@ -1371,45 +1357,6 @@ export type Database = {
       }
     }
     Views: {
-      candidate_profiles: {
-        Row: {
-          age: number | null
-          bio: string | null
-          created_at: string | null
-          display_name: string | null
-          gender: Database["public"]["Enums"]["gender"] | null
-          interests: string[] | null
-          location: string | null
-          photos: string[] | null
-          profile_id: string | null
-          user_id: string | null
-        }
-        Insert: {
-          age?: never
-          bio?: string | null
-          created_at?: string | null
-          display_name?: string | null
-          gender?: Database["public"]["Enums"]["gender"] | null
-          interests?: string[] | null
-          location?: string | null
-          photos?: string[] | null
-          profile_id?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          age?: never
-          bio?: string | null
-          created_at?: string | null
-          display_name?: string | null
-          gender?: Database["public"]["Enums"]["gender"] | null
-          interests?: string[] | null
-          location?: string | null
-          photos?: string[] | null
-          profile_id?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       chat_rooms_with_details: {
         Row: {
           created_at: string | null
