@@ -333,7 +333,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
       <div className="flex-1 p-6">
         {currentProfile ? (
           <div className="max-w-sm mx-auto">
-            {/* Swipe Card */}
+            {/* Swipe Up Style Card */}
             <div 
               className="relative bg-card rounded-3xl overflow-hidden shadow-2xl shadow-primary/10"
               style={{
@@ -344,122 +344,161 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
             >
-              {/* Image Section */}
-              <div className="relative h-[500px] overflow-hidden">
-                <img
-                  src={currentProfile.profile_images?.[currentImageIndex] || currentProfile.profile_images?.[0] || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=600&fit=crop&crop=face'}
-                  alt={currentProfile.first_name}
-                  className="w-full h-full object-cover"
-                />
-                
-                {/* Image Navigation */}
-                {currentProfile.profile_images?.length > 1 && (
-                  <>
-                    <button
-                      onClick={() => handleImageNavigation('prev')}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/30 rounded-full flex items-center justify-center backdrop-blur-sm"
-                    >
-                      <span className="text-white text-lg">‹</span>
-                    </button>
-                    <button
-                      onClick={() => handleImageNavigation('next')}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/30 rounded-full flex items-center justify-center backdrop-blur-sm"
-                    >
-                      <span className="text-white text-lg">›</span>
-                    </button>
-                    
-                    {/* Image Dots */}
-                    <div className="absolute top-4 left-1/2 -translate-x-1/2 flex space-x-1">
-                      {currentProfile.profile_images.map((_, index) => (
-                        <div
-                          key={index}
-                          className={`w-2 h-2 rounded-full ${
-                            index === currentImageIndex ? 'bg-white' : 'bg-white/40'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </>
-                )}
-
-                {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                
-                {/* Swipe Indicators */}
-                {Math.abs(swipeOffset) > 20 && (
-                  <div className={`absolute inset-0 flex items-center justify-center ${getSwipeIndicatorColor()}`}>
-                    <div className="bg-black/50 rounded-full p-4 backdrop-blur-sm">
-                      {swipeOffset > 0 ? (
-                        <Heart className="w-12 h-12 fill-current" />
-                      ) : (
-                        <X className="w-12 h-12" />
-                      )}
-                    </div>
-                  </div>
-                )}
+              {/* Premium Badge */}
+              <div className="absolute top-4 right-4 z-10">
+                <div className="bg-amber-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+                  PREMIUM
+                </div>
               </div>
 
-              {/* Profile Info */}
-              <div className="p-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-2xl font-bold text-foreground">
-                      {currentProfile.first_name} {calculateAge(currentProfile.date_of_birth)}
-                    </h3>
-                    <p className="text-sm text-muted-foreground flex items-center space-x-1">
-                      <span>📍</span>
-                      <span>{currentProfile.university || 'Local'}</span>
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Star className="w-4 h-4 text-amber-500 fill-current" />
-                    <span className="text-sm font-medium">New</span>
+              {/* Image Dots */}
+              {currentProfile.profile_images?.length > 1 && (
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 flex space-x-1 z-10">
+                  {currentProfile.profile_images.map((_, index) => (
+                    <div
+                      key={index}
+                      className={`w-2 h-2 rounded-full ${
+                        index === currentImageIndex ? 'bg-white' : 'bg-white/40'
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Main Content */}
+              <div className="flex flex-col h-[600px]">
+                {/* Top Image Section - 40% */}
+                <div className="relative h-[240px] overflow-hidden">
+                  <img
+                    src={currentProfile.profile_images?.[currentImageIndex] || currentProfile.profile_images?.[0] || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=600&fit=crop&crop=face'}
+                    alt={currentProfile.first_name}
+                    className="w-full h-full object-cover"
+                  />
+                  
+                  {/* Image Navigation */}
+                  {currentProfile.profile_images?.length > 1 && (
+                    <>
+                      <button
+                        onClick={() => handleImageNavigation('prev')}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/30 rounded-full flex items-center justify-center backdrop-blur-sm"
+                      >
+                        <span className="text-white text-sm">‹</span>
+                      </button>
+                      <button
+                        onClick={() => handleImageNavigation('next')}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/30 rounded-full flex items-center justify-center backdrop-blur-sm"
+                      >
+                        <span className="text-white text-sm">›</span>
+                      </button>
+                    </>
+                  )}
+
+                  {/* Swipe Indicators */}
+                  {Math.abs(swipeOffset) > 20 && (
+                    <div className={`absolute inset-0 flex items-center justify-center ${getSwipeIndicatorColor()}`}>
+                      <div className="bg-black/50 rounded-full p-3 backdrop-blur-sm">
+                        {swipeOffset > 0 ? (
+                          <Heart className="w-8 h-8 fill-current" />
+                        ) : (
+                          <X className="w-8 h-8" />
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Logo Section - 30% */}
+                <div className="flex-1 bg-gradient-to-r from-red-600 to-red-700 flex items-center justify-center">
+                  <div className="text-center text-white">
+                    <div className="flex items-center justify-center mb-2">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                          <Heart className="w-4 h-4 text-white fill-current" />
+                        </div>
+                        <div className="flex space-x-1">
+                          {[...Array(6)].map((_, i) => (
+                            <div key={i} className="w-1 h-4 bg-white/40 rounded-full animate-pulse" style={{ animationDelay: `${i * 0.1}s` }} />
+                          ))}
+                        </div>
+                        <Zap className="w-5 h-5 text-white" />
+                      </div>
+                    </div>
+                    <h2 className="text-2xl font-bold tracking-wider">FLINGZZ</h2>
+                    <p className="text-sm opacity-80 tracking-widest">SLOGAN HERE</p>
                   </div>
                 </div>
 
-                {currentProfile.bio && (
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {currentProfile.bio}
-                  </p>
-                )}
-
-                {currentProfile.interests && currentProfile.interests.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {currentProfile.interests.slice(0, 3).map((interest, index) => (
-                      <span
-                        key={index}
-                        className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full font-medium"
-                      >
-                        {interest}
-                      </span>
-                    ))}
-                    {currentProfile.interests.length > 3 && (
-                      <span className="px-3 py-1 bg-muted text-muted-foreground text-xs rounded-full">
-                        +{currentProfile.interests.length - 3}
-                      </span>
-                    )}
+                {/* Profile Info Section - 30% */}
+                <div className="p-6 space-y-4 bg-card">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xl font-bold text-foreground">
+                        {currentProfile.first_name}, {calculateAge(currentProfile.date_of_birth)}
+                      </h3>
+                      <p className="text-sm text-muted-foreground flex items-center space-x-1">
+                        <span>📍</span>
+                        <span>{currentProfile.university || 'IIT'}</span>
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-red-500">3333</div>
+                      <div className="text-xs text-muted-foreground">QCS</div>
+                    </div>
                   </div>
-                )}
+
+                  {currentProfile.interests && currentProfile.interests.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {currentProfile.interests.slice(0, 1).map((interest, index) => (
+                        <span
+                          key={index}
+                          className="px-3 py-1 bg-purple-100 text-purple-600 text-sm rounded-full font-medium"
+                        >
+                          {interest}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Swipe Up Button */}
+                  <div className="flex items-center justify-center pt-2">
+                    <button 
+                      className="flex items-center space-x-2 bg-gray-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-700 transition-colors"
+                      onClick={() => {
+                        // Add swipe up functionality here
+                        toast({
+                          title: "Profile Details",
+                          description: "Swipe up feature coming soon!",
+                        });
+                      }}
+                    >
+                      <Zap className="w-4 h-4" />
+                      <span>Swipe up for more</span>
+                      <div className="w-4 h-4 flex items-center justify-center">
+                        <div className="w-0 h-0 border-l-2 border-r-2 border-b-2 border-transparent border-b-white" />
+                      </div>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex justify-center space-x-4 mt-6">
+            <div className="flex justify-center space-x-6 mt-6">
               <Button
                 size="lg"
                 variant="outline"
-                className="w-16 h-16 rounded-full border-2 border-destructive/20 hover:border-destructive hover:bg-destructive/10"
+                className="w-14 h-14 rounded-full border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-100 bg-white"
                 onClick={() => handleSwipe('left')}
               >
-                <X className="w-6 h-6 text-destructive" />
+                <X className="w-6 h-6 text-gray-600" />
               </Button>
               
               <Button
                 size="lg"
-                className="w-20 h-16 rounded-full bg-gradient-to-r from-primary to-accent hover:shadow-glow"
+                className="w-16 h-16 rounded-full bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 shadow-lg hover:shadow-xl"
                 onClick={() => handleSwipe('right')}
               >
-                <Heart className="w-6 h-6 fill-current" />
+                <Heart className="w-7 h-7 fill-current text-white" />
               </Button>
             </div>
 
