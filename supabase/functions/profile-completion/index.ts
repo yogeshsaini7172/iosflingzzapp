@@ -128,7 +128,9 @@ serve(async (req) => {
           preferred_mindset: preferences?.preferredMindset || [],
           preferred_personality: preferences?.preferredPersonality || [],
           preferred_gender: preferences?.preferredGender || [],
-          preferred_relationship_goals: preferences?.preferredRelationshipGoals || [] // ADD: relationship goal prefs
+          preferred_relationship_goals: preferences?.preferredRelationshipGoals || [], // ADD: relationship goal prefs
+          preferred_love_languages: preferences?.preferredLoveLanguage || [], // ADD: love language prefs
+          preferred_lifestyle: preferences?.preferredLifestyle || [] // ADD: lifestyle prefs
         },
         // Also store individual fields for direct access
         love_language: preferences?.loveLanguage || null,
@@ -144,7 +146,13 @@ serve(async (req) => {
 
     // Optionally upsert partner preferences if provided
     if (preferences) {
-      const { preferredGender, ageRangeMin, ageRangeMax, preferredRelationshipGoals } = preferences;
+      const { 
+        preferredGender, ageRangeMin, ageRangeMax, heightRangeMin, heightRangeMax,
+        preferredBodyTypes, preferredSkinTone, preferredFaceType, preferredValues, 
+        preferredMindset, preferredPersonality, preferredRelationshipGoals,
+        preferredLoveLanguage, preferredLifestyle
+      } = preferences;
+      
       const { error: prefError } = await supabase
         .from('partner_preferences')
         .upsert({
@@ -152,7 +160,17 @@ serve(async (req) => {
           preferred_gender: preferredGender ?? [],
           age_range_min: ageRangeMin ?? 18,
           age_range_max: ageRangeMax ?? 30,
-          preferred_relationship_goals: preferredRelationshipGoals ?? [] // Fix column name
+          height_range_min: heightRangeMin ?? 150,
+          height_range_max: heightRangeMax ?? 200,
+          preferred_body_types: preferredBodyTypes ?? [],
+          preferred_skin_tone: preferredSkinTone ?? [],
+          preferred_face_types: preferredFaceType ?? [],
+          preferred_values: preferredValues ?? [],
+          preferred_mindset: preferredMindset ?? [],
+          preferred_personality_traits: preferredPersonality ?? [],
+          preferred_relationship_goals: preferredRelationshipGoals ?? [],
+          preferred_love_languages: preferredLoveLanguage ?? [],
+          preferred_lifestyle: preferredLifestyle ?? []
         }, { onConflict: 'user_id' });
 
       if (prefError) {

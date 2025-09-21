@@ -273,6 +273,8 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
             preferredMindset: preferences.preferred_mindset || [],
             preferredPersonality: preferences.preferred_personality_traits || [],
             preferredRelationshipGoals: preferences.preferred_relationship_goals || [],
+            preferredLoveLanguage: preferences.preferred_love_languages || [],
+            preferredLifestyle: preferences.preferred_lifestyle || [],
             loveLanguage: completeProfile.love_language,
             lifestyle: completeProfile.lifestyle
           },
