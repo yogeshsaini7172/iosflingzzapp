@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Heart, MessageCircle, MoreVertical, Shield, Brain, Zap, Users, ChevronRight, Star, MapPin, GraduationCap, Sparkles, Ghost, UserMinus, Clock, ArrowLeft } from 'lucide-react';
+import { Heart, MessageCircle, MoreVertical, Shield, Brain, Zap, Users, ChevronRight, Star, MapPin, GraduationCap, Sparkles, Ghost, UserMinus, Clock, ArrowLeft, Eye, User } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { usePairing } from '@/hooks/usePairing';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,6 +21,10 @@ interface PairingMatch {
   total_qcs?: number;
   compatibility_score?: number;
   can_chat?: boolean;
+  date_of_birth?: string;
+  gender?: string;
+  interests?: string[];
+  relationship_goals?: string[];
 }
 
 interface PairingMatchesProps {
@@ -31,6 +36,9 @@ const PairingMatches: React.FC<PairingMatchesProps> = ({ userId }) => {
   const [matches, setMatches] = useState<PairingMatch[]>([]);
   const [scoringLoading, setScoringLoading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [showDetailedProfile, setShowDetailedProfile] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState<PairingMatch | null>(null);
+  const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({});
   const { toast } = useToast();
 
   // Run deterministic pairing when pairedProfiles changes
@@ -65,7 +73,11 @@ const PairingMatches: React.FC<PairingMatchesProps> = ({ userId }) => {
               bio: fromFeed?.bio,
               total_qcs: c.candidate_qcs,
               compatibility_score: Math.floor(Math.random() * 51) + 50,
-              can_chat: true
+              can_chat: true,
+              date_of_birth: fromFeed?.date_of_birth,
+              gender: fromFeed?.gender,
+              interests: fromFeed?.interests,
+              relationship_goals: fromFeed?.relationship_goals
             };
           });
           setMatches(enriched);
@@ -193,6 +205,30 @@ const PairingMatches: React.FC<PairingMatchesProps> = ({ userId }) => {
     }
   };
 
+  const calculateAge = (dateOfBirth: string) => {
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  const toggleSection = (section: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  const handleViewProfile = (match: PairingMatch) => {
+    setSelectedProfile(match);
+    setShowDetailedProfile(true);
+    setExpandedSections({});
+  };
+
   if (feedLoading || scoringLoading) {
     return (
       <div className="space-y-4">
@@ -318,6 +354,14 @@ const PairingMatches: React.FC<PairingMatchesProps> = ({ userId }) => {
                       )}
 
                       <div className="flex gap-2">
+                        <Button 
+                          onClick={() => handleViewProfile(match)}
+                          variant="outline"
+                          size="sm"
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          View Profile
+                        </Button>
                         {match.can_chat ? (
                           <Button 
                             onClick={() => handleChatAction(match.user_id, true)}
@@ -344,6 +388,207 @@ const PairingMatches: React.FC<PairingMatchesProps> = ({ userId }) => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Detailed Profile Modal */}
+      {selectedProfile && (
+        <Dialog open={showDetailedProfile} onOpenChange={setShowDetailedProfile}>
+          <DialogContent className="max-w-md mx-auto max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center space-x-2">
+                <Avatar className="w-8 h-8">
+                  <AvatarImage src={selectedProfile.profile_images?.[0]} />
+                  <AvatarFallback>
+                    <User className="w-4 h-4" />
+                  </AvatarFallback>
+                </Avatar>
+                <span>{selectedProfile.first_name}'s Profile</span>
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              {/* Main Profile Image */}
+              <div className="aspect-[3/4] bg-muted rounded-xl overflow-hidden">
+                <img 
+                  src={selectedProfile.profile_images?.[0] || `https://api.dicebear.com/7.x/avataaars/svg?seed=${selectedProfile.user_id}`}
+                  alt={selectedProfile.first_name}
+                  className="w-full h-full object-cover" 
+                />
+              </div>
+
+              {/* Basic Info */}
+              <div className="bg-muted/30 rounded-lg p-3">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-xl font-bold">{selectedProfile.first_name} {selectedProfile.last_name}</h2>
+                  <Badge variant="secondary">
+                    {selectedProfile.compatibility_score || 0}% Match
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className="text-muted-foreground">Full Name:</span>
+                    <p className="font-medium">{selectedProfile.first_name} {selectedProfile.last_name}</p>
+                  </div>
+                  {selectedProfile.date_of_birth && (
+                    <div>
+                      <span className="text-muted-foreground">Age:</span>
+                      <p className="font-medium">{calculateAge(selectedProfile.date_of_birth)}</p>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-muted-foreground">University:</span>
+                    <p className="font-medium">{selectedProfile.university || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">QCS Score:</span>
+                    <p className="font-medium">{selectedProfile.total_qcs || 'N/A'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Physical & Appearance - Expandable */}
+              <div className="bg-muted/30 rounded-lg mb-3">
+                <button 
+                  onClick={() => toggleSection('physical')}
+                  className="w-full p-3 flex items-center justify-between hover:bg-muted/50 rounded-lg transition-colors"
+                >
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm">💪</span>
+                    <h4 className="font-semibold text-sm">Physical & Appearance</h4>
+                  </div>
+                  <span className={`text-sm transition-transform ${expandedSections.physical ? 'rotate-180' : ''}`}>
+                    ▼
+                  </span>
+                </button>
+                {expandedSections.physical && (
+                  <div className="px-3 pb-3 text-xs space-y-2">
+                    {selectedProfile.gender && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Gender:</span>
+                        <span className="font-medium capitalize">{selectedProfile.gender}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Height:</span>
+                      <span className="font-medium">Not specified</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Body Type:</span>
+                      <span className="font-medium">Not specified</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Face Type:</span>
+                      <span className="font-medium">Not specified</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Personality & Lifestyle - Expandable */}
+              <div className="bg-muted/30 rounded-lg mb-3">
+                <button 
+                  onClick={() => toggleSection('personality')}
+                  className="w-full p-3 flex items-center justify-between hover:bg-muted/50 rounded-lg transition-colors"
+                >
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm">🧠</span>
+                    <h4 className="font-semibold text-sm">Personality & Lifestyle</h4>
+                  </div>
+                  <span className={`text-sm transition-transform ${expandedSections.personality ? 'rotate-180' : ''}`}>
+                    ▼
+                  </span>
+                </button>
+                {expandedSections.personality && (
+                  <div className="px-3 pb-3 text-xs space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Personality Type:</span>
+                      <span className="font-medium">Not specified</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Lifestyle:</span>
+                      <span className="font-medium">Not specified</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Values:</span>
+                      <span className="font-medium">Not specified</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Love Language:</span>
+                      <span className="font-medium">Not specified</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Humor Style:</span>
+                      <span className="font-medium">Not specified</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Bio Section */}
+              {selectedProfile.bio && (
+                <div className="bg-muted/30 rounded-lg p-3">
+                  <h4 className="font-semibold text-sm mb-2 flex items-center space-x-2">
+                    <span className="text-sm">💭</span>
+                    <span>About Me</span>
+                  </h4>
+                  <p className="text-xs text-muted-foreground">{selectedProfile.bio}</p>
+                </div>
+              )}
+
+              {/* Interests Section */}
+              {selectedProfile.interests && selectedProfile.interests.length > 0 && (
+                <div>
+                  <h3 className="text-base font-bold text-foreground mb-2">Interests</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedProfile.interests.map((interest, index) => (
+                      <span
+                        key={index}
+                        className="bg-gradient-to-r from-primary/10 to-accent/10 text-foreground px-3 py-1.5 rounded-full text-xs font-medium border border-primary/20"
+                      >
+                        {interest}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Relationship Goals */}
+              {selectedProfile.relationship_goals && selectedProfile.relationship_goals.length > 0 && (
+                <div>
+                  <h3 className="text-base font-bold text-foreground mb-2">Relationship Goals</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedProfile.relationship_goals.map((goal, index) => (
+                      <span
+                        key={index}
+                        className="bg-gradient-to-r from-accent/10 to-primary/10 text-foreground px-3 py-1.5 rounded-full text-xs font-medium border border-accent/20"
+                      >
+                        {goal}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Additional Photos */}
+              {selectedProfile.profile_images && selectedProfile.profile_images.length > 1 && (
+                <div className="pb-4">
+                  <h3 className="text-base font-bold text-foreground mb-2">More Photos</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {selectedProfile.profile_images.slice(1, 3).map((image, index) => (
+                      <div key={index} className="aspect-square bg-muted rounded-lg overflow-hidden">
+                        <img 
+                          src={image} 
+                          alt={`${selectedProfile.first_name} ${index + 2}`}
+                          className="w-full h-full object-cover" 
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
