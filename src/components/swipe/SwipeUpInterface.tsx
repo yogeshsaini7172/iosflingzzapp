@@ -47,6 +47,8 @@ const SwipeUpInterface: React.FC<SwipeUpInterfaceProps> = ({ onNavigate }) => {
   const fetchProfiles = async () => {
     setIsLoading(true);
     try {
+      console.log('🔄 Fetching profiles for userId:', userId);
+      
       const response = await fetchWithFirebaseAuth(
         "https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/data-management",
         {
@@ -59,12 +61,19 @@ const SwipeUpInterface: React.FC<SwipeUpInterfaceProps> = ({ onNavigate }) => {
         }
       );
 
+      console.log('📡 Response status:', response.status);
+      
       if (!response.ok) {
-        throw new Error("Failed to fetch feed");
+        const errorText = await response.text();
+        console.error('❌ Response error:', errorText);
+        throw new Error(`Failed to fetch feed: ${response.status} ${errorText}`);
       }
 
       const payload = await response.json();
-      const profilesData = payload?.data?.profiles || [];
+      console.log('📦 Raw payload:', payload);
+      
+      const profilesData = payload?.data?.profiles || payload?.profiles || [];
+      console.log('👥 Profiles data:', profilesData);
 
       const formattedProfiles = profilesData.map((profile: any) => ({
         ...profile,
@@ -74,17 +83,27 @@ const SwipeUpInterface: React.FC<SwipeUpInterfaceProps> = ({ onNavigate }) => {
         premium: profile.profile_images && profile.profile_images.length > 0,
       }));
 
+      console.log('✨ Formatted profiles:', formattedProfiles);
       setProfiles(formattedProfiles);
+      
       if (formattedProfiles.length > 0) {
         toast({
           title: "Premium Profiles Loaded! ✨",
           description: `Found ${formattedProfiles.length} exclusive matches`,
         });
+      } else {
+        console.warn('⚠️ No profiles found in response');
+        toast({
+          title: "No Profiles Found",
+          description: "No matches available at the moment.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
+      console.error('💥 Fetch profiles error:', error);
       toast({
         title: "Error",
-        description: "Failed to load profiles. Please try again.",
+        description: `Failed to load profiles: ${error.message}`,
         variant: "destructive",
       });
     } finally {
@@ -93,8 +112,14 @@ const SwipeUpInterface: React.FC<SwipeUpInterfaceProps> = ({ onNavigate }) => {
   };
 
   useEffect(() => {
-    if (userId) fetchProfiles();
-  }, [userId]);
+    console.log('🔐 Auth status - userId:', userId, 'authLoading:', authLoading);
+    if (userId && !authLoading) {
+      console.log('✅ User authenticated, fetching profiles...');
+      fetchProfiles();
+    } else if (!authLoading && !userId) {
+      console.warn('⚠️ No authenticated user found');
+    }
+  }, [userId, authLoading]);
 
   // Handle swipe action
   const handleSwipe = async (direction: "left" | "right") => {
