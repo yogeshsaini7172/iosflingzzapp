@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "start": "node start-dev.js",
     "dev": "node start-dev.js",
     "dev:vite": "vite",
     "dev:socket": "node socket-server.js",
