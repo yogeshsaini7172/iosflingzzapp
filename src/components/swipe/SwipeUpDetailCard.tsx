@@ -127,18 +127,18 @@ const SwipeUpDetailCard: React.FC<SwipeUpDetailCardProps> = ({
 
   return (
     <div className="relative w-full max-w-sm mx-auto h-[75vh] overflow-hidden">
-      {/* Main Profile Card - Circular Design */}
+      {/* Main Profile Card - Rectangular Design */}
       <Card
         ref={cardRef}
-        className={`relative w-full h-full rounded-full overflow-hidden shadow-2xl border-0 swipe-card floating-card ${
+        className={`relative w-full h-full rounded-2xl overflow-hidden shadow-2xl border-0 swipe-card floating-card ${
           isDragging ? '' : 'transition-transform duration-300'
         }`}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {/* Profile Image Container */}
-        <div className="relative w-full h-full">
+        {/* Photo Section - Top */}
+        <div className="relative h-3/5">
           {profile.profile_images?.length > 0 ? (
             <>
               <img
@@ -180,82 +180,62 @@ const SwipeUpDetailCard: React.FC<SwipeUpDetailCardProps> = ({
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
               <div className="text-center text-white">
-                <User className="w-20 h-20 mx-auto mb-4 opacity-50" />
-                <p className="text-lg">Premium Profile</p>
+                <User className="w-16 h-16 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No Photo</p>
               </div>
             </div>
           )}
 
           {/* Premium Badge */}
           <div className="absolute top-4 right-4">
-            <Badge className="bg-yellow-500 text-black font-semibold px-3 py-1 rounded-full">
+            <Badge className="bg-yellow-500 text-black font-semibold px-2 py-1 rounded-full text-xs">
               ⭐ PREMIUM
             </Badge>
           </div>
+        </div>
 
-          {/* Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-
-          {/* Basic Info Overlay - Clean Design */}
-          <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-            <div className="space-y-4">
-              {/* Name and Age */}
-              <div>
-                <h2 className="text-4xl font-bold tracking-tight">
-                  {profile.first_name}
-                </h2>
-                <p className="text-2xl font-light opacity-90">
-                  {profile.age}
-                </p>
+        {/* Name & Details Section - Middle */}
+        <div className="h-1/5 bg-white px-6 py-4 flex flex-col justify-center">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {profile.first_name}, {profile.age}
+              </h2>
+              <div className="text-right">
+                <div className="text-lg font-bold text-pink-600">3333</div>
+                <div className="text-xs text-gray-500">QCS</div>
               </div>
-              
-              {/* Location */}
+            </div>
+            
+            <div className="flex items-center space-x-2 text-gray-600">
+              <MapPin className="w-4 h-4" />
+              <span className="text-sm">{profile.university}</span>
+            </div>
+            
+            {profile.interests.length > 0 && (
               <div className="flex items-center space-x-2">
-                <MapPin className="w-5 h-5 opacity-80" />
-                <span className="text-lg font-medium opacity-90">{profile.university}</span>
-              </div>
-              
-              {/* Status Badges - Simple and Clean */}
-              <div className="flex items-center space-x-3">
-                <Badge className="bg-pink-500/90 text-white border-0 px-3 py-1 rounded-full text-sm font-medium">
-                  🔴 Nearby
-                </Badge>
-                <Badge className="bg-gray-600/90 text-white border-0 px-3 py-1 rounded-full text-sm font-medium">
-                  ⚪ N/A
-                </Badge>
-                <Badge className="bg-gray-600/90 text-white border-0 px-3 py-1 rounded-full text-sm font-medium">
-                  ⚪ N/A
+                <Badge className="bg-pink-100 text-pink-700 px-2 py-1 rounded-full text-xs">
+                  {profile.interests[0]}
                 </Badge>
               </div>
+            )}
+          </div>
+        </div>
 
-              {/* Score Display */}
-              <div className="bg-black/70 backdrop-blur-sm rounded-xl px-4 py-2 inline-block">
-                <span className="text-2xl font-bold text-white">3333</span>
-              </div>
-
-              {/* Interest Tag */}
-              <div className="flex">
-                <Badge className="bg-red-500/90 text-white border-0 px-4 py-2 rounded-full flex items-center space-x-2">
-                  <span className="text-lg">🎯</span>
-                  <span className="font-medium">Travel</span>
-                </Badge>
-              </div>
-            </div>
-
-            {/* Swipe Up Indicator - Bottom */}
-            <div className="flex flex-col items-center mt-8 space-y-2">
-              <div className="text-white/70 text-sm font-medium">👆 Swipe up for more</div>
-              <button
-                onClick={toggleDetailPanel}
-                className="bg-white/20 backdrop-blur-sm rounded-full p-3 swipe-indicator border border-white/30"
-              >
-                {isDetailExpanded ? (
-                  <ChevronDown className="w-6 h-6 text-white" />
-                ) : (
-                  <ChevronUp className="w-6 h-6 text-white animate-bounce" />
-                )}
-              </button>
-            </div>
+        {/* Swipe Up Section - Bottom */}
+        <div className="h-1/5 bg-white border-t border-gray-100 flex flex-col items-center justify-center">
+          <div className="text-center space-y-2">
+            <div className="text-gray-500 text-sm font-medium">Swipe up for more</div>
+            <button
+              onClick={toggleDetailPanel}
+              className="bg-gray-100 hover:bg-gray-200 rounded-full p-2 transition-all"
+            >
+              {isDetailExpanded ? (
+                <ChevronDown className="w-5 h-5 text-gray-600" />
+              ) : (
+                <ChevronUp className="w-5 h-5 text-gray-600 animate-bounce" />
+              )}
+            </button>
           </div>
         </div>
       </Card>
