@@ -223,18 +223,23 @@ const SwipeUpDetailCard: React.FC<SwipeUpDetailCardProps> = ({
               </div>
             </div>
 
-            {/* Swipe Up Indicator */}
-            <div className="flex justify-center mt-4">
+            {/* Swipe Up Indicator - More Prominent */}
+            <div className="flex flex-col items-center mt-6 space-y-2">
+              <div className="text-white/80 text-sm font-medium">Swipe up for details</div>
               <button
                 onClick={toggleDetailPanel}
-                className="bg-white/20 backdrop-blur-sm rounded-full p-2 swipe-indicator pulse-glow"
+                className="bg-gradient-to-r from-pink-500/30 to-purple-500/30 backdrop-blur-sm rounded-full p-3 swipe-indicator pulse-glow border border-white/20 shadow-lg"
               >
                 {isDetailExpanded ? (
-                  <ChevronDown className="w-6 h-6 text-white" />
+                  <ChevronDown className="w-7 h-7 text-white" />
                 ) : (
-                  <ChevronUp className="w-6 h-6 text-white" />
+                  <ChevronUp className="w-7 h-7 text-white animate-bounce" />
                 )}
               </button>
+              <div className="flex space-x-1">
+                <div className="w-8 h-0.5 bg-white/40 rounded-full"></div>
+                <div className="w-4 h-0.5 bg-white/20 rounded-full"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -343,11 +348,15 @@ const SwipeUpDetailCard: React.FC<SwipeUpDetailCardProps> = ({
         </Button>
       </div>
 
-      {/* Swipe Instructions */}
+      {/* Enhanced Swipe Instructions */}
       {!isDetailExpanded && (
-        <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 text-center text-white/60 text-xs">
-          <p className="mb-1">Swipe up to see more details</p>
-          <ChevronUp className="w-4 h-4 mx-auto animate-bounce" />
+        <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 text-center">
+          <div className="bg-black/50 backdrop-blur-sm rounded-full px-4 py-2 border border-white/20">
+            <p className="text-white/90 text-sm font-medium mb-1">👆 Swipe up for more</p>
+            <div className="flex justify-center">
+              <ChevronUp className="w-5 h-5 text-pink-400 animate-bounce" />
+            </div>
+          </div>
         </div>
       )}
     </div>

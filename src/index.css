@@ -676,15 +676,20 @@
     padding-right: env(safe-area-inset-right);
   }
 
-  /* Swipe Up Detail Animations */
+  /* Enhanced Swipe Up Detail Animations */
   .swipe-card {
     transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    background: linear-gradient(135deg, hsl(var(--background) / 0.9), hsl(var(--background) / 0.95));
+    backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--border) / 0.2);
   }
 
   .detail-panel {
-    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    background: linear-gradient(135deg, hsl(var(--background) / 0.98), hsl(var(--card) / 0.95));
+    border: 1px solid hsl(var(--border) / 0.1);
   }
 
   .detail-panel-dragging {
@@ -692,7 +697,24 @@
   }
 
   .swipe-indicator {
-    animation: bounce-gentle 2s infinite;
+    animation: pulse-glow 2s ease-in-out infinite;
+    transition: all 0.3s ease;
+  }
+
+  .swipe-indicator:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 30px rgba(219, 39, 119, 0.4);
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { 
+      box-shadow: 0 0 20px rgba(219, 39, 119, 0.3);
+      transform: scale(1);
+    }
+    50% { 
+      box-shadow: 0 0 40px rgba(219, 39, 119, 0.6);
+      transform: scale(1.05);
+    }
   }
 
   @keyframes bounce-gentle {
@@ -700,24 +722,37 @@
       transform: translateY(0);
     }
     40% {
-      transform: translateY(-8px);
+      transform: translateY(-12px);
     }
     60% {
-      transform: translateY(-4px);
+      transform: translateY(-6px);
     }
   }
 
   .floating-card {
     animation: float 6s ease-in-out infinite;
+    box-shadow: 
+      0 20px 60px rgba(0, 0, 0, 0.3),
+      0 0 40px rgba(219, 39, 119, 0.1);
   }
 
   @keyframes float {
     0%, 100% {
-      transform: translateY(0px);
+      transform: translateY(0px) rotate(0deg);
     }
-    50% {
-      transform: translateY(-10px);
+    33% {
+      transform: translateY(-10px) rotate(0.5deg);
     }
+    66% {
+      transform: translateY(-5px) rotate(-0.5deg);
+    }
+  }
+
+  .text-gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   .pulse-glow {
