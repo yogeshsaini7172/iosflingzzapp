@@ -533,7 +533,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                   </h2>
                   <p className="text-xs md:text-sm opacity-90 flex items-center space-x-1 mb-3">
                     <span>📍</span>
-                    <span>USA, {currentProfile.university || 'California'}</span>
+                    <span>USA, {currentProfile.university || 'University'}</span>
                   </p>
                   
                   {/* Stats */}
@@ -542,14 +542,16 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                       <span>📍</span>
                       <span>2.5km</span>
                     </div>
-                    <div className="bg-gray-600 text-white px-2 py-1 rounded-full text-xs flex items-center space-x-1">
-                      <span>⚖️</span>
-                      <span>55Kg</span>
+                    <div className="bg-purple-600 text-white px-2 py-1 rounded-full text-xs flex items-center space-x-1">
+                      <span>⭐</span>
+                      <span>QCS {currentProfile.total_qcs || 'N/A'}</span>
                     </div>
-                    <div className="bg-gray-600 text-white px-2 py-1 rounded-full text-xs flex items-center space-x-1">
-                      <span>📏</span>
-                      <span>178cm</span>
-                    </div>
+                    {currentProfile.university && (
+                      <div className="bg-blue-600 text-white px-2 py-1 rounded-full text-xs flex items-center space-x-1">
+                        <span>🎓</span>
+                        <span>{currentProfile.university}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -562,55 +564,92 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                 <div>
                   <h3 className="text-base md:text-lg font-bold text-foreground mb-2 md:mb-3">About</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed">
-                    🍃 Hi! When a user passes on a match, the conversation would close for both users and neither can message anymore 😊
+                    {currentProfile.bio || "No bio available yet."}
                   </p>
-                  <p className="text-muted-foreground text-sm leading-relaxed mt-2">
-                    Finally hereafter losing all the hopes of finding the right all. I love Netflix, horses and books!
-                  </p>
+                  {currentProfile.relationship_goals && currentProfile.relationship_goals.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-xs text-muted-foreground mb-2">Looking for:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {currentProfile.relationship_goals.map((goal, index) => (
+                          <span key={index} className="bg-pink-100 text-pink-700 px-2 py-1 rounded-full text-xs">
+                            {goal}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* More Info Section */}
                 <div>
                   <h3 className="text-base md:text-lg font-bold text-foreground mb-2 md:mb-3">More info</h3>
                   <div className="grid grid-cols-2 gap-2">
-                    {[
-                      { icon: "👤", label: "Women" },
-                      { icon: "💃", label: "Ballet dancer" },
-                      { icon: "🎓", label: "Harvard" },
-                      { icon: "🐱", label: "Have cat" },
-                      { icon: "🎯", label: "Hobby" },
-                      { icon: "⭐", label: "I like it!" },
-                      { icon: "🌙", label: "Sometimes" },
-                      { icon: "🍷", label: "Sometimes" }
-                    ].map((item, index) => (
+                    {/* Gender */}
+                    {currentProfile.gender && (
+                      <div className="bg-muted rounded-full px-2 py-1.5 md:px-3 md:py-2 text-xs flex items-center space-x-1.5 md:space-x-2">
+                        <span className="text-sm">👤</span>
+                        <span className="truncate capitalize">{currentProfile.gender}</span>
+                      </div>
+                    )}
+
+                    {/* University */}
+                    {currentProfile.university && (
+                      <div className="bg-muted rounded-full px-2 py-1.5 md:px-3 md:py-2 text-xs flex items-center space-x-1.5 md:space-x-2">
+                        <span className="text-sm">🎓</span>
+                        <span className="truncate">{currentProfile.university}</span>
+                      </div>
+                    )}
+
+                    {/* QCS Score */}
+                    <div className="bg-muted rounded-full px-2 py-1.5 md:px-3 md:py-2 text-xs flex items-center space-x-1.5 md:space-x-2">
+                      <span className="text-sm">⭐</span>
+                      <span className="truncate">QCS {currentProfile.total_qcs || 'N/A'}</span>
+                    </div>
+
+                    {/* Display remaining interests as additional info tags */}
+                    {currentProfile.interests && currentProfile.interests.slice(0, 3).map((interest, index) => (
                       <div key={index} className="bg-muted rounded-full px-2 py-1.5 md:px-3 md:py-2 text-xs flex items-center space-x-1.5 md:space-x-2">
-                        <span className="text-sm">{item.icon}</span>
-                        <span className="truncate">{item.label}</span>
+                        <span className="text-sm">💫</span>
+                        <span className="truncate">{interest}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* Archive Section */}
-                <div className="pb-4">
-                  <h3 className="text-base md:text-lg font-bold text-foreground mb-2 md:mb-3">Archive</h3>
-                  <div className="grid grid-cols-2 gap-2 md:gap-3">
-                    <div className="aspect-square bg-muted rounded-lg md:rounded-xl overflow-hidden">
-                      <img 
-                        src={currentProfile.profile_images?.[1] || currentProfile.profile_images?.[0]} 
-                        alt="Archive" 
-                        className="w-full h-full object-cover" 
-                      />
-                    </div>
-                    <div className="aspect-square bg-muted rounded-lg md:rounded-xl overflow-hidden">
-                      <img 
-                        src={currentProfile.profile_images?.[2] || currentProfile.profile_images?.[0]} 
-                        alt="Archive" 
-                        className="w-full h-full object-cover" 
-                      />
+                {/* Interests Section */}
+                {currentProfile.interests && currentProfile.interests.length > 3 && (
+                  <div>
+                    <h3 className="text-base md:text-lg font-bold text-foreground mb-2 md:mb-3">Interests</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {currentProfile.interests.slice(3).map((interest, index) => (
+                        <span
+                          key={index}
+                          className="bg-gradient-to-r from-primary/10 to-accent/10 text-foreground px-3 py-1.5 rounded-full text-xs font-medium border border-primary/20"
+                        >
+                          {interest}
+                        </span>
+                      ))}
                     </div>
                   </div>
-                </div>
+                )}
+
+                {/* Archive Section - Additional Photos */}
+                {currentProfile.profile_images && currentProfile.profile_images.length > 1 && (
+                  <div className="pb-4">
+                    <h3 className="text-base md:text-lg font-bold text-foreground mb-2 md:mb-3">More Photos</h3>
+                    <div className="grid grid-cols-2 gap-2 md:gap-3">
+                      {currentProfile.profile_images.slice(1, 3).map((image, index) => (
+                        <div key={index} className="aspect-square bg-muted rounded-lg md:rounded-xl overflow-hidden">
+                          <img 
+                            src={image} 
+                            alt={`${currentProfile.first_name} ${index + 2}`}
+                            className="w-full h-full object-cover" 
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
