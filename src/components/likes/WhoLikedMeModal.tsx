@@ -8,7 +8,7 @@ import { Heart, Crown, MapPin, Eye } from "lucide-react";
 import { SubscriptionEnforcementService } from "@/services/subscriptionEnforcement";
 import { useToast } from "@/hooks/use-toast";
 import { useRequiredAuth } from "@/hooks/useRequiredAuth";
-import DetailedProfileModal from '@/components/profile/DetailedProfileModal';
+import DetailedProfileModal from '@/components/profile/DetailedProfileModalNew';
 import { supabase } from '@/integrations/supabase/client';
 
 interface WhoLikedMeModalProps {
@@ -27,6 +27,22 @@ interface UserLike {
   profile_images?: string[];
   bio?: string;
   is_mutual_match: boolean;
+  total_qcs?: number;
+  interests?: string[];
+  values?: string[];
+  mindset?: string[];
+  personality_traits?: string[];
+  body_type?: string;
+  face_type?: string;
+  skin_tone?: string;
+  lifestyle?: string;
+  love_language?: string;
+  height?: number;
+  relationship_goals?: string[];
+  field_of_study?: string;
+  profession?: string;
+  education_level?: string;
+  location?: string;
 }
 
 const WhoLikedMeModal = ({ isOpen, onClose, onLike }: WhoLikedMeModalProps) => {
@@ -381,8 +397,27 @@ const WhoLikedMeModal = ({ isOpen, onClose, onLike }: WhoLikedMeModalProps) => {
             bio: selectedProfile.bio,
             age: selectedProfile.age,
             can_chat: selectedProfile.is_mutual_match,
-            compatibility_score: 85,
-            total_qcs: 425
+            compatibility_score: 85, // Default compatibility score for likes
+            total_qcs: selectedProfile.total_qcs || 425,
+            physical_score: 0, // Will be calculated by compatibility system
+            mental_score: 0, // Will be calculated by compatibility system
+            interests: selectedProfile.interests || [],
+            values: selectedProfile.values || [],
+            mindset: selectedProfile.mindset || [],
+            personality_traits: selectedProfile.personality_traits || [],
+            body_type: selectedProfile.body_type,
+            face_type: selectedProfile.face_type,
+            skin_tone: selectedProfile.skin_tone,
+            lifestyle: selectedProfile.lifestyle,
+            love_language: selectedProfile.love_language,
+            height: selectedProfile.height,
+            relationship_goals: selectedProfile.relationship_goals,
+            field_of_study: selectedProfile.field_of_study || selectedProfile.major,
+            profession: selectedProfile.profession,
+            education_level: selectedProfile.education_level,
+            location: selectedProfile.location,
+            matched_criteria: [],
+            not_matched_criteria: []
           }}
           onSwipe={async (direction) => {
             if (direction === 'right' && !selectedProfile.is_mutual_match) {
@@ -394,6 +429,21 @@ const WhoLikedMeModal = ({ isOpen, onClose, onLike }: WhoLikedMeModalProps) => {
             } else if (direction === 'left') {
               setShowProfileModal(false);
               setSelectedProfile(null);
+            }
+          }}
+          onChatRequest={(userId: string, canChat: boolean) => {
+            if (canChat) {
+              // Navigate to chat or open chat interface
+              toast({
+                title: "Feature Coming Soon",
+                description: "Chat functionality will be available soon!",
+              });
+            } else {
+              toast({
+                title: "Cannot Chat Yet",
+                description: "You need to match first to start chatting!",
+                variant: "destructive"
+              });
             }
           }}
         />
