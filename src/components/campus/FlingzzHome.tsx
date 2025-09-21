@@ -39,6 +39,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showWhoLikedMe, setShowWhoLikedMe] = useState(false);
   const [showDetailedProfile, setShowDetailedProfile] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({});
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [newThreadContent, setNewThreadContent] = useState('');
   
@@ -203,6 +204,13 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
     setIsSwiping(false);
     setTouchStartX(0);
     setTouchCurrentX(0);
+  };
+
+  const toggleSection = (section: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
   };
 
   const getSwipeIndicatorColor = () => {
@@ -580,46 +588,143 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                   )}
                 </div>
 
-                {/* More Info Section */}
+                {/* Who You Are Section */}
                 <div>
-                  <h3 className="text-base md:text-lg font-bold text-foreground mb-2 md:mb-3">Basic info</h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    {/* Gender */}
-                    {currentProfile.gender && (
-                      <div className="bg-muted rounded-full px-2 py-1.5 md:px-3 md:py-2 text-xs flex items-center space-x-1.5 md:space-x-2">
-                        <span className="text-sm">👤</span>
-                        <span className="truncate capitalize">{currentProfile.gender}</span>
-                      </div>
-                    )}
-
-                    {/* University */}
-                    {currentProfile.university && (
-                      <div className="bg-muted rounded-full px-2 py-1.5 md:px-3 md:py-2 text-xs flex items-center space-x-1.5 md:space-x-2">
-                        <span className="text-sm">🎓</span>
-                        <span className="truncate">{currentProfile.university}</span>
-                      </div>
-                    )}
-
-                    {/* QCS Score */}
-                    <div className="bg-muted rounded-full px-2 py-1.5 md:px-3 md:py-2 text-xs flex items-center space-x-1.5 md:space-x-2">
-                      <span className="text-sm">⭐</span>
-                      <span className="truncate">QCS {currentProfile.total_qcs || 'N/A'}</span>
+                  <h3 className="text-base md:text-lg font-bold text-foreground mb-3">Who You Are</h3>
+                  
+                  {/* Basic Information */}
+                  <div className="bg-muted/30 rounded-lg p-3 mb-3">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <span className="text-sm">👤</span>
+                      <h4 className="font-semibold text-sm">Basic Information</h4>
                     </div>
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div>
+                        <span className="text-muted-foreground">Full Name:</span>
+                        <p className="font-medium">{currentProfile.first_name} {currentProfile.last_name}</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Age:</span>
+                        <p className="font-medium">{calculateAge(currentProfile.date_of_birth)}</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">University:</span>
+                        <p className="font-medium">{currentProfile.university || 'Not specified'}</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">QCS Score:</span>
+                        <p className="font-medium">{currentProfile.total_qcs || 'N/A'}</p>
+                      </div>
+                    </div>
+                  </div>
 
-                    {/* Age */}
-                    <div className="bg-muted rounded-full px-2 py-1.5 md:px-3 md:py-2 text-xs flex items-center space-x-1.5 md:space-x-2">
-                      <span className="text-sm">🎂</span>
-                      <span className="truncate">{calculateAge(currentProfile.date_of_birth)} years old</span>
+                  {/* Physical & Appearance - Expandable */}
+                  <div className="bg-muted/30 rounded-lg mb-3">
+                    <button 
+                      onClick={() => toggleSection('physical')}
+                      className="w-full p-3 flex items-center justify-between hover:bg-muted/50 rounded-lg transition-colors"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm">💪</span>
+                        <h4 className="font-semibold text-sm">Physical & Appearance</h4>
+                      </div>
+                      <span className={`text-sm transition-transform ${expandedSections.physical ? 'rotate-180' : ''}`}>
+                        ▼
+                      </span>
+                    </button>
+                    {expandedSections.physical && (
+                      <div className="px-3 pb-3 text-xs space-y-2">
+                        {currentProfile.gender && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Gender:</span>
+                            <span className="font-medium capitalize">{currentProfile.gender}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Height:</span>
+                          <span className="font-medium">Not specified</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Body Type:</span>
+                          <span className="font-medium">Not specified</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Face Type:</span>
+                          <span className="font-medium">Not specified</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Personality & Lifestyle - Expandable */}
+                  <div className="bg-muted/30 rounded-lg mb-3">
+                    <button 
+                      onClick={() => toggleSection('personality')}
+                      className="w-full p-3 flex items-center justify-between hover:bg-muted/50 rounded-lg transition-colors"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm">🧠</span>
+                        <h4 className="font-semibold text-sm">Personality & Lifestyle</h4>
+                      </div>
+                      <span className={`text-sm transition-transform ${expandedSections.personality ? 'rotate-180' : ''}`}>
+                        ▼
+                      </span>
+                    </button>
+                    {expandedSections.personality && (
+                      <div className="px-3 pb-3 text-xs space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Personality Type:</span>
+                          <span className="font-medium">Not specified</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Lifestyle:</span>
+                          <span className="font-medium">Not specified</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Values:</span>
+                          <span className="font-medium">Not specified</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Love Language:</span>
+                          <span className="font-medium">Not specified</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Humor Style:</span>
+                          <span className="font-medium">Not specified</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Compatibility Analysis */}
+                  <div className="bg-muted/30 rounded-lg p-3">
+                    <div className="flex items-center space-x-2 mb-3">
+                      <span className="text-sm">⚡</span>
+                      <h4 className="font-semibold text-sm">Compatibility Analysis</h4>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      <div>
+                        <div className="text-lg font-bold text-purple-600">75%</div>
+                        <div className="text-xs text-muted-foreground">Overall Match</div>
+                      </div>
+                      <div>
+                        <div className="text-lg font-bold text-green-600">75%</div>
+                        <div className="text-xs text-muted-foreground">Physical</div>
+                      </div>
+                      <div>
+                        <div className="text-lg font-bold text-blue-600">75%</div>
+                        <div className="text-xs text-muted-foreground">Mental</div>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Interests Section */}
-                {currentProfile.interests && currentProfile.interests.length > 3 && (
+                {currentProfile.interests && currentProfile.interests.length > 0 && (
                   <div>
                     <h3 className="text-base md:text-lg font-bold text-foreground mb-2 md:mb-3">Interests</h3>
                     <div className="flex flex-wrap gap-2">
-                      {currentProfile.interests.slice(3).map((interest, index) => (
+                      {currentProfile.interests.map((interest, index) => (
                         <span
                           key={index}
                           className="bg-gradient-to-r from-primary/10 to-accent/10 text-foreground px-3 py-1.5 rounded-full text-xs font-medium border border-primary/20"
@@ -631,19 +736,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                   </div>
                 )}
 
-                {/* Future Personality Section */}
-                <div>
-                  <h3 className="text-base md:text-lg font-bold text-foreground mb-2 md:mb-3">Who You Are</h3>
-                  <div className="text-xs text-muted-foreground bg-muted/30 rounded-lg p-3">
-                    <p className="mb-1 flex items-center space-x-1">
-                      <span>💡</span>
-                      <strong>Personality & Lifestyle Details</strong>
-                    </p>
-                    <p>Personality type, lifestyle preferences, values, love language, and other "Who You Are" details will be displayed here when the full profile data is available.</p>
-                  </div>
-                </div>
-
-                {/* Archive Section - Additional Photos */}
+                {/* Additional Photos */}
                 {currentProfile.profile_images && currentProfile.profile_images.length > 1 && (
                   <div className="pb-4">
                     <h3 className="text-base md:text-lg font-bold text-foreground mb-2 md:mb-3">More Photos</h3>
