@@ -1,4 +1,4 @@
-import EnhancedSwipeInterface from '@/components/swipe/EnhancedSwipeInterface';
+import SwipeUpInterface from '@/components/swipe/SwipeUpInterface';
 import UnifiedLayout from '@/components/layout/UnifiedLayout';
 
 interface SwipePageProps {
@@ -8,7 +8,7 @@ interface SwipePageProps {
 const SwipePage = ({ onNavigate }: SwipePageProps) => {
   return (
     <UnifiedLayout title="Swipe" showHeader={false}>
-      <EnhancedSwipeInterface onNavigate={onNavigate} />
+      <SwipeUpInterface onNavigate={onNavigate} />
     </UnifiedLayout>
   );
 };
