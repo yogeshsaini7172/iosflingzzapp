@@ -495,104 +495,120 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
 
       {/* Detailed Profile Modal */}
       {showDetailedProfile && currentProfile && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end">
-          <div className="w-full bg-card rounded-t-3xl max-h-[90vh] overflow-hidden animate-fade-in">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end md:items-center md:justify-center">
+          <div className="w-full md:w-[420px] md:max-w-[90vw] bg-card rounded-t-3xl md:rounded-3xl max-h-[95vh] md:max-h-[90vh] overflow-hidden animate-fade-in">
             {/* Header */}
             <div className="relative">
               <img
                 src={currentProfile.profile_images?.[0] || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=600&fit=crop&crop=face'}
                 alt={currentProfile.first_name}
-                className="w-full h-64 object-cover"
+                className="w-full h-48 md:h-64 object-cover"
               />
-              <div className="absolute top-4 left-4">
+              
+              {/* Close Button - Better mobile positioning */}
+              <div className="absolute top-3 left-3 md:top-4 md:left-4">
                 <button
                   onClick={() => setShowDetailedProfile(false)}
-                  className="w-10 h-10 bg-black/30 rounded-full flex items-center justify-center backdrop-blur-sm text-white"
+                  className="w-9 h-9 md:w-10 md:h-10 bg-black/40 rounded-full flex items-center justify-center backdrop-blur-sm text-white border border-white/20"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4 md:w-5 md:h-5" />
                 </button>
               </div>
-              <div className="absolute top-4 right-4">
-                <div className="bg-amber-500 text-white px-3 py-1 rounded-full text-xs font-bold">
-                  ⭐ PREMIUM
+              
+              {/* Premium Badge */}
+              <div className="absolute top-3 right-3 md:top-4 md:right-4">
+                <div className="bg-amber-500 text-white px-2 py-1 md:px-3 md:py-1 rounded-full text-xs font-bold flex items-center space-x-1">
+                  <span>⭐</span>
+                  <span>PREMIUM</span>
                 </div>
               </div>
               
               {/* Profile Info Overlay */}
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
-                <div className="flex items-center justify-between text-white">
-                  <div>
-                    <h2 className="text-2xl font-bold mb-1">
-                      {currentProfile.first_name} {calculateAge(currentProfile.date_of_birth)} ♡
-                    </h2>
-                    <p className="text-sm opacity-90 flex items-center space-x-1">
-                      <span>📍</span>
-                      <span>USA, {currentProfile.university || 'California'}</span>
-                    </p>
-                  </div>
-                </div>
-                
-                {/* Stats */}
-                <div className="flex space-x-4 mt-4">
-                  <div className="bg-red-500 text-white px-2 py-1 rounded-full text-xs flex items-center space-x-1">
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-4 md:p-6">
+                <div className="text-white">
+                  <h2 className="text-xl md:text-2xl font-bold mb-1 flex items-center space-x-2">
+                    <span>{currentProfile.first_name}</span>
+                    <span className="text-lg md:text-xl">{calculateAge(currentProfile.date_of_birth)}</span>
+                    <span className="text-red-400">♡</span>
+                  </h2>
+                  <p className="text-xs md:text-sm opacity-90 flex items-center space-x-1 mb-3">
                     <span>📍</span>
-                    <span>2.5km</span>
-                  </div>
-                  <div className="bg-gray-600 text-white px-2 py-1 rounded-full text-xs flex items-center space-x-1">
-                    <span>⚖️</span>
-                    <span>55Kg</span>
-                  </div>
-                  <div className="bg-gray-600 text-white px-2 py-1 rounded-full text-xs flex items-center space-x-1">
-                    <span>📏</span>
-                    <span>178cm</span>
+                    <span>USA, {currentProfile.university || 'California'}</span>
+                  </p>
+                  
+                  {/* Stats */}
+                  <div className="flex flex-wrap gap-2">
+                    <div className="bg-red-500 text-white px-2 py-1 rounded-full text-xs flex items-center space-x-1">
+                      <span>📍</span>
+                      <span>2.5km</span>
+                    </div>
+                    <div className="bg-gray-600 text-white px-2 py-1 rounded-full text-xs flex items-center space-x-1">
+                      <span>⚖️</span>
+                      <span>55Kg</span>
+                    </div>
+                    <div className="bg-gray-600 text-white px-2 py-1 rounded-full text-xs flex items-center space-x-1">
+                      <span>📏</span>
+                      <span>178cm</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Content */}
-            <div className="p-6 space-y-6">
-              {/* About Section */}
-              <div>
-                <h3 className="text-lg font-bold text-foreground mb-3">About</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  🍃 Hi! When a user passes on a match, the conversation would close for both users and neither can message anymore 😊
-                  <br /><br />
-                  Finally hereafter losing all the hopes of finding the right all. I love Netflix, horses and books!
-                </p>
-              </div>
-
-              {/* More Info Section */}
-              <div>
-                <h3 className="text-lg font-bold text-foreground mb-3">More info</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { icon: "👤", label: "Women" },
-                    { icon: "💃", label: "Ballet dancer" },
-                    { icon: "🎓", label: "Harvard" },
-                    { icon: "🐱", label: "Have cat" },
-                    { icon: "🎯", label: "Hobby" },
-                    { icon: "⭐", label: "I like it!" },
-                    { icon: "🌙", label: "Sometimes" },
-                    { icon: "🍷", label: "Sometimes" }
-                  ].map((item, index) => (
-                    <div key={index} className="bg-muted rounded-full px-3 py-2 text-xs flex items-center space-x-2">
-                      <span>{item.icon}</span>
-                      <span>{item.label}</span>
-                    </div>
-                  ))}
+            {/* Scrollable Content */}
+            <div className="overflow-y-auto max-h-[calc(95vh-12rem)] md:max-h-[calc(90vh-16rem)]">
+              <div className="p-4 md:p-6 space-y-5 md:space-y-6">
+                {/* About Section */}
+                <div>
+                  <h3 className="text-base md:text-lg font-bold text-foreground mb-2 md:mb-3">About</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    🍃 Hi! When a user passes on a match, the conversation would close for both users and neither can message anymore 😊
+                  </p>
+                  <p className="text-muted-foreground text-sm leading-relaxed mt-2">
+                    Finally hereafter losing all the hopes of finding the right all. I love Netflix, horses and books!
+                  </p>
                 </div>
-              </div>
 
-              {/* Archive Section */}
-              <div>
-                <h3 className="text-lg font-bold text-foreground mb-3">Archive</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="aspect-square bg-muted rounded-xl overflow-hidden">
-                    <img src={currentProfile.profile_images?.[1] || currentProfile.profile_images?.[0]} alt="Archive" className="w-full h-full object-cover" />
+                {/* More Info Section */}
+                <div>
+                  <h3 className="text-base md:text-lg font-bold text-foreground mb-2 md:mb-3">More info</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { icon: "👤", label: "Women" },
+                      { icon: "💃", label: "Ballet dancer" },
+                      { icon: "🎓", label: "Harvard" },
+                      { icon: "🐱", label: "Have cat" },
+                      { icon: "🎯", label: "Hobby" },
+                      { icon: "⭐", label: "I like it!" },
+                      { icon: "🌙", label: "Sometimes" },
+                      { icon: "🍷", label: "Sometimes" }
+                    ].map((item, index) => (
+                      <div key={index} className="bg-muted rounded-full px-2 py-1.5 md:px-3 md:py-2 text-xs flex items-center space-x-1.5 md:space-x-2">
+                        <span className="text-sm">{item.icon}</span>
+                        <span className="truncate">{item.label}</span>
+                      </div>
+                    ))}
                   </div>
-                  <div className="aspect-square bg-muted rounded-xl overflow-hidden">
-                    <img src={currentProfile.profile_images?.[2] || currentProfile.profile_images?.[0]} alt="Archive" className="w-full h-full object-cover" />
+                </div>
+
+                {/* Archive Section */}
+                <div className="pb-4">
+                  <h3 className="text-base md:text-lg font-bold text-foreground mb-2 md:mb-3">Archive</h3>
+                  <div className="grid grid-cols-2 gap-2 md:gap-3">
+                    <div className="aspect-square bg-muted rounded-lg md:rounded-xl overflow-hidden">
+                      <img 
+                        src={currentProfile.profile_images?.[1] || currentProfile.profile_images?.[0]} 
+                        alt="Archive" 
+                        className="w-full h-full object-cover" 
+                      />
+                    </div>
+                    <div className="aspect-square bg-muted rounded-lg md:rounded-xl overflow-hidden">
+                      <img 
+                        src={currentProfile.profile_images?.[2] || currentProfile.profile_images?.[0]} 
+                        alt="Archive" 
+                        className="w-full h-full object-cover" 
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
