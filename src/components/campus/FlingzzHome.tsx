@@ -5,6 +5,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
 import {
   Heart,
@@ -17,7 +23,10 @@ import {
   MessageCircle,
   Plus,
   Flame,
-  Zap
+  Zap,
+  MoreVertical,
+  Edit,
+  Trash2
 } from "lucide-react";
 import { useProfilesFeed } from '@/hooks/useProfilesFeed';
 import { useToast } from '@/hooks/use-toast';
@@ -42,6 +51,9 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
   const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({});
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [newThreadContent, setNewThreadContent] = useState('');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingThread, setEditingThread] = useState<{id: string, content: string} | null>(null);
+  const [editContent, setEditContent] = useState('');
   
   const [touchStartX, setTouchStartX] = useState(0);
   const [touchCurrentX, setTouchCurrentX] = useState(0);
@@ -50,7 +62,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
   
   const { toast } = useToast();
   const { user } = useAuth();
-  const { threads, createThread } = useThreads();
+  const { threads, createThread, deleteThread, updateThread } = useThreads();
 
   // Set up realtime listeners
   const userId = user?.uid;
@@ -267,7 +279,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
             <div className="flex items-center space-x-2">
               <Dialog open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
+                  <Button size="sm" className="h-6 px-2 text-xs bg-pink-500 hover:bg-pink-600 text-white border border-pink-400 rounded-md">
                     <Plus className="w-3 h-3 mr-1" />
                     Post
                   </Button>
@@ -307,7 +319,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                   </div>
                 </DialogContent>
               </Dialog>
-              <Button variant="ghost" size="sm" onClick={() => onNavigate('feed')} className="h-6 px-2 text-xs">
+              <Button size="sm" onClick={() => onNavigate('feed')} className="h-6 px-2 text-xs bg-pink-500 hover:bg-pink-600 text-white border border-pink-400 rounded-md">
                 All
               </Button>
             </div>
@@ -316,7 +328,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
             {threads.slice(0, 5).map((thread) => (
               <div
                 key={thread.id}
-                className="flex-shrink-0 bg-gradient-to-r from-primary/10 to-accent/10 rounded-full px-3 py-1 border border-primary/20"
+                className="flex-shrink-0 bg-gradient-to-r from-primary/10 to-accent/10 rounded-full px-3 py-1 border border-primary/20 relative group"
               >
                 <div className="flex items-center space-x-2">
                   <Avatar className="w-5 h-5">
@@ -325,12 +337,55 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                       <User className="w-3 h-3" />
                     </AvatarFallback>
                   </Avatar>
-                  <p className="text-xs text-foreground font-medium">
-                    {thread.author?.first_name || 'Anonymous'}
+                  <p className={`text-xs font-medium ${
+                    thread.user_id === user?.uid
+                      ? 'text-pink-500'
+                      : 'text-foreground'
+                  }`}>
+                    {thread.user_id === user?.uid
+                      ? 'you'
+                      : (thread.author?.first_name || 'Anonymous')
+                    }
                   </p>
                   <p className="text-xs text-muted-foreground max-w-[100px] truncate">
                     {thread.content}
                   </p>
+                  {/* Dropdown Menu */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-white/20 rounded-full">
+                        <MoreVertical className="w-3 h-3 text-foreground" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-32">
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setEditingThread({ id: thread.id, content: thread.content });
+                          setEditContent(thread.content);
+                          setIsEditModalOpen(true);
+                        }}
+                        className="text-xs"
+                      >
+                        <Edit className="w-3 h-3 mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={async () => {
+                          const success = await deleteThread(thread.id);
+                          if (success) {
+                            toast({
+                              title: "Thread deleted! 🗑️",
+                              description: "Your thread has been removed.",
+                            });
+                          }
+                        }}
+                        className="text-xs text-red-600"
+                      >
+                        <Trash2 className="w-3 h-3 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
             ))}
@@ -642,15 +697,21 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                         )}
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Height:</span>
-                          <span className="font-medium">Not specified</span>
+                          <span className="font-medium">
+                            {currentProfile.height ? `${currentProfile.height}cm` : 'Not specified'}
+                          </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Body Type:</span>
-                          <span className="font-medium">Not specified</span>
+                          <span className="font-medium capitalize">
+                            {currentProfile.body_type || 'Not specified'}
+                          </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Face Type:</span>
-                          <span className="font-medium">Not specified</span>
+                          <span className="font-medium capitalize">
+                            {currentProfile.face_type || 'Not specified'}
+                          </span>
                         </div>
                       </div>
                     )}
@@ -674,48 +735,73 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                       <div className="px-3 pb-3 text-xs space-y-2">
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Personality Type:</span>
-                          <span className="font-medium">Not specified</span>
+                          <span className="font-medium capitalize">
+                            {currentProfile.personality_type || 'Not specified'}
+                          </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Lifestyle:</span>
-                          <span className="font-medium">Not specified</span>
+                          <span className="font-medium capitalize">
+                            {currentProfile.lifestyle || 'Not specified'}
+                          </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Values:</span>
-                          <span className="font-medium">Not specified</span>
+                          <span className="font-medium">
+                            {currentProfile.values && Array.isArray(currentProfile.values) && currentProfile.values.length > 0
+                              ? currentProfile.values.join(', ')
+                              : 'Not specified'
+                            }
+                          </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Love Language:</span>
-                          <span className="font-medium">Not specified</span>
+                          <span className="font-medium capitalize">
+                            {currentProfile.love_language || 'Not specified'}
+                          </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Humor Style:</span>
-                          <span className="font-medium">Not specified</span>
+                          <span className="font-medium capitalize">
+                            {currentProfile.humor_type || 'Not specified'}
+                          </span>
                         </div>
                       </div>
                     )}
                   </div>
 
-                  {/* Compatibility Analysis */}
-                  <div className="bg-muted/30 rounded-lg p-3">
-                    <div className="flex items-center space-x-2 mb-3">
-                      <span className="text-sm">⚡</span>
-                      <h4 className="font-semibold text-sm">Compatibility Analysis</h4>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4 text-center">
-                      <div>
-                        <div className="text-lg font-bold text-purple-600">75%</div>
-                        <div className="text-xs text-muted-foreground">Overall Match</div>
+                  {/* Compatibility Analysis - Expandable */}
+                  <div className="bg-muted/30 rounded-lg mb-3">
+                    <button
+                      onClick={() => toggleSection('compatibility')}
+                      className="w-full p-3 flex items-center justify-between hover:bg-muted/50 rounded-lg transition-colors"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm">⚡</span>
+                        <h4 className="font-semibold text-sm">Compatibility Analysis</h4>
                       </div>
-                      <div>
-                        <div className="text-lg font-bold text-green-600">75%</div>
-                        <div className="text-xs text-muted-foreground">Physical</div>
+                      <span className={`text-sm transition-transform ${expandedSections.compatibility ? 'rotate-180' : ''}`}>
+                        ▼
+                      </span>
+                    </button>
+                    {expandedSections.compatibility && (
+                      <div className="px-3 pb-3">
+                        <div className="grid grid-cols-3 gap-4 text-center">
+                          <div>
+                            <div className="text-lg font-bold text-purple-600">75%</div>
+                            <div className="text-xs text-muted-foreground">Overall Match</div>
+                          </div>
+                          <div>
+                            <div className="text-lg font-bold text-green-600">75%</div>
+                            <div className="text-xs text-muted-foreground">Physical</div>
+                          </div>
+                          <div>
+                            <div className="text-lg font-bold text-blue-600">75%</div>
+                            <div className="text-xs text-muted-foreground">Mental</div>
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="text-lg font-bold text-blue-600">75%</div>
-                        <div className="text-xs text-muted-foreground">Mental</div>
-                      </div>
-                    </div>
+                    )}
                   </div>
                 </div>
 
@@ -759,9 +845,63 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
         </div>
       )}
 
-      <WhoLikedMeModal 
-        isOpen={showWhoLikedMe} 
-        onClose={() => setShowWhoLikedMe(false)} 
+      {/* Edit Thread Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Edit className="w-5 h-5" />
+              <span>Edit Thread</span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-thread-content">Update your thoughts</Label>
+              <Textarea
+                id="edit-thread-content"
+                placeholder="Share something interesting with the community..."
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className="min-h-[120px] resize-none"
+                maxLength={280}
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Be authentic, be you ✨</span>
+                <span>{editContent.length}/280</span>
+              </div>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => {
+                setIsEditModalOpen(false);
+                setEditingThread(null);
+                setEditContent('');
+              }}>
+                Cancel
+              </Button>
+              <Button
+                onClick={async () => {
+                  if (!editingThread || !editContent.trim()) return;
+
+                  const success = await updateThread(editingThread.id, editContent);
+                  if (success) {
+                    setIsEditModalOpen(false);
+                    setEditingThread(null);
+                    setEditContent('');
+                  }
+                }}
+                disabled={!editContent.trim()}
+              >
+                <Send className="w-4 h-4 mr-2" />
+                Update
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <WhoLikedMeModal
+        isOpen={showWhoLikedMe}
+        onClose={() => setShowWhoLikedMe(false)}
         onLike={() => {}}
       />
     </UnifiedLayout>

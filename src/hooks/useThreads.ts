@@ -114,18 +114,18 @@ export const useThreads = () => {
       return false;
     }
 
-    // Check if user already has a thread from today
-    const userThreadsToday = threads.filter(thread => {
+    // Check if user already has a thread within the last 24 hours
+    const userThreadsLast24h = threads.filter(thread => {
       if (thread.user_id !== userId) return false;
       const threadDate = new Date(thread.created_at);
-      const today = new Date();
-      return threadDate.toDateString() === today.toDateString();
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      return threadDate > twentyFourHoursAgo;
     });
 
-    if (userThreadsToday.length > 0) {
+    if (userThreadsLast24h.length > 0) {
       toast({
-        title: "One Thread Per Day",
-        description: "You can only post one thread per day. Delete your current thread to post a new one.",
+        title: "One Thread Per 24 Hours",
+        description: "You can only post one thread every 24 hours. Delete your current thread to post a new one.",
         variant: "destructive"
       });
       return false;
@@ -165,7 +165,7 @@ export const useThreads = () => {
         } else if (response.status === 400) {
           errorMessage = 'Invalid thread content. Please check your message.';
         } else if (response.status === 409 && parsedError.code === 'ONE_THREAD_PER_DAY') {
-          errorMessage = 'You can only post one thread per day. Delete your current thread to post a new one.';
+          errorMessage = 'You can only post one thread every 24 hours. Delete your current thread to post a new one.';
         }
         
         toast({

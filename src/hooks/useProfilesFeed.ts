@@ -15,6 +15,14 @@ export interface FeedProfile {
   bio?: string;
   total_qcs?: number;
   gender?: string;
+  height?: number;
+  body_type?: string;
+  face_type?: string;
+  personality_type?: string;
+  lifestyle?: string;
+  values?: string[];
+  love_language?: string;
+  humor_type?: string;
   interests?: string[];
   relationship_goals?: string[];
 }
