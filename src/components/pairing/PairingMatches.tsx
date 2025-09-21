@@ -25,6 +25,15 @@ interface PairingMatch {
   gender?: string;
   interests?: string[];
   relationship_goals?: string[];
+  height?: number;
+  body_type?: string;
+  skin_tone?: string;
+  personality_traits?: string[];
+  values?: string[];
+  mindset?: string[];
+  education_level?: string;
+  profession?: string;
+  personality_type?: string;
 }
 
 interface PairingMatchesProps {
@@ -77,7 +86,16 @@ const PairingMatches: React.FC<PairingMatchesProps> = ({ userId }) => {
               date_of_birth: fromFeed?.date_of_birth,
               gender: fromFeed?.gender,
               interests: fromFeed?.interests,
-              relationship_goals: fromFeed?.relationship_goals
+              relationship_goals: fromFeed?.relationship_goals,
+              height: fromFeed?.height,
+              body_type: fromFeed?.body_type,
+              skin_tone: fromFeed?.skin_tone,
+              personality_traits: fromFeed?.personality_traits,
+              values: fromFeed?.values,
+              mindset: fromFeed?.mindset,
+              education_level: fromFeed?.education_level,
+              profession: fromFeed?.profession,
+              personality_type: fromFeed?.personality_type
             };
           });
           setMatches(enriched);
@@ -285,79 +303,163 @@ const PairingMatches: React.FC<PairingMatchesProps> = ({ userId }) => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4">
+          <div className="grid gap-6">
             {matches.map((match) => (
-              <Card key={match.user_id} className="border-l-4 border-l-primary">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <Avatar className="w-16 h-16 flex-shrink-0">
-                      <AvatarImage 
-                        src={match.profile_images?.[0] || `https://api.dicebear.com/7.x/avataaars/svg?seed=${match.user_id}`} 
-                        alt={match.first_name} 
+              <Card key={match.user_id} className="overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-background to-muted/30">
+                <CardContent className="p-0">
+                  <div className="flex items-start gap-0">
+                    {/* Profile Image Section */}
+                    <div className="relative w-32 h-40 flex-shrink-0">
+                      <img
+                        src={match.profile_images?.[0] || `https://api.dicebear.com/7.x/avataaars/svg?seed=${match.user_id}`}
+                        alt={match.first_name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400';
+                        }}
                       />
-                      <AvatarFallback>
-                        {match.first_name[0]}{match.last_name?.[0] || ''}
-                      </AvatarFallback>
-                    </Avatar>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-xl font-bold">
-                          {match.first_name} {match.last_name || ''}
-                        </h3>
-                        <div className="flex items-center gap-2">
-                          <Badge 
-                            variant={
-                              (match.compatibility_score || 0) >= 80 ? "default" : 
-                              (match.compatibility_score || 0) >= 60 ? "secondary" : "outline"
-                            }
-                          >
-                            {match.compatibility_score || 0}% Compatible
-                          </Badge>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreVertical className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                              <DropdownMenuItem onClick={() => handleInteraction(match.user_id, 'ghost')}>
-                                <Ghost className="w-4 h-4 mr-2" />
-                                Ghost for 30 days
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleInteraction(match.user_id, 'bench')}>
-                                <UserMinus className="w-4 h-4 mr-2" />
-                                Move to Bench
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
+                      
+                      {/* Compatibility Badge - Positioned over image */}
+                      <div className="absolute top-3 right-3">
+                        <Badge 
+                          className={`text-xs font-bold border-0 ${
+                            (match.compatibility_score || 0) >= 80 
+                              ? 'bg-green-500 text-white' : 
+                            (match.compatibility_score || 0) >= 70 
+                              ? 'bg-emerald-500 text-white' : 
+                            (match.compatibility_score || 0) >= 60 
+                              ? 'bg-yellow-500 text-black' : 'bg-gray-500 text-white'
+                          }`}
+                        >
+                          {match.compatibility_score || 0}%
+                        </Badge>
                       </div>
 
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-                        <div className="flex items-center gap-1">
-                          <GraduationCap className="w-4 h-4" />
-                          {match.university || 'University'}
+                      {/* QCS Score Badge */}
+                      {match.total_qcs && (
+                        <div className="absolute bottom-3 left-3">
+                          <Badge className="bg-black/70 text-white border-0 text-xs">
+                            <Star className="w-3 h-3 mr-1" />
+                            QCS: {match.total_qcs}
+                          </Badge>
                         </div>
-                        {match.total_qcs && (
-                          <div className="flex items-center gap-1">
-                            <Star className="w-4 h-4" />
-                            {match.total_qcs} QCS
-                          </div>
-                        )}
+                      )}
+
+                      {/* Photo Count Indicator */}
+                      {match.profile_images && match.profile_images.length > 1 && (
+                        <div className="absolute bottom-3 right-3">
+                          <Badge className="bg-black/70 text-white border-0 text-xs">
+                            📸 {match.profile_images.length}
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Content Section */}
+                    <div className="flex-1 p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-xl font-bold text-foreground">
+                          {match.first_name} {match.last_name || ''}
+                          {match.date_of_birth && (
+                            <span className="text-base font-normal text-muted-foreground ml-1">
+                              , {calculateAge(match.date_of_birth)}
+                            </span>
+                          )}
+                        </h3>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem onClick={() => handleInteraction(match.user_id, 'ghost')}>
+                              <Ghost className="w-4 h-4 mr-2" />
+                              Ghost for 30 days
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleInteraction(match.user_id, 'bench')}>
+                              <UserMinus className="w-4 h-4 mr-2" />
+                              Move to Bench
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                        <GraduationCap className="w-4 h-4" />
+                        <span>{match.university || 'University'}</span>
                       </div>
 
                       {match.bio && (
-                        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                           {match.bio}
                         </p>
                       )}
 
+                      {/* Physical & Mental Scores */}
+                      <div className="grid grid-cols-2 gap-3 mb-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs">💪</span>
+                          <div className="text-xs">
+                            <div className="text-muted-foreground">Physical:</div>
+                            <div className="font-bold text-foreground">75%</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs">🧠</span>
+                          <div className="text-xs">
+                            <div className="text-muted-foreground">Mental:</div>
+                            <div className="font-bold text-foreground">75%</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Attribute Tags */}
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {match.height && (
+                          <Badge variant="secondary" className="text-xs px-2 py-1">
+                            {match.height}cm
+                          </Badge>
+                        )}
+                        {match.body_type && (
+                          <Badge variant="secondary" className="text-xs px-2 py-1">
+                            {match.body_type}
+                          </Badge>
+                        )}
+                        {match.skin_tone && (
+                          <Badge variant="secondary" className="text-xs px-2 py-1">
+                            {match.skin_tone}
+                          </Badge>
+                        )}
+                        {match.personality_type && (
+                          <Badge variant="outline" className="text-xs px-2 py-1 border-primary/30">
+                            {match.personality_type}
+                          </Badge>
+                        )}
+                        {match.values && match.values.length > 0 && (
+                          <Badge variant="outline" className="text-xs px-2 py-1 border-emerald-300">
+                            {match.values[0]}
+                          </Badge>
+                        )}
+                        {match.mindset && match.mindset.length > 0 && (
+                          <Badge variant="outline" className="text-xs px-2 py-1 border-purple-300">
+                            {match.mindset[0]}
+                          </Badge>
+                        )}
+                        {match.relationship_goals && match.relationship_goals.length > 0 && (
+                          <Badge className="text-xs px-2 py-1 bg-pink-100 text-pink-800 border-0">
+                            {match.relationship_goals[0]}
+                          </Badge>
+                        )}
+                      </div>
+
+                      {/* Action Buttons */}
                       <div className="flex gap-2">
                         <Button 
                           onClick={() => handleViewProfile(match)}
                           variant="outline"
                           size="sm"
+                          className="flex-1"
                         >
                           <Eye className="w-4 h-4 mr-2" />
                           View Profile
@@ -365,7 +467,7 @@ const PairingMatches: React.FC<PairingMatchesProps> = ({ userId }) => {
                         {match.can_chat ? (
                           <Button 
                             onClick={() => handleChatAction(match.user_id, true)}
-                            className="bg-gradient-primary"
+                            className="flex-1 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white border-0"
                           >
                             <MessageCircle className="w-4 h-4 mr-2" />
                             Chat Now
@@ -374,9 +476,10 @@ const PairingMatches: React.FC<PairingMatchesProps> = ({ userId }) => {
                           <Button 
                             onClick={() => handleChatAction(match.user_id, false)}
                             variant="outline"
+                            className="flex-1"
                           >
                             <Heart className="w-4 h-4 mr-2" />
-                            Send Request
+                            Chat Request
                           </Button>
                         )}
                       </div>
@@ -467,17 +570,23 @@ const PairingMatches: React.FC<PairingMatchesProps> = ({ userId }) => {
                         <span className="font-medium capitalize">{selectedProfile.gender}</span>
                       </div>
                     )}
+                    {selectedProfile.date_of_birth && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Age:</span>
+                        <span className="font-medium">{calculateAge(selectedProfile.date_of_birth)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Height:</span>
-                      <span className="font-medium">Not specified</span>
+                      <span className="font-medium">{selectedProfile.height ? `${selectedProfile.height} cm` : 'Not specified'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Body Type:</span>
-                      <span className="font-medium">Not specified</span>
+                      <span className="font-medium">{selectedProfile.body_type || 'Not specified'}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Face Type:</span>
-                      <span className="font-medium">Not specified</span>
+                      <span className="text-muted-foreground">Skin Tone:</span>
+                      <span className="font-medium">{selectedProfile.skin_tone || 'Not specified'}</span>
                     </div>
                   </div>
                 )}
@@ -501,23 +610,33 @@ const PairingMatches: React.FC<PairingMatchesProps> = ({ userId }) => {
                   <div className="px-3 pb-3 text-xs space-y-2">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Personality Type:</span>
-                      <span className="font-medium">Not specified</span>
+                      <span className="font-medium">{selectedProfile.personality_type || 'Not specified'}</span>
+                    </div>
+                    {selectedProfile.personality_traits && selectedProfile.personality_traits.length > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Personality Traits:</span>
+                        <span className="font-medium">{selectedProfile.personality_traits.join(', ')}</span>
+                      </div>
+                    )}
+                    {selectedProfile.values && selectedProfile.values.length > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Values:</span>
+                        <span className="font-medium">{selectedProfile.values.join(', ')}</span>
+                      </div>
+                    )}
+                    {selectedProfile.mindset && selectedProfile.mindset.length > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Mindset:</span>
+                        <span className="font-medium">{selectedProfile.mindset.join(', ')}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Education Level:</span>
+                      <span className="font-medium">{selectedProfile.education_level || 'Not specified'}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Lifestyle:</span>
-                      <span className="font-medium">Not specified</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Values:</span>
-                      <span className="font-medium">Not specified</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Love Language:</span>
-                      <span className="font-medium">Not specified</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Humor Style:</span>
-                      <span className="font-medium">Not specified</span>
+                      <span className="text-muted-foreground">Profession:</span>
+                      <span className="font-medium">{selectedProfile.profession || 'Not specified'}</span>
                     </div>
                   </div>
                 )}
