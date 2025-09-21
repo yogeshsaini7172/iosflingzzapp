@@ -726,52 +726,130 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
               </Button>
             </div>
           </div>
-        ) : (
-          <div className="max-w-sm mx-auto space-y-4">
-            {/* Profile Card */}
-             {currentProfile ? (
-  <div
-    onTouchStart={handleTouchStart}
-    onTouchMove={handleTouchMove}
-    onTouchEnd={handleTouchEnd}
-    style={{
-      transform: isSwiping ? `translateX(${touchCurrentX - touchStartX}px)` : 'translateX(0)',
-      transition: isSwiping ? 'none' : 'transform 0.3s ease-out'
-    }}
-  >
-    <TinderProfileCard
-      profile={transformProfileForTinderCard(currentProfile)}
-      onLike={() => handleSwipe('right')}
-      onDislike={() => handleSwipe('left')}
-    />
-  </div>
-) : (
-  // Loading or no profile state
-  <div>Loading...</div>
-)}
+        ) : currentProfile ? (
+          <div className="max-w-sm mx-auto">
+            {/* Rectangular Profile Card - Matching Sketch */}
+            <Card className="w-full h-[500px] rounded-2xl overflow-hidden shadow-2xl border-0">
+              {/* Photo Section - Top 60% */}
+              <div className="relative h-3/5">
+                {currentProfile?.profile_images?.length > 0 ? (
+                  <>
+                    <img
+                      src={currentProfile.profile_images[currentImageIndex]}
+                      alt={`${currentProfile.first_name}'s profile`}
+                      className="w-full h-full object-cover"
+                      onClick={() => handleImageNavigation('next')}
+                    />
+                    
+                    {/* Image Navigation */}
+                    {currentProfile.profile_images.length > 1 && (
+                      <>
+                        <button
+                          onClick={() => handleImageNavigation('prev')}
+                          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-all"
+                        >
+                          ‹
+                        </button>
+                        <button
+                          onClick={() => handleImageNavigation('next')}
+                          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-all"
+                        >
+                          ›
+                        </button>
+                        
+                        {/* Image Dots */}
+                        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 flex space-x-1">
+                          {currentProfile.profile_images.map((_, index) => (
+                            <div
+                              key={index}
+                              className={`w-2 h-2 rounded-full transition-all ${
+                                index === currentImageIndex ? 'bg-white' : 'bg-white/50'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                    <div className="text-center text-white">
+                      <User className="w-16 h-16 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No Photo</p>
+                    </div>
+                  </div>
+                )}
 
-            {/* Enhanced Action Buttons */}
-            <div className="flex justify-center space-x-48 mt-8">
-              <button
+                {/* Premium Badge */}
+                <div className="absolute top-4 right-4">
+                  <Badge className="bg-yellow-500 text-black font-semibold px-2 py-1 rounded-full text-xs">
+                    ⭐ PREMIUM
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Name & Details Section - Middle 20% */}
+              <div className="h-1/5 bg-white px-6 py-4 flex flex-col justify-center">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-bold text-gray-900">
+                      {currentProfile.first_name}, {calculateAge(currentProfile.date_of_birth)}
+                    </h2>
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-pink-600">{currentProfile.total_qcs || 3333}</div>
+                      <div className="text-xs text-gray-500">QCS</div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2 text-gray-600">
+                    <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                    <span className="text-sm">{currentProfile.university}</span>
+                  </div>
+                  
+                  {currentProfile.interests?.length > 0 && (
+                    <div className="flex items-center space-x-2">
+                      <Badge className="bg-pink-100 text-pink-700 px-2 py-1 rounded-full text-xs flex items-center space-x-1">
+                        <span>🎯</span>
+                        <span>{currentProfile.interests[0]}</span>
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Swipe Up Section - Bottom 20% */}
+              <div className="h-1/5 bg-white border-t border-gray-100 flex flex-col items-center justify-center">
+                <div className="text-center space-y-2">
+                  <div className="text-gray-500 text-sm font-medium">👆 Swipe up for more</div>
+                  <div className="bg-gray-100 hover:bg-gray-200 rounded-full p-2 transition-all">
+                    <div className="w-5 h-5 text-gray-600 animate-bounce">↑</div>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Action Buttons */}
+            <div className="flex justify-center space-x-6 mt-6">
+              <Button
                 onClick={() => handleSwipe('left')}
-                className="group relative w-16 h-16 bg-card rounded-full flex items-center justify-center shadow-premium hover:shadow-glow transition-all duration-300 hover:scale-110 border-2 border-border"
+                variant="outline"
+                size="lg"
+                className="w-16 h-16 rounded-full border-2 border-red-200 hover:bg-red-50 hover:border-red-300 transition-all"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-destructive/20 to-destructive rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <X className="w-7 h-7 text-destructive group-hover:text-destructive-foreground relative z-10 transition-colors duration-300" />
-                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <span className="text-xs font-semibold text-destructive bg-card px-2 py-1 rounded-full shadow-soft">Pass</span>
-                </div>
-              </button>
+                <X className="w-7 h-7 text-red-500" />
+              </Button>
               
-              <button className="group relative w-14 h-14 bg-card rounded-full flex items-center justify-center shadow-soft hover:shadow-premium transition-all duration-300 hover:scale-110 border-2 border-border">
-                <div className="absolute inset-0 bg-gradient-to-r from-accent/20 to-accent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <Star className="w-6 h-6 text-accent group-hover:text-accent-foreground relative z-10 transition-colors duration-300" />
-                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <span className="text-xs font-semibold text-accent bg-card px-2 py-1 rounded-full shadow-soft">Super</span>
-                </div>
-              </button>
+              <Button
+                onClick={() => handleSwipe('right')}
+                size="lg"
+                className="w-16 h-16 rounded-full bg-pink-500 hover:bg-pink-600 transition-all shadow-lg"
+              >
+                <Heart className="w-7 h-7 text-white" fill="currentColor" />
+              </Button>
             </div>
           </div>
+        ) : (
+          <div className="flex items-center justify-center min-h-[60vh]">Loading...</div>
         )}
       </div>
 

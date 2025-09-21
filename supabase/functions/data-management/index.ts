@@ -482,6 +482,31 @@ serve(async (req) => {
 
         console.log(`[DATA-MANAGEMENT] User preferences:`, userPreferences);
 
+        // For new users without preferences, return a simple feed
+        if (!userPreferences) {
+          console.log(`[DATA-MANAGEMENT] No preferences found, returning basic feed`);
+          
+          const { data: basicFeed, error: basicError } = await supabaseClient
+            .from('profiles')
+            .select('*')
+            .eq('is_active', true)
+            .eq('show_profile', true)
+            .neq('firebase_uid', firebaseUid)
+            .limit(limit || 20);
+
+          if (basicError) throw basicError;
+
+          console.log(`[DATA-MANAGEMENT] Basic feed fetched: ${basicFeed?.length} profiles`);
+          return new Response(JSON.stringify({
+            success: true,
+            data: { profiles: basicFeed || [] },
+            message: 'Basic feed fetched (no preferences)'
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200,
+          });
+        }
+
         // Get swiped users to exclude
         const { data: swipedUsers } = await supabaseClient
           .from('enhanced_swipes')

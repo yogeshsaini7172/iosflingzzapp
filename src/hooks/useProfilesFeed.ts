@@ -37,6 +37,7 @@ export function useProfilesFeed() {
 
     try {
       const currentUserId = getCurrentUserId();
+      console.log('🔄 fetchFeed called for user:', currentUserId);
       
       // Use data-management function with real Firebase token
       const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/data-management', {
@@ -48,6 +49,8 @@ export function useProfilesFeed() {
         })
       });
 
+      console.log('📡 Response status:', response.status);
+
       if (!response.ok) {
         const err = await response.json().catch(() => ({}));
         console.error("❌ Error calling data-management (get_feed):", err);
@@ -55,10 +58,13 @@ export function useProfilesFeed() {
       }
 
       const payload = await response.json();
-      console.log("✅ Fetched profiles from data-management:", payload?.data?.profiles?.length);
+      console.log("✅ Full response payload:", payload);
+      console.log("✅ Fetched profiles:", payload?.data?.profiles?.length);
+      console.log("📦 Profile data sample:", payload?.data?.profiles?.[0]);
+      
       setProfiles(payload?.data?.profiles || []);
     } catch (err) {
-      console.error("❌ Error fetching feed profiles:", err);
+      console.error("💥 Error fetching feed profiles:", err);
       setProfiles([]); // Clear profiles on error
     } finally {
       setLoading(false);
