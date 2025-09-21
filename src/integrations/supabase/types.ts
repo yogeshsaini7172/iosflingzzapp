@@ -1515,6 +1515,14 @@ export type Database = {
         Args: { room_id_text: string }
         Returns: string
       }
+      record_enhanced_swipe: {
+        Args: {
+          p_direction: string
+          p_target_user_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       reset_ai_failures: {
         Args: { p_user_id: string }
         Returns: undefined
