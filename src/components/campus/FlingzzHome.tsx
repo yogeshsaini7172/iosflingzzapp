@@ -728,10 +728,10 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
           </div>
         ) : currentProfile ? (
           <div className="max-w-sm mx-auto px-4">
-            {/* Rectangular Profile Card - Premium Design */}
-            <Card className="w-full h-[550px] rounded-2xl overflow-hidden shadow-elegant border-0 bg-card">
-              {/* Photo Section - Top 70% */}
-              <div className="relative h-[70%]">
+            {/* Profile Card - Exact Template Match */}
+            <Card className="w-full h-[580px] rounded-3xl overflow-hidden shadow-2xl border-0 bg-white">
+              {/* Photo Section - Top 65% */}
+              <div className="relative h-[65%]">
                 {currentProfile?.profile_images?.length > 0 ? (
                   <>
                     <img
@@ -744,19 +744,6 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                     {/* Image Navigation */}
                     {currentProfile.profile_images.length > 1 && (
                       <>
-                        <button
-                          onClick={() => handleImageNavigation('prev')}
-                          className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/50 backdrop-blur-sm text-white w-10 h-10 rounded-full hover:bg-black/70 transition-all flex items-center justify-center"
-                        >
-                          ‹
-                        </button>
-                        <button
-                          onClick={() => handleImageNavigation('next')}
-                          className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/50 backdrop-blur-sm text-white w-10 h-10 rounded-full hover:bg-black/70 transition-all flex items-center justify-center"
-                        >
-                          ›
-                        </button>
-                        
                         {/* Image Dots */}
                         <div className="absolute top-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
                           {currentProfile.profile_images.map((_, index) => (
@@ -772,84 +759,82 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                     )}
                   </>
                 ) : (
-                  <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
-                    <div className="text-center text-primary-foreground">
-                      <User className="w-20 h-20 mx-auto mb-3 opacity-60" />
-                      <p className="text-lg font-medium">No Photo</p>
+                  <div className="w-full h-full bg-gradient-to-br from-red-800 to-red-900 flex items-center justify-center">
+                    <div className="text-center text-white">
+                      <div className="text-4xl font-bold mb-2">FILNGZZ</div>
+                      <div className="text-sm opacity-80">SLOGAN HERE</div>
                     </div>
                   </div>
                 )}
 
                 {/* Premium Badge */}
                 <div className="absolute top-4 right-4">
-                  <Badge className="bg-gradient-gold text-foreground font-bold px-3 py-1.5 rounded-xl text-xs shadow-elegant">
-                    ⭐ PREMIUM
+                  <Badge className="bg-yellow-500 text-black font-bold px-3 py-1 rounded-full text-xs">
+                    PREMIUM
                   </Badge>
                 </div>
               </div>
 
-              {/* Name & Details Section - Middle 22% */}
-              <div className="h-[22%] bg-card px-6 py-4 flex flex-col justify-center">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-2xl font-display font-bold text-foreground leading-tight">
-                        {currentProfile.first_name}
-                      </h2>
-                      <p className="text-xl font-semibold text-muted-foreground -mt-1">
-                        {calculateAge(currentProfile.date_of_birth)} years old
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                        {currentProfile.total_qcs || 31}
-                      </div>
-                      <div className="text-xs text-muted-foreground font-medium">QCS Score</div>
-                    </div>
+              {/* Name & Details Section - Middle 25% */}
+              <div className="h-[25%] bg-white px-6 py-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">
+                      {currentProfile.first_name}, {calculateAge(currentProfile.date_of_birth)}
+                    </h2>
                   </div>
-                  
-                  <div className="flex items-center space-x-2 text-muted-foreground">
-                    <div className="w-2 h-2 bg-accent rounded-full"></div>
-                    <span className="text-sm font-medium">{currentProfile.university || 'University'}</span>
-                  </div>
-                  
-                  {currentProfile.interests?.length > 0 && (
-                    <div className="flex items-center space-x-2">
-                      <Badge className="bg-primary/10 text-primary border-primary/20 px-3 py-1 rounded-full text-sm flex items-center space-x-1.5 font-medium">
-                        <span>💖</span>
-                        <span>{currentProfile.interests[0]}</span>
-                      </Badge>
+                  <div className="text-right">
+                    <div className="text-lg font-bold text-red-500">
+                      {currentProfile.total_qcs || 3333}
                     </div>
-                  )}
+                    <div className="text-xs text-gray-500 uppercase font-medium">QCS</div>
+                  </div>
                 </div>
+                
+                <div className="flex items-center space-x-2 text-gray-600 mb-3">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-sm">{currentProfile.university || 'IIT'}</span>
+                </div>
+                
+                {currentProfile.interests?.length > 0 && (
+                  <div className="flex items-center space-x-2">
+                    <Badge className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium border-0">
+                      {currentProfile.interests[0]}
+                    </Badge>
+                  </div>
+                )}
               </div>
 
-              {/* Swipe Up Section - Bottom 8% */}
-              <div className="h-[8%] bg-card border-t border-border/30 flex flex-col items-center justify-center">
-                <div className="text-center">
-                  <div className="text-muted-foreground text-sm font-medium mb-0.5">👆 Swipe up for more</div>
-                  <div className="text-primary text-xl animate-bounce">↑</div>
-                </div>
+              {/* Swipe Up Section - Bottom 10% */}
+              <div className="h-[10%] bg-white flex flex-col items-center justify-center">
+                <Button className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-full text-sm font-medium">
+                  👆 Swipe up for more
+                </Button>
               </div>
             </Card>
 
-            {/* Action Buttons - Enhanced Design */}
-            <div className="flex justify-center space-x-10 mt-8">
-              <Button
-                onClick={() => handleSwipe('left')}
-                variant="outline"
-                size="lg"
-                className="w-16 h-16 rounded-full border-2 border-border hover:border-destructive/50 hover:bg-destructive/10 transition-all shadow-lg"
-              >
-                <X className="w-7 h-7 text-muted-foreground hover:text-destructive transition-colors" />
-              </Button>
-              
+            {/* Heart Button - Positioned at bottom right of card */}
+            <div className="relative">
               <Button
                 onClick={() => handleSwipe('right')}
                 size="lg"
-                className="w-20 h-20 rounded-full bg-gradient-primary hover:shadow-elegant transition-all shadow-royal"
+                className="absolute -top-6 right-6 w-14 h-14 rounded-full bg-pink-500 hover:bg-pink-600 shadow-xl border-4 border-white"
               >
-                <Heart className="w-8 h-8 text-primary-foreground" fill="currentColor" />
+                <Heart className="w-6 h-6 text-white" fill="currentColor" />
+              </Button>
+            </div>
+
+            {/* Left Swipe Button - Hidden for clean template */}
+            <div className="mt-8 opacity-0">
+              <Button
+                onClick={() => handleSwipe('left')}
+                variant="ghost"
+                size="sm"
+                className="w-8 h-8"
+              >
+                <X className="w-4 h-4" />
               </Button>
             </div>
           </div>
