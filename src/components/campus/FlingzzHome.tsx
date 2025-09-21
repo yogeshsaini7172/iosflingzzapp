@@ -22,7 +22,8 @@ import {
   MessageCircle,
   Bell,
   Edit,
-  Trash
+  Trash,
+  MapPin
 } from "lucide-react";
 import { useProfilesFeed } from '@/hooks/useProfilesFeed';
 import { useToast } from '@/hooks/use-toast';
@@ -717,115 +718,133 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
             </div>
           </div>
         ) : currentProfile ? (
-          <div className="max-w-sm mx-auto px-4">
-            {/* Profile Card - Exact Template Match */}
-            <Card className="w-full h-[580px] rounded-3xl overflow-hidden shadow-2xl border-0 bg-white">
-              {/* Photo Section - Top 65% */}
-              <div className="relative h-[65%]">
-                {currentProfile?.profile_images?.length > 0 ? (
-                  <>
-                    <img
-                      src={currentProfile.profile_images[currentImageIndex]}
-                      alt={`${currentProfile.first_name}'s profile`}
-                      className="w-full h-full object-cover"
-                      onClick={() => handleImageNavigation('next')}
-                    />
-                    
-                    {/* Image Navigation */}
-                    {currentProfile.profile_images.length > 1 && (
-                      <>
-                        {/* Image Dots */}
-                        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+          <div className="flex justify-center px-4 py-8">
+            {/* Complete Swipe Card Template Remake */}
+            <div className="relative w-full max-w-sm">
+              <Card className="w-full h-[620px] rounded-3xl overflow-hidden shadow-2xl border-0 bg-white relative">
+                
+                {/* Main Photo Section - 65% */}
+                <div className="relative h-[65%] bg-gray-100">
+                  {currentProfile?.profile_images?.length > 0 ? (
+                    <>
+                      <img
+                        src={currentProfile.profile_images[currentImageIndex]}
+                        alt={`${currentProfile.first_name}'s profile`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=600&fit=crop&crop=face';
+                        }}
+                      />
+                      
+                      {/* Image Indicators */}
+                      {currentProfile.profile_images.length > 1 && (
+                        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 flex space-x-1">
                           {currentProfile.profile_images.map((_, index) => (
                             <div
                               key={index}
-                              className={`w-2 h-2 rounded-full transition-all ${
-                                index === currentImageIndex ? 'bg-white shadow-lg' : 'bg-white/60'
+                              className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                                index === currentImageIndex 
+                                  ? 'bg-white shadow-lg' 
+                                  : 'bg-white/50'
                               }`}
                             />
                           ))}
                         </div>
-                      </>
+                      )}
+                      
+                      {/* Navigation Areas */}
+                      <div 
+                        className="absolute left-0 top-0 w-1/2 h-full cursor-pointer"
+                        onClick={() => handleImageNavigation('prev')}
+                      />
+                      <div 
+                        className="absolute right-0 top-0 w-1/2 h-full cursor-pointer"
+                        onClick={() => handleImageNavigation('next')}
+                      />
+                    </>
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-red-800 to-red-900 flex items-center justify-center">
+                      <div className="text-center text-white">
+                        <div className="text-3xl font-bold mb-2">FILNGZZ</div>
+                        <div className="text-sm opacity-80">SLOGAN HERE</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Premium Badge */}
+                  <div className="absolute top-4 right-4">
+                    <div className="bg-yellow-500 text-black font-bold px-3 py-1 rounded-full text-xs shadow-md">
+                      PREMIUM
+                    </div>
+                  </div>
+                </div>
+
+                {/* Profile Details Section - 25% */}
+                <div className="h-[25%] bg-white px-6 py-4 flex flex-col justify-center">
+                  <div className="space-y-3">
+                    {/* Name, Age & QCS Score */}
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h2 className="text-xl font-bold text-gray-900 leading-tight">
+                          {currentProfile.first_name}, {calculateAge(currentProfile.date_of_birth)}
+                        </h2>
+                      </div>
+                      <div className="text-right ml-4">
+                        <div className="text-lg font-bold text-red-500">
+                          {currentProfile.total_qcs || 3333}
+                        </div>
+                        <div className="text-xs text-gray-500 font-medium uppercase tracking-wide">
+                          QCS
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Location */}
+                    <div className="flex items-center space-x-2 text-gray-600">
+                      <MapPin className="w-4 h-4" />
+                      <span className="text-sm font-medium">
+                        {currentProfile.university || 'IIT'}
+                      </span>
+                    </div>
+                    
+                    {/* Interest Tag */}
+                    {currentProfile.interests?.length > 0 && (
+                      <div className="flex items-center space-x-2">
+                        <div className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium border-0 inline-block">
+                          {currentProfile.interests[0]}
+                        </div>
+                      </div>
                     )}
-                  </>
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-red-800 to-red-900 flex items-center justify-center">
-                    <div className="text-center text-white">
-                      <div className="text-4xl font-bold mb-2">FILNGZZ</div>
-                      <div className="text-sm opacity-80">SLOGAN HERE</div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Premium Badge */}
-                <div className="absolute top-4 right-4">
-                  <Badge className="bg-yellow-500 text-black font-bold px-3 py-1 rounded-full text-xs">
-                    PREMIUM
-                  </Badge>
-                </div>
-              </div>
-
-              {/* Name & Details Section - Middle 25% */}
-              <div className="h-[25%] bg-white px-6 py-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900">
-                      {currentProfile.first_name}, {calculateAge(currentProfile.date_of_birth)}
-                    </h2>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-red-500">
-                      {currentProfile.total_qcs || 3333}
-                    </div>
-                    <div className="text-xs text-gray-500 uppercase font-medium">QCS</div>
                   </div>
                 </div>
-                
-                <div className="flex items-center space-x-2 text-gray-600 mb-3">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                  </svg>
-                  <span className="text-sm">{currentProfile.university || 'IIT'}</span>
-                </div>
-                
-                {currentProfile.interests?.length > 0 && (
-                  <div className="flex items-center space-x-2">
-                    <Badge className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium border-0">
-                      {currentProfile.interests[0]}
-                    </Badge>
+
+                {/* Swipe Up Indicator - 10% */}
+                <div className="h-[10%] bg-white border-t border-gray-100 flex items-center justify-center">
+                  <div className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-full text-sm font-medium cursor-pointer transition-colors">
+                    👆 Swipe up for more
                   </div>
-                )}
+                </div>
+              </Card>
+
+              {/* Floating Heart Button */}
+              <div className="absolute bottom-4 right-4 z-10">
+                <button
+                  onClick={() => handleSwipe('right')}
+                  className="w-14 h-14 bg-pink-500 hover:bg-pink-600 rounded-full shadow-2xl flex items-center justify-center border-4 border-white transition-all duration-200 hover:scale-110"
+                >
+                  <Heart className="w-6 h-6 text-white" fill="currentColor" />
+                </button>
               </div>
 
-              {/* Swipe Up Section - Bottom 10% */}
-              <div className="h-[10%] bg-white flex flex-col items-center justify-center">
-                <Button className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-full text-sm font-medium">
-                  👆 Swipe up for more
-                </Button>
+              {/* Hidden Reject Button for Touch Gestures */}
+              <div className="absolute bottom-4 left-4 z-10 opacity-0">
+                <button
+                  onClick={() => handleSwipe('left')}
+                  className="w-12 h-12 bg-gray-400 rounded-full shadow-lg flex items-center justify-center"
+                >
+                  <X className="w-5 h-5 text-white" />
+                </button>
               </div>
-            </Card>
-
-            {/* Heart Button - Positioned at bottom right of card */}
-            <div className="relative">
-              <Button
-                onClick={() => handleSwipe('right')}
-                size="lg"
-                className="absolute -top-6 right-6 w-14 h-14 rounded-full bg-pink-500 hover:bg-pink-600 shadow-xl border-4 border-white"
-              >
-                <Heart className="w-6 h-6 text-white" fill="currentColor" />
-              </Button>
-            </div>
-
-            {/* Left Swipe Button - Hidden for clean template */}
-            <div className="mt-8 opacity-0">
-              <Button
-                onClick={() => handleSwipe('left')}
-                variant="ghost"
-                size="sm"
-                className="w-8 h-8"
-              >
-                <X className="w-4 h-4" />
-              </Button>
             </div>
           </div>
         ) : (
