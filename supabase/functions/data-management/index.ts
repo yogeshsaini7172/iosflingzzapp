@@ -257,10 +257,63 @@ serve(async (req) => {
           throw getError;
         }
 
-        // Normalize JSON fields if they were stored as strings
+        // Normalize JSON fields if they were stored as strings and extract qualities/requirements
         let normalizedProfile = profile;
-        try { if (normalizedProfile && typeof normalizedProfile.qualities === 'string') normalizedProfile.qualities = JSON.parse(normalizedProfile.qualities); } catch (_) {}
-        try { if (normalizedProfile && typeof normalizedProfile.requirements === 'string') normalizedProfile.requirements = JSON.parse(normalizedProfile.requirements); } catch (_) {}
+        if (normalizedProfile) {
+          try { 
+            if (typeof normalizedProfile.qualities === 'string') {
+              normalizedProfile.qualities = JSON.parse(normalizedProfile.qualities); 
+            }
+          } catch (_) {}
+          try { 
+            if (typeof normalizedProfile.requirements === 'string') {
+              normalizedProfile.requirements = JSON.parse(normalizedProfile.requirements); 
+            }
+          } catch (_) {}
+
+          // Extract qualities data into individual profile fields for UI compatibility
+          if (normalizedProfile.qualities && typeof normalizedProfile.qualities === 'object') {
+            const qualities = normalizedProfile.qualities;
+            // Physical attributes
+            normalizedProfile.height = normalizedProfile.height || qualities.height;
+            normalizedProfile.body_type = normalizedProfile.body_type || qualities.body_type;
+            normalizedProfile.skin_tone = normalizedProfile.skin_tone || qualities.skin_tone;
+            normalizedProfile.face_type = normalizedProfile.face_type || qualities.face_type;
+            
+            // Personality & values - ensure arrays
+            normalizedProfile.personality_traits = Array.isArray(qualities.personality_traits) 
+              ? qualities.personality_traits 
+              : qualities.personality_type 
+                ? [qualities.personality_type] 
+                : normalizedProfile.personality_traits || [];
+                
+            normalizedProfile.values = Array.isArray(qualities.values) 
+              ? qualities.values 
+              : Array.isArray(normalizedProfile.values_array)
+                ? normalizedProfile.values_array
+                : normalizedProfile.values
+                  ? [normalizedProfile.values]
+                  : [];
+                  
+            normalizedProfile.mindset = Array.isArray(qualities.mindset) 
+              ? qualities.mindset 
+              : qualities.mindset 
+                ? [qualities.mindset] 
+                : [];
+                
+            // Goals & interests
+            normalizedProfile.relationship_goals = normalizedProfile.relationship_goals || qualities.relationship_goals || [];
+            normalizedProfile.interests = normalizedProfile.interests || qualities.interests || [];
+            
+            // Other attributes
+            normalizedProfile.love_language = normalizedProfile.love_language || qualities.love_language;
+            normalizedProfile.lifestyle = normalizedProfile.lifestyle || qualities.lifestyle;
+            normalizedProfile.university = normalizedProfile.university || qualities.university;
+            normalizedProfile.field_of_study = normalizedProfile.field_of_study || qualities.field_of_study;
+            normalizedProfile.education_level = normalizedProfile.education_level || qualities.education_level;
+            normalizedProfile.profession = normalizedProfile.profession || qualities.profession;
+          }
+        }
 
         return new Response(JSON.stringify({
           success: true,
@@ -343,9 +396,58 @@ serve(async (req) => {
           throw prefError;
         }
 
+        // Also get requirements from profiles table as fallback/supplement
+        const { data: profileReq, error: profileReqError } = await supabaseClient
+          .from('profiles')
+          .select('requirements')
+          .eq('firebase_uid', firebaseUid)
+          .limit(1)
+          .maybeSingle();
+
+        let mergedPreferences = preferences;
+
+        // If no preferences found in partner_preferences table, use requirements from profiles
+        if (!preferences && profileReq?.requirements) {
+          try {
+            const requirements = typeof profileReq.requirements === 'string' 
+              ? JSON.parse(profileReq.requirements) 
+              : profileReq.requirements;
+            
+            if (requirements && typeof requirements === 'object') {
+              mergedPreferences = {
+                user_id: firebaseUid,
+                preferred_gender: requirements.preferred_gender || [],
+                age_range_min: requirements.age_range_min || 18,
+                age_range_max: requirements.age_range_max || 30,
+                height_range_min: requirements.height_range_min || 150,
+                height_range_max: requirements.height_range_max || 200,
+                preferred_body_types: requirements.preferred_body_types || [],
+                preferred_values: requirements.preferred_values || [],
+                preferred_mindset: requirements.preferred_mindset || [],
+                preferred_personality_traits: requirements.preferred_personality_traits || [],
+                preferred_relationship_goals: requirements.preferred_relationship_goals || [],
+                preferred_skin_tone: requirements.preferred_skin_tone || requirements.preferred_skin_types || [],
+                preferred_face_type: requirements.preferred_face_types || [],
+                preferred_love_language: requirements.preferred_love_languages || [],
+                preferred_lifestyle: requirements.preferred_lifestyle || [],
+                preferred_education_levels: requirements.preferred_education_levels || [],
+                preferred_professions: requirements.preferred_professions || [],
+                preferred_interests: requirements.preferred_interests || [],
+                preferred_communication_style: requirements.preferred_communication_style || [],
+                min_shared_interests: requirements.min_shared_interests || 2,
+                personality_compatibility: requirements.personality_compatibility || 'moderate',
+                lifestyle_compatibility: requirements.lifestyle_compatibility || 'important'
+              };
+              console.log('📋 Using requirements from profiles table as preferences:', mergedPreferences);
+            }
+          } catch (e) {
+            console.warn('Failed to parse requirements JSON:', e);
+          }
+        }
+
         return new Response(JSON.stringify({
           success: true,
-          data: { user_id: firebaseUid, preferences },
+          data: { user_id: firebaseUid, preferences: mergedPreferences },
           message: 'Preferences fetched'
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
