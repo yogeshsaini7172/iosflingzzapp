@@ -112,7 +112,9 @@ if (prefFace?.length > 0 && candidateAttributes?.face_type) {
   // --- MENTAL/PERSONALITY MATCH (max 40 points) ---
   
   // 1. Personality type match (10 points) - case insensitive
-  const candidatePersonality = candidateAttributes?.personality_traits || candidateAttributes?.personality_type;
+  const candidatePersonality = (Array.isArray(candidateAttributes?.personality_traits) && candidateAttributes.personality_traits.length > 0)
+    ? candidateAttributes.personality_traits
+    : candidateAttributes?.personality_type;
   if (userPreferences?.preferred_personality_traits?.length > 0 && candidatePersonality) {
     if (arrayContainsMatch(userPreferences.preferred_personality_traits, candidatePersonality)) {
       mentalScore += 10;
