@@ -582,7 +582,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
 
                 {/* More Info Section */}
                 <div>
-                  <h3 className="text-base md:text-lg font-bold text-foreground mb-2 md:mb-3">More info</h3>
+                  <h3 className="text-base md:text-lg font-bold text-foreground mb-2 md:mb-3">Basic info</h3>
                   <div className="grid grid-cols-2 gap-2">
                     {/* Gender */}
                     {currentProfile.gender && (
@@ -606,13 +606,11 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                       <span className="truncate">QCS {currentProfile.total_qcs || 'N/A'}</span>
                     </div>
 
-                    {/* Display remaining interests as additional info tags */}
-                    {currentProfile.interests && currentProfile.interests.slice(0, 3).map((interest, index) => (
-                      <div key={index} className="bg-muted rounded-full px-2 py-1.5 md:px-3 md:py-2 text-xs flex items-center space-x-1.5 md:space-x-2">
-                        <span className="text-sm">💫</span>
-                        <span className="truncate">{interest}</span>
-                      </div>
-                    ))}
+                    {/* Age */}
+                    <div className="bg-muted rounded-full px-2 py-1.5 md:px-3 md:py-2 text-xs flex items-center space-x-1.5 md:space-x-2">
+                      <span className="text-sm">🎂</span>
+                      <span className="truncate">{calculateAge(currentProfile.date_of_birth)} years old</span>
+                    </div>
                   </div>
                 </div>
 
@@ -632,6 +630,18 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                     </div>
                   </div>
                 )}
+
+                {/* Future Personality Section */}
+                <div>
+                  <h3 className="text-base md:text-lg font-bold text-foreground mb-2 md:mb-3">Who You Are</h3>
+                  <div className="text-xs text-muted-foreground bg-muted/30 rounded-lg p-3">
+                    <p className="mb-1 flex items-center space-x-1">
+                      <span>💡</span>
+                      <strong>Personality & Lifestyle Details</strong>
+                    </p>
+                    <p>Personality type, lifestyle preferences, values, love language, and other "Who You Are" details will be displayed here when the full profile data is available.</p>
+                  </div>
+                </div>
 
                 {/* Archive Section - Additional Photos */}
                 {currentProfile.profile_images && currentProfile.profile_images.length > 1 && (
