@@ -360,16 +360,6 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
 
   return (
     <UnifiedLayout title="FLINGZZ Home" showHeader={false}>
-      <style>
-        {`
-          .w-full {
-            width: 9rem;
-          }
-          .h-80 {
-            height: 9rem;
-          }
-        `}
-      </style>
       {/* Custom Header for Home */}
       <div className="bg-card/80 backdrop-blur-md border-b border-border/50 px-4 py-2">
         <div className="flex items-center justify-between">
