@@ -518,12 +518,17 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                     </div>
 
                     {/* Action Buttons - Compact */}
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-2 relative z-10">
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="flex-1 hover:bg-muted/80 text-xs py-1"
-                        onClick={() => setSelectedProfile(match)}
+                        className="flex-1 hover:bg-muted/80 text-xs py-1 cursor-pointer"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log('🔍 View Profile clicked for:', match.first_name, match.user_id);
+                          setSelectedProfile(match);
+                        }}
                       >
                         View Profile
                       </Button>
@@ -532,8 +537,13 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                       {(match.compatibility_score || 0) > 80 ? (
                         <Button 
                           size="sm" 
-                          className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg text-white"
-                          onClick={() => handleChatClick(match)}
+                          className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg text-white cursor-pointer"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('💬 Chat Now clicked for:', match.first_name, match.user_id);
+                            handleChatClick(match);
+                          }}
                         >
                           <MessageCircle className="h-4 w-4 mr-1" />
                           Chat Now
@@ -542,8 +552,13 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                         <Button 
                           size="sm" 
                           variant="outline"
-                          className="flex-1 border-rose-300 text-rose-600 hover:bg-rose-50 hover:border-rose-400"
-                          onClick={() => handleChatClick(match)}
+                          className="flex-1 border-rose-300 text-rose-600 hover:bg-rose-50 hover:border-rose-400 cursor-pointer"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('📨 Chat Request clicked for:', match.first_name, match.user_id);
+                            handleChatClick(match);
+                          }}
                         >
                           <MessageCircle className="h-4 w-4 mr-1" />
                           Chat Request
@@ -611,8 +626,12 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
               education_level: selectedProfile.education_level
             }}
             isOpen={!!selectedProfile}
-            onClose={() => setSelectedProfile(null)}
+            onClose={() => {
+              console.log('🔴 Closing modal');
+              setSelectedProfile(null);
+            }}
             onChatRequest={(userId) => {
+              console.log('💬 Chat request from modal for:', userId);
               const m = matches.find(m => m.user_id === userId) || selectedProfile;
               if (m) handleChatClick(m);
             }}
