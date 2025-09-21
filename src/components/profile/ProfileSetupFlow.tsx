@@ -381,7 +381,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
       case 1: // Basic Details
         const isAgeValid = validateMinimumAge(profileData.dateOfBirth);
         return profileData.firstName && profileData.lastName && profileData.dateOfBirth && 
-               profileData.gender && profileData.university && isAgeValid;
+               profileData.gender && isAgeValid;
       case 2: // What You Are
         return profileData.personalityType && profileData.values && profileData.bio;
       case 3: // Who You Want
