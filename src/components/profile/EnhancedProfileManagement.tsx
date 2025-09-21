@@ -149,7 +149,34 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
         
         // Relationship goals - return key format
         'serious_relationship': 'serious_relationship',
-        'Serious relationship': 'serious_relationship'
+        'Serious relationship': 'serious_relationship',
+        
+        // Skin tones (synonyms)
+        'Very fair': 'very_fair',
+        'very fair': 'very_fair',
+        'Very Light': 'very_fair',
+        'Light': 'fair',
+        'light': 'fair',
+        'Fair': 'fair',
+        'Medium': 'medium',
+        'Olive': 'olive',
+        'Brown': 'brown',
+        'Dark': 'dark',
+        
+        // Love languages
+        'Words of Affirmation': 'words_of_affirmation',
+        'Acts of Service': 'acts_of_service',
+        'Receiving Gifts': 'receiving_gifts',
+        'Quality Time': 'quality_time',
+        'Physical Touch': 'physical_touch',
+        
+        // Face types
+        'Round': 'round',
+        'Oval': 'oval',
+        'Square': 'square',
+        'Heart': 'heart',
+        'Diamond': 'diamond',
+        'Long': 'long',
       };
       
       // If we have a mapping, use it, otherwise convert to key format
@@ -295,7 +322,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
             : []
       ),
       relationshipGoals: transformDatabaseToUI(profile.relationship_goals || []),
-      interests: Array.isArray(profile.interests) ? profile.interests : [],
+      interests: Array.isArray(profile.interests) ? transformDatabaseToUI(profile.interests as any) : [],
       isVisible: profile.show_profile !== false,
       profileImages: profile.profile_images || [],
     };
@@ -337,7 +364,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
   setFormData(prev => ({
       ...prev,
       preferredGender: Array.isArray(preferences.preferred_gender)
-        ? preferences.preferred_gender.map(g => g.toString())
+        ? transformDatabaseToUI(preferences.preferred_gender.map(g => g.toString()))
         : ['male', 'female'], // Default to both genders
       ageRangeMin: preferences.age_range_min || 18,
       ageRangeMax: preferences.age_range_max || 30,
@@ -345,45 +372,107 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       heightRangeMax: preferences.height_range_max || 200,
       preferredBodyTypes:
         Array.isArray(preferences.preferred_body_types) && preferences.preferred_body_types.length > 0
-          ? preferences.preferred_body_types
+          ? transformDatabaseToUI(preferences.preferred_body_types)
           : ['slim', 'athletic', 'average'],
       preferredValues:
         Array.isArray(preferences.preferred_values) && preferences.preferred_values.length > 0
-          ? preferences.preferred_values
+          ? transformDatabaseToUI(preferences.preferred_values)
           : ['family_oriented', 'career_focused'],
       preferredMindset:
         Array.isArray(preferences.preferred_mindset) && preferences.preferred_mindset.length > 0
-          ? preferences.preferred_mindset
+          ? transformDatabaseToUI(preferences.preferred_mindset)
           : ['growth_mindset'],
       preferredPersonalityTraits:
         Array.isArray(preferences.preferred_personality_traits) && preferences.preferred_personality_traits.length > 0
-          ? preferences.preferred_personality_traits
+          ? transformDatabaseToUI(preferences.preferred_personality_traits)
           : ['outgoing', 'empathetic'],
       preferredRelationshipGoal:
         Array.isArray((preferences as any).preferred_relationship_goals)
-          ? (preferences as any).preferred_relationship_goals
+          ? transformDatabaseToUI((preferences as any).preferred_relationship_goals)
           : Array.isArray((preferences as any).preferred_relationship_goal)
-            ? (preferences as any).preferred_relationship_goal
+            ? transformDatabaseToUI((preferences as any).preferred_relationship_goal)
             : ['serious_relationship'],
       preferredSkinTone: Array.isArray((preferences as any).preferred_skin_tone)
-        ? (preferences as any).preferred_skin_tone
+        ? transformDatabaseToUI((preferences as any).preferred_skin_tone)
         : Array.isArray((preferences as any).preferred_skin_types)
-          ? (preferences as any).preferred_skin_types
+          ? transformDatabaseToUI((preferences as any).preferred_skin_types)
           : [],
       preferredFaceType: Array.isArray((preferences as any).preferred_face_types)
-        ? (preferences as any).preferred_face_types
+        ? transformDatabaseToUI((preferences as any).preferred_face_types)
         : Array.isArray((preferences as any).preferred_face_type)
-          ? (preferences as any).preferred_face_type
+          ? transformDatabaseToUI((preferences as any).preferred_face_type)
           : [],
       preferredLoveLanguage: Array.isArray((preferences as any).preferred_love_languages)
-        ? (preferences as any).preferred_love_languages
+        ? transformDatabaseToUI((preferences as any).preferred_love_languages)
         : Array.isArray((preferences as any).preferred_love_language)
-          ? (preferences as any).preferred_love_language
+          ? transformDatabaseToUI((preferences as any).preferred_love_language)
           : [],
-      preferredLifestyle: Array.isArray(preferences.preferred_lifestyle) ? preferences.preferred_lifestyle : [],
+      preferredLifestyle: Array.isArray(preferences.preferred_lifestyle) 
+        ? transformDatabaseToUI(preferences.preferred_lifestyle) 
+        : [],
+    }));
+  }
+
+  if (preferences) {
+    console.log("📊 Loading preferences data into form:", preferences);
+
+  setFormData(prev => ({
+      ...prev,
+      preferredGender: Array.isArray(preferences.preferred_gender)
+        ? transformDatabaseToUI(preferences.preferred_gender.map(g => g.toString()))
+        : ['male', 'female'], // Default to both genders
+      ageRangeMin: preferences.age_range_min || 18,
+      ageRangeMax: preferences.age_range_max || 30,
+      heightRangeMin: preferences.height_range_min || 150,
+      heightRangeMax: preferences.height_range_max || 200,
+      preferredBodyTypes:
+        Array.isArray(preferences.preferred_body_types) && preferences.preferred_body_types.length > 0
+          ? transformDatabaseToUI(preferences.preferred_body_types)
+          : ['slim', 'athletic', 'average'],
+      preferredValues:
+        Array.isArray(preferences.preferred_values) && preferences.preferred_values.length > 0
+          ? transformDatabaseToUI(preferences.preferred_values)
+          : ['family_oriented', 'career_focused'],
+      preferredMindset:
+        Array.isArray(preferences.preferred_mindset) && preferences.preferred_mindset.length > 0
+          ? transformDatabaseToUI(preferences.preferred_mindset)
+          : ['growth_mindset'],
+      preferredPersonalityTraits:
+        Array.isArray(preferences.preferred_personality_traits) && preferences.preferred_personality_traits.length > 0
+          ? transformDatabaseToUI(preferences.preferred_personality_traits)
+          : ['outgoing', 'empathetic'],
+      preferredRelationshipGoal:
+        Array.isArray((preferences as any).preferred_relationship_goals)
+          ? transformDatabaseToUI((preferences as any).preferred_relationship_goals)
+          : Array.isArray((preferences as any).preferred_relationship_goal)
+            ? transformDatabaseToUI((preferences as any).preferred_relationship_goal)
+            : ['serious_relationship'],
+      preferredSkinTone: Array.isArray((preferences as any).preferred_skin_tone)
+        ? transformDatabaseToUI((preferences as any).preferred_skin_tone)
+        : Array.isArray((preferences as any).preferred_skin_types)
+          ? transformDatabaseToUI((preferences as any).preferred_skin_types)
+          : [],
+      preferredFaceType: Array.isArray((preferences as any).preferred_face_types)
+        ? transformDatabaseToUI((preferences as any).preferred_face_types)
+        : Array.isArray((preferences as any).preferred_face_type)
+          ? transformDatabaseToUI((preferences as any).preferred_face_type)
+          : [],
+      preferredLoveLanguage: Array.isArray((preferences as any).preferred_love_languages)
+        ? transformDatabaseToUI((preferences as any).preferred_love_languages)
+        : Array.isArray((preferences as any).preferred_love_language)
+          ? transformDatabaseToUI((preferences as any).preferred_love_language)
+          : [],
+      preferredLifestyle: Array.isArray(preferences.preferred_lifestyle) 
+        ? transformDatabaseToUI(preferences.preferred_lifestyle) 
+        : [],
     }));
   }
 }, [profile, preferences]);
+
+// Debug: print final form data after any change
+useEffect(() => {
+  console.log('✅ Final formData for UI rendering:', formData);
+}, [formData]);
 
 
   const handleLogout = async () => {
