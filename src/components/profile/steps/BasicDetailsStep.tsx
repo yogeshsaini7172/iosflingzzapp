@@ -102,13 +102,15 @@ const BasicDetailsStep = ({ data, onChange }: BasicDetailsStepProps) => {
       </div>
 
       <div className="space-y-3">
-        <Label className="text-base font-medium">University/College</Label>
-        <Input
-          placeholder="Harvard University"
-          value={data.university}
-          onChange={(e) => updateField('university', e.target.value)}
-          className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors"
-        />
+        <Label className="text-base font-medium">Profession</Label>
+        <Select value={data.profession} onValueChange={(value) => updateField('profession', value)}>
+          <SelectTrigger className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors">
+            <SelectValue placeholder="Select your profession" />
+          </SelectTrigger>
+          <SelectContent className="rounded-2xl">
+            <SelectItem value="student">Student</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
