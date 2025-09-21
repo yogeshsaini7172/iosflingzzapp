@@ -6,11 +6,23 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Helper function to normalize strings for comparison
+// Helper function to normalize strings for comparison with synonyms handling
 function normalizeForComparison(str: string): string {
-  return str.toLowerCase()
+  const base = (str || '').toString().toLowerCase().trim()
     .replace(/[-_\s]/g, '') // Remove hyphens, underscores, spaces
-    .trim();
+    .replace(/face/g, '')   // Ignore the word "face"
+    .replace(/shaped/g, ''); // Normalize "heart-shaped" -> "heart"
+  // Canonicalize common face-type synonyms
+  const aliases: Record<string, string> = {
+    heartshaped: 'heart',
+    rectangular: 'square',
+    rectangle: 'square',
+    oblong: 'oval',
+    roundface: 'round',
+    squareface: 'square',
+    ovalface: 'oval',
+  };
+  return aliases[base] || base;
 }
 
 // Helper function to check if arrays contain matching values (case insensitive)
@@ -71,29 +83,31 @@ function calculateMatchScore(userPreferences: any, candidateAttributes: any): {
     notMatched.push("body_type");
   }
   
-  // 3. Skin tone match (10 points) - case insensitive
-  if (userPreferences?.preferred_skin_tone?.length > 0 && candidateAttributes?.skin_tone) {
-    if (arrayContainsMatch(userPreferences.preferred_skin_tone, candidateAttributes.skin_tone)) {
-      physicalScore += 10;
-      matched.push("skin_tone");
-    } else {
-      notMatched.push("skin_tone");
-    }
+// 3. Skin tone match (10 points) - case insensitive (support legacy key preferred_skin_types)
+const prefSkin = userPreferences?.preferred_skin_tone?.length ? userPreferences.preferred_skin_tone : userPreferences?.preferred_skin_types;
+if (prefSkin?.length > 0 && candidateAttributes?.skin_tone) {
+  if (arrayContainsMatch(prefSkin, candidateAttributes.skin_tone)) {
+    physicalScore += 10;
+    matched.push("skin_tone");
   } else {
     notMatched.push("skin_tone");
   }
-  
-  // 4. Face type match (10 points) - case insensitive
-  if (userPreferences?.preferred_face_type?.length > 0 && candidateAttributes?.face_type) {
-    if (arrayContainsMatch(userPreferences.preferred_face_type, candidateAttributes.face_type)) {
-      physicalScore += 10;
-      matched.push("face_type");
-    } else {
-      notMatched.push("face_type");
-    }
+} else {
+  notMatched.push("skin_tone");
+}
+
+// 4. Face type match (10 points) - case insensitive (support plural key preferred_face_types)
+const prefFace = userPreferences?.preferred_face_types?.length ? userPreferences.preferred_face_types : userPreferences?.preferred_face_type;
+if (prefFace?.length > 0 && candidateAttributes?.face_type) {
+  if (arrayContainsMatch(prefFace, candidateAttributes.face_type)) {
+    physicalScore += 10;
+    matched.push("face_type");
   } else {
     notMatched.push("face_type");
   }
+} else {
+  notMatched.push("face_type");
+}
   
   // --- MENTAL/PERSONALITY MATCH (max 40 points) ---
   
