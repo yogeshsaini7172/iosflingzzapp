@@ -247,64 +247,87 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
         </div>
       </div>
 
-      {/* Quick Actions Bar */}
-      <div className="bg-card/50 backdrop-blur-sm px-6 py-3 border-b border-border/10">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-              <Users className="w-4 h-4" />
-              <span>{profiles.length - currentIndex} profiles</span>
+      {/* Compact Community Threads */}
+      {threads.length > 0 && (
+        <div className="bg-card/30 backdrop-blur-sm px-4 py-2 border-b border-border/10">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center space-x-2">
+              <MessageCircle className="w-4 h-4 text-primary" />
+              <h4 className="text-sm font-medium text-foreground">Community</h4>
             </div>
-            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-              <Sparkles className="w-4 h-4" />
-              <span>Active now</span>
+            <div className="flex items-center space-x-2">
+              <Dialog open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
+                    <Plus className="w-3 h-3 mr-1" />
+                    Post
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center space-x-2">
+                      <MessageCircle className="w-5 h-5" />
+                      <span>Share Your Thoughts</span>
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="thread-content">What's on your mind?</Label>
+                      <Textarea
+                        id="thread-content"
+                        placeholder="Share something interesting with the community..."
+                        value={newThreadContent}
+                        onChange={(e) => setNewThreadContent(e.target.value)}
+                        className="min-h-[120px] resize-none"
+                        maxLength={280}
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Be authentic, be you ✨</span>
+                        <span>{newThreadContent.length}/280</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-end space-x-2">
+                      <Button variant="outline" onClick={() => setIsPostModalOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button onClick={handlePostThread} disabled={!newThreadContent.trim()}>
+                        <Send className="w-4 h-4 mr-2" />
+                        Share
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              <Button variant="ghost" size="sm" onClick={() => onNavigate('feed')} className="h-6 px-2 text-xs">
+                All
+              </Button>
             </div>
           </div>
-          
-          <Dialog open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="flex items-center space-x-2">
-                <Plus className="w-4 h-4" />
-                <span>Share</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle className="flex items-center space-x-2">
-                  <MessageCircle className="w-5 h-5" />
-                  <span>Share Your Thoughts</span>
-                </DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="thread-content">What's on your mind?</Label>
-                  <Textarea
-                    id="thread-content"
-                    placeholder="Share something interesting with the community..."
-                    value={newThreadContent}
-                    onChange={(e) => setNewThreadContent(e.target.value)}
-                    className="min-h-[120px] resize-none"
-                    maxLength={280}
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Be authentic, be you ✨</span>
-                    <span>{newThreadContent.length}/280</span>
-                  </div>
-                </div>
-                <div className="flex justify-end space-x-2">
-                  <Button variant="outline" onClick={() => setIsPostModalOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handlePostThread} disabled={!newThreadContent.trim()}>
-                    <Send className="w-4 h-4 mr-2" />
-                    Share
-                  </Button>
+          <div className="flex space-x-2 overflow-x-auto pb-1">
+            {threads.slice(0, 5).map((thread) => (
+              <div
+                key={thread.id}
+                className="flex-shrink-0 bg-gradient-to-r from-primary/10 to-accent/10 rounded-full px-3 py-1 border border-primary/20"
+              >
+                <div className="flex items-center space-x-2">
+                  <Avatar className="w-5 h-5">
+                    <AvatarImage src={thread.author?.profile_images?.[0]} />
+                    <AvatarFallback className="text-xs">
+                      <User className="w-3 h-3" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <p className="text-xs text-foreground font-medium">
+                    {thread.author?.first_name || 'Anonymous'}
+                  </p>
+                  <p className="text-xs text-muted-foreground max-w-[100px] truncate">
+                    {thread.content}
+                  </p>
                 </div>
               </div>
-            </DialogContent>
-          </Dialog>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Main Swipe Section */}
       <div className="flex-1 p-6">
@@ -463,41 +486,6 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
         )}
       </div>
 
-      {/* Community Preview */}
-      {threads.length > 0 && (
-        <div className="px-6 py-4 bg-card/30 backdrop-blur-sm border-t border-border/10">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="font-semibold text-foreground">Community Buzz</h4>
-            <Button variant="ghost" size="sm" onClick={() => onNavigate('feed')}>
-              View All
-            </Button>
-          </div>
-          <div className="flex space-x-3 overflow-x-auto pb-2">
-            {threads.slice(0, 3).map((thread) => (
-              <Card key={thread.id} className="min-w-[200px] p-3 bg-gradient-to-br from-card to-card/50">
-                <CardContent className="p-0">
-                  <div className="flex items-start space-x-2">
-                    <Avatar className="w-8 h-8">
-                      <AvatarImage src={thread.author?.profile_images?.[0]} />
-                      <AvatarFallback>
-                        <User className="w-4 h-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-foreground">
-                        {thread.author?.first_name || 'Anonymous'}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                        {thread.content}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
 
       <WhoLikedMeModal 
         isOpen={showWhoLikedMe} 
