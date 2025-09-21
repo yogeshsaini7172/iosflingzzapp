@@ -49,12 +49,12 @@ const SwipeUpInterface: React.FC<SwipeUpInterfaceProps> = ({ onNavigate }) => {
     try {
       console.log('🔄 Fetching profiles for userId:', userId);
       
+      // Try direct swipe-feed function first
       const response = await fetchWithFirebaseAuth(
-        "https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/data-management",
+        "https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/swipe-feed",
         {
           method: "POST",
           body: JSON.stringify({
-            action: "get_feed",
             user_id: userId,
             limit: 20,
           }),
@@ -72,7 +72,7 @@ const SwipeUpInterface: React.FC<SwipeUpInterfaceProps> = ({ onNavigate }) => {
       const payload = await response.json();
       console.log('📦 Raw payload:', payload);
       
-      const profilesData = payload?.data?.profiles || payload?.profiles || [];
+      const profilesData = payload?.profiles || payload?.data?.profiles || [];
       console.log('👥 Profiles data:', profilesData);
 
       const formattedProfiles = profilesData.map((profile: any) => ({
@@ -88,8 +88,8 @@ const SwipeUpInterface: React.FC<SwipeUpInterfaceProps> = ({ onNavigate }) => {
       
       if (formattedProfiles.length > 0) {
         toast({
-          title: "Premium Profiles Loaded! ✨",
-          description: `Found ${formattedProfiles.length} exclusive matches`,
+          title: "Profiles Loaded! ✨",
+          description: `Found ${formattedProfiles.length} matches`,
         });
       } else {
         console.warn('⚠️ No profiles found in response');

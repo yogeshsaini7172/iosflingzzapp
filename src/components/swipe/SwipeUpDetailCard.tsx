@@ -126,11 +126,11 @@ const SwipeUpDetailCard: React.FC<SwipeUpDetailCardProps> = ({
   };
 
   return (
-    <div className="relative w-full max-w-sm mx-auto h-[70vh] overflow-hidden">
-      {/* Main Profile Card */}
+    <div className="relative w-full max-w-sm mx-auto h-[75vh] overflow-hidden">
+      {/* Main Profile Card - Circular Design */}
       <Card
         ref={cardRef}
-        className={`relative w-full h-full rounded-3xl overflow-hidden shadow-2xl border-0 swipe-card floating-card ${
+        className={`relative w-full h-full rounded-full overflow-hidden shadow-2xl border-0 swipe-card floating-card ${
           isDragging ? '' : 'transition-transform duration-300'
         }`}
         onTouchStart={handleTouchStart}
@@ -196,50 +196,65 @@ const SwipeUpDetailCard: React.FC<SwipeUpDetailCardProps> = ({
           {/* Gradient Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
 
-          {/* Basic Info Overlay */}
+          {/* Basic Info Overlay - Clean Design */}
           <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-            <div className="flex items-end justify-between">
-              <div className="flex-1">
-                <h2 className="text-3xl font-bold mb-2">
-                  {profile.first_name} {profile.age} 💖
+            <div className="space-y-4">
+              {/* Name and Age */}
+              <div>
+                <h2 className="text-4xl font-bold tracking-tight">
+                  {profile.first_name}
                 </h2>
-                <div className="flex items-center space-x-2 text-sm mb-2">
-                  <MapPin className="w-4 h-4" />
-                  <span>{profile.university}</span>
-                </div>
-                
-                {/* Quick Stats */}
-                <div className="flex space-x-4 text-xs">
-                  <Badge variant="secondary" className="bg-pink-500/20 text-pink-200 border-pink-300">
-                    📍 {profile.distance || 2.5}km
-                  </Badge>
-                  <Badge variant="secondary" className="bg-blue-500/20 text-blue-200 border-blue-300">
-                    ⚖️ {profile.weight || 55}Kg
-                  </Badge>
-                  <Badge variant="secondary" className="bg-green-500/20 text-green-200 border-green-300">
-                    📏 {profile.height}cm
-                  </Badge>
-                </div>
+                <p className="text-2xl font-light opacity-90">
+                  {profile.age}
+                </p>
+              </div>
+              
+              {/* Location */}
+              <div className="flex items-center space-x-2">
+                <MapPin className="w-5 h-5 opacity-80" />
+                <span className="text-lg font-medium opacity-90">{profile.university}</span>
+              </div>
+              
+              {/* Status Badges - Simple and Clean */}
+              <div className="flex items-center space-x-3">
+                <Badge className="bg-pink-500/90 text-white border-0 px-3 py-1 rounded-full text-sm font-medium">
+                  🔴 Nearby
+                </Badge>
+                <Badge className="bg-gray-600/90 text-white border-0 px-3 py-1 rounded-full text-sm font-medium">
+                  ⚪ N/A
+                </Badge>
+                <Badge className="bg-gray-600/90 text-white border-0 px-3 py-1 rounded-full text-sm font-medium">
+                  ⚪ N/A
+                </Badge>
+              </div>
+
+              {/* Score Display */}
+              <div className="bg-black/70 backdrop-blur-sm rounded-xl px-4 py-2 inline-block">
+                <span className="text-2xl font-bold text-white">3333</span>
+              </div>
+
+              {/* Interest Tag */}
+              <div className="flex">
+                <Badge className="bg-red-500/90 text-white border-0 px-4 py-2 rounded-full flex items-center space-x-2">
+                  <span className="text-lg">🎯</span>
+                  <span className="font-medium">Travel</span>
+                </Badge>
               </div>
             </div>
 
-            {/* Swipe Up Indicator - More Prominent */}
-            <div className="flex flex-col items-center mt-6 space-y-2">
-              <div className="text-white/80 text-sm font-medium">Swipe up for details</div>
+            {/* Swipe Up Indicator - Bottom */}
+            <div className="flex flex-col items-center mt-8 space-y-2">
+              <div className="text-white/70 text-sm font-medium">👆 Swipe up for more</div>
               <button
                 onClick={toggleDetailPanel}
-                className="bg-gradient-to-r from-pink-500/30 to-purple-500/30 backdrop-blur-sm rounded-full p-3 swipe-indicator pulse-glow border border-white/20 shadow-lg"
+                className="bg-white/20 backdrop-blur-sm rounded-full p-3 swipe-indicator border border-white/30"
               >
                 {isDetailExpanded ? (
-                  <ChevronDown className="w-7 h-7 text-white" />
+                  <ChevronDown className="w-6 h-6 text-white" />
                 ) : (
-                  <ChevronUp className="w-7 h-7 text-white animate-bounce" />
+                  <ChevronUp className="w-6 h-6 text-white animate-bounce" />
                 )}
               </button>
-              <div className="flex space-x-1">
-                <div className="w-8 h-0.5 bg-white/40 rounded-full"></div>
-                <div className="w-4 h-0.5 bg-white/20 rounded-full"></div>
-              </div>
             </div>
           </div>
         </div>
