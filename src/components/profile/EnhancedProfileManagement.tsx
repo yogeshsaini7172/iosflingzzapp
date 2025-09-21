@@ -270,21 +270,32 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       educationLevel: (profile as any).education_level || '',
       profession: (profile as any).profession || '',
       height: profile.height?.toString() || '',
-      bodyType: profile.body_type || '',
-      skinTone: profile.skin_tone || '',
-      personalityTraits: profile.personality_traits || [],
-      values: Array.isArray(profile.values)
-        ? profile.values
-        : profile.values
-        ? [profile.values]
-        : [],
-      mindset: Array.isArray(profile.mindset)
-        ? profile.mindset
-        : profile.mindset
-        ? [profile.mindset]
-        : [],
-      relationshipGoals: profile.relationship_goals || [],
-      interests: profile.interests || [],
+      bodyType: transformSingleValueToUI((profile as any).body_type || ''),
+      skinTone: transformSingleValueToUI((profile as any).skin_tone || ''),
+      faceType: transformSingleValueToUI((profile as any).face_type || ''),
+      loveLanguage: transformSingleValueToUI((profile as any).love_language || ''),
+      lifestyle: transformSingleValueToUI((profile as any).lifestyle || ''),
+
+      // Normalize arrays into UI key format
+      personalityTraits: transformDatabaseToUI((profile as any).personality_traits || []),
+      values: transformDatabaseToUI(
+        Array.isArray((profile as any).values)
+          ? (profile as any).values
+          : Array.isArray((profile as any).values_array)
+            ? (profile as any).values_array
+            : (profile as any).values
+              ? [(profile as any).values]
+              : []
+      ),
+      mindset: transformDatabaseToUI(
+        Array.isArray((profile as any).mindset)
+          ? (profile as any).mindset
+          : (profile as any).mindset
+            ? [(profile as any).mindset]
+            : []
+      ),
+      relationshipGoals: transformDatabaseToUI(profile.relationship_goals || []),
+      interests: Array.isArray(profile.interests) ? profile.interests : [],
       isVisible: profile.show_profile !== false,
       profileImages: profile.profile_images || [],
     };
@@ -323,7 +334,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
   if (preferences) {
     console.log("📊 Loading preferences data into form:", preferences);
 
-    setFormData(prev => ({
+  setFormData(prev => ({
       ...prev,
       preferredGender: Array.isArray(preferences.preferred_gender)
         ? preferences.preferred_gender.map(g => g.toString())
@@ -349,12 +360,26 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
           ? preferences.preferred_personality_traits
           : ['outgoing', 'empathetic'],
       preferredRelationshipGoal:
-        Array.isArray(preferences.preferred_relationship_goal) && preferences.preferred_relationship_goal.length > 0
-          ? preferences.preferred_relationship_goal
-          : ['serious_relationship'],
-      preferredSkinTone: Array.isArray(preferences.preferred_skin_tone) ? preferences.preferred_skin_tone : [],
-      preferredFaceType: Array.isArray(preferences.preferred_face_type) ? preferences.preferred_face_type : [],
-      preferredLoveLanguage: Array.isArray(preferences.preferred_love_language) ? preferences.preferred_love_language : [],
+        Array.isArray((preferences as any).preferred_relationship_goals)
+          ? (preferences as any).preferred_relationship_goals
+          : Array.isArray((preferences as any).preferred_relationship_goal)
+            ? (preferences as any).preferred_relationship_goal
+            : ['serious_relationship'],
+      preferredSkinTone: Array.isArray((preferences as any).preferred_skin_tone)
+        ? (preferences as any).preferred_skin_tone
+        : Array.isArray((preferences as any).preferred_skin_types)
+          ? (preferences as any).preferred_skin_types
+          : [],
+      preferredFaceType: Array.isArray((preferences as any).preferred_face_types)
+        ? (preferences as any).preferred_face_types
+        : Array.isArray((preferences as any).preferred_face_type)
+          ? (preferences as any).preferred_face_type
+          : [],
+      preferredLoveLanguage: Array.isArray((preferences as any).preferred_love_languages)
+        ? (preferences as any).preferred_love_languages
+        : Array.isArray((preferences as any).preferred_love_language)
+          ? (preferences as any).preferred_love_language
+          : [],
       preferredLifestyle: Array.isArray(preferences.preferred_lifestyle) ? preferences.preferred_lifestyle : [],
     }));
   }
