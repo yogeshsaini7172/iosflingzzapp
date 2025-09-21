@@ -10,6 +10,8 @@ import { usePairing } from '@/hooks/usePairing';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
+import { useNavigate } from 'react-router-dom';
+import { useRequiredAuth } from '@/hooks/useRequiredAuth';
 
 interface PairingMatch {
   user_id: string;
@@ -49,6 +51,8 @@ const PairingMatches: React.FC<PairingMatchesProps> = ({ userId }) => {
   const [selectedProfile, setSelectedProfile] = useState<PairingMatch | null>(null);
   const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({});
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { userId: currentUserId } = useRequiredAuth();
 
   // Run deterministic pairing when pairedProfiles changes
   useEffect(() => {
@@ -135,26 +139,33 @@ const PairingMatches: React.FC<PairingMatchesProps> = ({ userId }) => {
   const handleChatAction = async (targetUserId: string, isDirect: boolean = false) => {
     try {
       if (isDirect) {
-        // Direct chat - create chat room immediately
+        if (!currentUserId) throw new Error('Not authenticated');
+        // Direct chat - create (or fetch) chat room and navigate to it
         const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-management', {
           method: 'POST',
           body: JSON.stringify({
             action: 'create_room',
-            other_user_id: targetUserId
+            user1_id: currentUserId,
+            user2_id: targetUserId
           })
         });
 
         if (!response.ok) {
-          throw new Error('Failed to create chat room');
+          const err = await response.json().catch(() => ({}));
+          throw new Error(err.error || 'Failed to create chat room');
         }
 
         const result = await response.json();
-        if (result.success) {
+        const room = result?.data;
+        if (result.success && room?.id) {
           toast({
-            title: "Chat Created!",
-            description: "Chat room created successfully. You can now start messaging!",
+            title: 'Chat Ready',
+            description: 'Opening chat...',
           });
+          navigate(`/chat/${room.id}`);
+          return;
         }
+        throw new Error('Chat room not returned');
       } else {
         // Send chat request
         const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-request-handler', {
@@ -167,23 +178,24 @@ const PairingMatches: React.FC<PairingMatchesProps> = ({ userId }) => {
         });
 
         if (!response.ok) {
-          throw new Error('Failed to send chat request');
+          const err = await response.json().catch(() => ({}));
+          throw new Error(err.error || 'Failed to send chat request');
         }
 
         const result = await response.json();
         if (result.success) {
           toast({
-            title: "Chat Request Sent!",
-            description: "Your chat request has been sent successfully.",
+            title: 'Chat Request Sent!',
+            description: 'Your chat request has been sent successfully.',
           });
         }
       }
     } catch (error: any) {
       console.error('Chat action error:', error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to process chat action",
-        variant: "destructive",
+        title: 'Error',
+        description: error.message || 'Failed to process chat action',
+        variant: 'destructive',
       });
     }
   };
@@ -242,6 +254,7 @@ const PairingMatches: React.FC<PairingMatchesProps> = ({ userId }) => {
   };
 
   const handleViewProfile = (match: PairingMatch) => {
+    console.log('🔍 Opening profile modal for:', match.first_name, match.user_id);
     setSelectedProfile(match);
     setShowDetailedProfile(true);
     setExpandedSections({});
@@ -456,10 +469,10 @@ const PairingMatches: React.FC<PairingMatchesProps> = ({ userId }) => {
                       {/* Action Buttons */}
                       <div className="flex gap-2">
                         <Button 
-                          onClick={() => handleViewProfile(match)}
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleViewProfile(match); }}
                           variant="outline"
                           size="sm"
-                          className="flex-1"
+                          className="flex-1 cursor-pointer"
                         >
                           <Eye className="w-4 h-4 mr-2" />
                           View Profile
