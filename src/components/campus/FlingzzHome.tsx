@@ -727,11 +727,11 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
             </div>
           </div>
         ) : currentProfile ? (
-          <div className="max-w-sm mx-auto">
-            {/* Rectangular Profile Card - Optimized for Mobile */}
-            <Card className="w-full h-[600px] rounded-3xl overflow-hidden shadow-2xl border-0 bg-white">
-              {/* Photo Section - Top 65% */}
-              <div className="relative h-[65%]">
+          <div className="max-w-sm mx-auto px-4">
+            {/* Rectangular Profile Card - Premium Design */}
+            <Card className="w-full h-[550px] rounded-2xl overflow-hidden shadow-elegant border-0 bg-card">
+              {/* Photo Section - Top 70% */}
+              <div className="relative h-[70%]">
                 {currentProfile?.profile_images?.length > 0 ? (
                   <>
                     <img
@@ -746,24 +746,24 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                       <>
                         <button
                           onClick={() => handleImageNavigation('prev')}
-                          className="absolute left-3 top-1/2 transform -translate-y-1/2 bg-black/40 text-white w-8 h-8 rounded-full hover:bg-black/60 transition-all flex items-center justify-center"
+                          className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/50 backdrop-blur-sm text-white w-10 h-10 rounded-full hover:bg-black/70 transition-all flex items-center justify-center"
                         >
                           ‹
                         </button>
                         <button
                           onClick={() => handleImageNavigation('next')}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-black/40 text-white w-8 h-8 rounded-full hover:bg-black/60 transition-all flex items-center justify-center"
+                          className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/50 backdrop-blur-sm text-white w-10 h-10 rounded-full hover:bg-black/70 transition-all flex items-center justify-center"
                         >
                           ›
                         </button>
                         
                         {/* Image Dots */}
-                        <div className="absolute top-3 left-1/2 transform -translate-x-1/2 flex space-x-1">
+                        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
                           {currentProfile.profile_images.map((_, index) => (
                             <div
                               key={index}
                               className={`w-2 h-2 rounded-full transition-all ${
-                                index === currentImageIndex ? 'bg-white' : 'bg-white/60'
+                                index === currentImageIndex ? 'bg-white shadow-lg' : 'bg-white/60'
                               }`}
                             />
                           ))}
@@ -772,49 +772,51 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                     )}
                   </>
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                    <div className="text-center text-white">
-                      <User className="w-16 h-16 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">No Photo</p>
+                  <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
+                    <div className="text-center text-primary-foreground">
+                      <User className="w-20 h-20 mx-auto mb-3 opacity-60" />
+                      <p className="text-lg font-medium">No Photo</p>
                     </div>
                   </div>
                 )}
 
                 {/* Premium Badge */}
-                <div className="absolute top-3 right-3">
-                  <Badge className="bg-yellow-500 text-black font-bold px-3 py-1 rounded-full text-xs shadow-md">
+                <div className="absolute top-4 right-4">
+                  <Badge className="bg-gradient-gold text-foreground font-bold px-3 py-1.5 rounded-xl text-xs shadow-elegant">
                     ⭐ PREMIUM
                   </Badge>
                 </div>
               </div>
 
-              {/* Name & Details Section - Middle 25% */}
-              <div className="h-[25%] bg-white px-5 py-4 flex flex-col justify-center">
-                <div className="space-y-3">
+              {/* Name & Details Section - Middle 22% */}
+              <div className="h-[22%] bg-card px-6 py-4 flex flex-col justify-center">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h2 className="text-2xl font-bold text-gray-900">
-                        {currentProfile.first_name},
+                      <h2 className="text-2xl font-display font-bold text-foreground leading-tight">
+                        {currentProfile.first_name}
                       </h2>
-                      <p className="text-2xl font-bold text-gray-900 -mt-1">
-                        {calculateAge(currentProfile.date_of_birth)}
+                      <p className="text-xl font-semibold text-muted-foreground -mt-1">
+                        {calculateAge(currentProfile.date_of_birth)} years old
                       </p>
                     </div>
                     <div className="text-right">
-                      <div className="text-xl font-bold text-pink-600">{currentProfile.total_qcs || 31}</div>
-                      <div className="text-xs text-gray-500 font-medium">QCS</div>
+                      <div className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                        {currentProfile.total_qcs || 31}
+                      </div>
+                      <div className="text-xs text-muted-foreground font-medium">QCS Score</div>
                     </div>
                   </div>
                   
-                  <div className="flex items-center space-x-2 text-gray-600">
-                    <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-                    <span className="text-sm font-medium">{currentProfile.university || 'CS'}</span>
+                  <div className="flex items-center space-x-2 text-muted-foreground">
+                    <div className="w-2 h-2 bg-accent rounded-full"></div>
+                    <span className="text-sm font-medium">{currentProfile.university || 'University'}</span>
                   </div>
                   
                   {currentProfile.interests?.length > 0 && (
                     <div className="flex items-center space-x-2">
-                      <Badge className="bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-sm flex items-center space-x-1 font-medium">
-                        <span>❤️</span>
+                      <Badge className="bg-primary/10 text-primary border-primary/20 px-3 py-1 rounded-full text-sm flex items-center space-x-1.5 font-medium">
+                        <span>💖</span>
                         <span>{currentProfile.interests[0]}</span>
                       </Badge>
                     </div>
@@ -822,32 +824,32 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                 </div>
               </div>
 
-              {/* Swipe Up Section - Bottom 10% */}
-              <div className="h-[10%] bg-white border-t border-gray-100 flex flex-col items-center justify-center">
-                <div className="text-center space-y-1">
-                  <div className="text-gray-500 text-sm font-medium">👆 Swipe up for more</div>
-                  <div className="text-gray-400 text-lg animate-bounce">↑</div>
+              {/* Swipe Up Section - Bottom 8% */}
+              <div className="h-[8%] bg-card border-t border-border/30 flex flex-col items-center justify-center">
+                <div className="text-center">
+                  <div className="text-muted-foreground text-sm font-medium mb-0.5">👆 Swipe up for more</div>
+                  <div className="text-primary text-xl animate-bounce">↑</div>
                 </div>
               </div>
             </Card>
 
-            {/* Action Buttons - Optimized Spacing */}
-            <div className="flex justify-center space-x-8 mt-6">
+            {/* Action Buttons - Enhanced Design */}
+            <div className="flex justify-center space-x-10 mt-8">
               <Button
                 onClick={() => handleSwipe('left')}
                 variant="outline"
                 size="lg"
-                className="w-14 h-14 rounded-full border-2 border-gray-300 hover:bg-red-50 hover:border-red-300 transition-all shadow-lg"
+                className="w-16 h-16 rounded-full border-2 border-border hover:border-destructive/50 hover:bg-destructive/10 transition-all shadow-lg"
               >
-                <X className="w-6 h-6 text-gray-500 hover:text-red-500" />
+                <X className="w-7 h-7 text-muted-foreground hover:text-destructive transition-colors" />
               </Button>
               
               <Button
                 onClick={() => handleSwipe('right')}
                 size="lg"
-                className="w-16 h-16 rounded-full bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 transition-all shadow-xl"
+                className="w-20 h-20 rounded-full bg-gradient-primary hover:shadow-elegant transition-all shadow-royal"
               >
-                <Heart className="w-7 h-7 text-white" fill="currentColor" />
+                <Heart className="w-8 h-8 text-primary-foreground" fill="currentColor" />
               </Button>
             </div>
           </div>
