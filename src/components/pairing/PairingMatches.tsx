@@ -253,6 +253,9 @@ const PairingMatches: React.FC<PairingMatchesProps> = ({ userId }) => {
     }));
   };
 
+  // Coerce possibly string or null values to string[] for safe joins
+  const toArray = (v: any): string[] => Array.isArray(v) ? v : (typeof v === 'string' && v.trim() ? [v] : []);
+
   const handleViewProfile = (match: PairingMatch) => {
     console.log('🔍 Opening profile modal for:', match.first_name, match.user_id);
     setSelectedProfile(match);
@@ -625,22 +628,22 @@ const PairingMatches: React.FC<PairingMatchesProps> = ({ userId }) => {
                       <span className="text-muted-foreground">Personality Type:</span>
                       <span className="font-medium">{selectedProfile.personality_type || 'Not specified'}</span>
                     </div>
-                    {selectedProfile.personality_traits && selectedProfile.personality_traits.length > 0 && (
+                    {toArray(selectedProfile.personality_traits).length > 0 && (
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Personality Traits:</span>
-                        <span className="font-medium">{selectedProfile.personality_traits.join(', ')}</span>
+                        <span className="font-medium">{toArray(selectedProfile.personality_traits).join(', ')}</span>
                       </div>
                     )}
-                    {selectedProfile.values && selectedProfile.values.length > 0 && (
+                    {toArray(selectedProfile.values).length > 0 && (
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Values:</span>
-                        <span className="font-medium">{selectedProfile.values.join(', ')}</span>
+                        <span className="font-medium">{toArray(selectedProfile.values).join(', ')}</span>
                       </div>
                     )}
-                    {selectedProfile.mindset && selectedProfile.mindset.length > 0 && (
+                    {toArray(selectedProfile.mindset).length > 0 && (
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Mindset:</span>
-                        <span className="font-medium">{selectedProfile.mindset.join(', ')}</span>
+                        <span className="font-medium">{toArray(selectedProfile.mindset).join(', ')}</span>
                       </div>
                     )}
                     <div className="flex justify-between">
