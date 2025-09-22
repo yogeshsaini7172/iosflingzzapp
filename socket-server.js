@@ -46,7 +46,7 @@ const PORT = process.env.PORT || 3002;
 const corsOrigins = process.env.NODE_ENV === 'production' 
   ? [
       process.env.CLIENT_URL,
-      'https://preview--grad-sync.lovable.app', // Replace with your actual domain
+      'https://preview--grad-sync.lovable.app', // Your actual frontend domain
       'https://your-frontend-domain.netlify.app' // Replace with your actual domain
     ].filter(Boolean)
   : ['http://localhost:3000', 'http://localhost:8080', 'http://localhost:4173'];

@@ -170,7 +170,30 @@ export const SocketChatProvider: React.FC<SocketChatProviderProps> = ({ children
   // --- Public Methods ---
 
   const sendMessage = useCallback((chatRoomId: string, message: string) => {
-    socketRef.current?.emit('message', { chatRoomId, message, userId });
+    console.log('🔄 Attempting to send message:', { chatRoomId, message, userId, connected: socketRef.current?.connected });
+    
+    if (!socketRef.current) {
+      console.error('❌ Socket not initialized');
+      return;
+    }
+    
+    if (!socketRef.current.connected) {
+      console.error('❌ Socket not connected');
+      return;
+    }
+    
+    if (!userId) {
+      console.error('❌ No userId available');
+      return;
+    }
+    
+    if (!message.trim()) {
+      console.error('❌ Empty message');
+      return;
+    }
+    
+    console.log('✅ Sending message via socket:', { chatRoomId, message, userId });
+    socketRef.current.emit('message', { chatRoomId, message, userId });
   }, [userId]);
 
   const joinChatRoom = useCallback((chatRoomId: string) => {
