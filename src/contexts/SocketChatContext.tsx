@@ -109,7 +109,14 @@ export const SocketChatProvider: React.FC<SocketChatProviderProps> = ({ children
       
       // Listener for incoming messages
       socket.on('message', (data) => {
+        console.log('📨 Received message via socket:', data);
         messageCallbacks.current.forEach(callback => callback(data));
+      });
+
+      // Listener for message errors
+      socket.on('message_error', (error) => {
+        console.error('❌ Message error from server:', error);
+        toast.error('Failed to send message', { description: error.message });
       });
 
       // Listener for updates to the list of online users
