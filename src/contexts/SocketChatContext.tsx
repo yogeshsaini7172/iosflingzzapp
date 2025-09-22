@@ -67,15 +67,19 @@ export const SocketChatProvider: React.FC<SocketChatProviderProps> = ({ children
       
       socketRef.current = io(socketUrl, {
         auth: { token, userId }, // Send token and userId for server-side authentication
-        transports: ['websocket'], // Prioritize websocket for better performance
+        transports: ['websocket', 'polling'], // Include polling as fallback
         reconnection: true,
         reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+        timeout: 20000,
+        forceNew: true,
       });
 
       // --- Core Socket Event Listeners ---
       const socket = socketRef.current;
 
       socket.on('connect', () => {
+        console.log('Socket connected successfully to:', socketUrl);
         setIsConnected(true);
         setConnectionStatus('connected');
         toast.success('Chat connected!');
@@ -86,6 +90,7 @@ export const SocketChatProvider: React.FC<SocketChatProviderProps> = ({ children
       });
 
       socket.on('disconnect', () => {
+        console.log('Socket disconnected from:', socketUrl);
         setIsConnected(false);
         setConnectionStatus('disconnected');
         toast.info('Chat disconnected.');
@@ -93,8 +98,11 @@ export const SocketChatProvider: React.FC<SocketChatProviderProps> = ({ children
 
       socket.on('connect_error', (error) => {
         console.error('Socket connection error:', error);
-        setConnectionStatus('disconnected');
+        console.log('Attempted connection to:', socketUrl);
+        setConnectionStatus('error');
+        setIsConnected(false);
         console.log('Falling back to standard chat mode without real-time features');
+        toast.warning('Real-time chat unavailable, using standard mode');
       });
 
       // --- Custom Application Event Listeners ---

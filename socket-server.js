@@ -1,6 +1,8 @@
 // Import required libraries
 import { createClient } from '@supabase/supabase-js';
 import { Server } from 'socket.io';
+import express from 'express';
+import { createServer } from 'http';
 
 // --- IMPORTANT ---
 // Make sure you have a .env file in your project's root with these variables,
@@ -19,15 +21,47 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Initialize the Socket.io server on port 3002 (updated from 3001)
-const io = new Server(3002, {
+// Create Express app and HTTP server for better deployment compatibility
+const app = express();
+const server = createServer(app);
+
+// Health check endpoint for deployment platforms
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
+// Basic route
+app.get('/', (req, res) => {
+  res.json({ message: 'Socket.IO server is running!' });
+});
+
+// Get port from environment variable (for deployment platforms) or default to 3002
+const PORT = process.env.PORT || 3002;
+
+// Configure CORS for production
+const corsOrigins = process.env.NODE_ENV === 'production' 
+  ? [
+      process.env.CLIENT_URL,
+      'https://your-frontend-domain.vercel.app', // Replace with your actual domain
+      'https://your-frontend-domain.netlify.app' // Replace with your actual domain
+    ].filter(Boolean)
+  : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:4173'];
+
+// Initialize the Socket.io server
+const io = new Server(server, {
   cors: {
-    origin: '*', // Allow connections from any origin
+    origin: corsOrigins,
     methods: ['GET', 'POST'],
+    credentials: true,
   },
 });
 
-console.log('🚀 Socket server starting on port 3002...');
+console.log(`🚀 Socket server starting on port ${PORT}...`);
+console.log(`📡 CORS origins:`, corsOrigins);
 
 // Track online users and their rooms
 const onlineUsers = new Map(); // socket.id -> { userId, rooms: Set }
@@ -169,4 +203,8 @@ io.on('connection', (socket) => {
   });
 });
 
-console.log('✅ Socket server is running on port 3002');
+// Start the server
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Socket server is running on port ${PORT}`);
+  console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+});
