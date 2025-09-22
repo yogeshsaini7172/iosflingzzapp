@@ -54,6 +54,13 @@ export const SocketChatProvider: React.FC<SocketChatProviderProps> = ({ children
 
     // Check if socket URL is available
     const socketUrl = import.meta.env.VITE_SOCKET_URL;
+    console.log('🔍 Environment check:', {
+      NODE_ENV: import.meta.env.NODE_ENV,
+      MODE: import.meta.env.MODE,
+      VITE_SOCKET_URL: socketUrl,
+      allEnvVars: import.meta.env
+    });
+    
     if (!socketUrl) {
       console.log('No socket URL configured, chat will work without real-time features');
       setConnectionStatus('disconnected');
