@@ -53,11 +53,15 @@ export const SocketChatProvider: React.FC<SocketChatProviderProps> = ({ children
     if (!userId || !user || socketRef.current?.connected) return;
 
     // Check if socket URL is available
-    const socketUrl = import.meta.env.VITE_SOCKET_URL;
+    const socketUrl = import.meta.env.VITE_SOCKET_URL || 
+      (import.meta.env.PROD ? 'https://fllings-socket-server.onrender.com' : 'http://localhost:3002');
+    
     console.log('🔍 Environment check:', {
       NODE_ENV: import.meta.env.NODE_ENV,
       MODE: import.meta.env.MODE,
-      VITE_SOCKET_URL: socketUrl,
+      PROD: import.meta.env.PROD,
+      VITE_SOCKET_URL: import.meta.env.VITE_SOCKET_URL,
+      finalSocketUrl: socketUrl,
       allEnvVars: import.meta.env
     });
     
