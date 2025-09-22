@@ -347,45 +347,48 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                       : (thread.author?.first_name || 'Anonymous')
                     }
                   </p>
-                  <p className="text-xs text-muted-foreground max-w-[100px] truncate">
+                                    <p className="text-xs text-muted-foreground max-w-[100px] truncate">
                     {thread.content}
                   </p>
-                  {/* Dropdown Menu */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-white/20 rounded-full">
-                        <MoreVertical className="w-3 h-3 text-foreground" />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-32">
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setEditingThread({ id: thread.id, content: thread.content });
-                          setEditContent(thread.content);
-                          setIsEditModalOpen(true);
-                        }}
-                        className="text-xs"
-                      >
-                        <Edit className="w-3 h-3 mr-2" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={async () => {
-                          const success = await deleteThread(thread.id);
-                          if (success) {
-                            toast({
-                              title: "Thread deleted! 🗑️",
-                              description: "Your thread has been removed.",
-                            });
-                          }
-                        }}
-                        className="text-xs text-red-600"
-                      >
-                        <Trash2 className="w-3 h-3 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  {/* Dropdown Menu - Only show for own threads */}
+                  {thread.user_id === user?.uid && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-white/20 rounded-full">
+                          <MoreVertical className="w-3 h-3 text-foreground" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-32">
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setEditingThread({ id: thread.id, content: thread.content });
+                            setEditContent(thread.content);
+                            setIsEditModalOpen(true);
+                          }}
+                          className="text-xs"
+                        >
+                          <Edit className="w-3 h-3 mr-2" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={async () => {
+                            const success = await deleteThread(thread.id);
+                            if (success) {
+                              toast({
+                                title: "Thread deleted! 🗑️",
+                                description: "Your thread has been removed.",
+                              });
+                            }
+                          }}
+                          className="text-xs text-red-600"
+                        >
+                          <Trash2 className="w-3 h-3 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+
                 </div>
               </div>
             ))}

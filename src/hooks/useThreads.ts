@@ -40,14 +40,12 @@ export const useThreads = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Always fetch threads (public via edge function). Likes require user.
     fetchThreads();
     if (userId) {
       fetchUserLikes();
     }
   }, [userId]);
 
-  // Real-time subscriptions for threads
   useEffect(() => {
     if (!userId) return;
 
@@ -60,7 +58,7 @@ export const useThreads = () => {
         fetchUserLikes();
       })
       .on('postgres_changes', { schema: 'public', table: 'thread_replies', event: '*' }, () => {
-        fetchThreads(); // Refresh threads to get updated replies
+        fetchThreads();
       })
       .subscribe();
 
@@ -71,18 +69,17 @@ export const useThreads = () => {
 
   const fetchThreads = async () => {
     try {
-      console.log('[Threads] Fetching list via edge function...');
-      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/thread-management', {
-        method: 'POST',
-        body: JSON.stringify({ action: 'list' })
-      });
+      const response = await fetchWithFirebaseAuth(
+        'https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/thread-management',
+        {
+          method: 'POST',
+          body: JSON.stringify({ action: 'list' })
+        }
+      );
 
       if (!response.ok) throw new Error('Failed to fetch threads');
       const data = await response.json();
-
-      const formattedThreads = (data?.data as any[]) || [];
-      console.log('[Threads] Received', formattedThreads.length, 'threads');
-      setThreads(formattedThreads);
+      setThreads((data?.data as any[]) || []);
     } catch (error) {
       console.error('Error fetching threads:', error);
     } finally {
@@ -109,17 +106,13 @@ export const useThreads = () => {
   };
 
   const createThread = async (content: string): Promise<boolean> => {
-    if (!userId || !content.trim()) {
-      console.warn('[Threads] Create failed: Missing userId or content', { userId: !!userId, content: !!content.trim() });
-      return false;
-    }
+    if (!userId || !content.trim()) return false;
 
-    // Check if user already has a thread within the last 24 hours
+    // Check if user already has a thread in last 24h
     const userThreadsLast24h = threads.filter(thread => {
       if (thread.user_id !== userId) return false;
       const threadDate = new Date(thread.created_at);
-      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      return threadDate > twentyFourHoursAgo;
+      return threadDate > new Date(Date.now() - 24 * 60 * 60 * 1000);
     });
 
     if (userThreadsLast24h.length > 0) {
@@ -132,53 +125,16 @@ export const useThreads = () => {
     }
 
     try {
-      console.log('[Threads] Creating thread:', { userId, contentLength: content.length });
-      
-      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/thread-management', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'create',
-          content: content.trim()
-        })
-      });
-
-      console.log('[Threads] Create response status:', response.status);
-
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error('[Threads] Creation failed:', response.status, errorData);
-        
-        // Parse error data to check for specific error codes
-        let parsedError;
-        try {
-          parsedError = JSON.parse(errorData);
-        } catch {
-          parsedError = { error: errorData };
+      const response = await fetchWithFirebaseAuth(
+        'https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/thread-management',
+        {
+          method: 'POST',
+          body: JSON.stringify({ action: 'create', content: content.trim() })
         }
-        
-        // Provide specific error messages based on status and error code
-        let errorMessage = 'Failed to post thread. Please try again.';
-        if (response.status === 401) {
-          errorMessage = 'Authentication failed. Please sign in again.';
-        } else if (response.status === 403) {
-          errorMessage = 'You do not have permission to post threads.';
-        } else if (response.status === 400) {
-          errorMessage = 'Invalid thread content. Please check your message.';
-        } else if (response.status === 409 && parsedError.code === 'ONE_THREAD_PER_DAY') {
-          errorMessage = 'You can only post one thread every 24 hours. Delete your current thread to post a new one.';
-        }
-        
-        toast({
-          title: "Error",
-          description: errorMessage,
-          variant: "destructive"
-        });
-        
-        throw new Error(`Failed to create thread: ${response.status} - ${errorData}`);
-      }
-      
-      const data = await response.json();
-      console.log('[Threads] Create success:', data);
+      );
+
+      if (!response.ok) throw new Error('Failed to create thread');
+      await response.json();
 
       toast({
         title: "Thread posted! 🎉",
@@ -189,15 +145,11 @@ export const useThreads = () => {
       return true;
     } catch (error) {
       console.error('[Threads] Error creating thread:', error);
-      
-      // Only show toast if we haven't already shown one
-      if (!error.message.includes('Failed to create thread:')) {
-        toast({
-          title: "Error",
-          description: "Failed to post thread. Please check your connection and try again.",
-          variant: "destructive"
-        });
-      }
+      toast({
+        title: "Error",
+        description: "Failed to post thread. Please try again.",
+        variant: "destructive"
+      });
       return false;
     }
   };
@@ -209,32 +161,26 @@ export const useThreads = () => {
 
     try {
       const action = isCurrentlyLiked ? 'unlike' : 'like';
-      
-      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/thread-management', {
-        method: 'POST',
-        body: JSON.stringify({
-          action,
-          threadId
-        })
-      });
+      const response = await fetchWithFirebaseAuth(
+        'https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/thread-management',
+        {
+          method: 'POST',
+          body: JSON.stringify({ action, threadId })
+        }
+      );
 
       if (!response.ok) throw new Error(`Failed to ${action} thread`);
-      const data = await response.json();
+      await response.json();
 
-      // Update local state optimistically
       const newLikedThreads = new Set(likedThreads);
       if (isCurrentlyLiked) {
         newLikedThreads.delete(threadId);
       } else {
         newLikedThreads.add(threadId);
-        toast({
-          title: "Liked! ❤️",
-          description: "You liked this thread.",
-        });
+        toast({ title: "Liked! ❤️", description: "You liked this thread." });
       }
       setLikedThreads(newLikedThreads);
 
-      // Refresh threads to get updated counts
       await fetchThreads();
     } catch (error) {
       console.error('Error toggling like:', error);
@@ -250,22 +196,18 @@ export const useThreads = () => {
     if (!userId || !content.trim()) return false;
 
     try {
-      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/thread-management', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'reply',
-          threadId,
-          content: content.trim()
-        })
-      });
+      const response = await fetchWithFirebaseAuth(
+        'https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/thread-management',
+        {
+          method: 'POST',
+          body: JSON.stringify({ action: 'reply', threadId, content: content.trim() })
+        }
+      );
 
       if (!response.ok) throw new Error('Failed to reply to thread');
-      const data = await response.json();
+      await response.json();
 
-      toast({
-        title: "Reply posted! 💬",
-        description: "Your reply has been added to the thread.",
-      });
+      toast({ title: "Reply posted! 💬", description: "Your reply has been added." });
 
       await fetchThreads();
       return true;
@@ -283,23 +225,34 @@ export const useThreads = () => {
   const updateThread = async (threadId: string, content: string): Promise<boolean> => {
     if (!userId || !content.trim()) return false;
 
-    try {
-      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/thread-management', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'update',
-          threadId,
-          content: content.trim()
-        })
+    // ✅ Ownership check
+    const thread = threads.find(t => t.id === threadId);
+    if (!thread) {
+      toast({ title: "Error", description: "Thread not found.", variant: "destructive" });
+      return false;
+    }
+    if (thread.user_id !== userId) {
+      toast({
+        title: "Permission denied",
+        description: "You can only edit your own threads.",
+        variant: "destructive"
       });
+      return false;
+    }
+
+    try {
+      const response = await fetchWithFirebaseAuth(
+        'https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/thread-management',
+        {
+          method: 'POST',
+          body: JSON.stringify({ action: 'update', threadId, content: content.trim() })
+        }
+      );
 
       if (!response.ok) throw new Error('Failed to update thread');
-      const data = await response.json();
+      await response.json();
 
-      toast({
-        title: "Thread updated! ✏️",
-        description: "Your thread has been updated successfully.",
-      });
+      toast({ title: "Thread updated! ✏️", description: "Your thread has been updated." });
 
       await fetchThreads();
       return true;
@@ -317,22 +270,34 @@ export const useThreads = () => {
   const deleteThread = async (threadId: string): Promise<boolean> => {
     if (!userId) return false;
 
-    try {
-      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/thread-management', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'delete',
-          threadId
-        })
+    // ✅ Ownership check
+    const thread = threads.find(t => t.id === threadId);
+    if (!thread) {
+      toast({ title: "Error", description: "Thread not found.", variant: "destructive" });
+      return false;
+    }
+    if (thread.user_id !== userId) {
+      toast({
+        title: "Permission denied",
+        description: "You can only delete your own threads.",
+        variant: "destructive"
       });
+      return false;
+    }
+
+    try {
+      const response = await fetchWithFirebaseAuth(
+        'https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/thread-management',
+        {
+          method: 'POST',
+          body: JSON.stringify({ action: 'delete', threadId })
+        }
+      );
 
       if (!response.ok) throw new Error('Failed to delete thread');
-      const data = await response.json();
+      await response.json();
 
-      toast({
-        title: "Thread deleted! 🗑️",
-        description: "Your thread has been removed.",
-      });
+      toast({ title: "Thread deleted! 🗑️", description: "Your thread has been removed." });
 
       await fetchThreads();
       return true;
