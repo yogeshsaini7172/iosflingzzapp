@@ -139,9 +139,17 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
     return iconMap[interest] || Star;
   };
 
-  const formatArrayField = (arr: string[] | undefined, defaultValue: string = 'Not specified') => {
-    if (!arr || arr.length === 0) return defaultValue;
-    return arr.join(', ');
+  const formatArrayField = (arr: any, defaultValue: string = 'Not specified') => {
+    if (!arr) return defaultValue;
+    if (Array.isArray(arr)) return arr.length ? arr.join(', ') : defaultValue;
+    if (typeof arr === 'string') {
+      try {
+        const parsed = JSON.parse(arr);
+        if (Array.isArray(parsed)) return parsed.length ? parsed.join(', ') : defaultValue;
+      } catch {}
+      return arr.trim() || defaultValue;
+    }
+    return defaultValue;
   };
 
   const formatField = (value: any, defaultValue: string = 'Not specified') => {
