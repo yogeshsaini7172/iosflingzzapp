@@ -319,9 +319,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                   </div>
                 </DialogContent>
               </Dialog>
-              <Button size="sm" onClick={() => onNavigate('feed')} className="h-6 px-2 text-xs bg-pink-500 hover:bg-pink-600 text-white border border-pink-400 rounded-md">
-                All
-              </Button>
+
             </div>
           </div>
           <div className="flex space-x-2 overflow-x-auto pb-1">
