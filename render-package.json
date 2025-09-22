@@ -1,0 +1,24 @@
+{
+  "name": "grad-sync-socket-server",
+  "version": "1.0.0",
+  "description": "Socket server for Grad-Sync real-time messaging",
+  "main": "render-socket-server.js",
+  "scripts": {
+    "start": "node render-socket-server.js",
+    "dev": "nodemon render-socket-server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.5",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": ["socket.io", "real-time", "chat", "messaging"],
+  "author": "Grad-Sync Team",
+  "license": "MIT"
+}

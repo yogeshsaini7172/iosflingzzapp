@@ -53,7 +53,18 @@ export const SocketChatProvider: React.FC<SocketChatProviderProps> = ({ children
     if (!userId || !user || socketRef.current?.connected) return;
 
     // Check if socket URL is available
-    const socketUrl = import.meta.env.VITE_SOCKET_URL;
+    const socketUrl = import.meta.env.VITE_SOCKET_URL || 
+      (import.meta.env.PROD ? 'https://fllings-socket-server.onrender.com' : 'http://localhost:3002');
+    
+    console.log('🔍 Environment check:', {
+      NODE_ENV: import.meta.env.NODE_ENV,
+      MODE: import.meta.env.MODE,
+      PROD: import.meta.env.PROD,
+      VITE_SOCKET_URL: import.meta.env.VITE_SOCKET_URL,
+      finalSocketUrl: socketUrl,
+      allEnvVars: import.meta.env
+    });
+    
     if (!socketUrl) {
       console.log('No socket URL configured, chat will work without real-time features');
       setConnectionStatus('disconnected');
@@ -109,7 +120,14 @@ export const SocketChatProvider: React.FC<SocketChatProviderProps> = ({ children
       
       // Listener for incoming messages
       socket.on('message', (data) => {
+        console.log('📨 Received message via socket:', data);
         messageCallbacks.current.forEach(callback => callback(data));
+      });
+
+      // Listener for message errors
+      socket.on('message_error', (error) => {
+        console.error('❌ Message error from server:', error);
+        toast.error('Failed to send message', { description: error.message });
       });
 
       // Listener for updates to the list of online users
@@ -170,7 +188,30 @@ export const SocketChatProvider: React.FC<SocketChatProviderProps> = ({ children
   // --- Public Methods ---
 
   const sendMessage = useCallback((chatRoomId: string, message: string) => {
-    socketRef.current?.emit('message', { chatRoomId, message, userId });
+    console.log('🔄 Attempting to send message:', { chatRoomId, message, userId, connected: socketRef.current?.connected });
+    
+    if (!socketRef.current) {
+      console.error('❌ Socket not initialized');
+      return;
+    }
+    
+    if (!socketRef.current.connected) {
+      console.error('❌ Socket not connected');
+      return;
+    }
+    
+    if (!userId) {
+      console.error('❌ No userId available');
+      return;
+    }
+    
+    if (!message.trim()) {
+      console.error('❌ Empty message');
+      return;
+    }
+    
+    console.log('✅ Sending message via socket:', { chatRoomId, message, userId });
+    socketRef.current.emit('message', { chatRoomId, message, userId });
   }, [userId]);
 
   const joinChatRoom = useCallback((chatRoomId: string) => {

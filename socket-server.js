@@ -12,7 +12,10 @@ import { createServer } from 'http';
 
 // Initialize the Supabase client
 const supabaseUrl = "https://cchvsqeqiavhanurnbeo.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjaHZzcWVxaWF2aGFudXJuYmVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1MjI4OTMsImV4cCI6MjA3MjA5ODg5M30.6EII7grfX9gCUx6haU2wIfoiMDPrFTQn2XMDi6cY5-U";
+// Use service role key from environment variable for production, fallback to anon key for local development
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjaHZzcWVxaWF2aGFudXJuYmVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1MjI4OTMsImV4cCI6MjA3MjA5ODg5M30.6EII7grfX9gCUx6haU2wIfoiMDPrFTQn2XMDi6cY5-U";
+
+console.log('🔑 Supabase key type:', supabaseKey.includes('service_role') ? 'SERVICE_ROLE' : 'ANON');
 
 if (!supabaseUrl || !supabaseKey) {
   console.error("Supabase URL or Key is not defined. Make sure your environment variables are set.");
@@ -46,10 +49,10 @@ const PORT = process.env.PORT || 3002;
 const corsOrigins = process.env.NODE_ENV === 'production' 
   ? [
       process.env.CLIENT_URL,
-      'https://your-frontend-domain.vercel.app', // Replace with your actual domain
+      'https://preview--grad-sync.lovable.app', // Your actual frontend domain
       'https://your-frontend-domain.netlify.app' // Replace with your actual domain
     ].filter(Boolean)
-  : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:4173'];
+  : ['http://localhost:3000', 'http://localhost:8080', 'http://localhost:4173'];
 
 // Initialize the Socket.io server
 const io = new Server(server, {
@@ -114,9 +117,23 @@ io.on('connection', (socket) => {
   // Event to handle receiving and processing a new chat message (frontend sends 'message')
   socket.on('message', async ({ chatRoomId, message, userId: senderId }) => {
     console.log(`📩 Message received in room [${chatRoomId}]:`, { message, senderId });
+    console.log(`🔍 Attempting to save to database...`);
 
     try {
+      // Validate required fields
+      if (!chatRoomId || !senderId || !message) {
+        console.error('❌ Missing required fields:', { chatRoomId, senderId, message: !!message });
+        socket.emit('message_error', { message: 'Missing required fields for message.' });
+        return;
+      }
+
       // Save the incoming message to the Supabase 'chat_messages_enhanced' table
+      console.log(`💾 Inserting into chat_messages_enhanced:`, {
+        chat_room_id: chatRoomId,
+        sender_id: senderId,
+        message_text: message,
+      });
+
       const { data, error } = await supabase
         .from('chat_messages_enhanced')
         .insert([{
@@ -128,10 +145,13 @@ io.on('connection', (socket) => {
         .single();
 
       if (error) {
-        console.error('❌ Supabase error saving message:', error.message);
+        console.error('❌ Supabase error saving message:', error);
+        console.error('❌ Error details:', JSON.stringify(error, null, 2));
         socket.emit('message_error', { message: 'Failed to save message.', error: error.message });
         return;
       }
+
+      console.log(`✅ Message saved successfully:`, data);
 
       // If saved successfully, broadcast the message to everyone in the room
       const messageData = {
@@ -143,10 +163,11 @@ io.on('connection', (socket) => {
       };
       
       io.to(chatRoomId).emit('message', messageData);
-      console.log(`📨 Message broadcasted to room [${chatRoomId}]`);
+      console.log(`📨 Message broadcasted to room [${chatRoomId}]:`, messageData);
 
     } catch (error) {
       console.error('🔥 An unexpected server error occurred:', error);
+      console.error('🔥 Error stack:', error.stack);
       socket.emit('message_error', { message: 'An unexpected server error occurred.' });
     }
   });
