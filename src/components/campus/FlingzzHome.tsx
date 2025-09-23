@@ -22,7 +22,7 @@ import {
   Send,
   MessageCircle,
   Plus,
-  // Flame,  // replaced by branded logo
+  Flame,  // replaced by branded logo
   Zap,
   MoreVertical,
   Edit,
