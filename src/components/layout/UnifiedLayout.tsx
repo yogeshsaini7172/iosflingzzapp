@@ -14,6 +14,7 @@ import ChatRequestsModal from '@/components/notifications/ChatRequestsModal';
 import LikeNotificationHandler from '@/components/swipe/LikeNotificationHandler';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
+import flingzzLogo from "@/assets/flingzz-logo-clean.png";
 
 interface UnifiedLayoutProps {
   children: React.ReactNode;
@@ -67,9 +68,7 @@ const UnifiedLayout = ({ children, title = "FLINGZZ", showHeader = true }: Unifi
             <div className="flex items-center justify-between">
               {/* Logo */}
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-primary to-primary-glow rounded-xl flex items-center justify-center shadow-glow">
-                  <span className="text-primary-foreground font-bold text-sm">DS</span>
-                </div>
+                <img src={flingzzLogo} alt="FLINGZZ Logo" className="w-10 h-10 rounded-xl shadow-glow" />
                 <div>
                   <h1 className="text-xl font-display font-bold text-gradient-primary">{title}</h1>
                   <p className="text-xs text-muted-foreground">Find your perfect match</p>
