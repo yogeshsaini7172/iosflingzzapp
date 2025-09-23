@@ -23,6 +23,7 @@ import QCSSystemRepair from "./components/QCSSystemRepair";
 import QCSBulkSync from "./components/QCSBulkSync";
 import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
 import RebuiltChatSystem from "@/components/chat/RebuiltChatSystem";
+import LoadingScreen from "@/components/ui/loading-screen";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -156,12 +157,7 @@ const AuthenticatedApp = () => {
   // Show loading spinner until both auth and profile check are done
   if (isLoading || checkingProfile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground">Loading FLINGZZ...</p>
-        </div>
-      </div>
+      <LoadingScreen />
     );
   }
 
