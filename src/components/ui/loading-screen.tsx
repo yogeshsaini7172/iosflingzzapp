@@ -1,5 +1,5 @@
 import React from "react";
-import flingzzLogo from "@/assets/flingzz-logo-clean.png";
+
 
 const LoadingScreen = () => {
   return (
@@ -7,7 +7,7 @@ const LoadingScreen = () => {
       <div className="flex flex-col items-center space-y-4">
         <div className="animate-pulse">
           <img 
-            src={flingzzLogo} 
+            src="logo.png" 
             alt="FLINGZZ Logo" 
             className="w-16 h-16 rounded-xl"
           />

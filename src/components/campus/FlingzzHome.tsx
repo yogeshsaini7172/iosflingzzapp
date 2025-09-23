@@ -37,7 +37,7 @@ import { useSwipeRealtime, useLikeRealtime, useNotificationRealtime } from '@/ho
 import UnifiedLayout from '@/components/layout/UnifiedLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { useThreads } from '@/hooks/useThreads';
-import flingzzLogo from "@/assets/flingzz-logo-clean.png";
+
 
 interface FlingzzHomeProps {
   onNavigate: (view: string) => void;
@@ -237,7 +237,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
       <UnifiedLayout title="FLINGZZ" showHeader={false}>
         <div className="min-h-screen flex items-center justify-center">
           <div className="flex flex-col items-center space-y-4">
-            <img src={flingzzLogo} alt="FLINGZZ Logo" className="w-14 h-14 rounded-2xl shadow-glow animate-bounce" />
+            <img src="logo.png" alt="FLINGZZ Logo" className="w-14 h-14 rounded-2xl shadow-glow animate-bounce" />
             <p className="text-lg font-medium">Finding matches...</p>
           </div>
         </div>
