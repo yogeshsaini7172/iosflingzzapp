@@ -14,7 +14,7 @@ import ChatRequestsModal from '@/components/notifications/ChatRequestsModal';
 import LikeNotificationHandler from '@/components/swipe/LikeNotificationHandler';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
-import flingzzLogo from "@/assets/flingzz-logo.jpg";
+import flingzzLogo from "@/assets/flingzz-logo-clean.png";
 
 interface UnifiedLayoutProps {
   children: React.ReactNode;

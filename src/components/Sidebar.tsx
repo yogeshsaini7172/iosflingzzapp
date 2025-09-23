@@ -1,6 +1,6 @@
 import React from "react";
 import { Home, Heart, Zap, Users, User } from "lucide-react";
-import flingzzLogo from "@/assets/flingzz-logo.jpg";
+import flingzzLogo from "@/assets/flingzz-logo-clean.png";
 
 const Sidebar: React.FC = () => {
   const menuItems = [

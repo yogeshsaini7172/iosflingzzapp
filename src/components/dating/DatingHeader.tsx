@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import flingzzLogo from "@/assets/flingzz-logo.jpg";
+import flingzzLogo from "@/assets/flingzz-logo-clean.png";
 
 const DatingHeader = () => {
   return (

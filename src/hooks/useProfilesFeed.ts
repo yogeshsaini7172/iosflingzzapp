@@ -41,7 +41,7 @@ export function useProfilesFeed() {
   };
 
   const fetchFeed = async () => {
-    setLoading(true);
+    console.log('🚀 Starting feed fetch...');
 
     try {
       const currentUserId = getCurrentUserId();
@@ -62,24 +62,34 @@ export function useProfilesFeed() {
       if (!response.ok) {
         const err = await response.json().catch(() => ({}));
         console.error("❌ Error calling data-management (get_feed):", err);
-        throw new Error(err?.error || 'Failed to fetch feed');
+        // Don't throw error - just set empty profiles and stop loading
+        setProfiles([]);
+        setLoading(false);
+        return;
       }
 
       const payload = await response.json();
       console.log("✅ Full response payload:", payload);
       console.log("✅ Fetched profiles:", payload?.data?.profiles?.length);
-      console.log("📦 Profile data sample:", payload?.data?.profiles?.[0]);
       
       setProfiles(payload?.data?.profiles || []);
+      setLoading(false);
     } catch (err) {
       console.error("💥 Error fetching feed profiles:", err);
       setProfiles([]); // Clear profiles on error
-    } finally {
-      setLoading(false);
+      setLoading(false); // Always stop loading even on error
     }
   };
 
   useEffect(() => {
+    // Add timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        console.log('⚠️ Feed loading timeout, stopping loading state');
+        setLoading(false);
+      }
+    }, 10000); // 10 second timeout
+
     fetchFeed();
 
     // Real-time updates for profiles feed
@@ -96,6 +106,7 @@ export function useProfilesFeed() {
       .subscribe();
 
     return () => {
+      clearTimeout(timeoutId);
       supabase.removeChannel(channel);
     };
   }, []);
