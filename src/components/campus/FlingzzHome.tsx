@@ -250,13 +250,12 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
       <div className="bg-gradient-to-r from-primary/5 to-accent/5 backdrop-blur-xl border-b border-border/20 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-primary to-accent rounded-2xl flex items-center justify-center shadow-glow">
-              <Flame className="w-5 h-5 text-primary-foreground" />
-            </div>
             <div>
-              <h1 className="text-xl font-display font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                FLINGZZ
-              </h1>
+              <img
+                src="/logo.png"
+                alt="Logo"
+                className="h-8 w-8"
+              />
               <p className="text-xs text-muted-foreground">Discover • Connect • Match</p>
             </div>
           </div>
