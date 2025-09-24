@@ -1,14 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { getAuth, onAuthStateChanged, signInWithPhoneNumber, RecaptchaVerifier, signOut as firebaseSignOut, Google          } else if (popupError.code === 'auth/popup-blocked' || 
-                     popupError.code === 'auth/popup-closed-by-user' ||
-                     popupError.code === 'auth/cancelled-popup-request') {
-            
-            console.log('🔄 Popup blocked/cancelled - NOT using redirect (causes sessionStorage issues)');
-            console.error('🚫 Popup blocked/cancelled - avoiding redirect');
-            toast.error('Popup was blocked or cancelled. Please use phone authentication instead.', {
-              duration: 6000
-            });
-            throw new Error('Mobile popup blocked'); signInWithPopup, ConfirmationResult } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, signInWithPhoneNumber, RecaptchaVerifier, signOut as firebaseSignOut, signInWithPopup, signInWithRedirect, GoogleAuthProvider, ConfirmationResult } from 'firebase/auth';
 import { auth, googleProvider, createRecaptchaVerifier } from '@/integrations/firebase/config';
 import { isMobileEnvironment, handleMobileAuthError } from '@/utils/mobileAuthHelper';
 import { toast } from 'sonner';
@@ -196,7 +187,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               popupError.code === 'auth/web-storage-unsupported') {
             
             console.log('🔄 SessionStorage issue detected - NOT using redirect (causes issues)');
-            console.error('� Mobile sessionStorage issue - avoiding redirect');
+            console.error('🚫 Mobile sessionStorage issue - avoiding redirect');
             toast.error('Google sign-in is not fully supported in this mobile environment. Please use phone authentication for the best experience.', {
               duration: 8000
             });
@@ -205,7 +196,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                      popupError.code === 'auth/popup-closed-by-user' ||
                      popupError.code === 'auth/cancelled-popup-request') {
             
-            console.log('� Popup blocked/cancelled - trying redirect fallback...');
+            console.log('🔄 Popup blocked/cancelled - trying redirect fallback...');
             try {
               await signInWithRedirect(auth, provider);
               console.log('🔄 Redirect initiated after popup failure...');
