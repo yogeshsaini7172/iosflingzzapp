@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { getAuth, onAuthStateChanged, signInWithPhoneNumber, RecaptchaVerifier, signOut as firebaseSignOut, signInWithPopup, GoogleAuthProvider, ConfirmationResult } from 'firebase/auth';
 import { auth, googleProvider, createRecaptchaVerifier } from '@/integrations/firebase/config';
 import { isMobileEnvironment, handleMobileAuthError } from '@/utils/mobileAuthHelper';
-import { preventRedirectAuth, handleMobileAuthError as handleMobileError } from '@/utils/mobileAuthFix';
+import { preventRedirectAuth, handleMobileAuthError as handleMobileError, detectMobileEnvironment } from '@/utils/mobileAuthFix';
 import { toast } from 'sonner';
 
 type AuthContextType = {
@@ -157,12 +157,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInWithGoogle = async () => {
     try {
       console.log('🔑 Starting Google sign-in...');
-      console.log('📱 Environment check:', {
-        userAgent: window.navigator.userAgent,
-        isMobile: isMobileEnvironment(),
-        hasSessionStorage: typeof sessionStorage !== 'undefined',
-        hasLocalStorage: typeof localStorage !== 'undefined'
-      });
+      const environment = detectMobileEnvironment();
+      console.log('📱 Environment check:', environment);
+      
+      // Check if we're in an environment where Google auth won't work
+      if (environment && (!environment.sessionStorageAccessible || environment.isWebView || environment.isCapacitor)) {
+        console.log('🚫 Google auth unavailable in this environment');
+        toast.error('Google sign-in is not supported in this mobile app. Please use phone number authentication.', {
+          duration: 8000,
+        });
+        return { error: new Error('Google auth not supported in mobile environment') };
+      }
       
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({

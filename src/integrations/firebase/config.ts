@@ -32,12 +32,32 @@ export const auth = getAuth(app);
 if (typeof window !== 'undefined') {
   // Force localStorage for mobile environments to avoid sessionStorage issues
   const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(window.navigator.userAgent);
-  const isWebView = window.navigator.userAgent.includes('wv');
+  const isWebView = window.navigator.userAgent.includes('wv') || window.navigator.userAgent.includes('WebView');
+  const isCapacitor = window.navigator.userAgent.includes('Capacitor');
   
-  console.log('🔧 Firebase Auth Config:', { isMobile, isWebView });
+  // Test sessionStorage accessibility
+  let sessionStorageAccessible = false;
+  try {
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem('__test__', 'test');
+      sessionStorage.removeItem('__test__');
+      sessionStorageAccessible = true;
+    }
+  } catch (e) {
+    console.warn('⚠️ sessionStorage not accessible:', e);
+    sessionStorageAccessible = false;
+  }
   
-  if (isMobile || isWebView) {
-    console.log('📱 Mobile/WebView detected - forcing localStorage persistence');
+  console.log('🔧 Firebase Auth Config:', { 
+    isMobile, 
+    isWebView, 
+    isCapacitor, 
+    sessionStorageAccessible,
+    userAgent: window.navigator.userAgent 
+  });
+  
+  if (isMobile || isWebView || isCapacitor || !sessionStorageAccessible) {
+    console.log('📱 Mobile/WebView detected or sessionStorage inaccessible - forcing localStorage persistence');
     // Force localStorage for mobile to avoid "missing initial state" error
     setPersistence(auth, browserLocalPersistence).catch((error) => {
       console.error('❌ Failed to set Firebase auth persistence:', error);
