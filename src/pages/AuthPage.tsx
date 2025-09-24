@@ -173,15 +173,14 @@ const AuthPage = ({ onBack, onComplete }: AuthPageProps = {}) => {
                 variant="ghost"
                 size="icon"
                 className="absolute top-4 left-4"
-                onClick={onBack}
-              >
+                onClick={onBack}>
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             )}
-            <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">💫</span>
-            </div>
-            <CardTitle>Welcome to FLINGZZ</CardTitle>
+            <img src="logo.png" alt="Logo" className="w-14 h-14 mx-auto mb-4" />
+            <CardTitle>Welcome to <span className="drop-shadow-md hover:scale-105 text-pink-400 transition-all duration-300 animate-gradient-shadow">
+      FLINGZZ
+    </span></CardTitle>
             <CardDescription>
               Choose your preferred sign-in method
             </CardDescription>

@@ -269,61 +269,68 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
       </div>
 
       {/* Compact Community Threads */}
-      {threads.length > 0 && (
+     {threads.length > 0 && (
         <div className="bg-card/30 backdrop-blur-sm px-4 py-2 border-b border-border/10">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center space-x-2">
-              <MessageCircle className="w-4 h-4 text-primary" />
-              <h4 className="text-sm font-medium text-foreground">Community</h4>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Dialog open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
-                <DialogTrigger asChild>
-                  <Button size="sm" className="h-6 px-2 text-xs bg-pink-500 hover:bg-pink-600 text-white border border-pink-400 rounded-md">
-                    <Plus className="w-3 h-3 mr-1" />
-                    Post
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle className="flex items-center space-x-2">
-                      <MessageCircle className="w-5 h-5" />
-                      <span>Share Your Thoughts</span>
-                    </DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="thread-content">What's on your mind?</Label>
-                      <Textarea
-                        id="thread-content"
-                        placeholder="Share something interesting with the community..."
-                        value={newThreadContent}
-                        onChange={(e) => setNewThreadContent(e.target.value)}
-                        className="min-h-[120px] resize-none"
-                        maxLength={280}
-                      />
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>Be authentic, be you ✨</span>
-                        <span>{newThreadContent.length}/280</span>
+          <div className="max-w-sm mx-auto">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-2">
+                <MessageCircle className="w-4 h-4 text-primary" />
+                <h4 className="text-sm font-medium text-foreground">Community</h4>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Dialog open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="h-6 px-2 text-xs bg-pink-500 hover:bg-pink-600 text-white border border-pink-400 rounded-md">
+                      <Plus className="w-3 h-3 mr-1" />
+                      Post
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center space-x-2">
+                        <MessageCircle className="w-5 h-5" />
+                        <span>Share Your Thoughts</span>
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="thread-content">What's on your mind?</Label>
+                        <Textarea
+                          id="thread-content"
+                          placeholder="Share something interesting with the community..."
+                          value={newThreadContent}
+                          onChange={(e) => setNewThreadContent(e.target.value)}
+                          className="min-h-[120px] resize-none"
+                          maxLength={280}
+                        />
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>Be authentic, be you ✨</span>
+                          <span>{newThreadContent.length}/280</span>
+                        </div>
+                      </div>
+                      <div className="flex justify-end space-x-2">
+                        <Button variant="outline" onClick={() => setIsPostModalOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button onClick={handlePostThread} disabled={!newThreadContent.trim()}>
+                          <Send className="w-4 h-4 mr-2" />
+                          Share
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex justify-end space-x-2">
-                      <Button variant="outline" onClick={() => setIsPostModalOpen(false)}>
-                        Cancel
-                      </Button>
-                      <Button onClick={handlePostThread} disabled={!newThreadContent.trim()}>
-                        <Send className="w-4 h-4 mr-2" />
-                        Share
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
+                  </DialogContent>
+                </Dialog>
 
+              </div>
             </div>
-          </div>
-          <div className="flex space-x-2 overflow-x-auto pb-1">
-            {threads.slice(0, 5).map((thread) => (
+            <div className="flex space-x-2 overflow-x-auto pb-1">
+            {(() => {
+              if (!user?.uid) return threads.slice(0, 5);
+              const ownThread = threads.find(thread => thread.user_id === user.uid);
+              const otherThreads = threads.filter(thread => thread.user_id !== user.uid);
+              const reorderedThreads = ownThread ? [ownThread, ...otherThreads] : otherThreads;
+              return reorderedThreads.slice(0, 5);
+            })().map((thread) => (
               <div
                 key={thread.id}
                 className="flex-shrink-0 bg-gradient-to-r from-primary/10 to-accent/10 rounded-full px-3 py-1 border border-primary/20 relative group"
@@ -390,6 +397,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                 </div>
               </div>
             ))}
+          </div>
           </div>
         </div>
       )}

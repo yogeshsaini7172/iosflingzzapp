@@ -79,7 +79,9 @@ export const useThreads = () => {
 
       if (!response.ok) throw new Error('Failed to fetch threads');
       const data = await response.json();
+
       setThreads((data?.data as any[]) || []);
+      
     } catch (error) {
       console.error('Error fetching threads:', error);
     } finally {
