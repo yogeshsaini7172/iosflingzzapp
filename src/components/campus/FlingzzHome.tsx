@@ -22,7 +22,7 @@ import {
   Send,
   MessageCircle,
   Plus,
-  Flame,
+  Flame,  // replaced by branded logo
   Zap,
   MoreVertical,
   Edit,
@@ -37,6 +37,7 @@ import { useSwipeRealtime, useLikeRealtime, useNotificationRealtime } from '@/ho
 import UnifiedLayout from '@/components/layout/UnifiedLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { useThreads } from '@/hooks/useThreads';
+
 
 interface FlingzzHomeProps {
   onNavigate: (view: string) => void;
@@ -235,8 +236,8 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
     return (
       <UnifiedLayout title="FLINGZZ" showHeader={false}>
         <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-pulse flex flex-col items-center space-y-4">
-            <Flame className="w-12 h-12 text-primary animate-bounce" />
+          <div className="flex flex-col items-center space-y-4">
+            <img src="logo.png" alt="FLINGZZ Logo" className="w-14 h-14 rounded-2xl shadow-glow animate-bounce" />
             <p className="text-lg font-medium">Finding matches...</p>
           </div>
         </div>
@@ -250,13 +251,12 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
       <div className="bg-gradient-to-r from-primary/5 to-accent/5 backdrop-blur-xl border-b border-border/20 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-primary to-accent rounded-2xl flex items-center justify-center shadow-glow">
-              <Flame className="w-5 h-5 text-primary-foreground" />
-            </div>
             <div>
-              <h1 className="text-xl font-display font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                FLINGZZ
-              </h1>
+              <img
+                src="/logo.png"
+                alt="Logo"
+                className="h-8 w-8"
+              />
               <p className="text-xs text-muted-foreground">Discover • Connect • Match</p>
             </div>
           </div>
@@ -319,9 +319,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                   </div>
                 </DialogContent>
               </Dialog>
-              <Button size="sm" onClick={() => onNavigate('feed')} className="h-6 px-2 text-xs bg-pink-500 hover:bg-pink-600 text-white border border-pink-400 rounded-md">
-                All
-              </Button>
+
             </div>
           </div>
           <div className="flex space-x-2 overflow-x-auto pb-1">

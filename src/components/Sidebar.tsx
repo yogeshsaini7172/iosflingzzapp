@@ -1,5 +1,6 @@
 import React from "react";
 import { Home, Heart, Zap, Users, User } from "lucide-react";
+import flingzzLogo from "@/assets/logo.png";
 
 const Sidebar: React.FC = () => {
   const menuItems = [
@@ -12,7 +13,10 @@ const Sidebar: React.FC = () => {
 
   return (
     <div className="flex flex-col space-y-6">
-      <h1 className="text-2xl font-bold text-primary">FLINGZZ</h1>
+      <div className="flex items-center gap-3">
+        <img src={flingzzLogo} alt="FLINGZZ Logo" className="w-8 h-8 rounded-lg" />
+        <h1 className="text-2xl font-bold text-primary">FLINGZZ</h1>
+      </div>
       <nav className="space-y-4">
         {menuItems.map((item, idx) => (
           <div
