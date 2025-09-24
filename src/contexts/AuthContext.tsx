@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { getAuth, onAuthStateChanged, signInWithPhoneNumber, RecaptchaVerifier, signOut as firebaseSignOut, signInWithPopup, signInWithRedirect, GoogleAuthProvider, ConfirmationResult } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, signInWithPhoneNumber, RecaptchaVerifier, signOut as firebaseSignOut, signInWithPopup, GoogleAuthProvider, ConfirmationResult } from 'firebase/auth';
 import { auth, googleProvider, createRecaptchaVerifier } from '@/integrations/firebase/config';
 import { isMobileEnvironment, handleMobileAuthError } from '@/utils/mobileAuthHelper';
+import { preventRedirectAuth, handleMobileAuthError as handleMobileError } from '@/utils/mobileAuthFix';
 import { toast } from 'sonner';
 
 type AuthContextType = {
@@ -168,11 +169,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         prompt: 'select_account'
       });
       
-      if (isMobileEnvironment()) {
-        console.log('📱 Mobile environment detected - using enhanced mobile auth flow');
+      if (isMobileEnvironment() || preventRedirectAuth()) {
+        console.log('📱 Mobile environment detected - using popup-only auth (no redirect fallback)');
         
         try {
-          // First try: signInWithPopup with enhanced error handling
           console.log('🚀 Attempting Firebase signInWithPopup in mobile...');
           await signInWithPopup(auth, provider);
           console.log('✅ Mobile popup sign-in successful');
@@ -181,33 +181,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } catch (popupError: any) {
           console.log('❌ Mobile popup failed:', popupError.code, popupError.message);
           
-          // Check if it's a sessionStorage/WebView issue
-          if (popupError.message.includes('sessionStorage') ||
-              popupError.message.includes('initial state') ||
-              popupError.code === 'auth/web-storage-unsupported') {
-            
-            console.log('🔄 SessionStorage issue detected - NOT using redirect (causes issues)');
-            console.error('🚫 Mobile sessionStorage issue - avoiding redirect');
-            toast.error('Google sign-in is not fully supported in this mobile environment. Please use phone authentication for the best experience.', {
-              duration: 8000
-            });
-            throw new Error('Mobile Google auth sessionStorage issue');
-          } else if (popupError.code === 'auth/popup-blocked' || 
-                     popupError.code === 'auth/popup-closed-by-user' ||
-                     popupError.code === 'auth/cancelled-popup-request') {
-            
-            console.log('🔄 Popup blocked/cancelled - trying redirect fallback...');
-            try {
-              await signInWithRedirect(auth, provider);
-              console.log('🔄 Redirect initiated after popup failure...');
-              return {};
-            } catch (redirectError: any) {
-              console.error('❌ Redirect fallback failed:', redirectError);
-              throw new Error('Sign-in was blocked. Please try phone authentication instead.');
-            }
-          } else {
-            throw popupError;
+          // Use the enhanced mobile error handler
+          const isMobileAuthIssue = handleMobileError(popupError);
+          if (isMobileAuthIssue) {
+            throw popupError; // Let the outer error handler deal with it
           }
+          
+          // For other popup errors, don't try redirect - just recommend phone auth
+          console.log('🚫 Popup failed - recommending phone auth');
+          toast.error('Google sign-in is not available in this mobile environment. Please use phone authentication.', {
+            duration: 8000
+          });
+          throw new Error('Mobile popup auth failed - use phone auth');
         }
       } else {
         console.log('🖥️ Desktop environment - using standard popup auth');
@@ -221,7 +206,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('❌ Google sign in error:', error);
       
       // Check if this is a known mobile auth issue and provide helpful messaging
-      const isMobileAuthIssue = handleMobileAuthError(error);
+      const isMobileAuthIssue = handleMobileError(error);
       if (isMobileAuthIssue) {
         return { error };
       }
