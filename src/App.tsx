@@ -23,6 +23,7 @@ import QCSSystemRepair from "./components/QCSSystemRepair";
 import QCSBulkSync from "./components/QCSBulkSync";
 import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
 import RebuiltChatSystem from "@/components/chat/RebuiltChatSystem";
+import { initializeMobileApp } from "@/mobile/capacitor";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,6 +44,11 @@ const AuthenticatedApp = () => {
   const [hasProfile, setHasProfile] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(true);
   const [profileCheckComplete, setProfileCheckComplete] = useState(false);
+
+  // Initialize mobile app
+  useEffect(() => {
+    initializeMobileApp();
+  }, []);
 
   // Function to check if user has completed profile
   const checkUserProfile = async (userId: string) => {

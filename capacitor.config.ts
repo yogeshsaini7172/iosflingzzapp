@@ -1,23 +1,29 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.922cf03d2d724442a9bd1ac1382ad995',
-  appName: 'FLINGZZ',
+  appId: 'com.gradsync.app',
+  appName: 'Grad Sync',
   webDir: 'dist',
   server: {
-    url: 'https://922cf03d-2d72-4442-a9bd-1ac1382ad995.lovableproject.com?forceHideBadge=true',
-    cleartext: true
+    androidScheme: 'https'
   },
   plugins: {
     SplashScreen: {
-      launchShowDuration: 2000,
-      backgroundColor: '#8B008B',
-      androidScaleType: 'CENTER_CROP',
-      showSpinner: false
+      launchShowDuration: 3000,
+      launchAutoHide: true,
+      backgroundColor: "#8B008B",
+      androidSplashResourceName: "splash",
+      androidScaleType: "CENTER_CROP",
+      showSpinner: true,
+      androidSpinnerStyle: "large",
+      spinnerColor: "#ffffff"
     },
     StatusBar: {
       style: 'LIGHT_CONTENT',
       backgroundColor: '#8B008B'
+    },
+    PushNotifications: {
+      presentationOptions: ["badge", "sound", "alert"]
     }
   }
 };
