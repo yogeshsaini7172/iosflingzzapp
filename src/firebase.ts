@@ -2,12 +2,12 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCDU4DuUoOfbtviGMud-Q2Xllu7k4ruRm4",
+  apiKey: "AIzaSyDUxEo0-TWkqlxZfVzSx6YYBMWACqxrXvM", // ✅ Matches android config
   authDomain: "datingapp-275cb.firebaseapp.com",
   projectId: "datingapp-275cb",
-  storageBucket: "datingapp-275cb.appspot.com", // ✅ must be .appspot.com
+  storageBucket: "datingapp-275cb.firebasestorage.app", // ✅ Updated to match android
   messagingSenderId: "533305529581",
-  appId: "1:533305529581:web:81cbba3b6aefa6ac19a8e4",
+  appId: "1:533305529581:android:17d81a31875aa07f19a8e4", // ✅ Android app ID
   measurementId: "G-WCH701HLXM"
 };
 

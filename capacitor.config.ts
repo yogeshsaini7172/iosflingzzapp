@@ -25,7 +25,11 @@ const config: CapacitorConfig = {
     PushNotifications: {
       presentationOptions: ["badge", "sound", "alert"],
     },
-    // ✅ GoogleAuth plugin removed because we’re using Firebase SDK directly
+    GoogleAuth: {
+      scopes: ['profile', 'email'],
+      serverClientId: '533305529581-frij9q3gtu1jkj7hb3rtpqqsqb1mltkf.apps.googleusercontent.com',
+      forceCodeForRefreshToken: true,
+    },
   },
 };
 

@@ -67,15 +67,46 @@ export async function googleLogin() {
       platform: Capacitor.getPlatform()
     });
 
-    // For now, use web auth for all platforms until native is properly configured
-    console.log('🌐 Using web popup auth...');
-    const googleProvider = new GoogleAuthProvider();
-    googleProvider.addScope('email');
-    googleProvider.addScope('profile');
-    
-    const result = await signInWithPopup(auth, googleProvider);
-    console.log("✅ Google login success:", result.user.uid);
-    return { user: result.user, error: null };
+    if (isCapacitor) {
+      console.log('📱 Using native Capacitor Google Auth...');
+      
+      // Use native Capacitor Google Auth
+      const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth');
+      
+      try {
+        const googleUser = await GoogleAuth.signIn();
+        console.log('📱 Native Google sign-in result:', googleUser);
+        
+        // Create Firebase credential from Google Auth result
+        const googleCredential = GoogleAuthProvider.credential(
+          googleUser.authentication.idToken,
+          googleUser.authentication.accessToken
+        );
+        
+        // Sign in to Firebase with the credential
+        const result = await signInWithCredential(auth, googleCredential);
+        console.log("✅ Firebase login with Google credential success:", result.user.uid);
+        return { user: result.user, error: null };
+        
+      } catch (nativeError: any) {
+        console.error('📱 Native Google Auth failed:', nativeError);
+        
+        if (nativeError.message?.includes('cancelled') || nativeError.message?.includes('canceled')) {
+          return { user: null, error: 'Google sign-in was cancelled.' };
+        }
+        
+        throw nativeError; // Re-throw to be handled by outer catch
+      }
+    } else {
+      console.log('🌐 Using web popup auth...');
+      const googleProvider = new GoogleAuthProvider();
+      googleProvider.addScope('email');
+      googleProvider.addScope('profile');
+      
+      const result = await signInWithPopup(auth, googleProvider);
+      console.log("✅ Web Google login success:", result.user.uid);
+      return { user: result.user, error: null };
+    }
     
   } catch (error: any) {
     console.error("❌ Google Login Failed:", error.code, error.message);
@@ -86,6 +117,8 @@ export async function googleLogin() {
       return { user: null, error: 'Sign-in was cancelled.' };
     } else if (error.code === 'auth/network-request-failed') {
       return { user: null, error: 'Network error. Please check your connection and try again.' };
+    } else if (error.code === 'auth/internal-error') {
+      return { user: null, error: 'Firebase configuration error. Please contact support.' };
     } else {
       return { user: null, error: error.message || 'Authentication failed. Please try again.' };
     }
