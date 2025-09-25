@@ -117,6 +117,11 @@ export async function googleLogin() {
       
       try {
         console.log('🔐 Requesting Google sign-in...');
+        console.log('🔧 GoogleAuth plugin status check:', {
+          pluginAvailable: !!GoogleAuth,
+          methods: Object.getOwnPropertyNames(GoogleAuth),
+          isInitialized: true // We just initialized it above
+        });
         
         // Add timeout to prevent hanging
         const signInPromise = GoogleAuth.signIn();
@@ -124,15 +129,20 @@ export async function googleLogin() {
           setTimeout(() => reject(new Error('Google sign-in timed out after 30 seconds')), 30000)
         );
         
+        console.log('⏱️ Waiting for Google sign-in response...');
         const googleUser = await Promise.race([signInPromise, timeoutPromise]) as any;
         
-        console.log('📋 Google sign-in response:', {
+        console.log('📋 Google sign-in response received:', {
+          responseType: typeof googleUser,
           hasUser: !!googleUser,
+          isNull: googleUser === null,
+          isUndefined: googleUser === undefined,
           hasAuth: !!googleUser?.authentication,
           hasIdToken: !!googleUser?.authentication?.idToken,
           hasAccessToken: !!googleUser?.authentication?.accessToken,
           email: googleUser?.email,
-          name: googleUser?.name
+          name: googleUser?.name,
+          keys: googleUser ? Object.keys(googleUser) : 'No keys - null/undefined'
         });
         
         if (!googleUser) {
@@ -165,41 +175,59 @@ export async function googleLogin() {
         return { user: result.user, error: null };
         
       } catch (nativeError: any) {
-        console.error('❌ Native Google Auth error:', {
-          message: nativeError.message || 'Unknown error',
-          code: nativeError.code,
-          error: nativeError
+        // Enhanced error logging for empty/malformed error objects
+        console.error('❌ Native Google Auth error details:', {
+          errorType: typeof nativeError,
+          errorString: String(nativeError),
+          errorJSON: JSON.stringify(nativeError, null, 2),
+          message: nativeError?.message,
+          code: nativeError?.code,
+          hasKeys: Object.keys(nativeError || {}).length,
+          keys: Object.keys(nativeError || {})
         });
         
+        // Handle empty or malformed error objects
+        if (!nativeError || (typeof nativeError === 'object' && Object.keys(nativeError).length === 0)) {
+          console.error('❌ Empty error object detected - likely plugin communication issue');
+          return { user: null, error: 'Google sign-in failed due to a plugin communication issue. Please restart the app and try again.' };
+        }
+        
+        const errorMessage = nativeError?.message || nativeError?.toString() || 'Unknown error';
+        
         // Handle specific error cases with better messaging
-        if (nativeError.message?.includes('cancelled') || 
-            nativeError.message?.includes('canceled') ||
-            nativeError.message?.includes('CANCELLED') ||
-            nativeError.message?.includes('User cancelled')) {
+        if (errorMessage.includes('cancelled') || 
+            errorMessage.includes('canceled') ||
+            errorMessage.includes('CANCELLED') ||
+            errorMessage.includes('User cancelled')) {
           return { user: null, error: 'Google sign-in was cancelled.' };
         }
         
-        if (nativeError.message?.includes('network') || 
-            nativeError.message?.includes('connection') ||
-            nativeError.message?.includes('Network')) {
+        if (errorMessage.includes('network') || 
+            errorMessage.includes('connection') ||
+            errorMessage.includes('Network')) {
           return { user: null, error: 'Network error. Please check your connection and try again.' };
         }
         
-        if (nativeError.message?.includes('Something went wrong')) {
-          return { user: null, error: 'Google services error. Please try again or use phone authentication.' };
+        if (errorMessage.includes('Something went wrong')) {
+          return { user: null, error: 'Google services error. Please restart the app and try again.' };
         }
         
-        if (nativeError.message?.includes('timeout')) {
+        if (errorMessage.includes('timeout')) {
           return { user: null, error: 'Google sign-in timed out. Please try again.' };
         }
         
-        if (nativeError.message?.includes('not ready') || 
-            nativeError.message?.includes('initialize')) {
+        if (errorMessage.includes('not ready') || 
+            errorMessage.includes('initialize')) {
           return { user: null, error: 'Google services not ready. Please restart the app and try again.' };
         }
         
+        // Handle the specific "Something went wrong" case that appears as empty object
+        if (errorMessage === '[object Object]' || errorMessage === 'Unknown error') {
+          return { user: null, error: 'Google authentication encountered an issue. Please restart the app and try again.' };
+        }
+        
         // Generic fallback with more helpful message
-        return { user: null, error: `Google authentication failed: ${nativeError.message || 'Unknown error'}. Please try phone authentication instead.` };
+        return { user: null, error: `Google authentication failed: ${errorMessage}. Please try restarting the app.` };
       }
     } else {
       console.log('🌐 Starting web Google authentication...');
