@@ -16,18 +16,7 @@ const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 
-// Enhanced Google Auth Provider for mobile compatibility
-export const googleProvider = new GoogleAuthProvider();
-googleProvider.setCustomParameters({ 
-  prompt: "select_account",
-  // Enhanced parameters for WebView/mobile experience
-  access_type: 'online',
-  include_granted_scopes: 'true'
-});
-
-// Add required scopes
-googleProvider.addScope('email');
-googleProvider.addScope('profile');
-googleProvider.addScope('openid');
+// Note: Google provider is now created per-request in auth service
+// to avoid mobile compatibility issues
 
 export default app;

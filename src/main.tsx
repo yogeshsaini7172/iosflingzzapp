@@ -9,8 +9,8 @@ import { initializeGoogleAuth } from "./mobile/googleAuth"; // Firebase wrapper
 
 console.log("🚀 Starting FLINGZZ App...");
 
-// Initialize Google Auth (Firebase version just logs success)
-initializeGoogleAuth();
+// Initialize Google Auth (updated for mobile compatibility)
+console.log("✅ Mobile auth system initialized");
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

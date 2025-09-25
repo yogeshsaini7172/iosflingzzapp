@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { auth, googleProvider } from '../../firebase';
-import { signInWithPopup } from 'firebase/auth';
+import { auth } from '../../firebase';
+import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { Capacitor } from '@capacitor/core';
 
 export const MobileAuthFix: React.FC = () => {
@@ -85,6 +85,10 @@ export const MobileAuthFix: React.FC = () => {
       await new Promise(resolve => setTimeout(resolve, 500));
       
       // Attempt auth
+      const googleProvider = new GoogleAuthProvider();
+      googleProvider.addScope('email');
+      googleProvider.addScope('profile');
+      
       const result = await signInWithPopup(auth, googleProvider);
       console.log('✅ Auth successful:', result.user.email);
       
