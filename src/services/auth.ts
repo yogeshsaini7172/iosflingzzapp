@@ -91,156 +91,67 @@ export async function signup(email: string, password: string) {
 // -----------------------
 export async function googleLogin() {
   try {
+    console.log('🔍 Starting Google Auth for mobile...');
+    
     if (!isCapacitorReady()) {
-      throw new Error('Capacitor not ready');
+      throw new Error('Capacitor not ready - restart the app');
     }
 
-    const isNative = isMobileNative();
     const platform = Capacitor.getPlatform();
-    
-    console.log('🔍 Google Auth - Platform detection:', { 
-      isNative, 
-      platform,
-      capacitorReady: isCapacitorReady()
-    });
+    console.log('📱 Platform:', platform);
+    // Initialize GoogleAuth for mobile
+    const initialized = await initializeGoogleAuthIfNeeded();
+    if (!initialized) {
+      throw new Error('Failed to initialize Google Auth - please restart the app');
+    }
 
-    if (isNative) {
-      console.log('📱 Starting native Google authentication...');
-      
-      // Initialize GoogleAuth for native platforms
-      const initialized = await initializeGoogleAuthIfNeeded();
-      if (!initialized) {
-        throw new Error('Failed to initialize Google Auth for native platform');
-      }
-
-      const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth');
+    const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth');
       
       try {
         console.log('🔐 Requesting Google sign-in...');
-        console.log('🔧 GoogleAuth plugin status check:', {
-          pluginAvailable: !!GoogleAuth,
-          methods: Object.getOwnPropertyNames(GoogleAuth),
-          isInitialized: true // We just initialized it above
-        });
         
-        // Add timeout to prevent hanging
-        const signInPromise = GoogleAuth.signIn();
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Google sign-in timed out after 30 seconds')), 30000)
-        );
+        const googleUser = await GoogleAuth.signIn();
         
-        console.log('⏱️ Waiting for Google sign-in response...');
-        const googleUser = await Promise.race([signInPromise, timeoutPromise]) as any;
-        
-        console.log('📋 Google sign-in response received:', {
-          responseType: typeof googleUser,
+        console.log('📋 Google sign-in response:', {
           hasUser: !!googleUser,
-          isNull: googleUser === null,
-          isUndefined: googleUser === undefined,
           hasAuth: !!googleUser?.authentication,
           hasIdToken: !!googleUser?.authentication?.idToken,
-          hasAccessToken: !!googleUser?.authentication?.accessToken,
-          email: googleUser?.email,
-          name: googleUser?.name,
-          keys: googleUser ? Object.keys(googleUser) : 'No keys - null/undefined'
+          email: googleUser?.email
         });
         
-        if (!googleUser) {
-          throw new Error('No user returned from Google sign-in');
+        if (!googleUser || !googleUser.authentication || !googleUser.authentication.idToken) {
+          throw new Error('Google sign-in failed - no valid tokens received');
         }
         
-        if (!googleUser.authentication) {
-          throw new Error('No authentication tokens returned from Google sign-in');
-        }
+        console.log('✅ Google sign-in successful:', googleUser.email);
         
-        if (!googleUser.authentication.idToken) {
-          throw new Error('Missing ID token from Google authentication');
-        }
-        
-        console.log('✅ Native Google sign-in successful:', {
-          displayName: googleUser.name,
-          email: googleUser.email
-        });
-        
-        // Create Firebase credential from Google tokens
+        // Create Firebase credential
         const credential = GoogleAuthProvider.credential(
           googleUser.authentication.idToken,
           googleUser.authentication.accessToken
         );
         
-        // Sign into Firebase with the Google credential
+        // Sign into Firebase
         const result = await signInWithCredential(auth, credential);
         console.log("✅ Firebase authentication successful:", result.user.uid);
         
         return { user: result.user, error: null };
         
       } catch (nativeError: any) {
-        // Enhanced error logging for empty/malformed error objects
-        console.error('❌ Native Google Auth error details:', {
-          errorType: typeof nativeError,
-          errorString: String(nativeError),
-          errorJSON: JSON.stringify(nativeError, null, 2),
-          message: nativeError?.message,
-          code: nativeError?.code,
-          hasKeys: Object.keys(nativeError || {}).length,
-          keys: Object.keys(nativeError || {})
-        });
+        console.error('❌ Google Auth error:', nativeError);
         
-        // Handle empty or malformed error objects
-        if (!nativeError || (typeof nativeError === 'object' && Object.keys(nativeError).length === 0)) {
-          console.error('❌ Empty error object detected - likely plugin communication issue');
-          return { user: null, error: 'Google sign-in failed due to a plugin communication issue. Please restart the app and try again.' };
-        }
+        const errorMessage = nativeError?.message || 'Unknown error';
         
-        const errorMessage = nativeError?.message || nativeError?.toString() || 'Unknown error';
-        
-        // Handle specific error cases with better messaging
-        if (errorMessage.includes('cancelled') || 
-            errorMessage.includes('canceled') ||
-            errorMessage.includes('CANCELLED') ||
-            errorMessage.includes('User cancelled')) {
+        if (errorMessage.includes('cancelled') || errorMessage.includes('canceled')) {
           return { user: null, error: 'Google sign-in was cancelled.' };
         }
         
-        if (errorMessage.includes('network') || 
-            errorMessage.includes('connection') ||
-            errorMessage.includes('Network')) {
-          return { user: null, error: 'Network error. Please check your connection and try again.' };
+        if (errorMessage.includes('network') || errorMessage.includes('connection')) {
+          return { user: null, error: 'Network error. Please check connection and try again.' };
         }
         
-        if (errorMessage.includes('Something went wrong')) {
-          return { user: null, error: 'Google services error. Please restart the app and try again.' };
-        }
-        
-        if (errorMessage.includes('timeout')) {
-          return { user: null, error: 'Google sign-in timed out. Please try again.' };
-        }
-        
-        if (errorMessage.includes('not ready') || 
-            errorMessage.includes('initialize')) {
-          return { user: null, error: 'Google services not ready. Please restart the app and try again.' };
-        }
-        
-        // Handle the specific "Something went wrong" case that appears as empty object
-        if (errorMessage === '[object Object]' || errorMessage === 'Unknown error') {
-          return { user: null, error: 'Google authentication encountered an issue. Please restart the app and try again.' };
-        }
-        
-        // Generic fallback with more helpful message
-        return { user: null, error: `Google authentication failed: ${errorMessage}. Please try restarting the app.` };
+        return { user: null, error: `Authentication failed: ${errorMessage}` };
       }
-    } else {
-      console.log('🌐 Starting web Google authentication...');
-      
-      const provider = new GoogleAuthProvider();
-      provider.addScope('email');
-      provider.addScope('profile');
-      
-      const result = await signInWithPopup(auth, provider);
-      console.log("✅ Web Google authentication successful:", result.user.uid);
-      
-      return { user: result.user, error: null };
-    }
     
   } catch (error: any) {
     console.error("❌ Google authentication failed:", {
