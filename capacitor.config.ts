@@ -5,8 +5,8 @@ const config: CapacitorConfig = {
   appName: 'Grad Sync', 
   webDir: 'dist',
   server: {
-    androidScheme: 'https',
-    url: 'http://10.0.2.2:5173',
+    androidScheme: 'http',
+    url: 'http://10.0.2.2:8080',
     cleartext: true
   },
   plugins: {
