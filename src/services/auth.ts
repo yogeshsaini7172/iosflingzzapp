@@ -74,11 +74,18 @@ export async function googleLogin() {
     provider.addScope('profile');
 
     if (isMobileNative()) {
-      // Use redirect flow on mobile WebView; popup is often blocked
-      console.log('🔁 Using redirect flow for Google Auth on mobile');
-      const { signInWithRedirect } = await import('firebase/auth');
-      await signInWithRedirect(auth, provider);
-      return { user: null, error: 'redirecting' };
+      // Mobile - use Capacitor Browser plugin instead of redirect
+      console.log('🔁 Using Capacitor Browser for Google Auth on mobile');
+      
+      // Import and use Capacitor Browser
+      const { Browser } = await import('@capacitor/browser');
+      
+      // Open Google OAuth in system browser
+      const authUrl = `https://accounts.google.com/oauth/authorize?client_id=${encodeURIComponent('533305529581-your-client-id.apps.googleusercontent.com')}&redirect_uri=${encodeURIComponent('https://922cf03d-2d72-4442-a9bd-1ac1382ad995.lovableproject.com')}&response_type=code&scope=email%20profile&state=mobile_auth`;
+      
+      await Browser.open({ url: authUrl });
+      
+      return { user: null, error: 'browser_auth' };
     } else {
       console.log('🌐 Using popup flow for Google Auth on web');
       const result = await signInWithPopup(auth, provider);
