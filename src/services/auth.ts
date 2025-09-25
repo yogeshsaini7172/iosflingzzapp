@@ -74,9 +74,11 @@ export async function googleLogin() {
     provider.addScope('profile');
 
     if (isMobileNative()) {
-      // Mobile WebView has Google OAuth restrictions
-      console.log('🚫 Google OAuth not supported in mobile WebView - recommend phone auth');
-      return { user: null, error: 'Google sign-in is not available in mobile app. Please use phone authentication instead.' };
+      // For mobile, use redirect instead of popup
+      console.log('🔄 Using redirect flow for mobile Google OAuth');
+      const { signInWithRedirect, getRedirectResult } = await import('firebase/auth');
+      await signInWithRedirect(auth, provider);
+      return { user: null, error: 'redirecting' };
     } else {
       console.log('🌐 Using popup flow for Google Auth on web');
       const result = await signInWithPopup(auth, provider);
