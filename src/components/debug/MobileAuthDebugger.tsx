@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { detectMobileEnvironment, cleanupMobileAuthState } from '../../services/mobileAuth';
+import { isNativeAuthAvailable, detectMobileEnvironment, cleanupMobileAuthState } from '../../services/mobileAuth';
 import { googleLogin } from '../../services/auth';
 import { toast } from 'sonner';
 

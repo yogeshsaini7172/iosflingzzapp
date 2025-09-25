@@ -11,6 +11,7 @@ import {
 } from "firebase/auth";
 import { auth } from "../firebase";
 import { Capacitor } from "@capacitor/core";
+import { nativeGoogleSignIn, isNativeAuthAvailable } from './mobileAuth';
 
 // Mobile auth detection and utilities
 function isMobileNative(): boolean {
@@ -60,7 +61,7 @@ export async function signup(email: string, password: string) {
 // -----------------------
 export async function googleLogin() {
   try {
-    console.log('🔍 Starting Google Auth for mobile...');
+    console.log('🔍 Starting Google Auth...');
     
     if (!isCapacitorReady()) {
       throw new Error('Capacitor not ready - restart the app');
@@ -69,18 +70,17 @@ export async function googleLogin() {
     const platform = Capacitor.getPlatform();
     console.log('📱 Platform:', platform);
 
-    const provider = new GoogleAuthProvider();
-    provider.addScope('email');
-    provider.addScope('profile');
-
-    if (isMobileNative()) {
-      // For mobile, use redirect instead of popup
-      console.log('🔄 Using redirect flow for mobile Google OAuth');
-      const { signInWithRedirect, getRedirectResult } = await import('firebase/auth');
-      await signInWithRedirect(auth, provider);
-      return { user: null, error: 'redirecting' };
+    if (isMobileNative() && isNativeAuthAvailable()) {
+      // Native mobile Google sign-in - proper mobile app behavior
+      console.log('📱 Using native Google sign-in');
+      return await nativeGoogleSignIn();
     } else {
-      console.log('🌐 Using popup flow for Google Auth on web');
+      // Web fallback - popup flow
+      console.log('🌐 Using web popup flow for Google Auth');
+      const provider = new GoogleAuthProvider();
+      provider.addScope('email');
+      provider.addScope('profile');
+      
       const result = await signInWithPopup(auth, provider);
       console.log("✅ Web Google authentication successful:", result.user.uid);
       return { user: result.user, error: null };
@@ -94,7 +94,7 @@ export async function googleLogin() {
     });
     
     if (error.code === 'auth/popup-blocked') {
-      return { user: null, error: 'redirecting' };
+      return { user: null, error: 'Please allow popups for authentication' };
     } else if (error.code === 'auth/popup-closed-by-user') {
       return { user: null, error: 'Google sign-in was cancelled.' };
     } else {

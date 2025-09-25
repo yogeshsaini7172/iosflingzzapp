@@ -1,114 +1,66 @@
-// Enhanced mobile authentication service
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { Capacitor } from '@capacitor/core';
-import { toast } from 'sonner';
+import { auth } from '../firebase';
+import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 
-export interface MobileAuthEnvironment {
-  platform: string;
-  isNative: boolean;
-  isCapacitor: boolean;
-  userAgent: string;
-  supports: {
-    GoogleAuth: boolean;
-    storage: boolean;
-    notifications: boolean;
-  };
-}
-
-// Comprehensive mobile environment detection
-export function detectMobileEnvironment(): MobileAuthEnvironment {
-  const platform = Capacitor.getPlatform();
-  const isNative = Capacitor.isNativePlatform();
-  const isCapacitor = typeof Capacitor !== 'undefined';
-  const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : '';
-
-  // Check for various capabilities
-  const supports = {
-    GoogleAuth: isNative && (platform === 'android' || platform === 'ios'),
-    storage: typeof localStorage !== 'undefined',
-    notifications: 'Notification' in (globalThis as any)
-  };
-
+// Detect mobile environment for debugging
+export function detectMobileEnvironment() {
   return {
-    platform,
-    isNative,
-    isCapacitor,
-    userAgent,
-    supports
+    platform: Capacitor.getPlatform(),
+    isNative: Capacitor.isNativePlatform(),
+    isCapacitor: typeof Capacitor !== 'undefined',
+    userAgent: navigator.userAgent,
+    supports: {
+      GoogleAuth: Capacitor.isNativePlatform(),
+      storage: typeof Storage !== 'undefined',
+      notifications: 'Notification' in window
+    }
   };
 }
 
-// Mobile-specific error handler
-export function handleMobileAuthError(error: any, context: string): string {
-  console.error(`❌ Mobile Auth Error [${context}]:`, error);
-
-  const errorMessage = error?.message || error?.toString() || 'Unknown error';
-  
-  // Handle specific mobile auth errors
-  if (errorMessage.includes('cancelled') || errorMessage.includes('canceled')) {
-    return 'Authentication was cancelled. Please try again.';
-  }
-  
-  if (errorMessage.includes('network') || errorMessage.includes('connection')) {
-    return 'Network error. Please check your connection and try again.';
-  }
-  
-  if (errorMessage.includes('Google services')) {
-    return 'Google services are not available. Please try phone authentication.';
-  }
-  
-  if (errorMessage.includes('initialize')) {
-    return 'Authentication service initialization failed. Please restart the app.';
-  }
-  
-  if (errorMessage.includes('invalid') || errorMessage.includes('malformed')) {
-    return 'Invalid authentication data. Please contact support.';
-  }
-  
-  // Default fallback
-  return 'Authentication failed. Please try again or use an alternative method.';
-}
-
-// Show appropriate authentication recommendations for mobile users
-export function showMobileAuthRecommendation() {
-  const env = detectMobileEnvironment();
-  
-  if (env.isNative) {
-    if (!env.supports.GoogleAuth) {
-      toast.info('💡 For the best mobile experience, we recommend using phone number authentication', {
-        duration: 6000,
-      });
-    }
-  } else {
-    // Web environment - recommend web-optimized flow
-    console.log('🌐 Web environment detected - using standard auth flow');
-  }
-}
-
-// Mobile-specific auth state cleanup
+// Clean up mobile auth state
 export async function cleanupMobileAuthState() {
   try {
-    // Clear any cached auth data specific to mobile
-    if (typeof localStorage !== 'undefined') {
-      const keysToRemove = [
-        'google_auth_temp',
-        'mobile_auth_state',
-        'capacitor_auth_cache'
-      ];
-      
-      keysToRemove.forEach(key => {
-        localStorage.removeItem(key);
-      });
-    }
-    
-    console.log('✅ Mobile auth state cleaned up');
+    localStorage.clear();
+    sessionStorage.clear();
+    console.log('🧹 Mobile auth state cleaned');
   } catch (error) {
-    console.warn('⚠️ Failed to cleanup mobile auth state:', error);
+    console.error('❌ Failed to cleanup auth state:', error);
   }
 }
 
-// Enhanced mobile connectivity check
-export function checkMobileConnectivity(): boolean {
-  if (typeof navigator === 'undefined') return true;
-  
-  return navigator.onLine !== false;
+// Proper Mobile Google Authentication
+export async function nativeGoogleSignIn() {
+  try {
+    console.log('🔍 Starting native Google sign-in...');
+    
+    if (!Capacitor.isNativePlatform()) {
+      throw new Error('Native auth only available on mobile platforms');
+    }
+
+    // Native Google sign-in - shows overlay within app
+    const result = await FirebaseAuthentication.signInWithGoogle();
+    
+    console.log('✅ Native Google sign-in successful:', result.user?.uid);
+    
+    // Create credential and sign in with Firebase
+    const credential = GoogleAuthProvider.credential(
+      result.credential?.idToken,
+      result.credential?.accessToken
+    );
+    
+    const userCredential = await signInWithCredential(auth, credential);
+    console.log('✅ Firebase credential sign-in successful:', userCredential.user.uid);
+    
+    return { user: userCredential.user, error: null };
+    
+  } catch (error: any) {
+    console.error('❌ Native Google sign-in failed:', error);
+    return { user: null, error: error.message || 'Google sign-in failed' };
+  }
+}
+
+// Check if native auth is available
+export function isNativeAuthAvailable(): boolean {
+  return Capacitor.isNativePlatform();
 }
