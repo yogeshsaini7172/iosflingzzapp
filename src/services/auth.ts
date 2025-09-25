@@ -27,33 +27,17 @@ function isCapacitorReady(): boolean {
   }
 }
 
-// Enhanced GoogleAuth initialization with detailed error handling
+// Enhanced Firebase Auth initialization for Capacitor
 async function initializeGoogleAuthIfNeeded(): Promise<boolean> {
   if (!isMobileNative()) return true;
   
   try {
-    console.log('🔄 Initializing GoogleAuth for native platform...');
-    const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth');
-    
-    // Check if already initialized
-    try {
-      await GoogleAuth.initialize({
-        clientId: '533305529581-l1v9pc0f96uapm1vjbot4scbpai684hg.apps.googleusercontent.com',
-        scopes: ['profile', 'email'],
-        grantOfflineAccess: true,
-      });
-      console.log('✅ GoogleAuth initialized successfully');
-      return true;
-    } catch (initError: any) {
-      console.error('❌ GoogleAuth initialization error:', {
-        message: initError.message,
-        code: initError.code,
-        details: initError
-      });
-      return false;
-    }
+    console.log('🔄 Initializing Firebase Auth for native platform...');
+    const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
+    console.log('✅ Firebase Auth plugin ready');
+    return true;
   } catch (error: any) {
-    console.error('❌ Failed to import GoogleAuth plugin:', error);
+    console.error('❌ Failed to import Firebase Auth plugin:', error);
     return false;
   }
 }
@@ -105,37 +89,33 @@ export async function googleLogin() {
       throw new Error('Failed to initialize Google Auth - please restart the app');
     }
 
-    const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth');
+    const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
       
       try {
         console.log('🔐 Requesting Google sign-in...');
         
-        const googleUser = await GoogleAuth.signIn();
+        const result = await FirebaseAuthentication.signInWithGoogle();
         
         console.log('📋 Google sign-in response:', {
-          hasUser: !!googleUser,
-          hasAuth: !!googleUser?.authentication,
-          hasIdToken: !!googleUser?.authentication?.idToken,
-          email: googleUser?.email
+          hasUser: !!result.user,
+          hasCredential: !!result.credential,
+          email: result.user?.email
         });
         
-        if (!googleUser || !googleUser.authentication || !googleUser.authentication.idToken) {
-          throw new Error('Google sign-in failed - no valid tokens received');
+        if (!result.user) {
+          throw new Error('Google sign-in failed - no user returned');
         }
         
-        console.log('✅ Google sign-in successful:', googleUser.email);
+        console.log('✅ Google sign-in successful:', result.user.email);
         
-        // Create Firebase credential
-        const credential = GoogleAuthProvider.credential(
-          googleUser.authentication.idToken,
-          googleUser.authentication.accessToken
-        );
-        
-        // Sign into Firebase
-        const result = await signInWithCredential(auth, credential);
-        console.log("✅ Firebase authentication successful:", result.user.uid);
-        
-        return { user: result.user, error: null };
+        // The user is already authenticated with Firebase through the plugin
+        // Get the current Firebase user
+        const firebaseUser = auth.currentUser;
+        if (firebaseUser) {
+          return { user: firebaseUser, error: null };
+        } else {
+          throw new Error('Firebase user not found after authentication');
+        }
         
       } catch (nativeError: any) {
         console.error('❌ Google Auth error:', nativeError);
@@ -239,11 +219,11 @@ export async function signOut() {
     // Clean up any mobile-specific auth state
     if (isMobileNative()) {
       try {
-        const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth');
-        await GoogleAuth.signOut();
-        console.log('✅ Native Google Auth sign out completed');
+        const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
+        await FirebaseAuthentication.signOut();
+        console.log('✅ Firebase Auth sign out completed');
       } catch (e) {
-        console.warn('⚠️ Native Google Auth sign out failed:', e);
+        console.warn('⚠️ Firebase Auth sign out failed:', e);
       }
     }
     
