@@ -2,7 +2,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.gradsync.app',
-  appName: 'Grad Sync',
+  appName: 'Grad Sync', 
   webDir: 'dist',
   server: {
     androidScheme: 'https',

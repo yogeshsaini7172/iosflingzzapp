@@ -12,16 +12,46 @@ import {
 import { auth } from "../firebase";
 import { Capacitor } from "@capacitor/core";
 
+// Mobile auth detection and utilities
+function isMobileNative(): boolean {
+  return Capacitor.isNativePlatform() || 
+         ['android', 'ios'].includes(Capacitor.getPlatform());
+}
+
+function isCapacitorReady(): boolean {
+  try {
+    return typeof Capacitor !== 'undefined' && 
+           typeof Capacitor.getPlatform === 'function';
+  } catch {
+    return false;
+  }
+}
+
+// Enhanced GoogleAuth initialization
+async function initializeGoogleAuthIfNeeded(): Promise<boolean> {
+  if (!isMobileNative()) return true;
+  
+  try {
+    const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth');
+    await GoogleAuth.initialize();
+    console.log('✅ GoogleAuth initialized for native platform');
+    return true;
+  } catch (error) {
+    console.error('❌ GoogleAuth initialization failed:', error);
+    return false;
+  }
+}
+
 // -----------------------
 // Email/Password Login
 // -----------------------
 export async function login(email: string, password: string) {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    console.log("Login Success:", userCredential.user.uid);
+    console.log("✅ Email login success:", userCredential.user.uid);
     return { user: userCredential.user, error: null };
   } catch (error: any) {
-    console.error("Login Failed:", error.message);
+    console.error("❌ Email login failed:", error.message);
     return { user: null, error: error.message };
   }
 }
@@ -32,98 +62,119 @@ export async function login(email: string, password: string) {
 export async function signup(email: string, password: string) {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    console.log("Signup Success:", userCredential.user.uid);
+    console.log("✅ Email signup success:", userCredential.user.uid);
     return { user: userCredential.user, error: null };
   } catch (error: any) {
-    console.error("Signup Failed:", error.message);
+    console.error("❌ Email signup failed:", error.message);
     return { user: null, error: error.message };
   }
 }
 
 // -----------------------
-// Storage Detection Helper
-// -----------------------
-function isSessionStorageAvailable(): boolean {
-  try {
-    const testKey = '__firebase_test__';
-    sessionStorage.setItem(testKey, '1');
-    sessionStorage.removeItem(testKey);
-    return true;
-  } catch (e) {
-    console.warn('⚠️ sessionStorage not available:', e);
-    return false;
-  }
-}
-
-// -----------------------
-// Google Login (Native Mobile + Web)
+// Enhanced Google Login (Native + Web)
 // -----------------------
 export async function googleLogin() {
   try {
+    if (!isCapacitorReady()) {
+      throw new Error('Capacitor not ready');
+    }
+
+    const isNative = isMobileNative();
     const platform = Capacitor.getPlatform();
-    const isNative = Capacitor.isNativePlatform() || platform === 'android' || platform === 'ios';
     
-    console.log('🔍 Auth environment:', { 
-      isNative,
-      platform
+    console.log('🔍 Google Auth - Platform detection:', { 
+      isNative, 
+      platform,
+      capacitorReady: isCapacitorReady()
     });
 
     if (isNative) {
-      console.log('📱 Using native Capacitor Google Auth...');
+      console.log('📱 Starting native Google authentication...');
       
-      // Use native Capacitor Google Auth
+      // Initialize GoogleAuth for native platforms
+      const initialized = await initializeGoogleAuthIfNeeded();
+      if (!initialized) {
+        throw new Error('Failed to initialize Google Auth for native platform');
+      }
+
       const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth');
       
       try {
-        // Ensure GoogleAuth is initialized before sign-in
-        await GoogleAuth.initialize();
-        console.log('✅ GoogleAuth initialized for native sign-in');
-        
+        console.log('🔐 Requesting Google sign-in...');
         const googleUser = await GoogleAuth.signIn();
-        console.log('📱 Native Google sign-in result:', googleUser);
         
-        // Create Firebase credential from Google Auth result
-        const googleCredential = GoogleAuthProvider.credential(
+        if (!googleUser?.authentication?.idToken) {
+          throw new Error('Invalid Google authentication result - missing tokens');
+        }
+        
+        console.log('✅ Native Google sign-in successful:', {
+          displayName: googleUser.name,
+          email: googleUser.email
+        });
+        
+        // Create Firebase credential from Google tokens
+        const credential = GoogleAuthProvider.credential(
           googleUser.authentication.idToken,
           googleUser.authentication.accessToken
         );
         
-        // Sign in to Firebase with the credential
-        const result = await signInWithCredential(auth, googleCredential);
-        console.log("✅ Firebase login with Google credential success:", result.user.uid);
+        // Sign into Firebase with the Google credential
+        const result = await signInWithCredential(auth, credential);
+        console.log("✅ Firebase authentication successful:", result.user.uid);
+        
         return { user: result.user, error: null };
         
       } catch (nativeError: any) {
-        console.error('📱 Native Google Auth failed:', nativeError);
+        console.error('❌ Native Google Auth error:', nativeError);
         
-        if (nativeError.message?.includes('cancelled') || nativeError.message?.includes('canceled')) {
+        // Handle user cancellation gracefully
+        if (nativeError.message?.includes('cancelled') || 
+            nativeError.message?.includes('canceled') ||
+            nativeError.message?.includes('CANCELLED')) {
           return { user: null, error: 'Google sign-in was cancelled.' };
         }
         
-        throw nativeError; // Re-throw to be handled by outer catch
+        // Handle network or service errors
+        if (nativeError.message?.includes('network') || 
+            nativeError.message?.includes('connection')) {
+          return { user: null, error: 'Network error. Please check your connection and try again.' };
+        }
+        
+        throw nativeError; // Re-throw for outer error handler
       }
     } else {
-      console.log('🌐 Using web popup auth...');
-      const googleProvider = new GoogleAuthProvider();
-      googleProvider.addScope('email');
-      googleProvider.addScope('profile');
+      console.log('🌐 Starting web Google authentication...');
       
-      const result = await signInWithPopup(auth, googleProvider);
-      console.log("✅ Web Google login success:", result.user.uid);
+      const provider = new GoogleAuthProvider();
+      provider.addScope('email');
+      provider.addScope('profile');
+      
+      const result = await signInWithPopup(auth, provider);
+      console.log("✅ Web Google authentication successful:", result.user.uid);
+      
       return { user: result.user, error: null };
     }
     
   } catch (error: any) {
-    console.error("❌ Google Login Failed:", error.code, error.message);
+    console.error("❌ Google authentication failed:", {
+      code: error.code,
+      message: error.message,
+      platform: Capacitor.getPlatform()
+    });
     
+    // Enhanced error handling with specific messages
     if (error.code === 'auth/popup-blocked') {
       return { user: null, error: 'Popup was blocked. Please allow popups and try again.' };
     } else if (error.code === 'auth/popup-closed-by-user') {
-      return { user: null, error: 'Sign-in was cancelled.' };
+      return { user: null, error: 'Google sign-in was cancelled.' };
     } else if (error.code === 'auth/network-request-failed') {
       return { user: null, error: 'Network error. Please check your connection and try again.' };
     } else if (error.code === 'auth/internal-error') {
-      return { user: null, error: 'Firebase configuration error. Please contact support.' };
+      return { user: null, error: 'Authentication service error. Please try again later.' };
+    } else if (error.code === 'auth/invalid-api-key') {
+      return { user: null, error: 'Configuration error. Please contact support.' };
+    } else if (error.message?.includes('Google Auth')) {
+      return { user: null, error: 'Google authentication service is not available. Please try phone authentication.' };
     } else {
       return { user: null, error: error.message || 'Authentication failed. Please try again.' };
     }
@@ -131,22 +182,39 @@ export async function googleLogin() {
 }
 
 // -----------------------
-// Phone Login (OTP)
+// Phone Login (OTP) with Mobile Optimization
 // -----------------------
 export async function phoneLogin(phoneNumber: string) {
   try {
+    console.log('📱 Starting phone authentication for:', phoneNumber);
+    
+    // Create reCAPTCHA container if it doesn't exist
+    let recaptchaContainer = document.getElementById('recaptcha-container');
+    if (!recaptchaContainer) {
+      recaptchaContainer = document.createElement('div');
+      recaptchaContainer.id = 'recaptcha-container';
+      recaptchaContainer.style.position = 'fixed';
+      recaptchaContainer.style.top = '-1000px';
+      recaptchaContainer.style.visibility = 'hidden';
+      document.body.appendChild(recaptchaContainer);
+    }
+
     const recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
       size: "invisible",
       callback: () => {
-        console.log("reCAPTCHA solved");
+        console.log("✅ reCAPTCHA solved successfully");
       },
+      'expired-callback': () => {
+        console.warn("⚠️ reCAPTCHA expired");
+      }
     });
 
     const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
-    console.log("OTP sent successfully");
+    console.log("✅ SMS verification code sent successfully");
+    
     return { confirmationResult, error: null };
   } catch (error: any) {
-    console.error("Phone Login Failed:", error.message);
+    console.error("❌ Phone authentication failed:", error.message);
     return { confirmationResult: null, error: error.message };
   }
 }
@@ -157,24 +225,35 @@ export async function phoneLogin(phoneNumber: string) {
 export async function verifyOTP(confirmationResult: any, otp: string) {
   try {
     const userCredential = await confirmationResult.confirm(otp);
-    console.log("OTP Verification Success:", userCredential.user.uid);
+    console.log("✅ Phone verification successful:", userCredential.user.uid);
     return { user: userCredential.user, error: null };
   } catch (error: any) {
-    console.error("OTP Verification Failed:", error.message);
+    console.error("❌ OTP verification failed:", error.message);
     return { user: null, error: error.message };
   }
 }
 
 // -----------------------
-// Sign out
+// Enhanced Sign out with cleanup
 // -----------------------
 export async function signOut() {
   try {
+    // Clean up any mobile-specific auth state
+    if (isMobileNative()) {
+      try {
+        const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth');
+        await GoogleAuth.signOut();
+        console.log('✅ Native Google Auth sign out completed');
+      } catch (e) {
+        console.warn('⚠️ Native Google Auth sign out failed:', e);
+      }
+    }
+    
     await firebaseSignOut(auth);
-    console.log("Sign out successful");
+    console.log("✅ Firebase sign out successful");
     return { error: null };
   } catch (error: any) {
-    console.error("Sign out failed:", error.message);
+    console.error("❌ Sign out failed:", error.message);
     return { error: error.message };
   }
 }
@@ -185,9 +264,9 @@ export async function signOut() {
 export function watchAuthState(callback: (user: any) => void) {
   return onAuthStateChanged(auth, (user) => {
     if (user) {
-      console.log("User logged in:", user.uid);
+      console.log("✅ User authenticated:", user.uid);
     } else {
-      console.log("User logged out");
+      console.log("🔓 User signed out");
     }
     callback(user);
   });
