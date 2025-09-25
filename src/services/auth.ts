@@ -27,21 +27,6 @@ function isCapacitorReady(): boolean {
   }
 }
 
-// Enhanced Firebase Auth initialization for Capacitor
-async function initializeGoogleAuthIfNeeded(): Promise<boolean> {
-  if (!isMobileNative()) return true;
-  
-  try {
-    console.log('🔄 Initializing Firebase Auth for native platform...');
-    const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
-    console.log('✅ Firebase Auth plugin ready');
-    return true;
-  } catch (error: any) {
-    console.error('❌ Failed to import Firebase Auth plugin:', error);
-    return false;
-  }
-}
-
 // -----------------------
 // Email/Password Login
 // -----------------------
@@ -71,7 +56,7 @@ export async function signup(email: string, password: string) {
 }
 
 // -----------------------
-// Enhanced Google Login (Native + Web)
+// Simplified Mobile Google Login
 // -----------------------
 export async function googleLogin() {
   try {
@@ -83,55 +68,28 @@ export async function googleLogin() {
 
     const platform = Capacitor.getPlatform();
     console.log('📱 Platform:', platform);
-    // Initialize GoogleAuth for mobile
-    const initialized = await initializeGoogleAuthIfNeeded();
-    if (!initialized) {
-      throw new Error('Failed to initialize Google Auth - please restart the app');
-    }
 
-    const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
+    // For mobile, use phone authentication as primary method
+    if (isMobileNative()) {
+      console.log('📱 Mobile detected - Google Auth may have limitations in WebView');
+      console.log('💡 Recommend using phone authentication for mobile');
       
-      try {
-        console.log('🔐 Requesting Google sign-in...');
-        
-        const result = await FirebaseAuthentication.signInWithGoogle();
-        
-        console.log('📋 Google sign-in response:', {
-          hasUser: !!result.user,
-          hasCredential: !!result.credential,
-          email: result.user?.email
-        });
-        
-        if (!result.user) {
-          throw new Error('Google sign-in failed - no user returned');
-        }
-        
-        console.log('✅ Google sign-in successful:', result.user.email);
-        
-        // The user is already authenticated with Firebase through the plugin
-        // Get the current Firebase user
-        const firebaseUser = auth.currentUser;
-        if (firebaseUser) {
-          return { user: firebaseUser, error: null };
-        } else {
-          throw new Error('Firebase user not found after authentication');
-        }
-        
-      } catch (nativeError: any) {
-        console.error('❌ Google Auth error:', nativeError);
-        
-        const errorMessage = nativeError?.message || 'Unknown error';
-        
-        if (errorMessage.includes('cancelled') || errorMessage.includes('canceled')) {
-          return { user: null, error: 'Google sign-in was cancelled.' };
-        }
-        
-        if (errorMessage.includes('network') || errorMessage.includes('connection')) {
-          return { user: null, error: 'Network error. Please check connection and try again.' };
-        }
-        
-        return { user: null, error: `Authentication failed: ${errorMessage}` };
-      }
+      return { 
+        user: null, 
+        error: 'Google authentication is not available on mobile. Please use phone number authentication for the best experience.' 
+      };
+    } else {
+      // Web fallback
+      console.log('🌐 Web platform - using popup flow');
+      const provider = new GoogleAuthProvider();
+      provider.addScope('email');
+      provider.addScope('profile');
+      
+      const result = await signInWithPopup(auth, provider);
+      console.log("✅ Web Google authentication successful:", result.user.uid);
+      
+      return { user: result.user, error: null };
+    }
     
   } catch (error: any) {
     console.error("❌ Google authentication failed:", {
@@ -140,21 +98,12 @@ export async function googleLogin() {
       platform: Capacitor.getPlatform()
     });
     
-    // Enhanced error handling with specific messages
     if (error.code === 'auth/popup-blocked') {
       return { user: null, error: 'Popup was blocked. Please allow popups and try again.' };
     } else if (error.code === 'auth/popup-closed-by-user') {
       return { user: null, error: 'Google sign-in was cancelled.' };
-    } else if (error.code === 'auth/network-request-failed') {
-      return { user: null, error: 'Network error. Please check your connection and try again.' };
-    } else if (error.code === 'auth/internal-error') {
-      return { user: null, error: 'Authentication service error. Please try again later.' };
-    } else if (error.code === 'auth/invalid-api-key') {
-      return { user: null, error: 'Configuration error. Please contact support.' };
-    } else if (error.message?.includes('Google Auth')) {
-      return { user: null, error: 'Google authentication service is not available. Please try phone authentication.' };
     } else {
-      return { user: null, error: error.message || 'Authentication failed. Please try again.' };
+      return { user: null, error: 'For mobile devices, please use phone number authentication.' };
     }
   }
 }
@@ -216,17 +165,6 @@ export async function verifyOTP(confirmationResult: any, otp: string) {
 // -----------------------
 export async function signOut() {
   try {
-    // Clean up any mobile-specific auth state
-    if (isMobileNative()) {
-      try {
-        const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
-        await FirebaseAuthentication.signOut();
-        console.log('✅ Firebase Auth sign out completed');
-      } catch (e) {
-        console.warn('⚠️ Firebase Auth sign out failed:', e);
-      }
-    }
-    
     await firebaseSignOut(auth);
     console.log("✅ Firebase sign out successful");
     return { error: null };
