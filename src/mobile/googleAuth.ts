@@ -3,17 +3,14 @@ import { auth } from "../firebase";
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
 
-// Initialize GoogleAuth plugin when appropriate
+// Initialize GoogleAuth plugin for all platforms
 export function initializeGoogleAuth() {
   try {
-    const platform = Capacitor.getPlatform();
-    if (platform === 'web') {
-      // Initialize for web builds; native auto-initializes via plugin
-      GoogleAuth.initialize();
-    }
-    console.log("✅ Google Auth plugin initialized");
+    console.log('🔧 Initializing GoogleAuth plugin...');
+    GoogleAuth.initialize();
+    console.log("✅ Google Auth plugin initialized successfully");
   } catch (e) {
-    console.warn('⚠️ GoogleAuth init skipped:', e);
+    console.warn('⚠️ GoogleAuth initialization failed:', e);
   }
 }
 

@@ -75,6 +75,10 @@ export async function googleLogin() {
       const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth');
       
       try {
+        // Ensure GoogleAuth is initialized before sign-in
+        await GoogleAuth.initialize();
+        console.log('✅ GoogleAuth initialized for native sign-in');
+        
         const googleUser = await GoogleAuth.signIn();
         console.log('📱 Native Google sign-in result:', googleUser);
         
