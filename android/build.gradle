@@ -27,9 +27,6 @@ allprojects {
     tasks.withType(JavaCompile).configureEach {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-        if (it.options.hasProperty('release')) {
-            it.options.release = 17
-        }
     }
 }
 
