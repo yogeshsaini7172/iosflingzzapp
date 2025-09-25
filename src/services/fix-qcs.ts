@@ -113,7 +113,10 @@ export async function fixAllQCS() {
   console.log('🎉 QCS fix complete! All profiles now have proper qualities and requirements.');
 }
 
-// Auto-run fix on import for demo
+// Manual QCS fix - removed auto-execution to prevent startup blocking
+// This function is available for manual execution via admin debug page
+// Uncomment the IIFE below only for manual testing:
+/*
 (async () => {
   try {
     await fixAllQCS();
@@ -121,3 +124,4 @@ export async function fixAllQCS() {
     console.error('❌ Error running QCS fix:', error);
   }
 })();
+*/

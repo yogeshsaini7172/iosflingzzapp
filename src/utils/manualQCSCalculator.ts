@@ -283,6 +283,10 @@ const testProfile = {
   "personality_traits": ["adventurous"]
 };
 
+// Manual QCS calculation test - commented out to prevent auto-execution
+// Uncomment and run manually if needed for testing
+/*
 console.log('🚀 Running Manual QCS Calculation...');
 const manualScore = calculateManualQCS(testProfile);
 console.log(`\n🎯 RESULT: Manual Score = ${manualScore}, Database Score = ${testProfile.total_qcs}`);
+*/

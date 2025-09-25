@@ -27,17 +27,33 @@ function isCapacitorReady(): boolean {
   }
 }
 
-// Enhanced GoogleAuth initialization
+// Enhanced GoogleAuth initialization with detailed error handling
 async function initializeGoogleAuthIfNeeded(): Promise<boolean> {
   if (!isMobileNative()) return true;
   
   try {
+    console.log('🔄 Initializing GoogleAuth for native platform...');
     const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth');
-    await GoogleAuth.initialize();
-    console.log('✅ GoogleAuth initialized for native platform');
-    return true;
-  } catch (error) {
-    console.error('❌ GoogleAuth initialization failed:', error);
+    
+    // Check if already initialized
+    try {
+      await GoogleAuth.initialize({
+        clientId: '533305529581-frij9q3gtu1jkj7hb3rtpqqsqb1mltkf.apps.googleusercontent.com',
+        scopes: ['profile', 'email'],
+        grantOfflineAccess: true,
+      });
+      console.log('✅ GoogleAuth initialized successfully');
+      return true;
+    } catch (initError: any) {
+      console.error('❌ GoogleAuth initialization error:', {
+        message: initError.message,
+        code: initError.code,
+        details: initError
+      });
+      return false;
+    }
+  } catch (error: any) {
+    console.error('❌ Failed to import GoogleAuth plugin:', error);
     return false;
   }
 }
@@ -101,10 +117,34 @@ export async function googleLogin() {
       
       try {
         console.log('🔐 Requesting Google sign-in...');
-        const googleUser = await GoogleAuth.signIn();
         
-        if (!googleUser?.authentication?.idToken) {
-          throw new Error('Invalid Google authentication result - missing tokens');
+        // Add timeout to prevent hanging
+        const signInPromise = GoogleAuth.signIn();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Google sign-in timed out after 30 seconds')), 30000)
+        );
+        
+        const googleUser = await Promise.race([signInPromise, timeoutPromise]) as any;
+        
+        console.log('📋 Google sign-in response:', {
+          hasUser: !!googleUser,
+          hasAuth: !!googleUser?.authentication,
+          hasIdToken: !!googleUser?.authentication?.idToken,
+          hasAccessToken: !!googleUser?.authentication?.accessToken,
+          email: googleUser?.email,
+          name: googleUser?.name
+        });
+        
+        if (!googleUser) {
+          throw new Error('No user returned from Google sign-in');
+        }
+        
+        if (!googleUser.authentication) {
+          throw new Error('No authentication tokens returned from Google sign-in');
+        }
+        
+        if (!googleUser.authentication.idToken) {
+          throw new Error('Missing ID token from Google authentication');
         }
         
         console.log('✅ Native Google sign-in successful:', {
@@ -125,22 +165,41 @@ export async function googleLogin() {
         return { user: result.user, error: null };
         
       } catch (nativeError: any) {
-        console.error('❌ Native Google Auth error:', nativeError);
+        console.error('❌ Native Google Auth error:', {
+          message: nativeError.message || 'Unknown error',
+          code: nativeError.code,
+          error: nativeError
+        });
         
-        // Handle user cancellation gracefully
+        // Handle specific error cases with better messaging
         if (nativeError.message?.includes('cancelled') || 
             nativeError.message?.includes('canceled') ||
-            nativeError.message?.includes('CANCELLED')) {
+            nativeError.message?.includes('CANCELLED') ||
+            nativeError.message?.includes('User cancelled')) {
           return { user: null, error: 'Google sign-in was cancelled.' };
         }
         
-        // Handle network or service errors
         if (nativeError.message?.includes('network') || 
-            nativeError.message?.includes('connection')) {
+            nativeError.message?.includes('connection') ||
+            nativeError.message?.includes('Network')) {
           return { user: null, error: 'Network error. Please check your connection and try again.' };
         }
         
-        throw nativeError; // Re-throw for outer error handler
+        if (nativeError.message?.includes('Something went wrong')) {
+          return { user: null, error: 'Google services error. Please try again or use phone authentication.' };
+        }
+        
+        if (nativeError.message?.includes('timeout')) {
+          return { user: null, error: 'Google sign-in timed out. Please try again.' };
+        }
+        
+        if (nativeError.message?.includes('not ready') || 
+            nativeError.message?.includes('initialize')) {
+          return { user: null, error: 'Google services not ready. Please restart the app and try again.' };
+        }
+        
+        // Generic fallback with more helpful message
+        return { user: null, error: `Google authentication failed: ${nativeError.message || 'Unknown error'}. Please try phone authentication instead.` };
       }
     } else {
       console.log('🌐 Starting web Google authentication...');
