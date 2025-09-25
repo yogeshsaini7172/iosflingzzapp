@@ -38,7 +38,7 @@ async function initializeGoogleAuthIfNeeded(): Promise<boolean> {
     // Check if already initialized
     try {
       await GoogleAuth.initialize({
-        clientId: '533305529581-frij9q3gtu1jkj7hb3rtpqqsqb1mltkf.apps.googleusercontent.com',
+        clientId: '533305529581-l1v9pc0f96uapm1vjbot4scbpai684hg.apps.googleusercontent.com',
         scopes: ['profile', 'email'],
         grantOfflineAccess: true,
       });
