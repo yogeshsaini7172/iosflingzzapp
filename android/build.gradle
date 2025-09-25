@@ -23,10 +23,10 @@ allprojects {
         google()
         mavenCentral()
     }
-    // Force Java 17 across all subprojects to avoid "invalid source release: 21"
+    // Use Java 21 across all subprojects (required by Capacitor 7)
     tasks.withType(JavaCompile).configureEach {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 }
 
