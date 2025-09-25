@@ -41,8 +41,33 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     console.log('🔥 Firebase Auth: Setting up auth state listener');
-    
-    // Always check for redirect result (web and mobile)
+
+    const handleNativePendingAuth = async () => {
+      try {
+        const { Capacitor } = await import('@capacitor/core');
+        if (!Capacitor.isNativePlatform()) return;
+        const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
+        const pending = await FirebaseAuthentication.getPendingAuthResult();
+        if (pending?.user || pending?.credential?.idToken) {
+          console.log('📲 Received native pending auth result');
+          if (pending.credential?.idToken) {
+            const { GoogleAuthProvider, signInWithCredential } = await import('firebase/auth');
+            const credential = GoogleAuthProvider.credential(
+              pending.credential.idToken,
+              pending.credential.accessToken
+            );
+            const cred = await signInWithCredential(auth, credential);
+            setUser(cred.user);
+            setIsLoading(false);
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('ℹ️ No native pending auth result:', e);
+      }
+    };
+
+    // Always check for redirect result (web)
     const checkRedirectResult = async () => {
       try {
         const { getRedirectResult } = await import('firebase/auth');
@@ -58,7 +83,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.error('🔄 Error checking redirect result:', error);
       }
     };
-    checkRedirectResult();
+
+    handleNativePendingAuth().finally(checkRedirectResult);
     
     const unsubscribe = watchAuthState((user) => {
       console.log('🔥 Firebase Auth: Auth state changed', { 
