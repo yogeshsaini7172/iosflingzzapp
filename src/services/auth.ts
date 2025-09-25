@@ -69,25 +69,20 @@ export async function googleLogin() {
     const platform = Capacitor.getPlatform();
     console.log('📱 Platform:', platform);
 
-    // For mobile, use phone authentication as primary method
+    const provider = new GoogleAuthProvider();
+    provider.addScope('email');
+    provider.addScope('profile');
+
     if (isMobileNative()) {
-      console.log('📱 Mobile detected - Google Auth may have limitations in WebView');
-      console.log('💡 Recommend using phone authentication for mobile');
-      
-      return { 
-        user: null, 
-        error: 'Google authentication is not available on mobile. Please use phone number authentication for the best experience.' 
-      };
+      // Use redirect flow on mobile WebView; popup is often blocked
+      console.log('🔁 Using redirect flow for Google Auth on mobile');
+      const { signInWithRedirect } = await import('firebase/auth');
+      await signInWithRedirect(auth, provider);
+      return { user: null, error: 'redirecting' };
     } else {
-      // Web fallback
-      console.log('🌐 Web platform - using popup flow');
-      const provider = new GoogleAuthProvider();
-      provider.addScope('email');
-      provider.addScope('profile');
-      
+      console.log('🌐 Using popup flow for Google Auth on web');
       const result = await signInWithPopup(auth, provider);
       console.log("✅ Web Google authentication successful:", result.user.uid);
-      
       return { user: result.user, error: null };
     }
     
@@ -99,11 +94,11 @@ export async function googleLogin() {
     });
     
     if (error.code === 'auth/popup-blocked') {
-      return { user: null, error: 'Popup was blocked. Please allow popups and try again.' };
+      return { user: null, error: 'redirecting' };
     } else if (error.code === 'auth/popup-closed-by-user') {
       return { user: null, error: 'Google sign-in was cancelled.' };
     } else {
-      return { user: null, error: 'For mobile devices, please use phone number authentication.' };
+      return { user: null, error: 'Authentication failed. Please try again.' };
     }
   }
 }

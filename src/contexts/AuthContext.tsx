@@ -42,29 +42,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     console.log('🔥 Firebase Auth: Setting up auth state listener');
     
-    // For native apps, skip redirect result checking
-    const isNative = typeof window !== 'undefined' && 
-                    window.navigator?.userAgent?.includes('Capacitor');
-    
-    if (!isNative) {
-      // Check for redirect result only on web
-      const checkRedirectResult = async () => {
-        try {
-          const { getRedirectResult } = await import('firebase/auth');
-          const result = await getRedirectResult(auth);
-          if (result) {
-            console.log('🔄 Found redirect result:', result.user.uid);
-            toast.success('Successfully signed in with Google!');
-            setUser(result.user);
-            setIsLoading(false);
-            return;
-          }
-        } catch (error) {
-          console.error('🔄 Error checking redirect result:', error);
+    // Always check for redirect result (web and mobile)
+    const checkRedirectResult = async () => {
+      try {
+        const { getRedirectResult } = await import('firebase/auth');
+        const result = await getRedirectResult(auth);
+        if (result?.user) {
+          console.log('🔄 Found redirect result:', result.user.uid);
+          toast.success('Successfully signed in with Google!');
+          setUser(result.user);
+          setIsLoading(false);
+          return;
         }
-      };
-      checkRedirectResult();
-    }
+      } catch (error) {
+        console.error('🔄 Error checking redirect result:', error);
+      }
+    };
+    checkRedirectResult();
     
     const unsubscribe = watchAuthState((user) => {
       console.log('🔥 Firebase Auth: Auth state changed', { 
