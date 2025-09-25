@@ -1,9 +1,20 @@
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "../firebase";
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { Capacitor } from '@capacitor/core';
 
-// Fake initializer (keeps main.tsx happy)
+// Initialize GoogleAuth plugin when appropriate
 export function initializeGoogleAuth() {
-  console.log("✅ Firebase Google Auth initialized");
+  try {
+    const platform = Capacitor.getPlatform();
+    if (platform === 'web') {
+      // Initialize for web builds; native auto-initializes via plugin
+      GoogleAuth.initialize();
+    }
+    console.log("✅ Google Auth plugin initialized");
+  } catch (e) {
+    console.warn('⚠️ GoogleAuth init skipped:', e);
+  }
 }
 
 // Real login function for Google

@@ -60,14 +60,15 @@ function isSessionStorageAvailable(): boolean {
 // -----------------------
 export async function googleLogin() {
   try {
-    const isCapacitor = Capacitor.isNativePlatform();
+    const platform = Capacitor.getPlatform();
+    const isNative = Capacitor.isNativePlatform() || platform === 'android' || platform === 'ios';
     
     console.log('🔍 Auth environment:', { 
-      isCapacitor,
-      platform: Capacitor.getPlatform()
+      isNative,
+      platform
     });
 
-    if (isCapacitor) {
+    if (isNative) {
       console.log('📱 Using native Capacitor Google Auth...');
       
       // Use native Capacitor Google Auth
