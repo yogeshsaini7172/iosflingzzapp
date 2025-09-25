@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User } from 'firebase/auth';
-import { auth } from '@/firebase';
+import { auth } from '../firebase';
 import { 
   login, 
   signup, 
@@ -9,7 +9,7 @@ import {
   verifyOTP, 
   signOut as authSignOut,
   watchAuthState 
-} from '@/services/auth';
+} from '../services/auth';
 import { toast } from 'sonner';
 
 type AuthContextType = {
@@ -41,6 +41,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     console.log('🔥 Firebase Auth: Setting up auth state listener');
+    
+    // Check for redirect result first
+    const checkRedirectResult = async () => {
+      try {
+        const { getRedirectResult } = await import('firebase/auth');
+        const result = await getRedirectResult(auth);
+        if (result) {
+          console.log('🔄 Found redirect result:', result.user.uid);
+          toast.success('Successfully signed in with Google!');
+          setUser(result.user);
+          setIsLoading(false);
+          return;
+        }
+      } catch (error) {
+        console.error('🔄 Error checking redirect result:', error);
+      }
+    };
+
+    // Check redirect result first, then set up listener
+    checkRedirectResult();
+    
     const unsubscribe = watchAuthState((user) => {
       console.log('🔥 Firebase Auth: Auth state changed', { 
         user: user ? { uid: user.uid, email: user.email } : null 
@@ -145,6 +166,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const result = await googleLogin();
       
       if (result.error) {
+        // Don't show error if it's a redirect in progress
+        if (result.error === 'redirecting') {
+          console.log('🔄 Redirecting for Google authentication...');
+          toast.info('Redirecting to Google sign-in...');
+          return { user: null, error: null }; // Don't treat redirect as error
+        }
+        
         toast.error(result.error);
         return { user: null, error: result.error };
       }

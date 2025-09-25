@@ -1,11 +1,11 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "./components/ui/toaster";
+import { Toaster as Sonner } from "./components/ui/sonner";
+import { TooltipProvider } from "./components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route, useNavigate, useLocation, useParams, Navigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { SocketChatProvider } from "@/contexts/SocketChatContext";
-import { ChatNotificationProvider } from "@/contexts/ChatNotificationContext";
+import { useAuth } from "./contexts/AuthContext";
+import { SocketChatProvider } from "./contexts/SocketChatContext";
+import { ChatNotificationProvider } from "./contexts/ChatNotificationContext";
 import { useState, useEffect } from "react";
 import SwipePage from "./pages/SwipePage";
 import PairingPage from "./pages/PairingPage";
@@ -21,10 +21,10 @@ import QCSTestPage from "./pages/QCSTestPage";
 import QCSDiagnostics from "./components/QCSDiagnostics";
 import QCSSystemRepair from "./components/QCSSystemRepair";
 import QCSBulkSync from "./components/QCSBulkSync";
-import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
-import RebuiltChatSystem from "@/components/chat/RebuiltChatSystem";
-import { initializeMobileApp } from "@/mobile/capacitor";
-import LoadingScreen from "@/components/ui/loading-screen";
+import { fetchWithFirebaseAuth } from "./lib/fetchWithFirebaseAuth";
+import RebuiltChatSystem from "./components/chat/RebuiltChatSystem";
+import { initializeMobileApp } from "./mobile/capacitor";
+import LoadingScreen from "./components/ui/loading-screen";
 
 const queryClient = new QueryClient({
   defaultOptions: {

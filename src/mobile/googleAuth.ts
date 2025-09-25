@@ -1,16 +1,20 @@
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
-import { Capacitor } from '@capacitor/core';
+// src/mobile/googleAuth.ts
+import { signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from "../firebase";
 
-export const initializeGoogleAuth = () => {
-  if (Capacitor.isNativePlatform()) {
-    GoogleAuth.initialize({
-      clientId: '533305529581-YOUR_CLIENT_ID.apps.googleusercontent.com', // Replace with your actual client ID
-      scopes: ['profile', 'email'],
-      grantOfflineAccess: true,
-    });
+// Fake initializer (keeps main.tsx happy)
+export function initializeGoogleAuth() {
+  console.log("✅ Firebase Google Auth initialized");
+}
+
+// Real login function for Google
+export async function googleLogin() {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    console.log("✅ Google login success:", result.user.uid);
+    return result.user;
+  } catch (error: any) {
+    console.error("❌ Google login failed:", error.message);
+    throw error;
   }
-};
-
-export const isGoogleAuthAvailable = () => {
-  return Capacitor.isNativePlatform();
-};
+}

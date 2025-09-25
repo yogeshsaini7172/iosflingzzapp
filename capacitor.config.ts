@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'Grad Sync',
   webDir: 'dist',
   server: {
-    androidScheme: 'https'
+    androidScheme: 'https',
   },
   plugins: {
     SplashScreen: {
@@ -16,21 +16,17 @@ const config: CapacitorConfig = {
       androidScaleType: "CENTER_CROP",
       showSpinner: true,
       androidSpinnerStyle: "large",
-      spinnerColor: "#ffffff"
+      spinnerColor: "#ffffff",
     },
     StatusBar: {
       style: 'LIGHT_CONTENT',
-      backgroundColor: '#8B008B'
+      backgroundColor: '#8B008B',
     },
     PushNotifications: {
-      presentationOptions: ["badge", "sound", "alert"]
+      presentationOptions: ["badge", "sound", "alert"],
     },
-    GoogleAuth: {
-      scopes: ['profile', 'email'],
-      serverClientId: '533305529581-YOUR_WEB_CLIENT_ID.apps.googleusercontent.com',
-      forceCodeForRefreshToken: true
-    }
-  }
+    // ✅ GoogleAuth plugin removed because we’re using Firebase SDK directly
+  },
 };
 
 export default config;

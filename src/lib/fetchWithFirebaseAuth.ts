@@ -1,5 +1,5 @@
 import { getAuth } from 'firebase/auth';
-import { auth } from '@/integrations/firebase/config';
+import { auth } from '../firebase';
 
 export async function fetchWithFirebaseAuth(input: RequestInfo | URL, init: RequestInit = {}) {
   const user = auth.currentUser;
