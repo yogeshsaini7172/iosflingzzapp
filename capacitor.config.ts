@@ -7,7 +7,13 @@ const config: CapacitorConfig = {
   server: {
     androidScheme: 'http',
     url: 'http://10.0.2.2:8080',
-    cleartext: true
+    cleartext: true,
+    allowNavigation: [
+      '10.0.2.2',
+      'accounts.google.com',
+      'datingapp-275cb.firebaseapp.com',
+      'datingapp-275cb.web.app'
+    ]
   },
   plugins: {
     SplashScreen: {
