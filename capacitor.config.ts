@@ -29,8 +29,10 @@ const config: CapacitorConfig = {
       skipNativeAuth: false,
       providers: ["google.com", "phone"],
       google: {
-        clientId: "533305529581-frij9q3gtu1jkj7hb3rtpqqsqb1mltkf.apps.googleusercontent.com",
-        serverClientId: "533305529581-frij9q3gtu1jkj7hb3rtpqqsqb1mltkf.apps.googleusercontent.com"
+        // Web client ID from Firebase (OAuth client type 3)
+        serverClientId: "533305529581-frij9q3gtu1jkj7hb3rtpqqsqb1mltkf.apps.googleusercontent.com",
+        scopes: ["profile", "email"],
+        forceCodeForRefreshToken: false
       },
     },
   },
