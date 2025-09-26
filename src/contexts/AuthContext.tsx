@@ -40,12 +40,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log('🔥 Firebase Auth: Setting up auth state listener');
+    console.log('🔥 Firebase Auth: Setting up auth state listener with timing delays');
 
     const handleNativePendingAuth = async () => {
       try {
+        // Add delay to ensure Capacitor is fully loaded
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
         const { Capacitor } = await import('@capacitor/core');
         if (!Capacitor.isNativePlatform()) return;
+        
+        // Add another delay for plugin loading
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
         const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
         const pending = await FirebaseAuthentication.getPendingAuthResult();
         if (pending?.user || pending?.credential?.idToken) {
@@ -182,10 +189,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const signInWithGoogle = async () => {
-    console.log('🔍 Attempting Google sign-in...');
+    console.log('🔍 Attempting Google sign-in with timing protection...');
     
     try {
       setIsLoading(true);
+      
+      // Add initial delay to ensure all systems are ready
+      console.log('⏳ Ensuring all systems are ready...');
+      await new Promise(resolve => setTimeout(resolve, 300));
       
       const result = await googleLogin();
       

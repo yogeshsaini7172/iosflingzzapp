@@ -12,6 +12,8 @@ import {
 import { auth } from "../firebase";
 import { Capacitor } from "@capacitor/core";
 import { nativeGoogleSignIn, isNativeAuthAvailable } from './mobileAuth';
+import { robustAndroidGoogleAuth } from './enhancedAndroidAuth';
+import { withTimingProtection, ensureAllSystemsReady } from './initializationManager';
 
 // Mobile auth detection and utilities
 function isMobileNative(): boolean {
@@ -26,6 +28,46 @@ function isCapacitorReady(): boolean {
   } catch {
     return false;
   }
+}
+
+// Enhanced timing-aware initialization checks
+async function waitForCapacitorReady(maxWaitMs: number = 5000): Promise<boolean> {
+  const startTime = Date.now();
+  
+  while (Date.now() - startTime < maxWaitMs) {
+    if (isCapacitorReady()) {
+      console.log('✅ Capacitor ready after', Date.now() - startTime, 'ms');
+      return true;
+    }
+    
+    // Wait 100ms before checking again
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  
+  console.error('❌ Capacitor not ready after', maxWaitMs, 'ms');
+  return false;
+}
+
+async function waitForFirebaseReady(maxWaitMs: number = 3000): Promise<boolean> {
+  const startTime = Date.now();
+  
+  while (Date.now() - startTime < maxWaitMs) {
+    try {
+      // Check if Firebase auth is ready by accessing its properties
+      if (auth && auth.app && typeof auth.currentUser !== 'undefined') {
+        console.log('✅ Firebase ready after', Date.now() - startTime, 'ms');
+        return true;
+      }
+    } catch (error) {
+      // Firebase not ready yet, continue waiting
+    }
+    
+    // Wait 50ms before checking again
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
+  
+  console.error('❌ Firebase not ready after', maxWaitMs, 'ms');
+  return false;
 }
 
 // -----------------------
@@ -60,19 +102,26 @@ export async function signup(email: string, password: string) {
 // Simplified Mobile Google Login
 // -----------------------
 export async function googleLogin() {
-  try {
-    console.log('🔍 Starting Google Auth...');
+  // Use timing protection wrapper with retries
+  return await withTimingProtection(async () => {
+    console.log('🔍 Starting Google Auth with comprehensive timing protection...');
     
-    if (!isCapacitorReady()) {
-      throw new Error('Capacitor not ready - restart the app');
+    // Ensure all systems are ready
+    const systemsReady = await ensureAllSystemsReady();
+    if (!systemsReady) {
+      throw new Error('System initialization failed - please restart the app');
     }
 
     const platform = Capacitor.getPlatform();
-    console.log('📱 Platform:', platform);
+    console.log('📱 Platform confirmed and ready:', platform);
 
-    if (isMobileNative() && isNativeAuthAvailable()) {
-      // Native mobile Google sign-in - proper mobile app behavior
-      console.log('📱 Using native Google sign-in');
+    if (platform === 'android') {
+      // Use enhanced Android authentication with better error handling
+      console.log('🤖 Using enhanced Android Google authentication');
+      return await robustAndroidGoogleAuth();
+    } else if (isMobileNative() && isNativeAuthAvailable()) {
+      // Native mobile Google sign-in for iOS
+      console.log('📱 Using native Google sign-in for iOS');
       return await nativeGoogleSignIn();
     } else {
       // Web fallback - popup flow
@@ -85,22 +134,7 @@ export async function googleLogin() {
       console.log("✅ Web Google authentication successful:", result.user.uid);
       return { user: result.user, error: null };
     }
-    
-  } catch (error: any) {
-    console.error("❌ Google authentication failed:", {
-      code: error.code,
-      message: error.message,
-      platform: Capacitor.getPlatform()
-    });
-    
-    if (error.code === 'auth/popup-blocked') {
-      return { user: null, error: 'Please allow popups for authentication' };
-    } else if (error.code === 'auth/popup-closed-by-user') {
-      return { user: null, error: 'Google sign-in was cancelled.' };
-    } else {
-      return { user: null, error: 'Authentication failed. Please try again.' };
-    }
-  }
+  }, 2); // End withTimingProtection with 2 retry attempts
 }
 
 // -----------------------
