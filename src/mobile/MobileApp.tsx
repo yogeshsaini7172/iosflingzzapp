@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
 import { MobileAuthProvider, useMobileAuth } from './MobileAuthContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 import MobileAuthPage from './MobileAuthPage';
 import ProfileSetupFlow from '@/components/profile/ProfileSetupFlow';
 import SwipePage from '@/pages/SwipePage';
@@ -131,10 +132,12 @@ const MobileApp = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <HashRouter>
-        <MobileAuthProvider>
-          <MobileAppContent />
-          <Toaster />
-        </MobileAuthProvider>
+        <AuthProvider>
+          <MobileAuthProvider>
+            <MobileAppContent />
+            <Toaster />
+          </MobileAuthProvider>
+        </AuthProvider>
       </HashRouter>
     </QueryClientProvider>
   );
