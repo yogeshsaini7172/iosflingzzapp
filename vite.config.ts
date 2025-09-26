@@ -22,6 +22,11 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       external: ['@capacitor-firebase/authentication']
-    }
+    },
+    target: 'es2015',
+    minify: false, // Helps with debugging on mobile
+  },
+  optimizeDeps: {
+    include: ['firebase/auth', 'firebase/app']
   }
 }));
