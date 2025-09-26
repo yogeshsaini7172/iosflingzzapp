@@ -1,16 +1,33 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
+import { Toaster as Sonner } from 'sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { MobileAuthProvider, useMobileAuth } from './MobileAuthContext';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { SocketChatProvider } from '@/contexts/SocketChatContext';
+import { ChatNotificationProvider } from '@/contexts/ChatNotificationContext';
 import MobileAuthPage from './MobileAuthPage';
 import ProfileSetupFlow from '@/components/profile/ProfileSetupFlow';
+// Import all pages for full feature parity
 import SwipePage from '@/pages/SwipePage';
 import ChatPage from '@/pages/ChatPage';
 import ProfilePage from '@/pages/ProfilePage';
 import MatchesPage from '@/pages/MatchesPage';
-import BottomNav from '@/components/navigation/BottomNav';
+import FeedPage from '@/pages/FeedPage';
+import PairingPage from '@/pages/PairingPage';
+import BlindDatePage from '@/pages/BlindDatePage';
+import SubscriptionPage from '@/pages/SubscriptionPage';
+import FlingzzHome from '@/components/campus/FlingzzHome';
+import QCSTestPage from '@/pages/QCSTestPage';
+import QCSDiagnostics from '@/components/QCSDiagnostics';
+import QCSSystemRepair from '@/components/QCSSystemRepair';
+import QCSBulkSync from '@/components/QCSBulkSync';
+import RebuiltChatSystem from '@/components/chat/RebuiltChatSystem';
+import NotFound from '@/pages/NotFound';
+import MobileBottomNav from '@/components/navigation/MobileBottomNav';
+import MobileFeatureDebug from '@/components/debug/MobileFeatureDebug';
 import { initializeMobileApp } from '../mobile/capacitor';
 import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
 
@@ -33,7 +50,7 @@ const MobileAppContent = () => {
   }, []);
 
   // Check if user has completed profile
-  const checkUserProfile = async () => {
+  const checkUserProfile = useCallback(async () => {
     if (!user?.uid) return false;
     
     setCheckingProfile(true);
@@ -64,7 +81,7 @@ const MobileAppContent = () => {
     } finally {
       setCheckingProfile(false);
     }
-  };
+  }, [user?.uid]);
 
   // Check profile when user authenticates
   useEffect(() => {
@@ -74,7 +91,7 @@ const MobileAppContent = () => {
     } else {
       setHasProfile(false);
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, checkUserProfile]);
 
   // Loading screen
   if (isLoading || checkingProfile) {
@@ -112,18 +129,50 @@ const MobileAppContent = () => {
     // Navigation is handled by React Router
   };
 
+  // Chat wrapper component for handling chat ID param
+  const ChatWrapper = ({ chatId }: { chatId?: string }) => {
+    return <RebuiltChatSystem onNavigate={handleNavigate} selectedChatId={chatId} />;
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Routes>
-        <Route path="/" element={<Navigate to="/swipe" replace />} />
+        {/* Home/Dashboard Route */}
+        <Route path="/" element={<FlingzzHome onNavigate={handleNavigate} />} />
+        
+        {/* Core Features */}
         <Route path="/swipe" element={<SwipePage onNavigate={handleNavigate} />} />
-        <Route path="/chat" element={<ChatPage />} />
-        <Route path="/chat/:chatId" element={<ChatPage />} />
+        <Route path="/feed" element={<FeedPage onNavigate={handleNavigate} />} />
+        <Route path="/pairing" element={<PairingPage onNavigate={handleNavigate} />} />
         <Route path="/matches" element={<MatchesPage onNavigate={handleNavigate} />} />
+        
+        {/* Chat System */}
+        <Route path="/chat" element={<RebuiltChatSystem onNavigate={handleNavigate} />} />
+        <Route path="/chat/:chatId" element={<ChatWrapper />} />
+        
+        {/* Profile & Settings */}
         <Route path="/profile" element={<ProfilePage onNavigate={handleNavigate} />} />
-        <Route path="*" element={<Navigate to="/swipe" replace />} />
+        
+        {/* Premium Features */}
+        <Route path="/blind-date" element={<BlindDatePage onNavigate={handleNavigate} />} />
+        <Route path="/subscription" element={<SubscriptionPage onNavigate={handleNavigate} />} />
+        
+        {/* QCS System (Admin/Debug) */}
+        <Route path="/qcs-test" element={<QCSTestPage />} />
+        <Route path="/qcs-diagnostics" element={<QCSDiagnostics />} />
+        <Route path="/qcs-repair" element={<QCSSystemRepair />} />
+        <Route path="/qcs-bulk-sync" element={<QCSBulkSync />} />
+        
+        {/* Redirects */}
+        <Route path="/home" element={<Navigate to="/" replace />} />
+        
+        {/* 404 Handling */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
-      <BottomNav />
+      <MobileBottomNav />
+      
+      {/* Debug Component (Development Only) */}
+      {process.env.NODE_ENV === 'development' && <MobileFeatureDebug />}
     </div>
   );
 };
@@ -134,8 +183,16 @@ const MobileApp = () => {
       <HashRouter>
         <AuthProvider>
           <MobileAuthProvider>
-            <MobileAppContent />
-            <Toaster />
+            <TooltipProvider>
+              <SocketChatProvider>
+                <ChatNotificationProvider>
+                  <MobileAppContent />
+                  <Toaster />
+                  <Sonner />
+                  <div id="recaptcha-container"></div>
+                </ChatNotificationProvider>
+              </SocketChatProvider>
+            </TooltipProvider>
           </MobileAuthProvider>
         </AuthProvider>
       </HashRouter>
