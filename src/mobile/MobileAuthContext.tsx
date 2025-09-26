@@ -66,9 +66,9 @@ export const MobileAuthProvider: React.FC<{ children: ReactNode }> = ({ children
           console.log('✅ Firebase sign-in via native credential:', cred.user.uid);
           toast.success('Successfully signed in with Google!');
           return;
+        } else {
+          throw new Error('No credential returned from native Google sign-in. Check your Firebase configuration.');
         }
-        
-        console.warn('⚠️ No credential returned from native sign-in');
       } else {
         console.log('🌐 Using web Google sign-in...');
         const provider = new GoogleAuthProvider();
@@ -81,7 +81,17 @@ export const MobileAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       }
     } catch (error: any) {
       console.error('❌ Google sign-in error:', error);
-      toast.error('Google sign-in failed: ' + error.message);
+      
+      // Provide more specific error messages
+      if (error.message?.includes('null object reference')) {
+        toast.error('Google Sign-In not configured properly. Please check your Firebase configuration and SHA-1 fingerprints.');
+      } else if (error.code === 'auth/popup-blocked') {
+        toast.error('Popup was blocked. Please allow popups and try again.');
+      } else if (error.code === 'auth/network-request-failed') {
+        toast.error('Network error. Please check your internet connection.');
+      } else {
+        toast.error('Google sign-in failed: ' + (error.message || 'Unknown error'));
+      }
     } finally {
       setIsLoading(false);
     }

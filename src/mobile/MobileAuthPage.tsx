@@ -60,7 +60,7 @@ const MobileAuthPage = () => {
 
   if (authStep === 'otp') {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-purple-600 to-pink-600">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <Button
@@ -114,7 +114,7 @@ const MobileAuthPage = () => {
 
   if (authStep === 'phone') {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-purple-600 to-pink-600">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-background">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <Button
@@ -160,7 +160,7 @@ const MobileAuthPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-purple-600 to-pink-600">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="w-16 h-16 mx-auto mb-4 bg-white rounded-full flex items-center justify-center">
