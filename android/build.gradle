@@ -23,10 +23,10 @@ allprojects {
         google()
         mavenCentral()
     }
-    // Use Java 21 across all subprojects (required by Capacitor 7)
+    // Use Java 17 across all subprojects (compatible with Capacitor 7)
     tasks.withType(JavaCompile).configureEach {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 
