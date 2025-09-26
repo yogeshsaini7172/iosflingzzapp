@@ -51,14 +51,24 @@ export const MobileAuthProvider: React.FC<{ children: ReactNode }> = ({ children
       if (Capacitor.isNativePlatform()) {
         console.log('📱 Using native Google sign-in...');
         const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
+        const { GoogleAuthProvider, signInWithCredential } = await import('firebase/auth');
         
         // Sign in with native Google
         const result = await FirebaseAuthentication.signInWithGoogle();
         console.log('📱 Native Google sign-in result:', result);
         
-        if (result.user) {
+        // Bridge native credential to Firebase
+        const idToken = (result as any)?.credential?.idToken;
+        const accessToken = (result as any)?.credential?.accessToken;
+        if (idToken) {
+          const credential = GoogleAuthProvider.credential(idToken, accessToken);
+          const cred = await signInWithCredential(auth, credential);
+          console.log('✅ Firebase sign-in via native credential:', cred.user.uid);
           toast.success('Successfully signed in with Google!');
+          return;
         }
+        
+        console.warn('⚠️ No credential returned from native sign-in');
       } else {
         console.log('🌐 Using web Google sign-in...');
         const provider = new GoogleAuthProvider();

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
 import { MobileAuthProvider, useMobileAuth } from './MobileAuthContext';
@@ -130,12 +130,12 @@ const MobileAppContent = () => {
 const MobileApp = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <HashRouter>
         <MobileAuthProvider>
           <MobileAppContent />
           <Toaster />
         </MobileAuthProvider>
-      </BrowserRouter>
+      </HashRouter>
     </QueryClientProvider>
   );
 };
