@@ -28,6 +28,10 @@ const config: CapacitorConfig = {
     FirebaseAuthentication: {
       skipNativeAuth: false,
       providers: ["google.com", "phone"],
+      google: {
+        clientId: "533305529581-frij9q3gtu1jkj7hb3rtpqqsqb1mltkf.apps.googleusercontent.com",
+        serverClientId: "533305529581-frij9q3gtu1jkj7hb3rtpqqsqb1mltkf.apps.googleusercontent.com"
+      },
     },
   },
 };
