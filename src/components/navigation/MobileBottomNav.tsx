@@ -14,19 +14,27 @@ const MobileBottomNav = () => {
     return location.pathname === path || location.pathname.startsWith(path + "/");
   };
 
-  // Mobile-optimized navigation with 4 main tabs + More button
-  const items = [
+  // Hide bottom nav when in chat (individual chat pages)
+  const shouldHideBottomNav = location.pathname.startsWith("/chat/") || 
+                            location.pathname === "/chat";
+
+  // Mobile-optimized navigation without swipe (3 main tabs + More button)
+  const navItems = [
     { path: "/", icon: Home, label: "Home" },
-    { path: "/swipe", icon: Heart, label: "Swipe" },
     { path: "/chat", icon: MessageCircle, label: "Chat" },
     { path: "/profile", icon: User, label: "Profile" },
   ];
+
+  // Don't render bottom nav in chat screens
+  if (shouldHideBottomNav) {
+    return null;
+  }
 
   return (
     <>
       <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-xl border-t border-border z-40 safe-area-bottom">
         <div className="flex items-center justify-around h-16 max-w-md mx-auto px-2">
-          {items.map(({ path, icon: Icon, label }) => {
+          {navItems.map(({ path, icon: Icon, label }) => {
             const isActive = active(path);
             return (
               <Link

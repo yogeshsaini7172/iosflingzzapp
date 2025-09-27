@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
 import { Toaster as Sonner } from 'sonner';
@@ -19,6 +19,7 @@ import FeedPage from '@/pages/FeedPage';
 import PairingPage from '@/pages/PairingPage';
 import BlindDatePage from '@/pages/BlindDatePage';
 import SubscriptionPage from '@/pages/SubscriptionPage';
+import Dashboard from '@/pages/Dashboard';
 import FlingzzHome from '@/components/campus/FlingzzHome';
 import QCSTestPage from '@/pages/QCSTestPage';
 import QCSDiagnostics from '@/components/QCSDiagnostics';
@@ -28,6 +29,7 @@ import RebuiltChatSystem from '@/components/chat/RebuiltChatSystem';
 import NotFound from '@/pages/NotFound';
 import MobileBottomNav from '@/components/navigation/MobileBottomNav';
 import MobileFeatureDebug from '@/components/debug/MobileFeatureDebug';
+import APKFeatureVerification from '@/components/debug/APKFeatureVerification';
 import { initializeMobileApp } from '../mobile/capacitor';
 import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
 
@@ -43,6 +45,7 @@ const MobileAppContent = () => {
   const { user, isLoading, isAuthenticated } = useMobileAuth();
   const [hasProfile, setHasProfile] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(false);
+  const navigate = useNavigate();
 
   // Initialize mobile app
   useEffect(() => {
@@ -126,7 +129,9 @@ const MobileAppContent = () => {
   // Authenticated with profile - show main app
   const handleNavigate = (path: string) => {
     console.log('📱 Navigating to:', path);
-    // Navigation is handled by React Router
+    // Handle navigation paths
+    const targetPath = `/${path}`;
+    navigate(targetPath);
   };
 
   // Chat wrapper component for handling chat ID param
@@ -137,11 +142,17 @@ const MobileAppContent = () => {
   return (
     <div className="min-h-screen bg-background">
       <Routes>
-        {/* Home/Dashboard Route */}
+        {/* Root route - same as web version */}
         <Route path="/" element={<FlingzzHome onNavigate={handleNavigate} />} />
+        <Route path="/swipe" element={<SwipePage onNavigate={handleNavigate} />} />
+        
+        {/* Home route redirects to root to match web behavior */}
+        <Route path="/home" element={<Navigate to="/" replace />} />
+        
+        {/* Dashboard available as separate route */}
+        <Route path="/dashboard" element={<Dashboard onNavigate={handleNavigate} />} />
         
         {/* Core Features */}
-        <Route path="/swipe" element={<SwipePage onNavigate={handleNavigate} />} />
         <Route path="/feed" element={<FeedPage onNavigate={handleNavigate} />} />
         <Route path="/pairing" element={<PairingPage onNavigate={handleNavigate} />} />
         <Route path="/matches" element={<MatchesPage onNavigate={handleNavigate} />} />
@@ -163,8 +174,8 @@ const MobileAppContent = () => {
         <Route path="/qcs-repair" element={<QCSSystemRepair />} />
         <Route path="/qcs-bulk-sync" element={<QCSBulkSync />} />
         
-        {/* Redirects */}
-        <Route path="/home" element={<Navigate to="/" replace />} />
+        {/* Debug/Verification Tools */}
+        <Route path="/verify-features" element={<APKFeatureVerification />} />
         
         {/* 404 Handling */}
         <Route path="*" element={<NotFound />} />

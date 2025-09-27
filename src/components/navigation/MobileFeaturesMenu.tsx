@@ -31,8 +31,8 @@ const MobileFeaturesMenu: React.FC<MobileFeaturesMenuProps> = ({ isOpen, onClose
     {
       category: "Core Features",
       items: [
-        { path: "/", icon: Home, label: "Home", description: "Dashboard & Overview", color: "text-blue-600" },
-        { path: "/swipe", icon: Heart, label: "Swipe", description: "Discover new people", color: "text-red-500" },
+        { path: "/", icon: Home, label: "Home", description: "Profile discovery & matching", color: "text-blue-600" },
+        { path: "/swipe", icon: Heart, label: "Swipe", description: "Alternative swipe interface", color: "text-red-500" },
         { path: "/feed", icon: Eye, label: "Feed", description: "Activity & Updates", color: "text-green-600" },
         { path: "/pairing", icon: UserPlus, label: "Pairing", description: "Smart matching system", color: "text-purple-600" },
         { path: "/matches", icon: Users, label: "Matches", description: "Your connections", color: "text-orange-600" },
@@ -57,6 +57,7 @@ const MobileFeaturesMenu: React.FC<MobileFeaturesMenuProps> = ({ isOpen, onClose
       items: [
         { path: "/qcs-test", icon: TestTube, label: "QCS Test", description: "Quality Control System", color: "text-indigo-600" },
         { path: "/qcs-diagnostics", icon: Settings, label: "QCS Diagnostics", description: "System diagnostics", color: "text-cyan-600" },
+        { path: "/verify-features", icon: HelpCircle, label: "Verify Features", description: "Test all APK features", color: "text-green-600" },
       ]
     }
   ];
