@@ -35,6 +35,7 @@ export interface ThreadReply {
 export const useThreads = () => {
   const [threads, setThreads] = useState<Thread[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [likedThreads, setLikedThreads] = useState<Set<string>>(new Set());
   const { userId } = useRequiredAuth();
   const { toast } = useToast();
@@ -60,7 +61,14 @@ export const useThreads = () => {
       .on('postgres_changes', { schema: 'public', table: 'thread_replies', event: '*' }, () => {
         fetchThreads();
       })
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Subscribed to threads realtime');
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('Realtime subscription error');
+          setError('Realtime connection failed');
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
@@ -69,6 +77,7 @@ export const useThreads = () => {
 
   const fetchThreads = async () => {
     try {
+      setError(null);
       const response = await fetchWithFirebaseAuth(
         'https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/thread-management',
         {
@@ -81,9 +90,11 @@ export const useThreads = () => {
       const data = await response.json();
 
       setThreads((data?.data as any[]) || []);
-      
+
     } catch (error) {
       console.error('Error fetching threads:', error);
+      setError(error instanceof Error ? error.message : 'Failed to fetch threads');
+      setThreads([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -317,6 +328,7 @@ export const useThreads = () => {
   return {
     threads,
     loading,
+    error,
     likedThreads,
     createThread,
     likeThread,

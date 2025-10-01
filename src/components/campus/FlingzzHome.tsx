@@ -37,6 +37,8 @@ import { useSwipeRealtime, useLikeRealtime, useNotificationRealtime } from '@/ho
 import UnifiedLayout from '@/components/layout/UnifiedLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { useThreads } from '@/hooks/useThreads';
+import { calculateCompatibility, type CompatibilityScore } from '@/services/compatibility';
+import { getCurrentLocation, calculateDistance, type LocationData } from '@/utils/locationUtils';
 
 
 interface FlingzzHomeProps {
@@ -60,10 +62,13 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
   const [touchCurrentX, setTouchCurrentX] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
   const [swipeOffset, setSwipeOffset] = useState(0);
+  const [compatibility, setCompatibility] = useState<CompatibilityScore | null>(null);
+  const [compatibilityLoading, setCompatibilityLoading] = useState(false);
+  const [userLocation, setUserLocation] = useState<LocationData | null>(null);
   
   const { toast } = useToast();
   const { user } = useAuth();
-  const { threads, createThread, deleteThread, updateThread } = useThreads();
+  const { threads, loading: threadsLoading, error: threadsError, createThread, deleteThread, updateThread } = useThreads();
 
   // Set up realtime listeners
   const userId = user?.uid;
@@ -169,10 +174,50 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
   };
 
   const currentProfile = profiles[currentIndex];
-  
+
+  const distance = userLocation && currentProfile?.latitude && currentProfile?.longitude
+    ? calculateDistance(userLocation.latitude, userLocation.longitude, currentProfile.latitude, currentProfile.longitude)
+    : null;
+
   useEffect(() => {
     setCurrentImageIndex(0);
   }, [currentIndex]);
+
+  // Fetch user location on mount
+  useEffect(() => {
+    const fetchUserLocation = async () => {
+      try {
+        const location = await getCurrentLocation();
+        setUserLocation(location);
+      } catch (error) {
+        console.error('Error fetching user location:', error);
+        setUserLocation(null);
+      }
+    };
+    fetchUserLocation();
+  }, []);
+
+  // Compute compatibility when detailed profile modal opens
+  useEffect(() => {
+    if (showDetailedProfile && currentProfile && user?.uid && currentProfile.user_id) {
+      const computeCompatibility = async () => {
+        setCompatibilityLoading(true);
+        try {
+          const result = await calculateCompatibility(user.uid, currentProfile.user_id);
+          setCompatibility(result);
+        } catch (error) {
+          console.error('Error calculating compatibility:', error);
+          setCompatibility(null);
+        } finally {
+          setCompatibilityLoading(false);
+        }
+      };
+      computeCompatibility();
+    } else {
+      setCompatibility(null);
+      setCompatibilityLoading(false);
+    }
+  }, [showDetailedProfile, currentProfile, user?.uid]);
 
   const handleImageNavigation = (direction: 'prev' | 'next') => {
     if (!currentProfile?.profile_images || currentProfile.profile_images.length <= 1) return;
@@ -269,138 +314,148 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
       </div>
 
       {/* Compact Community Threads */}
-     {threads.length > 0 && (
-        <div className="bg-card/30 backdrop-blur-sm px-4 py-2 border-b border-border/10">
-          <div className="max-w-sm mx-auto">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center space-x-2">
-                <MessageCircle className="w-4 h-4 text-primary" />
-                <h4 className="text-sm font-medium text-foreground">Community</h4>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Dialog open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
-                  <DialogTrigger asChild>
-                    <Button size="sm" className="h-6 px-2 text-xs bg-pink-500 hover:bg-pink-600 text-white border border-pink-400 rounded-md">
-                      <Plus className="w-3 h-3 mr-1" />
-                      Post
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle className="flex items-center space-x-2">
-                        <MessageCircle className="w-5 h-5" />
-                        <span>Share Your Thoughts</span>
-                      </DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="thread-content">What's on your mind?</Label>
-                        <Textarea
-                          id="thread-content"
-                          placeholder="Share something interesting with the community..."
-                          value={newThreadContent}
-                          onChange={(e) => setNewThreadContent(e.target.value)}
-                          className="min-h-[120px] resize-none"
-                          maxLength={280}
-                        />
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>Be authentic, be you ✨</span>
-                          <span>{newThreadContent.length}/280</span>
-                        </div>
-                      </div>
-                      <div className="flex justify-end space-x-2">
-                        <Button variant="outline" onClick={() => setIsPostModalOpen(false)}>
-                          Cancel
-                        </Button>
-                        <Button onClick={handlePostThread} disabled={!newThreadContent.trim()}>
-                          <Send className="w-4 h-4 mr-2" />
-                          Share
-                        </Button>
+      <div className="bg-card/30 backdrop-blur-sm px-4 py-2 border-b border-border/10">
+        <div className="max-w-sm mx-auto">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center space-x-2">
+              <MessageCircle className="w-4 h-4 text-primary" />
+              <h4 className="text-sm font-medium text-foreground">Community</h4>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Dialog open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="h-6 px-2 text-xs bg-pink-500 hover:bg-pink-600 text-white border border-pink-400 rounded-md">
+                    <Plus className="w-3 h-3 mr-1" />
+                    Post
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center space-x-2">
+                      <MessageCircle className="w-5 h-5" />
+                      <span>Share Your Thoughts</span>
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="thread-content">What's on your mind?</Label>
+                      <Textarea
+                        id="thread-content"
+                        placeholder="Share something interesting with the community..."
+                        value={newThreadContent}
+                        onChange={(e) => setNewThreadContent(e.target.value)}
+                        className="min-h-[120px] resize-none"
+                        maxLength={280}
+                      />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Be authentic, be you ✨</span>
+                        <span>{newThreadContent.length}/280</span>
                       </div>
                     </div>
-                  </DialogContent>
-                </Dialog>
-
-              </div>
+                    <div className="flex justify-end space-x-2">
+                      <Button variant="outline" onClick={() => setIsPostModalOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button onClick={handlePostThread} disabled={!newThreadContent.trim()}>
+                        <Send className="w-4 h-4 mr-2" />
+                        Share
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
+          </div>
+          {threadsError ? (
+            <div className="text-center py-2">
+              <p className="text-xs text-red-500">Failed to load threads. Please try again.</p>
+            </div>
+          ) : threadsLoading ? (
+            <div className="text-center py-2">
+              <p className="text-xs text-muted-foreground">Loading threads...</p>
+            </div>
+          ) : threads.length > 0 ? (
             <div className="flex space-x-2 overflow-x-auto pb-1">
-            {(() => {
-              if (!user?.uid) return threads.slice(0, 5);
-              const ownThread = threads.find(thread => thread.user_id === user.uid);
-              const otherThreads = threads.filter(thread => thread.user_id !== user.uid);
-              const reorderedThreads = ownThread ? [ownThread, ...otherThreads] : otherThreads;
-              return reorderedThreads.slice(0, 5);
-            })().map((thread) => (
-              <div
-                key={thread.id}
-                className="flex-shrink-0 bg-gradient-to-r from-primary/10 to-accent/10 rounded-full px-3 py-1 border border-primary/20 relative group"
-              >
-                <div className="flex items-center space-x-2">
-                  <Avatar className="w-5 h-5">
-                    <AvatarImage src={thread.author?.profile_images?.[0]} />
-                    <AvatarFallback className="text-xs">
-                      <User className="w-3 h-3" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <p className={`text-xs font-medium ${
-                    thread.user_id === user?.uid
-                      ? 'text-pink-500'
-                      : 'text-foreground'
-                  }`}>
-                    {thread.user_id === user?.uid
-                      ? 'you'
-                      : (thread.author?.first_name || 'Anonymous')
-                    }
-                  </p>
-                                    <p className="text-xs text-muted-foreground max-w-[100px] truncate">
-                    {thread.content}
-                  </p>
-                  {/* Dropdown Menu - Only show for own threads */}
-                  {thread.user_id === user?.uid && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-white/20 rounded-full">
-                          <MoreVertical className="w-3 h-3 text-foreground" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-32">
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setEditingThread({ id: thread.id, content: thread.content });
-                            setEditContent(thread.content);
-                            setIsEditModalOpen(true);
-                          }}
-                          className="text-xs"
-                        >
-                          <Edit className="w-3 h-3 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={async () => {
-                            const success = await deleteThread(thread.id);
-                            if (success) {
-                              toast({
-                                title: "Thread deleted! 🗑️",
-                                description: "Your thread has been removed.",
-                              });
-                            }
-                          }}
-                          className="text-xs text-red-600"
-                        >
-                          <Trash2 className="w-3 h-3 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-
+              {(() => {
+                if (!user?.uid) return threads.slice(0, 5);
+                const ownThread = threads.find(thread => thread.user_id === user.uid);
+                const otherThreads = threads.filter(thread => thread.user_id !== user.uid);
+                const reorderedThreads = ownThread ? [ownThread, ...otherThreads] : otherThreads;
+                return reorderedThreads.slice(0, 5);
+              })().map((thread) => (
+                <div
+                  key={thread.id}
+                  className="flex-shrink-0 bg-gradient-to-r from-primary/10 to-accent/10 rounded-full px-3 py-1 border border-primary/20 relative group"
+                >
+                  <div className="flex items-center space-x-2">
+                    <Avatar className="w-5 h-5">
+                      <AvatarImage src={thread.author?.profile_images?.[0]} />
+                      <AvatarFallback className="bg-primary/20 text-primary text-xs flex items-center justify-center">
+                        <User className="w-3 h-3" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <p className={`text-xs font-medium ${
+                      thread.user_id === user?.uid
+                        ? 'text-pink-500'
+                        : 'text-foreground'
+                    }`}>
+                      {thread.user_id === user?.uid
+                        ? 'you'
+                        : (thread.author?.first_name || 'Anonymous')
+                      }
+                    </p>
+                    <p className="text-xs text-muted-foreground max-w-[100px] truncate">
+                      {thread.content}
+                    </p>
+                    {/* Dropdown Menu - Only show for own threads */}
+                    {thread.user_id === user?.uid && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-white/20 rounded-full">
+                            <MoreVertical className="w-3 h-3 text-foreground" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-32">
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setEditingThread({ id: thread.id, content: thread.content });
+                              setEditContent(thread.content);
+                              setIsEditModalOpen(true);
+                            }}
+                            className="text-xs"
+                          >
+                            <Edit className="w-3 h-3 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={async () => {
+                              const success = await deleteThread(thread.id);
+                              if (success) {
+                                toast({
+                                  title: "Thread deleted! 🗑️",
+                                  description: "Your thread has been removed.",
+                                });
+                              }
+                            }}
+                            className="text-xs text-red-600"
+                          >
+                            <Trash2 className="w-3 h-3 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-2">
+              <p className="text-xs text-muted-foreground">No threads yet. Be the first to share!</p>
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Main Swipe Section */}
       <div className="flex-1 p-6">
@@ -488,7 +543,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                       <p className="text-sm opacity-90 mb-2 flex items-center space-x-1">
                         <span>📍</span>
                         <span>{currentProfile.university || 'IIT'}</span>
-                        <span className="ml-4 text-red-400 font-bold">QCS 3333</span>
+                        <span className="ml-4 text-red-400 font-bold">QCS {currentProfile.total_qcs || 'N/A'}</span>
                       </p>
                       {currentProfile.interests && currentProfile.interests.length > 0 && (
                         <div className="flex flex-wrap gap-2 mb-3">
@@ -609,22 +664,6 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                   </p>
                   
                   {/* Stats */}
-                  <div className="flex flex-wrap gap-2">
-                    <div className="bg-red-500 text-white px-2 py-1 rounded-full text-xs flex items-center space-x-1">
-                      <span>📍</span>
-                      <span>2.5km</span>
-                    </div>
-                    <div className="bg-purple-600 text-white px-2 py-1 rounded-full text-xs flex items-center space-x-1">
-                      <span>⭐</span>
-                      <span>QCS {currentProfile.total_qcs || 'N/A'}</span>
-                    </div>
-                    {currentProfile.university && (
-                      <div className="bg-blue-600 text-white px-2 py-1 rounded-full text-xs flex items-center space-x-1">
-                        <span>🎓</span>
-                        <span>{currentProfile.university}</span>
-                      </div>
-                    )}
-                  </div>
                 </div>
               </div>
             </div>
@@ -795,20 +834,31 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                     </button>
                     {expandedSections.compatibility && (
                       <div className="px-3 pb-3">
-                        <div className="grid grid-cols-3 gap-4 text-center">
-                          <div>
-                            <div className="text-lg font-bold text-purple-600">75%</div>
-                            <div className="text-xs text-muted-foreground">Overall Match</div>
+                        {compatibilityLoading ? (
+                          <div className="flex items-center justify-center py-4">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                            <span className="ml-2 text-sm text-muted-foreground">Calculating compatibility...</span>
                           </div>
-                          <div>
-                            <div className="text-lg font-bold text-green-600">75%</div>
-                            <div className="text-xs text-muted-foreground">Physical</div>
+                        ) : compatibility ? (
+                          <div className="grid grid-cols-3 gap-4 text-center">
+                            <div>
+                              <div className="text-lg font-bold text-purple-600">{compatibility.overall_score}%</div>
+                              <div className="text-xs text-muted-foreground">Overall Match</div>
+                            </div>
+                            <div>
+                              <div className="text-lg font-bold text-green-600">{compatibility.physical_score}%</div>
+                              <div className="text-xs text-muted-foreground">Physical</div>
+                            </div>
+                            <div>
+                              <div className="text-lg font-bold text-blue-600">{compatibility.mental_score}%</div>
+                              <div className="text-xs text-muted-foreground">Mental</div>
+                            </div>
                           </div>
-                          <div>
-                            <div className="text-lg font-bold text-blue-600">75%</div>
-                            <div className="text-xs text-muted-foreground">Mental</div>
+                        ) : (
+                          <div className="text-center py-4">
+                            <p className="text-sm text-muted-foreground">Compatibility score unavailable</p>
                           </div>
-                        </div>
+                        )}
                       </div>
                     )}
                   </div>

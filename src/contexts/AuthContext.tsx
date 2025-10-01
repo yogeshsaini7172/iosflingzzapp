@@ -4,12 +4,16 @@ import { auth, googleProvider, createRecaptchaVerifier } from '@/integrations/fi
 import { isMobileEnvironment, handleMobileAuthError } from '@/utils/mobileAuthHelper';
 import { preventRedirectAuth, handleMobileAuthError as handleMobileError, detectMobileEnvironment } from '@/utils/mobileAuthFix';
 import { toast } from 'sonner';
+import { getCurrentLocation } from '@/utils/locationUtils';
+import { updateUserLocation } from '@/services/profile';
 
 type AuthContextType = {
   user: any | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   userId: string | null;
+  locationEnabled: boolean;
+  currentLocation: any | null;
   getIdToken: () => Promise<string | null>;
   signInWithPhone: (phone: string) => Promise<{ error?: any; confirmationResult?: ConfirmationResult }>;
   verifyPhoneOTP: (confirmationResult: ConfirmationResult, otp: string) => Promise<{ error?: any }>;
@@ -40,6 +44,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [initialAuthCheck, setInitialAuthCheck] = useState(false);
+  const [locationEnabled, setLocationEnabled] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState<any | null>(null);
 
   useEffect(() => {
     console.log('🔥 Setting up Firebase auth listener...');
@@ -60,12 +66,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!wasAuthenticated && initialAuthCheck) {
           toast.success('Successfully signed in!');
         }
+
+        // Check location on new login
+        if (!wasAuthenticated) {
+          const checkLocation = async () => {
+            try {
+              const loc = await getCurrentLocation();
+              setCurrentLocation(loc);
+              setLocationEnabled(true);
+              // Update user location in database
+              const locationData = {
+                city: '', // Could reverse geocode, but for now empty
+                region: '',
+                country: '',
+                latitude: loc.latitude,
+                longitude: loc.longitude
+              };
+              await updateUserLocation(locationData);
+            } catch (error) {
+              console.error('Location not enabled:', error);
+              toast.error('Location access is required to use this app. Please enable location services and try again.');
+              await firebaseSignOut(auth);
+              setUser(null);
+              setLocationEnabled(false);
+              setCurrentLocation(null);
+            }
+          };
+          checkLocation();
+        }
       } else {
         console.log('🔥 No user found - user signed out or no session');
         if (wasAuthenticated) {
           console.log('👋 User logged out, clearing state');
           toast.success('Successfully signed out');
         }
+        setLocationEnabled(false);
+        setCurrentLocation(null);
       }
       
       // Mark initial auth check as complete
@@ -250,6 +286,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isLoading,
     isAuthenticated: !!user,
     userId: user?.uid || null,
+    locationEnabled,
+    currentLocation,
     getIdToken,
     signInWithPhone,
     verifyPhoneOTP,

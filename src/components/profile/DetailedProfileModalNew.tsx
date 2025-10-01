@@ -26,6 +26,7 @@ import {
   User,
   Activity
 } from 'lucide-react';
+import { getCurrentLocation, calculateDistance } from '@/utils/locationUtils';
 
 interface DetailedProfileModalProps {
   isOpen: boolean;
@@ -106,6 +107,7 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
   onSwipe
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
+  const [distance, setDistance] = React.useState<number | null>(null);
 
   const images = profile.profile_images && profile.profile_images.length > 0
     ? profile.profile_images
@@ -116,6 +118,31 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
   React.useEffect(() => {
     setCurrentImageIndex(0);
   }, [profile.user_id]);
+
+  React.useEffect(() => {
+    const calculateDist = async () => {
+      try {
+        const currentLoc = await getCurrentLocation();
+        let profileLat, profileLon;
+        try {
+          const loc = JSON.parse(profile.location || '{}');
+          profileLat = loc.latitude;
+          profileLon = loc.longitude;
+        } catch {
+          return;
+        }
+        if (profileLat && profileLon) {
+          const dist = calculateDistance(currentLoc.latitude, currentLoc.longitude, profileLat, profileLon);
+          setDistance(dist);
+        }
+      } catch (error) {
+        console.error('Error calculating distance:', error);
+      }
+    };
+    if (profile.location) {
+      calculateDist();
+    }
+  }, [profile.location]);
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % totalImages);
@@ -159,7 +186,7 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-background to-muted/20">
+      <DialogContent className="w-[90%] max-w-sm md:w-full md:max-w-lg max-h-[90vh] overflow-y-auto bg-gradient-to-br from-background to-muted/20">
         <DialogHeader className="pb-4">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl font-bold text-gradient-primary">
@@ -221,6 +248,19 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
               <CardContent className="p-4">
                 <h3 className="font-semibold mb-2 text-foreground">About</h3>
                 <p className="text-muted-foreground">{profile.bio}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Essential */}
+          {profile.location && distance !== null && (
+            <Card className="bg-card/80 border border-border/50">
+              <CardContent className="p-4">
+                <h3 className="font-semibold mb-2 text-foreground">Essential</h3>
+                <div className="flex items-center text-muted-foreground">
+                  <MapPin className="w-4 h-4 mr-2" />
+                  <span>{distance} km away</span>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -544,19 +584,19 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
                     Compatibility Analysis
                   </h4>
                   <div className="grid grid-cols-3 gap-4 text-center">
-                    {profile.compatibility_score && (
+                    {profile.compatibility_score !== undefined && (
                       <div>
                         <div className="text-2xl font-bold text-primary">{profile.compatibility_score}%</div>
                         <div className="text-xs text-muted-foreground">Overall Match</div>
                       </div>
                     )}
-                    {profile.physical_score && (
+                    {profile.physical_score !== undefined && (
                       <div>
                         <div className="text-2xl font-bold text-green-500">{profile.physical_score}%</div>
                         <div className="text-xs text-muted-foreground">Physical</div>
                       </div>
                     )}
-                    {profile.mental_score && (
+                    {profile.mental_score !== undefined && (
                       <div>
                         <div className="text-2xl font-bold text-blue-500">{profile.mental_score}%</div>
                         <div className="text-xs text-muted-foreground">Mental</div>

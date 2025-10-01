@@ -99,9 +99,6 @@ const UnifiedLayout = ({ children, title = "FLINGZZ", showHeader = true }: Unifi
                       </AvatarFallback>
                     )}
                   </Avatar>
-                  {profile?.first_name && (
-                    <span className="font-medium text-sm text-primary-foreground">{profile.first_name}</span>
-                  )}
                   <Button
                     variant="ghost"
                     size="sm"

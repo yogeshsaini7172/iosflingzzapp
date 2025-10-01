@@ -25,6 +25,8 @@ export interface FeedProfile {
   humor_type?: string;
   interests?: string[];
   relationship_goals?: string[];
+  latitude?: number;
+  longitude?: number;
 }
 
 export function useProfilesFeed() {

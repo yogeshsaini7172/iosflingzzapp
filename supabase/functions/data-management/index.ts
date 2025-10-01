@@ -1,4 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/// <reference lib="deno.ns" />
+
+// @ts-ignore
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+
+// @ts-ignore
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -19,35 +25,35 @@ async function verifyFirebaseToken(idToken: string) {
     }
 
     const serviceAccount = JSON.parse(serviceAccountJson)
-    
+
     // Split and validate token structure
     const tokenParts = idToken.split('.')
     if (tokenParts.length !== 3) {
       throw new Error('Invalid JWT structure')
     }
-    
+
     // Use base64url-safe decoding for JWT payload
     const base64UrlPayload = tokenParts[1]
     if (!base64UrlPayload) {
       throw new Error('Missing token payload')
     }
-    
+
     const base64Payload = base64UrlPayload.replace(/-/g, '+').replace(/_/g, '/')
     const payload = JSON.parse(atob(base64Payload))
-    
+
     // Validate token claims
-    if (!payload.iss?.includes('securetoken.google.com') || 
+    if (!payload.iss?.includes('securetoken.google.com') ||
         !payload.aud?.includes(serviceAccount.project_id) ||
         !payload.sub) {
       throw new Error('Invalid token issuer, audience or subject')
     }
-    
+
     // Check token expiration
     const now = Math.floor(Date.now() / 1000)
     if (payload.exp <= now) {
       throw new Error('Token expired')
     }
-    
+
     return payload.sub // Return Firebase UID
   } catch (error) {
     console.error('Token verification error:', error)
@@ -63,7 +69,7 @@ interface DataRequest {
   limit?: number;
 }
 
-serve(async (req) => {
+serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -83,7 +89,7 @@ serve(async (req) => {
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-    
+
     const idToken = authHeader.replace('Bearer ', '').trim()
     if (!idToken) {
       return new Response(
@@ -105,7 +111,7 @@ serve(async (req) => {
     const { action, profile: profileData, preferences: preferencesData, filters, limit }: DataRequest = await req.json();
 
     console.log(`[DATA-MANAGEMENT] Action: ${action}, User: ${firebaseUid}`);
-    
+
     // Add debug logging for profile creation
     if (action === 'create_profile') {
       console.log('[DEBUG] Profile data received:', JSON.stringify(profileData, null, 2));
@@ -168,6 +174,14 @@ serve(async (req) => {
           // Compatibility requirements
           min_shared_interests: 2,
           personality_compatibility: "moderate",
+          lifestyle_compatibility: "important"
+        };
+
+        const newProfile = {
+          firebase_uid: firebaseUid,
+          user_id: firebaseUid, // Keep for compatibility
+          // Map frontend field names to database field names properly
+          first_name: profileData.first_name || profileData.firstName || '',
           lifestyle_compatibility: "important"
         };
 
@@ -598,10 +612,71 @@ serve(async (req) => {
 
           if (basicError) throw basicError;
 
-          console.log(`[DATA-MANAGEMENT] Basic feed fetched: ${basicFeed?.length} profiles`);
+          // Normalize basic feed profiles
+          const normalizedBasicFeed = (basicFeed || []).map((profile: any) => {
+            let normalizedProfile = { ...profile };
+            if (normalizedProfile) {
+              try { 
+                if (typeof normalizedProfile.qualities === 'string') {
+                  normalizedProfile.qualities = JSON.parse(normalizedProfile.qualities); 
+                }
+              } catch (_) {}
+              try { 
+                if (typeof normalizedProfile.requirements === 'string') {
+                  normalizedProfile.requirements = JSON.parse(normalizedProfile.requirements); 
+                }
+              } catch (_) {}
+
+              // Extract qualities data into individual profile fields for UI compatibility
+              if (normalizedProfile.qualities && typeof normalizedProfile.qualities === 'object') {
+                const qualities = normalizedProfile.qualities;
+                // Physical attributes
+                normalizedProfile.height = normalizedProfile.height || qualities.height;
+                normalizedProfile.body_type = normalizedProfile.body_type || qualities.body_type;
+                normalizedProfile.skin_tone = normalizedProfile.skin_tone || qualities.skin_tone;
+                normalizedProfile.face_type = normalizedProfile.face_type || qualities.face_type;
+                
+                // Personality & values - ensure arrays
+                normalizedProfile.personality_traits = Array.isArray(qualities.personality_traits) 
+                  ? qualities.personality_traits 
+                  : qualities.personality_type 
+                    ? [qualities.personality_type] 
+                    : normalizedProfile.personality_traits || [];
+                    
+                normalizedProfile.values = Array.isArray(qualities.values) 
+                  ? qualities.values 
+                  : Array.isArray(normalizedProfile.values_array)
+                    ? normalizedProfile.values_array
+                    : normalizedProfile.values
+                      ? [normalizedProfile.values]
+                      : [];
+                    
+                normalizedProfile.mindset = Array.isArray(qualities.mindset) 
+                  ? qualities.mindset 
+                  : qualities.mindset 
+                    ? [qualities.mindset] 
+                    : [];
+                    
+                // Goals & interests
+                normalizedProfile.relationship_goals = normalizedProfile.relationship_goals || qualities.relationship_goals || [];
+                normalizedProfile.interests = normalizedProfile.interests || qualities.interests || [];
+                
+                // Other attributes
+                normalizedProfile.love_language = normalizedProfile.love_language || qualities.love_language;
+                normalizedProfile.lifestyle = normalizedProfile.lifestyle || qualities.lifestyle;
+                normalizedProfile.university = normalizedProfile.university || qualities.university;
+                normalizedProfile.field_of_study = normalizedProfile.field_of_study || qualities.field_of_study;
+                normalizedProfile.education_level = normalizedProfile.education_level || qualities.education_level;
+                normalizedProfile.profession = normalizedProfile.profession || qualities.profession;
+              }
+            }
+            return normalizedProfile;
+          });
+
+          console.log(`[DATA-MANAGEMENT] Basic feed fetched: ${normalizedBasicFeed.length} profiles`);
           return new Response(JSON.stringify({
             success: true,
-            data: { profiles: basicFeed || [] },
+            data: { profiles: normalizedBasicFeed },
             message: 'Basic feed fetched (no preferences)'
           }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -615,7 +690,7 @@ serve(async (req) => {
           .select('target_user_id')
           .eq('user_id', firebaseUid)
 
-        const swipedUserIds = swipedUsers?.map(s => s.target_user_id) || []
+        const swipedUserIds = swipedUsers?.map((s: any) => s.target_user_id) || []
 
         // Get blocked users to exclude
         const { data: blockedUsers } = await supabaseClient
@@ -624,7 +699,7 @@ serve(async (req) => {
           .eq('user_id', firebaseUid)
           .in('interaction_type', ['ghost', 'bench'])
 
-        const blockedUserIds = blockedUsers?.map(b => b.target_user_id) || []
+        const blockedUserIds = blockedUsers?.map((b: any) => b.target_user_id) || []
 
         // Get matched users to exclude
         const { data: matchedUsers } = await supabaseClient
@@ -632,7 +707,7 @@ serve(async (req) => {
           .select('user1_id, user2_id')
           .or(`user1_id.eq.${firebaseUid},user2_id.eq.${firebaseUid}`)
 
-        const matchedUserIds = matchedUsers?.map(m => 
+        const matchedUserIds = matchedUsers?.map((m: any) =>
           m.user1_id === firebaseUid ? m.user2_id : m.user1_id
         ) || []
 
@@ -695,10 +770,71 @@ serve(async (req) => {
 
         if (feedError) throw feedError;
 
-        console.log(`[DATA-MANAGEMENT] Feed fetched: ${feedProfiles?.length} profiles with gender filtering applied`);
+        // Normalize profiles for feed (similar to get_profile)
+        const normalizedFeedProfiles = (feedProfiles || []).map((profile: any) => {
+          let normalizedProfile = { ...profile };
+          if (normalizedProfile) {
+            try { 
+              if (typeof normalizedProfile.qualities === 'string') {
+                normalizedProfile.qualities = JSON.parse(normalizedProfile.qualities); 
+              }
+            } catch (_) {}
+            try { 
+              if (typeof normalizedProfile.requirements === 'string') {
+                normalizedProfile.requirements = JSON.parse(normalizedProfile.requirements); 
+              }
+            } catch (_) {}
+
+            // Extract qualities data into individual profile fields for UI compatibility
+            if (normalizedProfile.qualities && typeof normalizedProfile.qualities === 'object') {
+              const qualities = normalizedProfile.qualities;
+              // Physical attributes
+              normalizedProfile.height = normalizedProfile.height || qualities.height;
+              normalizedProfile.body_type = normalizedProfile.body_type || qualities.body_type;
+              normalizedProfile.skin_tone = normalizedProfile.skin_tone || qualities.skin_tone;
+              normalizedProfile.face_type = normalizedProfile.face_type || qualities.face_type;
+              
+              // Personality & values - ensure arrays
+              normalizedProfile.personality_traits = Array.isArray(qualities.personality_traits) 
+                ? qualities.personality_traits 
+                : qualities.personality_type 
+                  ? [qualities.personality_type] 
+                  : normalizedProfile.personality_traits || [];
+                  
+              normalizedProfile.values = Array.isArray(qualities.values) 
+                ? qualities.values 
+                : Array.isArray(normalizedProfile.values_array)
+                  ? normalizedProfile.values_array
+                  : normalizedProfile.values
+                    ? [normalizedProfile.values]
+                    : [];
+                  
+              normalizedProfile.mindset = Array.isArray(qualities.mindset) 
+                ? qualities.mindset 
+                : qualities.mindset 
+                  ? [qualities.mindset] 
+                  : [];
+                  
+              // Goals & interests
+              normalizedProfile.relationship_goals = normalizedProfile.relationship_goals || qualities.relationship_goals || [];
+              normalizedProfile.interests = normalizedProfile.interests || qualities.interests || [];
+              
+              // Other attributes
+              normalizedProfile.love_language = normalizedProfile.love_language || qualities.love_language;
+              normalizedProfile.lifestyle = normalizedProfile.lifestyle || qualities.lifestyle;
+              normalizedProfile.university = normalizedProfile.university || qualities.university;
+              normalizedProfile.field_of_study = normalizedProfile.field_of_study || qualities.field_of_study;
+              normalizedProfile.education_level = normalizedProfile.education_level || qualities.education_level;
+              normalizedProfile.profession = normalizedProfile.profession || qualities.profession;
+            }
+          }
+          return normalizedProfile;
+        });
+
+        console.log(`[DATA-MANAGEMENT] Feed fetched: ${normalizedFeedProfiles.length} profiles with gender filtering applied`);
         return new Response(JSON.stringify({
           success: true,
-          data: { profiles: feedProfiles || [] },
+          data: { profiles: normalizedFeedProfiles },
           message: 'Feed fetched with preferences applied'
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -776,11 +912,12 @@ serve(async (req) => {
         throw new Error('Invalid action');
     }
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('[DATA-MANAGEMENT] Error:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return new Response(JSON.stringify({
       success: false,
-      error: error.message
+      error: errorMessage
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
