@@ -163,11 +163,9 @@ const MobileAuthPage = () => {
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="w-16 h-16 mx-auto mb-4 bg-white rounded-full flex items-center justify-center">
-            <span className="text-2xl font-bold text-purple-600">F</span>
-          </div>
+          <img src="/logo.png" alt="Logo" className="w-18 h-18 mx-auto mb-4 rounded-full object-cover" />
           <CardTitle className="text-2xl">
-            Welcome to <span className="text-pink-500">FLINGZZ</span>
+            Welcome to <span className="text-pink-500">𝙁𝙡𝙞𝙣𝙜𝙯𝙯 </span>
           </CardTitle>
           <CardDescription>
             Choose your sign-in method
