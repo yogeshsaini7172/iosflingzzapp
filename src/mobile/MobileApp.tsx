@@ -21,15 +21,15 @@ import BlindDatePage from '@/pages/BlindDatePage';
 import SubscriptionPage from '@/pages/SubscriptionPage';
 import Dashboard from '@/pages/Dashboard';
 import FlingzzHome from '@/components/campus/FlingzzHome';
-import QCSTestPage from '@/pages/QCSTestPage';
 import QCSDiagnostics from '@/components/QCSDiagnostics';
 import QCSSystemRepair from '@/components/QCSSystemRepair';
 import QCSBulkSync from '@/components/QCSBulkSync';
 import RebuiltChatSystem from '@/components/chat/RebuiltChatSystem';
 import NotFound from '@/pages/NotFound';
 import MobileBottomNav from '@/components/navigation/MobileBottomNav';
-import MobileFeatureDebug from '@/components/debug/MobileFeatureDebug';
-import APKFeatureVerification from '@/components/debug/APKFeatureVerification';
+// Debug components removed during cleanup
+// import MobileFeatureDebug from '@/components/debug/MobileFeatureDebug';
+// import APKFeatureVerification from '@/components/debug/APKFeatureVerification';
 import { initializeMobileApp } from '../mobile/capacitor';
 import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
 
@@ -169,13 +169,14 @@ const MobileAppContent = () => {
         <Route path="/subscription" element={<SubscriptionPage onNavigate={handleNavigate} />} />
         
         {/* QCS System (Admin/Debug) */}
-        <Route path="/qcs-test" element={<QCSTestPage />} />
+        {/* QCS Test page removed during cleanup */}
         <Route path="/qcs-diagnostics" element={<QCSDiagnostics />} />
         <Route path="/qcs-repair" element={<QCSSystemRepair />} />
         <Route path="/qcs-bulk-sync" element={<QCSBulkSync />} />
         
-        {/* Debug/Verification Tools */}
-        <Route path="/verify-features" element={<APKFeatureVerification />} />
+        {/* Debug/Verification Tools - Removed during cleanup */}
+        {/*         {/* Debug/Verification Tools - Removed during cleanup */}
+        {/* <Route path="/verify-features" element={<APKFeatureVerification />} /> */}
         
         {/* 404 Handling */}
         <Route path="*" element={<NotFound />} />
@@ -183,7 +184,8 @@ const MobileAppContent = () => {
       <MobileBottomNav />
       
       {/* Debug Component (Development Only) */}
-      {process.env.NODE_ENV === 'development' && <MobileFeatureDebug />}
+      {/* Debug component removed during cleanup */}
+      {/* {process.env.NODE_ENV === 'development' && <MobileFeatureDebug />} */}
     </div>
   );
 };

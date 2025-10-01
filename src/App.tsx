@@ -17,7 +17,6 @@ import FlingzzHome from "./components/campus/FlingzzHome";
 import SubscriptionPage from "./components/subscription/SubscriptionPage";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
-import QCSTestPage from "./pages/QCSTestPage";
 import QCSDiagnostics from "./components/QCSDiagnostics";
 import QCSSystemRepair from "./components/QCSSystemRepair";
 import QCSBulkSync from "./components/QCSBulkSync";
@@ -232,7 +231,7 @@ const AuthenticatedApp = () => {
               <Route path="/profile" element={<ProfilePage onNavigate={(view) => navigate(`/${view}`)} />} />
               <Route path="/blind-date" element={<BlindDatePage onNavigate={(view) => navigate(`/${view}`)} />} />
               <Route path="/subscription" element={<SubscriptionPage onNavigate={(view) => navigate(`/${view}`)} />} />
-              <Route path="/qcs-test" element={<QCSTestPage />} />
+              {/* QCS Test page removed - was debug/test component */}
               <Route path="/qcs-diagnostics" element={<QCSDiagnostics />} />
               <Route path="/qcs-repair" element={<QCSSystemRepair />} />
               <Route path="/qcs-bulk-sync" element={<QCSBulkSync />} />
