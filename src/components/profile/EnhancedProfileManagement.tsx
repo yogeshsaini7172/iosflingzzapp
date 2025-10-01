@@ -35,6 +35,7 @@ import { useProfileData } from '@/hooks/useProfileData';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { PROFESSIONS } from '@/components/profile/ProfessionCombobox';
 
 interface EnhancedProfileManagementProps {
   onNavigate: (view: string) => void;
@@ -219,6 +220,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
     bio: '',
     educationLevel: '',
     profession: '',
+    professionDescription: '',
 
     // Physical Attributes
     height: '',
@@ -252,6 +254,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
     preferredFaceType: [] as string[],
     preferredLoveLanguage: [] as string[],
     preferredLifestyle: [] as string[],
+    preferredProfessions: [] as string[],
     
     // Settings
     isVisible: true,
@@ -296,6 +299,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       bio: profile.bio || '',
       educationLevel: (profile as any).education_level || '',
       profession: (profile as any).profession || '',
+      professionDescription: (profile as any).profession_description || '',
       height: profile.height?.toString() || '',
       bodyType: transformSingleValueToUI((profile as any).body_type || ''),
       skinTone: transformSingleValueToUI((profile as any).skin_tone || ''),
@@ -410,6 +414,9 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       preferredLifestyle: Array.isArray(preferences.preferred_lifestyle) 
         ? transformDatabaseToUI(preferences.preferred_lifestyle) 
         : [],
+      preferredProfessions: Array.isArray((preferences as any).preferred_professions)
+        ? (preferences as any).preferred_professions
+        : [],
     }));
   }
 
@@ -503,6 +510,7 @@ useEffect(() => {
       bio: formData.bio,
       education_level: formData.educationLevel,
       profession: formData.profession,
+      profession_description: formData.professionDescription,
       height: formData.height ? parseInt(formData.height) : undefined,
       body_type: formData.bodyType,
       skin_tone: formData.skinTone,
@@ -532,7 +540,8 @@ useEffect(() => {
     preferred_skin_types: formData.preferredSkinTone,
     preferred_face_types: formData.preferredFaceType,
     preferred_love_languages: formData.preferredLoveLanguage,
-    preferred_lifestyle: formData.preferredLifestyle
+    preferred_lifestyle: formData.preferredLifestyle,
+    preferred_professions: formData.preferredProfessions
   };
 
   await updatePreferences(preferencesToUpdate);
@@ -695,6 +704,17 @@ useEffect(() => {
             className="border-primary/20 focus:border-primary"
           />
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>About Your Profession (Optional)</Label>
+        <Textarea
+          value={formData.professionDescription}
+          onChange={(e) => setFormData(prev => ({...prev, professionDescription: e.target.value}))}
+          placeholder="Describe your profession, what you do, or your career goals..."
+          className="border-primary/20 focus:border-primary min-h-[80px]"
+          rows={3}
+        />
       </div>
 
       <div className="space-y-2">
@@ -1254,6 +1274,37 @@ useEffect(() => {
                   </Badge>
                 );
               })}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <Label>Preferred Professions (Optional)</Label>
+            <div className="flex flex-wrap gap-2">
+              {PROFESSIONS.map((profession) => {
+                const isSelected = formData.preferredProfessions.includes(profession);
+                return (
+                  <Badge
+                    key={profession}
+                    variant={isSelected ? "default" : "outline"}
+                    className={`cursor-pointer ${
+                      isSelected 
+                        ? 'bg-gradient-primary text-white hover:opacity-90' 
+                        : 'border-primary/20 hover:border-primary'
+                    }`}
+                    onClick={() => {
+                      const newProfessions = isSelected
+                        ? formData.preferredProfessions.filter(p => p !== profession)
+                        : [...formData.preferredProfessions, profession];
+                      setFormData(prev => ({ ...prev, preferredProfessions: newProfessions }));
+                    }}
+                  >
+                    {profession}
+                  </Badge>
+                );
+              })}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Select professions you prefer in a partner
             </div>
           </div>
         </CardContent>

@@ -40,6 +40,7 @@ export interface Profile {
   // Education/Profession
   education_level?: string;
   profession?: string;
+  profession_description?: string;
   
   // Goals & Interests
   relationship_goals?: string[]; // max 3
@@ -66,6 +67,7 @@ export interface PartnerPreferences {
   preferred_face_type?: string[];
   preferred_love_language?: string[];
   preferred_lifestyle?: string[];
+  preferred_professions?: string[];
 }
 
 export const useProfileData = () => {
