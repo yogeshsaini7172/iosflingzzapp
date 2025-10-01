@@ -13,6 +13,9 @@ import ProfileSetupFlow from '@/components/profile/ProfileSetupFlow';
 // Import pages
 import ProfilePage from '@/pages/ProfilePage';
 import PairingPage from '@/pages/PairingPage';
+import MatchesPage from '@/pages/MatchesPage';
+import SwipePage from '@/pages/SwipePage';
+import FeedPage from '@/pages/FeedPage';
 import BlindDatePage from '@/pages/BlindDatePage';
 import SubscriptionPage from '@/pages/SubscriptionPage';
 import Dashboard from '@/pages/Dashboard';
@@ -143,7 +146,10 @@ const MobileAppContent = () => {
         <Route path="/home" element={<Navigate to="/" replace />} />
         
         {/* Core Features */}
+        <Route path="/swipe" element={<SwipePage onNavigate={handleNavigate} />} />
+        <Route path="/feed" element={<FeedPage onNavigate={handleNavigate} />} />
         <Route path="/pairing" element={<PairingPage onNavigate={handleNavigate} />} />
+        <Route path="/matches" element={<MatchesPage onNavigate={handleNavigate} />} />
         
         {/* Chat System */}
         <Route path="/chat" element={<RebuiltChatSystem onNavigate={handleNavigate} />} />

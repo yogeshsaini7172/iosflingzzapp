@@ -8,6 +8,9 @@ import { SocketChatProvider } from "./contexts/SocketChatContext";
 import { ChatNotificationProvider } from "./contexts/ChatNotificationContext";
 import { useState, useEffect } from "react";
 import PairingPage from "./pages/PairingPage";
+import MatchesPage from "./pages/MatchesPage";
+import SwipePage from "./pages/SwipePage";
+import FeedPage from "./pages/FeedPage";
 import ProfilePage from "./pages/ProfilePage";
 import BlindDatePage from "./pages/BlindDatePage";
 import FlingzzHome from "./components/campus/FlingzzHome";
@@ -210,7 +213,10 @@ const AuthenticatedApp = () => {
             <div id="recaptcha-container"></div>
             <Routes>
               <Route path="/" element={<FlingzzHome onNavigate={(view) => navigate(`/${view}`)} />} />
+              <Route path="/swipe" element={<SwipePage onNavigate={(view) => navigate(`/${view}`)} />} />
+              <Route path="/feed" element={<FeedPage onNavigate={(view) => navigate(`/${view}`)} />} />
               <Route path="/pairing" element={<PairingPage onNavigate={(view) => navigate(`/${view}`)} />} />
+              <Route path="/matches" element={<MatchesPage onNavigate={(view) => navigate(`/${view}`)} />} />
               
               {/* --- Chat routes --- */}
               <Route 
