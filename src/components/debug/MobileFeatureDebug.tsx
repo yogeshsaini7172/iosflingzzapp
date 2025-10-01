@@ -80,21 +80,22 @@ const MobileFeatureDebug: React.FC = () => {
   const features = checkFeatureAvailability();
   const availableCount = features.filter(f => f.available).length;
 
-  if (!expanded) {
-    return (
-      <div className="fixed top-4 right-4 z-50">
-        <Button
-          onClick={() => setExpanded(true)}
-          variant="outline"
-          size="sm"
-          className="bg-card/90 backdrop-blur-sm"
-        >
-          <Smartphone className="w-4 h-4 mr-2" />
-          Debug ({availableCount}/{features.length})
-        </Button>
-      </div>
-    );
-  }
+  // if (!expanded) {
+  //   return (
+  //     <div className="fixed top-4 right-4 z-50">
+  //       <Button
+  //         onClick={() => setExpanded(true)}
+  //         variant="outline"
+  //         size="sm"
+  //         className="bg-card/90 backdrop-blur-sm"
+  //       >
+  //         {/* Smartphone icon - represents mobile device debugging functionality */}
+  //         <Smartphone className="w-4 h-4 mr-2" />
+  //         Debug ({availableCount}/{features.length})
+  //       </Button>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="fixed inset-4 z-50 overflow-auto">
