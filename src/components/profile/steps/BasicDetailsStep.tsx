@@ -112,7 +112,7 @@ const BasicDetailsStep = ({ data, onChange }: BasicDetailsStepProps) => {
       </div>
 
       {/* Conditional fields based on profession */}
-      {data.profession === 'Student' && (
+      {data.profession && data.profession === 'Student' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-fade-in">
           <div className="space-y-3">
             <Label className="text-base font-medium">Year of Study</Label>
@@ -175,7 +175,7 @@ const BasicDetailsStep = ({ data, onChange }: BasicDetailsStepProps) => {
         </div>
       )}
 
-      {data.profession === 'Other' && (
+      {data.profession && data.profession === 'Other' && (
         <div className="space-y-3 animate-fade-in">
           <Label className="text-base font-medium">Please specify your profession</Label>
           <Input
