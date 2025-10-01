@@ -19,6 +19,7 @@ import { useOptionalAuth } from "@/hooks/useRequiredAuth";
 import { useChatNotification } from "@/contexts/ChatNotificationContext";
 import { reportUser, blockUser } from "@/services/reports";
 import { useToast } from "@/hooks/use-toast";
+import ChatHeader from "./ChatHeader";
 
 interface ChatConversationProps {
   room: ChatRoom;
@@ -205,70 +206,14 @@ const ChatConversation = ({
 
   return (
     <div className="flex flex-col h-screen bg-gradient-soft">
-      <CardHeader className="flex flex-row items-center space-y-0 pb-4 bg-card/90 backdrop-blur-lg border-b border-border">
-        <Button variant="ghost" onClick={onBack} className="mr-3">
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
-        <div className="relative mr-3">
-          <Avatar className="w-10 h-10">
-            <AvatarImage 
-              src={room.other_user?.profile_images?.[0]} 
-              alt={room.other_user?.first_name}
-            />
-            <AvatarFallback className="bg-gradient-primary text-white">
-              {room.other_user?.first_name?.[0]}
-              {room.other_user?.last_name?.[0]}
-            </AvatarFallback>
-          </Avatar>
-          {isOtherUserOnline && (
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-background rounded-full" />
-          )}
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h2 className="font-semibold">
-              {room.other_user?.first_name} {room.other_user?.last_name}
-            </h2>
-            {isOtherUserOnline && (
-              <Badge variant="secondary" className="text-xs">
-                Online
-              </Badge>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            {room.other_user?.university && (
-              <p className="text-xs text-muted-foreground">
-                {room.other_user.university}
-              </p>
-            )}
-            {wsConnected ? (
-              <Wifi className={`h-3 w-3 ${getConnectionStatusColor()}`} />
-            ) : (
-              <WifiOff className={`h-3 w-3 ${getConnectionStatusColor()}`} />
-            )}
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
-                <MoreVertical className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={handleReportUser} className="text-orange-600">
-                <AlertTriangle className="mr-2 h-4 w-4" />
-                Report User
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleBlockUser} className="text-red-600">
-                <UserX className="mr-2 h-4 w-4" />
-                Block User
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </CardHeader>
+      <ChatHeader 
+        user={room.other_user}
+        isOnline={isOtherUserOnline}
+        wsConnected={wsConnected}
+        onBack={onBack}
+        onReportUser={handleReportUser}
+        onBlockUser={handleBlockUser}
+      />
 
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">

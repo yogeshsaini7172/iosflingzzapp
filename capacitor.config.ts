@@ -2,10 +2,10 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.gradsync.app',
-  appName: 'Grad Sync',
+  appName: 'Grad Sync', 
   webDir: 'dist',
   server: {
-    androidScheme: 'https'
+    androidScheme: 'https',
   },
   plugins: {
     SplashScreen: {
@@ -16,16 +16,26 @@ const config: CapacitorConfig = {
       androidScaleType: "CENTER_CROP",
       showSpinner: true,
       androidSpinnerStyle: "large",
-      spinnerColor: "#ffffff"
+      spinnerColor: "#ffffff",
     },
     StatusBar: {
       style: 'LIGHT_CONTENT',
-      backgroundColor: '#8B008B'
+      backgroundColor: '#8B008B',
     },
     PushNotifications: {
-      presentationOptions: ["badge", "sound", "alert"]
-    }
-  }
+      presentationOptions: ["badge", "sound", "alert"],
+    },
+    FirebaseAuthentication: {
+      skipNativeAuth: false,
+      providers: ["google.com", "phone"],
+      google: {
+        // Web client ID from Firebase (OAuth client type 3)
+        serverClientId: "533305529581-frij9q3gtu1jkj7hb3rtpqqsqb1mltkf.apps.googleusercontent.com",
+        scopes: ["profile", "email"],
+        forceCodeForRefreshToken: false
+      },
+    },
+  },
 };
 
 export default config;

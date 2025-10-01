@@ -1,19 +1,44 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
-import { AuthProvider } from '@/contexts/AuthContext'
-import { App } from './App.tsx'
-import './index.css'
-import './services/fix-qcs' // Auto-run QCS fix for existing profiles
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import "./index.css";
 
-console.log('🚀 Starting FLINGZZ App...');
+// Check if we're in a mobile environment
+const isMobileEnvironment = () => {
+  if (typeof window === 'undefined') return false;
+  
+  const userAgent = window.navigator.userAgent;
+  const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+  const isCapacitor = userAgent.includes('Capacitor');
+  const isWebView = window.location.href.includes('localhost') && (isMobile || isCapacitor);
+  
+  return isMobile || isCapacitor || isWebView;
+};
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    </BrowserRouter>
-  </StrictMode>
-);
+console.log("📱 Detecting environment...");
+console.log("📱 User Agent:", navigator.userAgent);
+console.log("📱 Is Mobile:", isMobileEnvironment());
+
+// Load appropriate app based on environment
+if (isMobileEnvironment()) {
+  console.log("📱 Loading Mobile App...");
+  import("./mobile/MobileIndex").then((module) => {
+    // Mobile app will handle its own rendering
+  });
+} else {
+  console.log("🌐 Loading Web App...");
+  import("./App").then(({ App }) => {
+    import("./contexts/AuthContext").then(({ AuthProvider }) => {
+      import("react-router-dom").then(({ BrowserRouter }) => {
+        createRoot(document.getElementById("root")!).render(
+          <StrictMode>
+            <BrowserRouter>
+              <AuthProvider>
+                <App />
+              </AuthProvider>
+            </BrowserRouter>
+          </StrictMode>
+        );
+      });
+    });
+  });
+}

@@ -36,12 +36,15 @@ export const detectMobileEnvironment = () => {
 export const preventRedirectAuth = () => {
   const environment = detectMobileEnvironment();
   
-  // In mobile environments or when sessionStorage is inaccessible, avoid redirect auth
-  if (environment && (environment.isMobile || environment.isWebView || environment.isCapacitor || environment.isFirebaseApp || !environment.sessionStorageAccessible)) {
-    console.log('📱 Mobile/WebView environment or sessionStorage inaccessible - disabling redirect auth');
+  // Only prevent redirect auth in very specific problematic cases
+  // Let Firebase handle most mobile auth scenarios
+  if (environment && environment.isFirebaseApp && !environment.sessionStorageAccessible) {
+    console.log('📱 Firebase App with sessionStorage issues - disabling redirect auth');
     return true;
   }
   
+  // Allow Google auth to work on most mobile environments
+  console.log('📱 Mobile environment detected but allowing Google auth to proceed');
   return false;
 };
 

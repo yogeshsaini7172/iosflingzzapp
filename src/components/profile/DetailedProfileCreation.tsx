@@ -24,7 +24,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
-import { auth } from "@/integrations/firebase/config";
+import { auth } from "../../firebase";
 
 interface DetailedProfileCreationProps {
   onBack: () => void;

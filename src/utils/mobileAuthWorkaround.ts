@@ -123,11 +123,16 @@ export const mobilePhoneAuth = async (phoneNumber: string): Promise<MobileAuthRe
     document.body.appendChild(hiddenContainer);
     
     // Import Firebase auth functions dynamically to avoid early initialization issues
-    const { signInWithPhoneNumber } = await import('firebase/auth');
-    const { auth, createRecaptchaVerifier } = await import('@/integrations/firebase/config');
+    const { signInWithPhoneNumber, RecaptchaVerifier } = await import('firebase/auth');
+    const { auth } = await import('../firebase');
     
     // Create reCAPTCHA verifier with mobile-optimized settings
-    const recaptchaVerifier = createRecaptchaVerifier('mobile-recaptcha-container');
+    const recaptchaVerifier = new RecaptchaVerifier(auth, 'mobile-recaptcha-container', {
+      size: 'invisible',
+      callback: () => console.log('reCAPTCHA solved successfully'),
+      'expired-callback': () => console.log('reCAPTCHA expired'),
+      'error-callback': (error: any) => console.error('reCAPTCHA error:', error)
+    });
     
     const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
     
