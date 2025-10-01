@@ -111,33 +111,81 @@ const BasicDetailsStep = ({ data, onChange }: BasicDetailsStepProps) => {
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <div className="space-y-3">
-          <Label className="text-base font-medium">Year of Study</Label>
-          <Select value={data.yearOfStudy} onValueChange={(value) => updateField('yearOfStudy', value)}>
-            <SelectTrigger className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors">
-              <SelectValue placeholder="Select year" />
-            </SelectTrigger>
-            <SelectContent className="rounded-2xl">
-              <SelectItem value="1">1st Year</SelectItem>
-              <SelectItem value="2">2nd Year</SelectItem>
-              <SelectItem value="3">3rd Year</SelectItem>
-              <SelectItem value="4">4th Year</SelectItem>
-              <SelectItem value="graduate">Graduate</SelectItem>
-              <SelectItem value="phd">PhD</SelectItem>
-            </SelectContent>
-          </Select>
+      {/* Conditional fields based on profession */}
+      {data.profession === 'Student' && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-fade-in">
+          <div className="space-y-3">
+            <Label className="text-base font-medium">Year of Study</Label>
+            <Select value={data.yearOfStudy} onValueChange={(value) => updateField('yearOfStudy', value)}>
+              <SelectTrigger className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors">
+                <SelectValue placeholder="Select year" />
+              </SelectTrigger>
+              <SelectContent className="rounded-2xl">
+                <SelectItem value="1">1st Year</SelectItem>
+                <SelectItem value="2">2nd Year</SelectItem>
+                <SelectItem value="3">3rd Year</SelectItem>
+                <SelectItem value="4">4th Year</SelectItem>
+                <SelectItem value="postgraduate">Postgraduate</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-3">
+            <Label className="text-base font-medium">Field of Study</Label>
+            <Select value={data.fieldOfStudy} onValueChange={(value) => updateField('fieldOfStudy', value)}>
+              <SelectTrigger className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors">
+                <SelectValue placeholder="Select field" />
+              </SelectTrigger>
+              <SelectContent className="rounded-2xl max-h-[300px]">
+                <SelectItem value="Computer Science">Computer Science</SelectItem>
+                <SelectItem value="Information Technology">Information Technology</SelectItem>
+                <SelectItem value="Mechanical Engineering">Mechanical Engineering</SelectItem>
+                <SelectItem value="Electrical Engineering">Electrical Engineering</SelectItem>
+                <SelectItem value="Civil Engineering">Civil Engineering</SelectItem>
+                <SelectItem value="Electronics Engineering">Electronics Engineering</SelectItem>
+                <SelectItem value="Chemical Engineering">Chemical Engineering</SelectItem>
+                <SelectItem value="Business Administration">Business Administration</SelectItem>
+                <SelectItem value="Commerce">Commerce</SelectItem>
+                <SelectItem value="Economics">Economics</SelectItem>
+                <SelectItem value="Finance">Finance</SelectItem>
+                <SelectItem value="Accounting">Accounting</SelectItem>
+                <SelectItem value="Medicine (MBBS)">Medicine (MBBS)</SelectItem>
+                <SelectItem value="Dentistry">Dentistry</SelectItem>
+                <SelectItem value="Nursing">Nursing</SelectItem>
+                <SelectItem value="Pharmacy">Pharmacy</SelectItem>
+                <SelectItem value="Law">Law</SelectItem>
+                <SelectItem value="Arts">Arts</SelectItem>
+                <SelectItem value="Literature">Literature</SelectItem>
+                <SelectItem value="History">History</SelectItem>
+                <SelectItem value="Psychology">Psychology</SelectItem>
+                <SelectItem value="Sociology">Sociology</SelectItem>
+                <SelectItem value="Political Science">Political Science</SelectItem>
+                <SelectItem value="Mathematics">Mathematics</SelectItem>
+                <SelectItem value="Physics">Physics</SelectItem>
+                <SelectItem value="Chemistry">Chemistry</SelectItem>
+                <SelectItem value="Biology">Biology</SelectItem>
+                <SelectItem value="Architecture">Architecture</SelectItem>
+                <SelectItem value="Design">Design</SelectItem>
+                <SelectItem value="Mass Communication">Mass Communication</SelectItem>
+                <SelectItem value="Journalism">Journalism</SelectItem>
+                <SelectItem value="Hotel Management">Hotel Management</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <div className="space-y-3">
-          <Label className="text-base font-medium">Field of Study</Label>
+      )}
+
+      {data.profession === 'Other' && (
+        <div className="space-y-3 animate-fade-in">
+          <Label className="text-base font-medium">Please specify your profession</Label>
           <Input
-            placeholder="Computer Science"
-            value={data.fieldOfStudy}
-            onChange={(e) => updateField('fieldOfStudy', e.target.value)}
+            placeholder="Enter your profession"
+            value={data.customProfession || ''}
+            onChange={(e) => updateField('customProfession', e.target.value)}
             className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors"
           />
         </div>
-      </div>
+      )}
     </div>
   );
 };
