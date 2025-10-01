@@ -25,7 +25,8 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfilesFeed } from "@/hooks/useProfilesFeed";
 import { usePairing } from "@/hooks/usePairing";
-import UserSelector from "@/components/debug/UserSelector";
+// Debug component removed during cleanup
+// import UserSelector from "@/components/debug/UserSelector";
 import SwipeCards from "@/components/swipe/SwipeCards";
 import PairingMatches from "@/components/pairing/PairingMatches";
 import EnhancedProfileDisplay from "@/components/profile/EnhancedProfileDisplay";

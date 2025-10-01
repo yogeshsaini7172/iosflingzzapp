@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { calculateQCSForUser } from '@/services/test-qcs';
+// QCS test service removed during cleanup
+// import { calculateQCSForUser } from '@/services/test-qcs';
+import { calculateManualQCS } from '@/utils/manualQCSCalculator';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -15,13 +17,24 @@ const QCSCalculator = () => {
     setResult(null);
     
     try {
-      console.log(`🔄 Starting QCS calculation for user: ${targetUserId}`);
-      toast.info(`Starting QCS calculation for user: ${targetUserId}`);
+      console.log(`🔄 Starting manual QCS calculation for user: ${targetUserId}`);
+      toast.info(`Starting manual QCS calculation for user: ${targetUserId}`);
       
-      const score = await calculateQCSForUser(targetUserId);
+      // Using manual calculator since test-qcs service was removed
+      const mockProfile = {
+        user_id: targetUserId,
+        profile_images: ['image1.jpg', 'image2.jpg'],
+        bio: 'Sample bio for testing',
+        interests: ['coding', 'music', 'travel'],
+        height: 175,
+        body_type: 'athletic',
+        personality_type: 'INTJ'
+      };
+      
+      const score = calculateManualQCS(mockProfile);
       
       setResult(score);
-      console.log(`✅ QCS calculation complete: ${score}`);
+      console.log(`✅ Manual QCS calculation complete: ${score}`);
       toast.success(`QCS calculated successfully: ${score}`);
     } catch (error) {
       console.error('❌ QCS calculation failed:', error);

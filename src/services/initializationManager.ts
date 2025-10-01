@@ -26,21 +26,31 @@ let initState: InitializationState = {
 export async function ensureCapacitorReady(): Promise<boolean> {
   console.log('🔄 Checking Capacitor readiness...');
   
-  for (let attempts = 0; attempts < 50; attempts++) {
-    try {
-      if (typeof Capacitor !== 'undefined' && 
-          typeof Capacitor.getPlatform === 'function' &&
-          Capacitor.getPlatform() !== 'web') {
-        
-        console.log('✅ Capacitor is ready');
-        initState.capacitor = true;
-        return true;
-      }
-    } catch (error) {
-      // Continue waiting
+  // On web, Capacitor is always ready (no native platform needed)
+  if (typeof Capacitor !== 'undefined' && 
+      typeof Capacitor.getPlatform === 'function') {
+    const platform = Capacitor.getPlatform();
+    
+    if (platform === 'web') {
+      console.log('✅ Running on web - Capacitor check skipped');
+      initState.capacitor = true;
+      return true;
     }
     
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // For native platforms, wait for proper initialization
+    for (let attempts = 0; attempts < 50; attempts++) {
+      try {
+        if (Capacitor.isNativePlatform()) {
+          console.log('✅ Capacitor is ready');
+          initState.capacitor = true;
+          return true;
+        }
+      } catch (error) {
+        // Continue waiting
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
   }
   
   console.error('❌ Capacitor readiness timeout');
