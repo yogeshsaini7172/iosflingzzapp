@@ -17,7 +17,6 @@ import { ChatRoom, ChatMessage } from "@/hooks/useChatWithWebSocket";
 import { supabase } from "@/integrations/supabase/client";
 import { useOptionalAuth } from "@/hooks/useRequiredAuth";
 import { useChatNotification } from "@/contexts/ChatNotificationContext";
-import { reportUser, blockUser } from "@/services/reports";
 import { useToast } from "@/hooks/use-toast";
 import ChatHeader from "./ChatHeader";
 
@@ -145,30 +144,27 @@ const ChatConversation = ({
     if (!currentUserId || !otherUserId) return;
 
     try {
-      const success = await reportUser(
-        currentUserId,
-        otherUserId,
-        'harassment', // Default report type
-        'User reported from chat conversation'
-      );
+      // Direct block action (report functionality removed with admin_reports table cleanup)
+      const { error } = await supabase
+        .from("blocks")
+        .insert({
+          user_id: currentUserId,
+          blocked_user_id: otherUserId
+        });
 
-      if (success) {
-        toast({
-          title: "Report Submitted",
-          description: "Thank you for your report. We will review it shortly.",
-        });
-      } else {
-        toast({
-          title: "Report Failed",
-          description: "There was an error submitting your report. Please try again.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error('Error reporting user:', error);
+      if (error) throw error;
+
       toast({
-        title: "Report Failed",
-        description: "There was an error submitting your report. Please try again.",
+        title: "User Blocked",
+        description: "You have blocked this user successfully.",
+      });
+      
+      onBack();
+    } catch (error) {
+      console.error("Error blocking user:", error);
+      toast({
+        title: "Error",
+        description: "Failed to block user. Please try again.",
         variant: "destructive",
       });
     }
@@ -178,22 +174,21 @@ const ChatConversation = ({
     if (!currentUserId || !otherUserId) return;
 
     try {
-      const success = await blockUser(currentUserId, otherUserId);
+      const { error } = await supabase
+        .from("blocks")
+        .insert({
+          user_id: currentUserId,
+          blocked_user_id: otherUserId
+        });
 
-      if (success) {
-        toast({
-          title: "User Blocked",
-          description: `${room.other_user?.first_name} has been blocked and will no longer be able to contact you.`,
-        });
-        // Optionally navigate back or close the chat
-        onBack();
-      } else {
-        toast({
-          title: "Block Failed",
-          description: "There was an error blocking this user. Please try again.",
-          variant: "destructive",
-        });
-      }
+      if (error) throw error;
+
+      toast({
+        title: "User Blocked",
+        description: `${room.other_user?.first_name} has been blocked and will no longer be able to contact you.`,
+      });
+      // Optionally navigate back or close the chat
+      onBack();
     } catch (error) {
       console.error('Error blocking user:', error);
       toast({

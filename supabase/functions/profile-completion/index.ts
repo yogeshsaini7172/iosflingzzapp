@@ -26,6 +26,8 @@ serve(async (req) => {
       university,
       yearOfStudy,
       fieldOfStudy,
+      profession,
+      professionDescription,
       height,
       bodyType,
       skinTone,
@@ -81,6 +83,8 @@ serve(async (req) => {
         university: university,
         year_of_study: yearOfStudy ?? null,
         field_of_study: fieldOfStudy ?? null,
+        profession: profession ?? null,
+        profession_description: professionDescription ?? null,
         height: height ?? null,
         body_type: bodyType ?? null,
         skin_tone: skinTone ?? null,
@@ -150,7 +154,7 @@ serve(async (req) => {
         preferredGender, ageRangeMin, ageRangeMax, heightRangeMin, heightRangeMax,
         preferredBodyTypes, preferredSkinTone, preferredFaceType, preferredValues, 
         preferredMindset, preferredPersonality, preferredRelationshipGoals,
-        preferredLoveLanguage, preferredLifestyle
+        preferredLoveLanguage, preferredLifestyle, preferredProfessions
       } = preferences;
       
       const { error: prefError } = await supabase
@@ -170,7 +174,8 @@ serve(async (req) => {
           preferred_personality_traits: preferredPersonality ?? [],
           preferred_relationship_goals: preferredRelationshipGoals ?? [],
           preferred_love_languages: preferredLoveLanguage ?? [],
-          preferred_lifestyle: preferredLifestyle ?? []
+          preferred_lifestyle: preferredLifestyle ?? [],
+          preferred_professions: preferredProfessions ?? []
         }, { onConflict: 'user_id' });
 
       if (prefError) {

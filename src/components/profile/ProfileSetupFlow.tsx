@@ -254,6 +254,9 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
           gender: completeProfile.gender,
           university: completeProfile.university,
           fieldOfStudy: completeProfile.field_of_study,
+          yearOfStudy: completeProfile.year_of_study,
+          profession: completeProfile.profession,
+          professionDescription: completeProfile.profession_description,
           height: completeProfile.height,
           bodyType: completeProfile.body_type,
           skinTone: completeProfile.skin_tone,
@@ -282,6 +285,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
             preferredRelationshipGoals: preferences.preferred_relationship_goals || [],
             preferredLoveLanguage: preferences.preferred_love_languages || [],
             preferredLifestyle: preferences.preferred_lifestyle || [],
+            preferredProfessions: preferences.preferred_professions || [],
             loveLanguage: completeProfile.love_language,
             lifestyle: completeProfile.lifestyle
           },
