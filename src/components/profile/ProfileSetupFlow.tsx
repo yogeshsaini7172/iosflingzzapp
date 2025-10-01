@@ -70,6 +70,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
     preferredRelationshipGoals: [] as string[],
     preferredLoveLanguage: [] as string[],
     preferredLifestyle: [] as string[],
+    preferredProfessions: [] as string[],
     
     // Photos
     profileImages: [] as File[],
@@ -210,7 +211,8 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         preferred_personality_traits: profileData.preferredPersonality,
         preferred_relationship_goals: profileData.preferredRelationshipGoals,
         preferred_love_languages: profileData.preferredLoveLanguage || [],
-        preferred_lifestyle: profileData.preferredLifestyle || []
+        preferred_lifestyle: profileData.preferredLifestyle || [],
+        preferred_professions: profileData.preferredProfessions || []
       };
 
       // Remove demo localStorage - everything is real now
@@ -309,7 +311,8 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         preferred_mindset: Array.isArray(profileData.preferredMindset) ? profileData.preferredMindset : [],
         preferred_personality_traits: Array.isArray(profileData.preferredPersonality) ? profileData.preferredPersonality : [],
         preferred_love_languages: Array.isArray(profileData.preferredLoveLanguage) ? profileData.preferredLoveLanguage : [],
-        preferred_lifestyle: Array.isArray(profileData.preferredLifestyle) ? profileData.preferredLifestyle : []
+        preferred_lifestyle: Array.isArray(profileData.preferredLifestyle) ? profileData.preferredLifestyle : [],
+        preferred_professions: Array.isArray(profileData.preferredProfessions) ? profileData.preferredProfessions : []
       };
 
       console.log('🔄 Sending preferences payload:', JSON.stringify(preferencesPayload, null, 2));
