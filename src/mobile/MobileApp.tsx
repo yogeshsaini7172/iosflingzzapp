@@ -13,11 +13,8 @@ import ProfileSetupFlow from '@/components/profile/ProfileSetupFlow';
 // Import pages
 import ProfilePage from '@/pages/ProfilePage';
 import PairingPage from '@/pages/PairingPage';
-import MatchesPage from '@/pages/MatchesPage';
-import SwipePage from '@/pages/SwipePage';
-import FeedPage from '@/pages/FeedPage';
 import BlindDatePage from '@/pages/BlindDatePage';
-import SubscriptionPage from '@/pages/SubscriptionPage';
+
 import Dashboard from '@/pages/Dashboard';
 import FlingzzHome from '@/components/campus/FlingzzHome';
 import QCSDiagnostics from '@/components/QCSDiagnostics';
@@ -146,21 +143,13 @@ const MobileAppContent = () => {
         <Route path="/home" element={<Navigate to="/" replace />} />
         
         {/* Core Features */}
-        <Route path="/swipe" element={<SwipePage onNavigate={handleNavigate} />} />
-        <Route path="/feed" element={<FeedPage onNavigate={handleNavigate} />} />
         <Route path="/pairing" element={<PairingPage onNavigate={handleNavigate} />} />
-        <Route path="/matches" element={<MatchesPage onNavigate={handleNavigate} />} />
+        <Route path="/blind-date" element={<BlindDatePage onNavigate={handleNavigate} />} />
+        <Route path="/profile" element={<ProfilePage onNavigate={handleNavigate} />} />
         
         {/* Chat System */}
         <Route path="/chat" element={<RebuiltChatSystem onNavigate={handleNavigate} />} />
         <Route path="/chat/:chatId" element={<ChatWrapper />} />
-        
-        {/* Profile & Settings */}
-        <Route path="/profile" element={<ProfilePage onNavigate={handleNavigate} />} />
-        
-        {/* Premium Features */}
-        <Route path="/blind-date" element={<BlindDatePage onNavigate={handleNavigate} />} />
-        <Route path="/subscription" element={<SubscriptionPage onNavigate={handleNavigate} />} />
         
         {/* QCS System (Admin/Debug) */}
         {/* QCS Test page removed during cleanup */}

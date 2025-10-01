@@ -8,13 +8,10 @@ import { SocketChatProvider } from "./contexts/SocketChatContext";
 import { ChatNotificationProvider } from "./contexts/ChatNotificationContext";
 import { useState, useEffect } from "react";
 import PairingPage from "./pages/PairingPage";
-import MatchesPage from "./pages/MatchesPage";
-import SwipePage from "./pages/SwipePage";
-import FeedPage from "./pages/FeedPage";
 import ProfilePage from "./pages/ProfilePage";
 import BlindDatePage from "./pages/BlindDatePage";
 import FlingzzHome from "./components/campus/FlingzzHome";
-import SubscriptionPage from "./components/subscription/SubscriptionPage";
+
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 import QCSDiagnostics from "./components/QCSDiagnostics";
@@ -213,10 +210,9 @@ const AuthenticatedApp = () => {
             <div id="recaptcha-container"></div>
             <Routes>
               <Route path="/" element={<FlingzzHome onNavigate={(view) => navigate(`/${view}`)} />} />
-              <Route path="/swipe" element={<SwipePage onNavigate={(view) => navigate(`/${view}`)} />} />
-              <Route path="/feed" element={<FeedPage onNavigate={(view) => navigate(`/${view}`)} />} />
               <Route path="/pairing" element={<PairingPage onNavigate={(view) => navigate(`/${view}`)} />} />
-              <Route path="/matches" element={<MatchesPage onNavigate={(view) => navigate(`/${view}`)} />} />
+              <Route path="/blind-date" element={<BlindDatePage onNavigate={(view) => navigate(`/${view}`)} />} />
+              <Route path="/profile" element={<ProfilePage onNavigate={(view) => navigate(`/${view}`)} />} />
               
               {/* --- Chat routes --- */}
               <Route 
@@ -227,10 +223,6 @@ const AuthenticatedApp = () => {
                 path="/chat/:chatId" 
                 element={<ChatWrapper />} 
               />
-              
-              <Route path="/profile" element={<ProfilePage onNavigate={(view) => navigate(`/${view}`)} />} />
-              <Route path="/blind-date" element={<BlindDatePage onNavigate={(view) => navigate(`/${view}`)} />} />
-              <Route path="/subscription" element={<SubscriptionPage onNavigate={(view) => navigate(`/${view}`)} />} />
               {/* QCS Test page removed - was debug/test component */}
               <Route path="/qcs-diagnostics" element={<QCSDiagnostics />} />
               <Route path="/qcs-repair" element={<QCSSystemRepair />} />

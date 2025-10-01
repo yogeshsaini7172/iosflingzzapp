@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, User, MessageCircle } from "lucide-react";
+import { Home, Users, Sparkles, User } from "lucide-react";
 
 const MobileBottomNav = () => {
   const location = useLocation();
@@ -19,7 +19,8 @@ const MobileBottomNav = () => {
   // Bottom navigation items
   const navItems = [
     { path: "/", icon: Home, label: "Home" },
-    { path: "/chat", icon: MessageCircle, label: "Chat" },
+    { path: "/pairing", icon: Users, label: "Pairing" },
+    { path: "/blind-date", icon: Sparkles, label: "Blind Date" },
     { path: "/profile", icon: User, label: "Profile" },
   ];
 
