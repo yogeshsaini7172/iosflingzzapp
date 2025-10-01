@@ -1,26 +1,21 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User } from 'firebase/auth';
+import React, { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react';
+import { User, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase';
-import { 
-  login, 
-  signup, 
-  googleLogin, 
-  phoneLogin, 
-  verifyOTP, 
-  signOut as authSignOut,
-  watchAuthState 
+import {
+  login,
+  signup,
+  googleLogin,
+  phoneLogin,
+  verifyOTP,
+  signOut as authSignOut
 } from '../services/auth';
 import { toast } from 'sonner';
-import { getCurrentLocation } from '@/utils/locationUtils';
-import { updateUserLocation } from '@/services/profile';
 
 type AuthContextType = {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   userId: string | null;
-  locationEnabled: boolean;
-  currentLocation: any | null;
   getIdToken: () => Promise<string | null>;
   signInWithPhone: (phone: string) => Promise<{ error?: any; confirmationResult?: any }>;
   verifyPhoneOTP: (confirmationResult: any, otp: string) => Promise<{ user?: User; error?: any }>;
@@ -43,20 +38,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [initialAuthCheck, setInitialAuthCheck] = useState(false);
+  const prevUserRef = useRef<User | null>(null);
 
   useEffect(() => {
     console.log('🔥 Setting up Firebase auth listener...');
-    
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      console.log('🔥 Firebase auth state changed:', firebaseUser ? { 
-        uid: firebaseUser.uid, 
+      console.log('🔥 Firebase auth state changed:', firebaseUser ? {
+        uid: firebaseUser.uid,
         email: firebaseUser.email,
-        displayName: firebaseUser.displayName 
+        displayName: firebaseUser.displayName
       } : 'null');
-      
-      const wasAuthenticated = !!user;
+
+      const wasAuthenticated = !!prevUserRef.current;
       setUser(firebaseUser);
-      
+      prevUserRef.current = firebaseUser;
+
       if (firebaseUser) {
         console.log('🔑 Firebase user authenticated');
         // Only show success message for new logins, not page refreshes
@@ -70,12 +67,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           toast.success('Successfully signed out');
         }
       }
-      
+
       // Mark initial auth check as complete
       if (!initialAuthCheck) {
         setInitialAuthCheck(true);
       }
-      
+
       setIsLoading(false);
     });
 
@@ -90,7 +87,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.log('🔑 No user available for token');
       return null;
     }
-    
+
     try {
       const token = await user.getIdToken(true); // Force refresh
       console.log('🔑 ID token obtained successfully');
@@ -103,10 +100,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const signInWithPhone = async (phone: string) => {
     console.log('📱 Attempting phone sign-in for:', phone);
-    
+
     try {
       setIsLoading(true);
-      
+
       // Format phone number for Firebase (add +91 if not present)
       let formattedPhone = phone.trim();
       if (!formattedPhone.startsWith('+')) {
@@ -119,19 +116,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           formattedPhone = `+91${digits}`;
         }
       }
-      
+
       console.log('📱 Formatted phone:', formattedPhone);
-      
+
       const result = await phoneLogin(formattedPhone);
-      
+
       if (result.error) {
         toast.error(result.error);
         return { confirmationResult: null, error: result.error };
       }
-      
+
       console.log('📱 SMS sent successfully');
       toast.success('Verification code sent to your phone');
-      
+
       return { confirmationResult: result.confirmationResult, error: null };
     } catch (error: any) {
       console.error('📱 Phone sign-in error:', error);
@@ -144,16 +141,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const verifyPhoneOTP = async (confirmationResult: any, otp: string) => {
     console.log('🔐 Verifying OTP...');
-    
+
     try {
       setIsLoading(true);
       const result = await verifyOTP(confirmationResult, otp);
-      
+
       if (result.error) {
         toast.error(result.error);
         return { user: null, error: result.error };
       }
-      
+
       console.log('🔐 OTP verified successfully:', result.user?.uid);
       toast.success('Phone number verified successfully!');
       return { user: result.user, error: null };
@@ -168,16 +165,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const signInWithGoogle = async () => {
     console.log('🔍 Attempting Google sign-in with timing protection...');
-    
+
     try {
       setIsLoading(true);
-      
+
       // Add initial delay to ensure all systems are ready
       console.log('⏳ Ensuring all systems are ready...');
       await new Promise(resolve => setTimeout(resolve, 300));
-      
+
       const result = await googleLogin();
-      
+
       if (result.error) {
         // Don't show error if it's a redirect in progress
         if (result.error === 'redirecting') {
@@ -185,15 +182,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           toast.info('Redirecting to Google sign-in...');
           return { user: null, error: null }; // Don't treat redirect as error
         }
-        
+
         toast.error(result.error);
         return { user: null, error: result.error };
       }
-      
+
       console.log('🔍 Google sign-in successful:', result.user?.uid);
       toast.success('Successfully signed in with Google!');
       return { user: result.user, error: null };
-      
+
     } catch (error: any) {
       console.error('🔍 Google sign-in error:', error);
       toast.error('Google sign-in failed');
