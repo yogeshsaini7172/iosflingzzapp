@@ -7,12 +7,9 @@ import { useAuth } from "./contexts/AuthContext";
 import { SocketChatProvider } from "./contexts/SocketChatContext";
 import { ChatNotificationProvider } from "./contexts/ChatNotificationContext";
 import { useState, useEffect } from "react";
-import SwipePage from "./pages/SwipePage";
 import PairingPage from "./pages/PairingPage";
-import MatchesPage from "./pages/MatchesPage";
 import ProfilePage from "./pages/ProfilePage";
 import BlindDatePage from "./pages/BlindDatePage";
-import FeedPage from "./pages/FeedPage";
 import FlingzzHome from "./components/campus/FlingzzHome";
 import SubscriptionPage from "./components/subscription/SubscriptionPage";
 import NotFound from "./pages/NotFound";
@@ -213,12 +210,9 @@ const AuthenticatedApp = () => {
             <div id="recaptcha-container"></div>
             <Routes>
               <Route path="/" element={<FlingzzHome onNavigate={(view) => navigate(`/${view}`)} />} />
-              <Route path="/swipe" element={<SwipePage onNavigate={(view) => navigate(`/${view}`)} />} />
-              <Route path="/feed" element={<FeedPage onNavigate={(view) => navigate(`/${view}`)} />} />
               <Route path="/pairing" element={<PairingPage onNavigate={(view) => navigate(`/${view}`)} />} />
-              <Route path="/matches" element={<MatchesPage onNavigate={(view) => navigate(`/${view}`)} />} />
               
-              {/* --- Correctly integrated chat routes --- */}
+              {/* --- Chat routes --- */}
               <Route 
                 path="/chat" 
                 element={<RebuiltChatSystem onNavigate={(view) => navigate(`/${view}`)} />} 

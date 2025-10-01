@@ -10,12 +10,8 @@ import { SocketChatProvider } from '@/contexts/SocketChatContext';
 import { ChatNotificationProvider } from '@/contexts/ChatNotificationContext';
 import MobileAuthPage from './MobileAuthPage';
 import ProfileSetupFlow from '@/components/profile/ProfileSetupFlow';
-// Import all pages for full feature parity
-import SwipePage from '@/pages/SwipePage';
-import ChatPage from '@/pages/ChatPage';
+// Import pages
 import ProfilePage from '@/pages/ProfilePage';
-import MatchesPage from '@/pages/MatchesPage';
-import FeedPage from '@/pages/FeedPage';
 import PairingPage from '@/pages/PairingPage';
 import BlindDatePage from '@/pages/BlindDatePage';
 import SubscriptionPage from '@/pages/SubscriptionPage';
@@ -142,20 +138,12 @@ const MobileAppContent = () => {
   return (
     <div className="min-h-screen bg-background">
       <Routes>
-        {/* Root route - same as web version */}
+        {/* Root route - Home with swipe */}
         <Route path="/" element={<FlingzzHome onNavigate={handleNavigate} />} />
-        <Route path="/swipe" element={<SwipePage onNavigate={handleNavigate} />} />
-        
-        {/* Home route redirects to root to match web behavior */}
         <Route path="/home" element={<Navigate to="/" replace />} />
         
-        {/* Dashboard available as separate route */}
-        <Route path="/dashboard" element={<Dashboard onNavigate={handleNavigate} />} />
-        
         {/* Core Features */}
-        <Route path="/feed" element={<FeedPage onNavigate={handleNavigate} />} />
         <Route path="/pairing" element={<PairingPage onNavigate={handleNavigate} />} />
-        <Route path="/matches" element={<MatchesPage onNavigate={handleNavigate} />} />
         
         {/* Chat System */}
         <Route path="/chat" element={<RebuiltChatSystem onNavigate={handleNavigate} />} />
