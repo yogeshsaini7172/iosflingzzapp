@@ -5,6 +5,7 @@ import { User, Calendar, GraduationCap, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { validateMinimumAge, getMaxAllowedDate, getAgeValidationError, MINIMUM_AGE } from "@/utils/ageValidation";
+import { ProfessionCombobox } from "@/components/profile/ProfessionCombobox";
 
 interface BasicDetailsStepProps {
   data: any;
@@ -103,14 +104,11 @@ const BasicDetailsStep = ({ data, onChange }: BasicDetailsStepProps) => {
 
       <div className="space-y-3">
         <Label className="text-base font-medium">Profession</Label>
-        <Select value={data.profession} onValueChange={(value) => updateField('profession', value)}>
-          <SelectTrigger className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors">
-            <SelectValue placeholder="Select your profession" />
-          </SelectTrigger>
-          <SelectContent className="rounded-2xl">
-            <SelectItem value="student">Student</SelectItem>
-          </SelectContent>
-        </Select>
+        <ProfessionCombobox
+          value={data.profession}
+          onChange={(value) => updateField('profession', value)}
+          placeholder="Search or select your profession"
+        />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
