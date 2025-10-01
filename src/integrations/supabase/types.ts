@@ -750,6 +750,7 @@ export type Database = {
           plan_started_at: string | null
           priority_score: number | null
           profession: string | null
+          profession_description: string | null
           profile_completion_percentage: number | null
           profile_images: string[] | null
           qcs_synced_at: string | null
@@ -828,6 +829,7 @@ export type Database = {
           plan_started_at?: string | null
           priority_score?: number | null
           profession?: string | null
+          profession_description?: string | null
           profile_completion_percentage?: number | null
           profile_images?: string[] | null
           qcs_synced_at?: string | null
@@ -906,6 +908,7 @@ export type Database = {
           plan_started_at?: string | null
           priority_score?: number | null
           profession?: string | null
+          profession_description?: string | null
           profile_completion_percentage?: number | null
           profile_images?: string[] | null
           qcs_synced_at?: string | null

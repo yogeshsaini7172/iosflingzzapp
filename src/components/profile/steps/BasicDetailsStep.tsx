@@ -186,6 +186,19 @@ const BasicDetailsStep = ({ data, onChange }: BasicDetailsStepProps) => {
           />
         </div>
       )}
+
+      {/* Show profession description for all professions except Student and Other */}
+      {data.profession && data.profession !== 'Student' && data.profession !== 'Other' && (
+        <div className="space-y-3 animate-fade-in">
+          <Label className="text-base font-medium">Explain about your profession</Label>
+          <Input
+            placeholder="Tell us about what you do"
+            value={data.professionDescription || ''}
+            onChange={(e) => updateField('professionDescription', e.target.value)}
+            className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors"
+          />
+        </div>
+      )}
     </div>
   );
 };
