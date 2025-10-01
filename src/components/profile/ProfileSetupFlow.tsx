@@ -35,6 +35,9 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
     dateOfBirth: "",
     gender: "",
     university: "",
+    profession: "",
+    customProfession: "",
+    professionDescription: "",
     yearOfStudy: "",
     fieldOfStudy: "",
     
@@ -157,6 +160,8 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         major: profileData.fieldOfStudy, // Map to major field
         year_of_study: profileData.yearOfStudy ? Number(profileData.yearOfStudy) : null,
         field_of_study: profileData.fieldOfStudy,
+        profession: profileData.profession === 'Other' ? profileData.customProfession : profileData.profession,
+        profession_description: profileData.professionDescription,
         
         // What you are - proper field mapping
         height: profileData.height ? Number(profileData.height) : null,
@@ -382,8 +387,10 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
     switch (currentStep) {
       case 1: // Basic Details
         const isAgeValid = validateMinimumAge(profileData.dateOfBirth);
+        const hasProfession = profileData.profession && 
+          (profileData.profession !== 'Other' || profileData.customProfession);
         return profileData.firstName && profileData.lastName && profileData.dateOfBirth && 
-               profileData.gender && isAgeValid;
+               profileData.gender && isAgeValid && hasProfession;
       case 2: // What You Are
         return profileData.personalityType && profileData.values && profileData.bio;
       case 3: // Who You Want
