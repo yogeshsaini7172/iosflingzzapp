@@ -462,7 +462,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
               </Button>
               
               <div className="text-xs sm:text-sm text-white/80 font-modern font-semibold bg-black/20 px-3 py-2 sm:px-4 sm:py-2 rounded-full border border-white/20">
-                Step {currentStep} of {totalSteps} ✨
+                Step {currentStep} of {totalSteps}
               </div>
               
               <div className="w-12 sm:w-14" /> {/* Spacer */}
@@ -479,18 +479,10 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
                 <CardTitle className="text-2xl sm:text-4xl font-elegant font-bold text-gradient-royal animate-fade-in">
                   {stepTitles[currentStep - 1]}
                 </CardTitle>
-                <div className="absolute -top-1 -right-2 sm:-top-2 sm:-right-4 text-xl sm:text-2xl animate-bounce-slow">
-                  {currentStep === 1 ? '👤' : currentStep === 2 ? '✨' : currentStep === 3 ? '💕' : currentStep === 4 ? '📸' : '🔐'}
-                </div>
               </div>
               <p className="text-white/80 font-modern text-base sm:text-lg">
-                Create your perfect GenZ profile 🚀
+                Create your perfect profile
               </p>
-              <div className="flex justify-center space-x-2 text-base sm:text-lg animate-pulse-glow delay-500">
-                <span>💫</span>
-                <span>🌟</span>
-                <span>💜</span>
-              </div>
             </div>
           </CardHeader>
 
@@ -519,20 +511,17 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
                 {isLoading ? (
                   <div className="flex items-center space-x-2 sm:space-x-3">
                     <div className="animate-spin rounded-full h-5 w-5 sm:h-6 sm:w-6 border-2 border-white/30 border-t-white"></div>
-                    <span className="text-base sm:text-lg">Creating Magic...</span>
-                    <span>✨</span>
+                    <span className="text-base sm:text-lg">Creating Profile...</span>
                   </div>
                 ) : currentStep === totalSteps ? (
                   <div className="flex items-center space-x-2 sm:space-x-3">
                     <Check className="w-5 h-5 sm:w-6 sm:h-6" />
                     <span className="text-base sm:text-lg">Complete Profile</span>
-                    <span>🎉</span>
                   </div>
                 ) : (
                   <div className="flex items-center space-x-2 sm:space-x-3">
                     <span className="text-base sm:text-lg">Continue</span>
                     <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6" />
-                    <span>🚀</span>
                   </div>
                 )}
               </Button>
