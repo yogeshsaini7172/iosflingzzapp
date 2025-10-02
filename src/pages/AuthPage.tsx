@@ -189,7 +189,7 @@ const AuthPage = ({ onBack, onComplete }: AuthPageProps = {}) => {
             )}
             <img src="/logo.png" alt="Logo" className="w-14 h-14 mx-auto mb-4" />
             <CardTitle>Welcome to <span className="drop-shadow-md hover:scale-105 text-pink-400 transition-all duration-300 animate-gradient-shadow">
-      FLINGZZ
+      𝐹𝓁𝒾𝓃𝑔𝓏𝓏
     </span></CardTitle>
             <CardDescription>
               Choose your preferred sign-in method

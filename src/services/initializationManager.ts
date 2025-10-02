@@ -22,16 +22,26 @@ let initState: InitializationState = {
   ready: false
 };
 
-// Check if Capacitor is fully initialized
+// Check if Capacitor is fully initialized (only for native platforms)
 export async function ensureCapacitorReady(): Promise<boolean> {
   console.log('🔄 Checking Capacitor readiness...');
-  
+
+  // For web environments, Capacitor is not needed
+  if (typeof Capacitor !== 'undefined' &&
+      typeof Capacitor.getPlatform === 'function' &&
+      Capacitor.getPlatform() === 'web') {
+    console.log('🌐 Web environment detected - Capacitor not required');
+    initState.capacitor = true; // Mark as ready for web
+    return true;
+  }
+
+  // For native platforms, wait for Capacitor to be ready
   for (let attempts = 0; attempts < 50; attempts++) {
     try {
-      if (typeof Capacitor !== 'undefined' && 
+      if (typeof Capacitor !== 'undefined' &&
           typeof Capacitor.getPlatform === 'function' &&
           Capacitor.getPlatform() !== 'web') {
-        
+
         console.log('✅ Capacitor is ready');
         initState.capacitor = true;
         return true;
@@ -39,10 +49,10 @@ export async function ensureCapacitorReady(): Promise<boolean> {
     } catch (error) {
       // Continue waiting
     }
-    
+
     await new Promise(resolve => setTimeout(resolve, 100));
   }
-  
+
   console.error('❌ Capacitor readiness timeout');
   return false;
 }

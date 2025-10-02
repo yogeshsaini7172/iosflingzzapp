@@ -197,9 +197,9 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
     fetchUserLocation();
   }, []);
 
-  // Compute compatibility when detailed profile modal opens
+  // Compute compatibility when current profile changes
   useEffect(() => {
-    if (showDetailedProfile && currentProfile && user?.uid && currentProfile.user_id) {
+    if (currentProfile && user?.uid && currentProfile.user_id) {
       const computeCompatibility = async () => {
         setCompatibilityLoading(true);
         try {
@@ -217,7 +217,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
       setCompatibility(null);
       setCompatibilityLoading(false);
     }
-  }, [showDetailedProfile, currentProfile, user?.uid]);
+  }, [currentProfile, user?.uid]);
 
   const handleImageNavigation = (direction: 'prev' | 'next') => {
     if (!currentProfile?.profile_images || currentProfile.profile_images.length <= 1) return;
@@ -545,6 +545,25 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                         <span>{currentProfile.university || 'IIT'}</span>
                         <span className="ml-4 text-red-400 font-bold">QCS {currentProfile.total_qcs || 'N/A'}</span>
                       </p>
+
+                      {/* Compatibility Scores */}
+                      {compatibility && !compatibilityLoading && (
+                        <div className="grid grid-cols-3 gap-4 text-center mb-3">
+                          <div>
+                            <div className="text-lg font-bold text-purple-300">{compatibility.overall_score}%</div>
+                            <div className="text-xs text-white/80">Overall Match</div>
+                          </div>
+                          <div>
+                            <div className="text-lg font-bold text-green-300">{compatibility.physical_score}%</div>
+                            <div className="text-xs text-white/80">Physical</div>
+                          </div>
+                          <div>
+                            <div className="text-lg font-bold text-blue-300">{compatibility.mental_score}%</div>
+                            <div className="text-xs text-white/80">Mental</div>
+                          </div>
+                        </div>
+                      )}
+
                       {currentProfile.interests && currentProfile.interests.length > 0 && (
                         <div className="flex flex-wrap gap-2 mb-3">
                           {currentProfile.interests.slice(0, 2).map((interest, index) => (
