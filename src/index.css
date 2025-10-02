@@ -4,14 +4,58 @@
 
 /* Modern Clean Typography for Dating App */
 @layer base {
+  /* Android Performance Optimizations */
+  * {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+  
   body {
     font-family: 'Inter', 'system-ui', sans-serif;
     font-weight: 400;
+    /* Enable smooth scrolling on Android */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Prevent text size adjustment on orientation change */
+    -webkit-text-size-adjust: 100%;
+    /* Enable hardware acceleration */
+    transform: translateZ(0);
+    /* Smooth scrolling */
+    scroll-behavior: smooth;
+    overscroll-behavior-y: contain;
   }
   
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Outfit', 'Inter', sans-serif;
     font-weight: 600;
+  }
+  
+  /* Safe Area Support for Android */
+  @supports (padding: env(safe-area-inset-top)) {
+    body {
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+  }
+  
+  /* Improve touch targets for mobile */
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Smooth animations with hardware acceleration */
+  .animate-fade-in,
+  .animate-scale-in,
+  .animate-slide-in-right {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+  }
+  
+  /* Optimize scrolling performance */
+  [data-radix-scroll-area-viewport] {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
   }
 }
 

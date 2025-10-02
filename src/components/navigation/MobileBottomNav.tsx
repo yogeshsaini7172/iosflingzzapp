@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Home, Users, Sparkles, User } from "lucide-react";
+import { hapticLight } from "@/utils/hapticFeedback";
 
 const MobileBottomNav = () => {
   const location = useLocation();
@@ -39,7 +40,8 @@ const MobileBottomNav = () => {
               key={path}
               to={path}
               aria-label={label}
-              className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-300 flex-1 max-w-[120px] ${
+              onClick={() => hapticLight()}
+              className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-300 flex-1 max-w-[120px] active:scale-95 ${
                 isActive
                   ? "bg-gradient-to-r from-primary to-primary-glow text-white shadow-glow transform scale-105"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
