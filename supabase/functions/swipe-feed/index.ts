@@ -117,9 +117,11 @@ serve(async (req) => {
         mindset,
         major,
         year_of_study,
-        is_active
+        is_active,
+        show_profile
       `)
       .eq('is_active', true)
+      .eq('show_profile', true)
       .not('user_id', 'in', `(${excludedIds.join(',')})`)
 
     // Apply age filters

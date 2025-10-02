@@ -2,7 +2,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Heart, Users, Target, X } from "lucide-react";
+import { Heart, Users, Target, X, Briefcase } from "lucide-react";
+import { ProfessionCombobox } from "@/components/profile/ProfessionCombobox";
 
 interface WhoYouWantStepProps {
   data: any;
@@ -353,6 +354,48 @@ const WhoYouWantStep = ({ data, onChange }: WhoYouWantStepProps) => {
                 );
               })}
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Professional Preferences */}
+      <Card className="border-border/50">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Briefcase className="w-5 h-5" />
+            Professional Preferences
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-3">
+            <Label>Preferred Professions</Label>
+            <p className="text-xs text-muted-foreground">
+              Select multiple professions you'd prefer in a partner
+            </p>
+            <ProfessionCombobox
+              value=""
+              onChange={() => {}}
+              multiple
+              selectedValues={data.preferredProfessions || []}
+              onMultiChange={(values) => updateField('preferredProfessions', values)}
+              placeholder="Select preferred professions"
+            />
+            {data.preferredProfessions && data.preferredProfessions.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {data.preferredProfessions.map((profession: string) => (
+                  <Button
+                    key={profession}
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => toggleArrayItem('preferredProfessions', profession)}
+                    className="rounded-full text-xs"
+                  >
+                    {profession}
+                    <X className="w-3 h-3 ml-1" />
+                  </Button>
+                ))}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

@@ -144,6 +144,29 @@ function calculateMentalCompatibility(
   let score = 0;
   let maxScore = 0;
 
+  // Professional compatibility
+  maxScore += 15;
+  const profession1 = qualities1.profession || '';
+  const profession2 = qualities2.profession || '';
+  const preferredProfessions1 = requirements1.preferred_professions || [];
+  const preferredProfessions2 = requirements2.preferred_professions || [];
+  
+  if (preferredProfessions1.length > 0) {
+    if (preferredProfessions1.includes(profession2)) {
+      score += 8;
+    }
+  } else {
+    score += 5; // Default if no preference
+  }
+  
+  if (preferredProfessions2.length > 0) {
+    if (preferredProfessions2.includes(profession1)) {
+      score += 7;
+    }
+  } else {
+    score += 5; // Default if no preference
+  }
+
   // Shared interests (high weight)
   maxScore += 30;
   const interests1 = qualities1.interests || [];
@@ -235,6 +258,16 @@ function generateCompatibilityReasons(
   sharedInterests: string[]
 ): string[] {
   const reasons: string[] = [];
+
+  // Profession match
+  const profession1 = qualities1.profession || '';
+  const profession2 = qualities2.profession || '';
+  const preferredProfessions1 = requirements1.preferred_professions || [];
+  const preferredProfessions2 = requirements2.preferred_professions || [];
+  
+  if (preferredProfessions1.includes(profession2) || preferredProfessions2.includes(profession1)) {
+    reasons.push(`Your professions align well with each other's preferences`);
+  }
 
   // Shared interests
   if (sharedInterests.length > 0) {

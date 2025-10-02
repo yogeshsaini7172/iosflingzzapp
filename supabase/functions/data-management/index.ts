@@ -182,14 +182,6 @@ serve(async (req: Request) => {
           user_id: firebaseUid, // Keep for compatibility
           // Map frontend field names to database field names properly
           first_name: profileData.first_name || profileData.firstName || '',
-          lifestyle_compatibility: "important"
-        };
-
-        const newProfile = {
-          firebase_uid: firebaseUid,
-          user_id: firebaseUid, // Keep for compatibility
-          // Map frontend field names to database field names properly
-          first_name: profileData.first_name || profileData.firstName || '',
           last_name: profileData.last_name || profileData.lastName || '', 
           email: profileData.email || `${firebaseUid}@firebase.user`,
           date_of_birth: profileData.date_of_birth || profileData.dateOfBirth,

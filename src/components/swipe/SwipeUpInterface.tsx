@@ -128,30 +128,46 @@ const SwipeUpInterface: React.FC<SwipeUpInterfaceProps> = ({ onNavigate }) => {
 
     try {
       const response = await fetchWithFirebaseAuth(
-        "https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/enhanced-swipe-action",
+        "https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/swipe-enforcement",
         {
           method: "POST",
           body: JSON.stringify({
-            target_user_id: currentProfile.firebase_uid || currentProfile.user_id,
+            candidate_id: currentProfile.firebase_uid || currentProfile.user_id,
             direction,
           }),
         }
       );
 
-      if (!response.ok) throw new Error("Swipe failed");
-
       const resp = await response.json();
 
-      if (resp?.matched) {
+      // Handle swipe limit reached
+      if (!response.ok && response.status === 402) {
+        toast({
+          title: "Daily Swipe Limit Reached! 🚫",
+          description: `You've used all ${resp.limit_info?.limit || 20} swipes. Upgrade for unlimited swipes!`,
+          variant: "destructive",
+          duration: 5000,
+        });
+        return; // Don't advance to next profile
+      }
+
+      if (!response.ok) throw new Error("Swipe failed");
+
+      if (resp?.data?.isMatch || resp?.matched) {
         toast({
           title: "It's a Match! 🎉💕",
           description: `You and ${currentProfile.first_name} liked each other!`,
           duration: 5000,
         });
       } else if (direction === "right") {
+        const remaining = resp?.data?.daily_swipes_remaining;
+        const description = remaining !== null 
+          ? `${remaining} swipes left today` 
+          : "We'll notify you if they like you back.";
+        
         toast({ 
           title: "Like sent! 💖", 
-          description: "We'll notify you if they like you back." 
+          description 
         });
       }
 

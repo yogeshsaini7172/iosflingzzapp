@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { calculateManualQCS } from '@/utils/manualQCSCalculator';
-import { calculateQCSForUser } from '@/services/test-qcs';
+// QCS calculation will use manual calculator only
+// import { calculateQCSForUser } from '@/services/test-qcs'; // File was removed during cleanup
 
 const QCSDiagnostics = () => {
   const [results, setResults] = useState<any>(null);
@@ -46,15 +47,14 @@ const QCSDiagnostics = () => {
       // Calculate manual score
       const manualScore = calculateManualQCS(sampleProfile);
       
-      // Calculate edge function score
-      const edgeFunctionScore = await calculateQCSForUser(sampleProfile.user_id);
+      // Note: Edge function calculation removed during cleanup
+      // Only using manual calculation for diagnostics
       
       const diagnostics = {
         manualScore,
-        edgeFunctionScore,
         currentDbScore: 43, // Actual current database value
-        difference: Math.abs(manualScore - edgeFunctionScore),
-        profile: sampleProfile
+        profile: sampleProfile,
+        note: "Edge function test removed during cleanup - using manual calculation only"
       };
       
       setResults(diagnostics);

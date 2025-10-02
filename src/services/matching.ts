@@ -244,18 +244,6 @@ export async function createMatch(likerId: string, likedId: string): Promise<boo
       return existingEnhanced.status === 'matched';
     }
 
-    // fallback: (optional) check legacy matches table if you still have data there
-    const { data: legacyMatch } = await supabase
-      .from('matches')
-      .select('*')
-      .or(`and(liker_id.eq.${likerId},liked_id.eq.${likedId}),and(liker_id.eq.${likedId},liked_id.eq.${likerId})`)
-      .maybeSingle();
-
-    if (legacyMatch) {
-      // Optionally migrate to enhanced_matches or call server to reconcile
-      return legacyMatch.status === 'matched';
-    }
-
     return false;
   } catch (error) {
     console.error("Error in createMatch:", error);
@@ -293,47 +281,6 @@ export async function getUserMatches(userId: string): Promise<MatchCandidate[]> 
 
         if (profileError || !profile) {
           console.error("Error fetching match profile:", profileError);
-          continue;
-        }
-
-        if (profile.date_of_birth) {
-          const age = calculateAge(profile.date_of_birth);
-          
-          matchProfiles.push({
-            ...profile,
-            age,
-            compatibility_score: 0, // Could be calculated if needed
-            physical_score: 0,
-            mental_score: 0,
-            qcs_score: 0
-          });
-        }
-      }
-    }
-
-    // Fallback: also check legacy matches table for backward compatibility
-    const { data: legacyMatches } = await supabase
-      .from("matches")
-      .select("*")
-      .or(`liker_id.eq.${userId},liked_id.eq.${userId}`)
-      .eq("status", "matched");
-
-    if (legacyMatches) {
-      for (const match of legacyMatches) {
-        // Get the other user's profile (avoid duplicates)
-        const otherUserId = match.liker_id === userId ? match.liked_id : match.liker_id;
-        
-        // Skip if we already have this user from enhanced matches
-        if (matchProfiles.some(p => p.user_id === otherUserId)) continue;
-        
-        const { data: profile, error: profileError } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("user_id", otherUserId)
-          .single();
-
-        if (profileError || !profile) {
-          console.error("Error fetching legacy match profile:", profileError);
           continue;
         }
 

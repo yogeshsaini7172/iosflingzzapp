@@ -114,3 +114,6 @@ verify_jwt = false
 
 [functions.fix-data-consistency]
 verify_jwt = false
+
+[functions.daily-swipe-reset]
+verify_jwt = false

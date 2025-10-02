@@ -14,42 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      admin_reports: {
-        Row: {
-          created_at: string
-          description: string | null
-          id: string
-          report_type: string
-          reported_user_id: string
-          reporter_id: string | null
-          reviewed_at: string | null
-          reviewed_by: string | null
-          status: string | null
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          report_type: string
-          reported_user_id: string
-          reporter_id?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          status?: string | null
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          report_type?: string
-          reported_user_id?: string
-          reporter_id?: string | null
-          reviewed_at?: string | null
-          reviewed_by?: string | null
-          status?: string | null
-        }
-        Relationships: []
-      }
       ai_request_failures: {
         Row: {
           created_at: string | null
@@ -159,15 +123,7 @@ export type Database = {
           message_text?: string | null
           sender_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "chat_messages_match_id_fkey"
-            columns: ["match_id"]
-            isOneToOne: false
-            referencedRelation: "matches"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       chat_messages_enhanced: {
         Row: {
@@ -306,36 +262,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      colleges: {
-        Row: {
-          city: string
-          created_at: string
-          id: string
-          is_verified: boolean | null
-          name: string
-          state: string
-          tier: string
-        }
-        Insert: {
-          city: string
-          created_at?: string
-          id?: string
-          is_verified?: boolean | null
-          name: string
-          state: string
-          tier?: string
-        }
-        Update: {
-          city?: string
-          created_at?: string
-          id?: string
-          is_verified?: boolean | null
-          name?: string
-          state?: string
-          tier?: string
-        }
-        Relationships: []
       }
       compatibility_scores: {
         Row: {
@@ -511,66 +437,6 @@ export type Database = {
           student_id_verified_at?: string | null
           updated_at?: string
           user_id?: string
-        }
-        Relationships: []
-      }
-      matches: {
-        Row: {
-          compatibility_score: number | null
-          created_at: string
-          id: string
-          liked_id: string
-          liker_id: string
-          mental_score: number | null
-          physical_score: number | null
-          status: Database["public"]["Enums"]["match_status"]
-        }
-        Insert: {
-          compatibility_score?: number | null
-          created_at?: string
-          id?: string
-          liked_id: string
-          liker_id: string
-          mental_score?: number | null
-          physical_score?: number | null
-          status: Database["public"]["Enums"]["match_status"]
-        }
-        Update: {
-          compatibility_score?: number | null
-          created_at?: string
-          id?: string
-          liked_id?: string
-          liker_id?: string
-          mental_score?: number | null
-          physical_score?: number | null
-          status?: Database["public"]["Enums"]["match_status"]
-        }
-        Relationships: []
-      }
-      messages: {
-        Row: {
-          content: string
-          created_at: string
-          id: string
-          match_id: string
-          room_id: string
-          sender_id: string
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          id?: string
-          match_id: string
-          room_id: string
-          sender_id: string
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          id?: string
-          match_id?: string
-          room_id?: string
-          sender_id?: string
         }
         Relationships: []
       }
@@ -750,6 +616,7 @@ export type Database = {
           plan_started_at: string | null
           priority_score: number | null
           profession: string | null
+          profession_description: string | null
           profile_completion_percentage: number | null
           profile_images: string[] | null
           qcs_synced_at: string | null
@@ -828,6 +695,7 @@ export type Database = {
           plan_started_at?: string | null
           priority_score?: number | null
           profession?: string | null
+          profession_description?: string | null
           profile_completion_percentage?: number | null
           profile_images?: string[] | null
           qcs_synced_at?: string | null
@@ -906,6 +774,7 @@ export type Database = {
           plan_started_at?: string | null
           priority_score?: number | null
           profession?: string | null
+          profession_description?: string | null
           profile_completion_percentage?: number | null
           profile_images?: string[] | null
           qcs_synced_at?: string | null
@@ -985,42 +854,6 @@ export type Database = {
         }
         Relationships: []
       }
-      subscribers: {
-        Row: {
-          created_at: string
-          email: string
-          id: string
-          stripe_customer_id: string | null
-          subscribed: boolean
-          subscription_end: string | null
-          subscription_tier: string | null
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          id?: string
-          stripe_customer_id?: string | null
-          subscribed?: boolean
-          subscription_end?: string | null
-          subscription_tier?: string | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          id?: string
-          stripe_customer_id?: string | null
-          subscribed?: boolean
-          subscription_end?: string | null
-          subscription_tier?: string | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       subscription_history: {
         Row: {
           amount: number
@@ -1084,81 +917,6 @@ export type Database = {
           swipe_limit?: number
           updated_at?: string
           user_id?: string
-        }
-        Relationships: []
-      }
-      swipes: {
-        Row: {
-          candidate_id: string
-          created_at: string
-          direction: Database["public"]["Enums"]["swipe_direction"]
-          id: string
-          user_id: string
-        }
-        Insert: {
-          candidate_id: string
-          created_at?: string
-          direction: Database["public"]["Enums"]["swipe_direction"]
-          id?: string
-          user_id: string
-        }
-        Update: {
-          candidate_id?: string
-          created_at?: string
-          direction?: Database["public"]["Enums"]["swipe_direction"]
-          id?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      test_credentials: {
-        Row: {
-          created_at: string | null
-          email: string
-          id: string
-          password: string
-          profile_name: string
-          university: string
-        }
-        Insert: {
-          created_at?: string | null
-          email: string
-          id?: string
-          password: string
-          profile_name: string
-          university: string
-        }
-        Update: {
-          created_at?: string | null
-          email?: string
-          id?: string
-          password?: string
-          profile_name?: string
-          university?: string
-        }
-        Relationships: []
-      }
-      test_users: {
-        Row: {
-          created_at: string
-          id: string
-          password: string
-          profile_id: string | null
-          username: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          password: string
-          profile_id?: string | null
-          username: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          password?: string
-          profile_id?: string | null
-          username?: string
         }
         Relationships: []
       }

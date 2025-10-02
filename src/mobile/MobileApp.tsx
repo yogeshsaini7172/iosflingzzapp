@@ -10,26 +10,22 @@ import { SocketChatProvider } from '@/contexts/SocketChatContext';
 import { ChatNotificationProvider } from '@/contexts/ChatNotificationContext';
 import MobileAuthPage from './MobileAuthPage';
 import ProfileSetupFlow from '@/components/profile/ProfileSetupFlow';
-// Import all pages for full feature parity
-import SwipePage from '@/pages/SwipePage';
-import ChatPage from '@/pages/ChatPage';
+// Import pages
 import ProfilePage from '@/pages/ProfilePage';
-import MatchesPage from '@/pages/MatchesPage';
-import FeedPage from '@/pages/FeedPage';
 import PairingPage from '@/pages/PairingPage';
 import BlindDatePage from '@/pages/BlindDatePage';
-import SubscriptionPage from '@/pages/SubscriptionPage';
+
 import Dashboard from '@/pages/Dashboard';
 import FlingzzHome from '@/components/campus/FlingzzHome';
-import QCSTestPage from '@/pages/QCSTestPage';
 import QCSDiagnostics from '@/components/QCSDiagnostics';
 import QCSSystemRepair from '@/components/QCSSystemRepair';
 import QCSBulkSync from '@/components/QCSBulkSync';
 import RebuiltChatSystem from '@/components/chat/RebuiltChatSystem';
 import NotFound from '@/pages/NotFound';
 import MobileBottomNav from '@/components/navigation/MobileBottomNav';
-import MobileFeatureDebug from '@/components/debug/MobileFeatureDebug';
-import APKFeatureVerification from '@/components/debug/APKFeatureVerification';
+// Debug components removed during cleanup
+// import MobileFeatureDebug from '@/components/debug/MobileFeatureDebug';
+// import APKFeatureVerification from '@/components/debug/APKFeatureVerification';
 import { initializeMobileApp } from '../mobile/capacitor';
 import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
 
@@ -142,40 +138,28 @@ const MobileAppContent = () => {
   return (
     <div className="min-h-screen bg-background">
       <Routes>
-        {/* Root route - same as web version */}
+        {/* Root route - Home with swipe */}
         <Route path="/" element={<FlingzzHome onNavigate={handleNavigate} />} />
-        <Route path="/swipe" element={<SwipePage onNavigate={handleNavigate} />} />
-        
-        {/* Home route redirects to root to match web behavior */}
         <Route path="/home" element={<Navigate to="/" replace />} />
         
-        {/* Dashboard available as separate route */}
-        <Route path="/dashboard" element={<Dashboard onNavigate={handleNavigate} />} />
-        
         {/* Core Features */}
-        <Route path="/feed" element={<FeedPage onNavigate={handleNavigate} />} />
         <Route path="/pairing" element={<PairingPage onNavigate={handleNavigate} />} />
-        <Route path="/matches" element={<MatchesPage onNavigate={handleNavigate} />} />
+        <Route path="/blind-date" element={<BlindDatePage onNavigate={handleNavigate} />} />
+        <Route path="/profile" element={<ProfilePage onNavigate={handleNavigate} />} />
         
         {/* Chat System */}
         <Route path="/chat" element={<RebuiltChatSystem onNavigate={handleNavigate} />} />
         <Route path="/chat/:chatId" element={<ChatWrapper />} />
         
-        {/* Profile & Settings */}
-        <Route path="/profile" element={<ProfilePage onNavigate={handleNavigate} />} />
-        
-        {/* Premium Features */}
-        <Route path="/blind-date" element={<BlindDatePage onNavigate={handleNavigate} />} />
-        <Route path="/subscription" element={<SubscriptionPage onNavigate={handleNavigate} />} />
-        
         {/* QCS System (Admin/Debug) */}
-        <Route path="/qcs-test" element={<QCSTestPage />} />
+        {/* QCS Test page removed during cleanup */}
         <Route path="/qcs-diagnostics" element={<QCSDiagnostics />} />
         <Route path="/qcs-repair" element={<QCSSystemRepair />} />
         <Route path="/qcs-bulk-sync" element={<QCSBulkSync />} />
         
-        {/* Debug/Verification Tools */}
-        <Route path="/verify-features" element={<APKFeatureVerification />} />
+        {/* Debug/Verification Tools - Removed during cleanup */}
+        {/*         {/* Debug/Verification Tools - Removed during cleanup */}
+        {/* <Route path="/verify-features" element={<APKFeatureVerification />} /> */}
         
         {/* 404 Handling */}
         <Route path="*" element={<NotFound />} />
@@ -183,7 +167,8 @@ const MobileAppContent = () => {
       <MobileBottomNav />
       
       {/* Debug Component (Development Only) */}
-      {process.env.NODE_ENV === 'development' && <MobileFeatureDebug />}
+      {/* Debug component removed during cleanup */}
+      {/* {process.env.NODE_ENV === 'development' && <MobileFeatureDebug />} */}
     </div>
   );
 };

@@ -65,6 +65,7 @@ interface DetailedProfileModalProps {
     skin_tone?: string;
     bio_length?: number;
     profession?: string | null;
+    profession_description?: string | null;
     love_language?: string;
     field_of_study?: string;
     education_level?: string | null;
@@ -93,6 +94,7 @@ interface DetailedProfileModalProps {
       preferred_personality_traits?: string[];
       preferred_relationship_goals?: string[];
       preferred_communication_style?: string[];
+      preferred_professions?: string[];
     };
   };
   onChatRequest?: (userId: string, canChat: boolean) => void;
@@ -327,6 +329,12 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
                         <span className="font-medium text-foreground">{profile.profession}</span>
                       </div>
                     )}
+                    {profile.profession_description && (
+                      <div className="flex flex-col gap-1">
+                        <span className="text-foreground/70">About Profession:</span>
+                        <span className="font-medium text-foreground text-xs">{profile.profession_description}</span>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -544,6 +552,14 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
                       <div className="flex justify-between">
                         <span className="text-foreground/70">Preferred Relationship Goals:</span>
                         <span className="font-medium text-foreground">{formatArrayField(profile.preferences.preferred_relationship_goals)}</span>
+                      </div>
+                    )}
+
+                    {/* Preferred Professions */}
+                    {profile.preferences.preferred_professions && profile.preferences.preferred_professions.length > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-foreground/70">Preferred Professions:</span>
+                        <span className="font-medium text-foreground">{formatArrayField(profile.preferences.preferred_professions)}</span>
                       </div>
                     )}
 
