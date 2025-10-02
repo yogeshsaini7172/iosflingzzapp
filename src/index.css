@@ -13,14 +13,9 @@
   body {
     font-family: 'Inter', 'system-ui', sans-serif;
     font-weight: 400;
-    /* Enable smooth scrolling on Android */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* Prevent text size adjustment on orientation change */
     -webkit-text-size-adjust: 100%;
-    /* Enable hardware acceleration */
-    transform: translateZ(0);
-    /* Smooth scrolling */
     scroll-behavior: smooth;
     overscroll-behavior-y: contain;
   }
@@ -30,12 +25,13 @@
     font-weight: 600;
   }
   
-  /* Safe Area Support for Android */
-  @supports (padding: env(safe-area-inset-top)) {
-    body {
-      padding-top: env(safe-area-inset-top);
-      padding-bottom: env(safe-area-inset-bottom);
-    }
+  /* Safe Area Support for notched devices */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
   }
   
   /* Improve touch targets for mobile */
@@ -44,12 +40,11 @@
     min-width: 44px;
   }
   
-  /* Smooth animations with hardware acceleration */
+  /* Smooth animations */
   .animate-fade-in,
   .animate-scale-in,
   .animate-slide-in-right {
     will-change: transform, opacity;
-    transform: translateZ(0);
   }
   
   /* Optimize scrolling performance */

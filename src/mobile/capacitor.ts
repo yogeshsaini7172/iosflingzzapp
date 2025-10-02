@@ -10,14 +10,12 @@ export const initializeMobileApp = async () => {
       // Hide splash screen with smooth fade
       await SplashScreen.hide();
       
-      // Configure status bar for immersive experience
-      await StatusBar.setStyle({ style: Style.Light });
-      await StatusBar.setBackgroundColor({ color: '#8B008B' });
-      
-      // Android-specific: Enable edge-to-edge display
-      if (Capacitor.getPlatform() === 'android') {
-        await StatusBar.setOverlaysWebView({ overlay: false });
-      }
+  // Configure Status Bar
+  if (StatusBar) {
+    await StatusBar.setStyle({ style: Style.Light });
+    await StatusBar.setBackgroundColor({ color: '#8B008B' });
+    console.log('✅ Status bar configured');
+  }
       
       // Handle app state changes
       App.addListener('appStateChange', ({ isActive }) => {
@@ -38,9 +36,9 @@ export const initializeMobileApp = async () => {
         }
       });
       
-      // Keyboard handling for better UX
-      if (Capacitor.getPlatform() === 'android') {
-        Keyboard.setAccessoryBarVisible({ isVisible: false });
+      // Keyboard handling
+      if (Keyboard) {
+        Keyboard.setAccessoryBarVisible({ isVisible: true });
         
         Keyboard.addListener('keyboardWillShow', () => {
           document.body.classList.add('keyboard-open');
