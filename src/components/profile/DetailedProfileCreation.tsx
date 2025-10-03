@@ -217,6 +217,7 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
           relationshipGoals: profileData.relationshipGoal ? [profileData.relationshipGoal] : [],
           interests: profileData.interests,
           bio: profileData.bio,
+          humorStyle: profileData.humorStyle,
           profileImages: imageUrls,
           isProfilePublic: profileData.isProfilePublic,
           qcsScore: 0,

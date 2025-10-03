@@ -17,7 +17,7 @@ serve(async (req) => {
   }
 
   try {
-    const { 
+    const {
       userId,
       firstName,
       lastName,
@@ -38,6 +38,7 @@ serve(async (req) => {
       relationshipGoals,
       interests,
       bio,
+      humorStyle,
       profileImages,
       isProfilePublic,
       qcsScore,
@@ -95,6 +96,7 @@ serve(async (req) => {
         relationship_goals: relationshipGoals ?? [],
         interests: interests ?? [],
         bio: bio ?? null,
+        humor_type: humorStyle ?? null,
         profile_images: profileImages ?? [],
         is_profile_public: isProfilePublic ?? true,
         verification_status: 'verified',
@@ -117,7 +119,8 @@ serve(async (req) => {
           relationship_goals: relationshipGoals || [], // ADD: relationship goals
           bio: bio || null, // ADD: bio text
           love_language: preferences?.loveLanguage || null, // ADD: love language
-          lifestyle: preferences?.lifestyle || null // ADD: lifestyle
+          lifestyle: preferences?.lifestyle || null, // ADD: lifestyle
+          humor_type: humorStyle || null // ADD: humor type
         },
         // Set user requirements (what they want in a partner) - COMPLETE DATA as objects, not strings
         requirements: {

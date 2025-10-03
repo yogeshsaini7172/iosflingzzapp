@@ -218,6 +218,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
     firstName: '',
     lastName: '',
     bio: '',
+    university: '',
     educationLevel: '',
     profession: '',
     professionDescription: '',
@@ -229,16 +230,16 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
     faceType: '',
     loveLanguage: '',
     lifestyle: '',
-    
+
     // Personality & Values (arrays)
     personalityTraits: [] as string[],
     values: [] as string[],
     mindset: [] as string[],
-    
+
     // Goals & Interests
     relationshipGoals: [] as string[],
     interests: [] as string[],
-    
+
     // Who You Want data
     preferredGender: [] as string[],
     ageRangeMin: 18,
@@ -255,7 +256,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
     preferredLoveLanguage: [] as string[],
     preferredLifestyle: [] as string[],
     preferredProfessions: [] as string[],
-    
+
     // Settings
     isVisible: true,
     profileImages: [] as string[]
@@ -297,6 +298,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       firstName: profile.first_name || '',
       lastName: profile.last_name || '',
       bio: profile.bio || '',
+      university: profile.university || '',
       educationLevel: (profile as any).education_level || '',
       profession: (profile as any).profession || '',
       professionDescription: (profile as any).profession_description || '',
@@ -674,9 +676,10 @@ useEffect(() => {
       <div className="space-y-2">
         <Label>University</Label>
         <Input
-          value={profile?.university || ''}
-          disabled
-          className="bg-muted border-primary/20"
+          value={formData.university}
+          onChange={(e) => setFormData(prev => ({...prev, university: e.target.value}))}
+          placeholder="Enter your university"
+          className="border-primary/20 focus:border-primary"
         />
       </div>
 

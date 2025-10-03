@@ -203,8 +203,26 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
       const computeCompatibility = async () => {
         setCompatibilityLoading(true);
         try {
+          if (!user?.uid || !currentProfile?.user_id) {
+            setCompatibility(null);
+            setCompatibilityLoading(false);
+            return;
+          }
           const result = await calculateCompatibility(user.uid, currentProfile.user_id);
-          setCompatibility(result);
+          if (result) {
+            // Defensive check for NaN or undefined scores
+            const overall = isNaN(result.overall_score) ? 0 : result.overall_score;
+            const physical = isNaN(result.physical_score) ? 0 : result.physical_score;
+            const mental = isNaN(result.mental_score) ? 0 : result.mental_score;
+            setCompatibility({
+              ...result,
+              overall_score: overall,
+              physical_score: physical,
+              mental_score: mental,
+            });
+          } else {
+            setCompatibility(null);
+          }
         } catch (error) {
           console.error('Error calculating compatibility:', error);
           setCompatibility(null);
@@ -837,47 +855,35 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                     )}
                   </div>
 
-                  {/* Compatibility Analysis - Expandable */}
-                  <div className="bg-muted/30 rounded-lg mb-3">
-                    <button
-                      onClick={() => toggleSection('compatibility')}
-                      className="w-full p-3 flex items-center justify-between hover:bg-muted/50 rounded-lg transition-colors"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm">⚡</span>
-                        <h4 className="font-semibold text-sm">Compatibility Analysis</h4>
+                  {/* Compatibility Analysis - Always Visible */}
+                  <div className="bg-muted/30 rounded-lg p-4 mb-3">
+                    <div className="flex items-center space-x-2 mb-3">
+                      <span className="text-sm">⚡</span>
+                      <h4 className="font-semibold text-sm">Compatibility Analysis</h4>
+                    </div>
+                    {compatibilityLoading ? (
+                      <div className="flex items-center justify-center py-4">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                        <span className="ml-2 text-sm text-muted-foreground">Calculating compatibility...</span>
                       </div>
-                      <span className={`text-sm transition-transform ${expandedSections.compatibility ? 'rotate-180' : ''}`}>
-                        ▼
-                      </span>
-                    </button>
-                    {expandedSections.compatibility && (
-                      <div className="px-3 pb-3">
-                        {compatibilityLoading ? (
-                          <div className="flex items-center justify-center py-4">
-                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                            <span className="ml-2 text-sm text-muted-foreground">Calculating compatibility...</span>
-                          </div>
-                        ) : compatibility ? (
-                          <div className="grid grid-cols-3 gap-4 text-center">
-                            <div>
-                              <div className="text-lg font-bold text-purple-600">{compatibility.overall_score}%</div>
-                              <div className="text-xs text-muted-foreground">Overall Match</div>
-                            </div>
-                            <div>
-                              <div className="text-lg font-bold text-green-600">{compatibility.physical_score}%</div>
-                              <div className="text-xs text-muted-foreground">Physical</div>
-                            </div>
-                            <div>
-                              <div className="text-lg font-bold text-blue-600">{compatibility.mental_score}%</div>
-                              <div className="text-xs text-muted-foreground">Mental</div>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="text-center py-4">
-                            <p className="text-sm text-muted-foreground">Compatibility score unavailable</p>
-                          </div>
-                        )}
+                    ) : compatibility ? (
+                      <div className="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                          <div className="text-2xl font-bold text-primary">{compatibility.overall_score}%</div>
+                          <div className="text-xs text-muted-foreground">Overall Match</div>
+                        </div>
+                        <div>
+                          <div className="text-2xl font-bold text-green-500">{compatibility.physical_score}%</div>
+                          <div className="text-xs text-muted-foreground">Physical</div>
+                        </div>
+                        <div>
+                          <div className="text-2xl font-bold text-blue-500">{compatibility.mental_score}%</div>
+                          <div className="text-xs text-muted-foreground">Mental</div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-4">
+                        <p className="text-sm text-muted-foreground">Compatibility score unavailable</p>
                       </div>
                     )}
                   </div>
