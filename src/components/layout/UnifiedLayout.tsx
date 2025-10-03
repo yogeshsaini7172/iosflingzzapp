@@ -6,7 +6,7 @@ import { LogOut, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfileData } from '@/hooks/useProfileData';
 import { useToast } from "@/hooks/use-toast";
-import BottomNav from "@/components/navigation/BottomNav";
+
 import ChatNotificationBadge from '@/components/ui/chat-notification-badge';
 import HeartNotificationBadge from '@/components/ui/heart-notification-badge';
 import WhoLikedMeModal from '@/components/likes/WhoLikedMeModal';
@@ -118,9 +118,6 @@ const UnifiedLayout = ({ children, title = "FLINGZZ", showHeader = true }: Unifi
       <main className="pb-20">
         {children}
       </main>
-
-      {/* Single Bottom Navigation */}
-      <BottomNav />
 
       {/* Optional Modals - kept for flexibility */}
       <WhoLikedMeModal 

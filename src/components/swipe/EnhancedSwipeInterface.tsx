@@ -228,18 +228,22 @@ const EnhancedSwipeInterface: React.FC<EnhancedSwipeInterfaceProps> = ({ onNavig
 
   return (
     <div
-      className="min-h-screen bg-gradient-to-br from-black to-gray-900 flex flex-col items-center justify-start p-4 overflow-y-auto"
+      className="min-h-screen bg-gradient-to-br from-black to-gray-900 flex flex-col items-center justify-start overflow-y-auto pb-24"
       onScroll={handleScroll}
-      style={{ maxHeight: '100vh' }}
+      style={{ 
+        maxHeight: '100dvh',
+        padding: '2vh 4vw'
+      }}
     >
       {/* Location Finder */}
       {showLocation && <LocationFinder />}
 
       {/* Card */}
       <Card
-        className="relative overflow-hidden shadow-lg rounded-3xl w-full max-w-md"
+        className="relative overflow-hidden shadow-lg rounded-3xl w-full"
         style={{
-          height: "60vh",
+          maxWidth: 'min(450px, 92vw)',
+          height: "clamp(400px, 65vh, 700px)",
           transform: `translateX(${dragX}px) rotate(${dragX / 15}deg)`,
           transition: isDragging ? "none" : "transform 0.3s ease-in-out",
         }}
@@ -327,21 +331,28 @@ const EnhancedSwipeInterface: React.FC<EnhancedSwipeInterfaceProps> = ({ onNavig
       </Card>
 
       {/* Basic Info Overlay */}
-      <div className="w-full max-w-md bg-black bg-opacity-70 rounded-b-3xl p-4 mt-[-4rem] relative z-10 text-white">
+      <div className="w-full bg-black bg-opacity-70 rounded-b-3xl relative z-10 text-white"
+           style={{ 
+             maxWidth: 'min(450px, 92vw)',
+             padding: 'clamp(12px, 3vw, 16px)',
+             marginTop: 'clamp(-3rem, -15vw, -4rem)'
+           }}>
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-bold">{currentProfile.first_name} {currentProfile.last_name}, {currentProfile.age}</h2>
-            <div className="flex items-center space-x-2 text-sm opacity-80">
+          <div className="flex-1 min-w-0">
+            <h2 className="font-bold truncate" style={{ fontSize: 'clamp(1.25rem, 5vw, 1.875rem)' }}>
+              {currentProfile.first_name} {currentProfile.last_name}, {currentProfile.age}
+            </h2>
+            <div className="flex items-center space-x-2 opacity-80" style={{ fontSize: 'clamp(0.75rem, 3vw, 0.875rem)' }}>
               <span>⭐ PREMIUM</span>
               <span>•</span>
-              <span>{currentProfile.university || 'Unknown Location'}</span>
+              <span className="truncate">{currentProfile.university || 'Unknown Location'}</span>
             </div>
           </div>
-          <button className="text-pink-500 hover:text-pink-400" aria-label="Like" onClick={() => handleSwipe("right")}>
-            <Heart className="w-8 h-8" />
+          <button className="text-pink-500 hover:text-pink-400 flex-shrink-0 ml-2" aria-label="Like" onClick={() => handleSwipe("right")}>
+            <Heart style={{ width: 'clamp(24px, 6vw, 32px)', height: 'clamp(24px, 6vw, 32px)' }} />
           </button>
         </div>
-        <div className="mt-2 flex space-x-4 text-xs opacity-80">
+        <div className="mt-2 flex space-x-4 opacity-80" style={{ fontSize: 'clamp(0.625rem, 2.5vw, 0.75rem)' }}>
           <div className="flex items-center space-x-1">
             <span>{currentProfile.distance ? `${currentProfile.distance} km` : "N/A"}</span>
           </div>
@@ -356,10 +367,19 @@ const EnhancedSwipeInterface: React.FC<EnhancedSwipeInterfaceProps> = ({ onNavig
 
       {/* About Section - shown on scroll */}
       {showAbout && (
-        <Card className="w-full max-w-md mt-6 p-4 bg-black bg-opacity-80 text-white rounded-3xl">
-          <h3 className="text-xl font-semibold mb-2">About {currentProfile.first_name}</h3>
-          <p>{currentProfile.bio || "No additional information provided."}</p>
-          <div className="mt-4 space-y-1 text-sm opacity-80">
+        <Card className="w-full bg-black bg-opacity-80 text-white rounded-3xl" 
+              style={{ 
+                maxWidth: 'min(450px, 92vw)',
+                marginTop: 'clamp(16px, 4vw, 24px)',
+                padding: 'clamp(12px, 3vw, 16px)'
+              }}>
+          <h3 className="font-semibold mb-2" style={{ fontSize: 'clamp(1rem, 4vw, 1.25rem)' }}>
+            About {currentProfile.first_name}
+          </h3>
+          <p style={{ fontSize: 'clamp(0.875rem, 3.5vw, 1rem)' }}>
+            {currentProfile.bio || "No additional information provided."}
+          </p>
+          <div className="mt-4 space-y-1 opacity-80" style={{ fontSize: 'clamp(0.75rem, 3vw, 0.875rem)' }}>
             <div><strong>Interests:</strong> {currentProfile.interests.join(", ")}</div>
             <div><strong>Relationship Goals:</strong> {currentProfile.relationship_goals.join(", ")}</div>
             <div><strong>Height:</strong> {currentProfile.height} cm</div>
@@ -374,15 +394,18 @@ const EnhancedSwipeInterface: React.FC<EnhancedSwipeInterfaceProps> = ({ onNavig
       )}
 
       {/* Actions */}
-      <div className="flex justify-center gap-8 pt-6">
-        <Button onClick={() => handleSwipe("left")} size="icon" variant="outline">
-          <X className="w-8 h-8 text-red-600" />
+      <div className="flex justify-center pt-6" style={{ gap: 'clamp(20px, 8vw, 32px)' }}>
+        <Button onClick={() => handleSwipe("left")} size="icon" variant="outline"
+                style={{ width: 'clamp(48px, 14vw, 56px)', height: 'clamp(48px, 14vw, 56px)' }}>
+          <X style={{ width: 'clamp(24px, 7vw, 32px)', height: 'clamp(24px, 7vw, 32px)' }} className="text-red-600" />
         </Button>
-        <Button onClick={() => setShowDetailedProfile(true)} size="icon" variant="outline">
-          <MoreHorizontal className="w-8 h-8 text-gray-400" />
+        <Button onClick={() => setShowDetailedProfile(true)} size="icon" variant="outline"
+                style={{ width: 'clamp(48px, 14vw, 56px)', height: 'clamp(48px, 14vw, 56px)' }}>
+          <MoreHorizontal style={{ width: 'clamp(24px, 7vw, 32px)', height: 'clamp(24px, 7vw, 32px)' }} className="text-gray-400" />
         </Button>
-        <Button onClick={() => handleSwipe("right")} size="icon" className="bg-gradient-pink">
-          <Heart className="w-8 h-8 text-white" />
+        <Button onClick={() => handleSwipe("right")} size="icon" className="bg-gradient-pink"
+                style={{ width: 'clamp(48px, 14vw, 56px)', height: 'clamp(48px, 14vw, 56px)' }}>
+          <Heart style={{ width: 'clamp(24px, 7vw, 32px)', height: 'clamp(24px, 7vw, 32px)' }} className="text-white" />
         </Button>
       </div>
 

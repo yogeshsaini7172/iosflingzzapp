@@ -9,18 +9,25 @@ const config: CapacitorConfig = {
   },
   plugins: {
     SplashScreen: {
-      launchShowDuration: 3000,
+      launchShowDuration: 2000,
       launchAutoHide: true,
+      launchFadeOutDuration: 500,
       backgroundColor: "#8B008B",
       androidSplashResourceName: "splash",
       androidScaleType: "CENTER_CROP",
-      showSpinner: true,
+      showSpinner: false,
       androidSpinnerStyle: "large",
       spinnerColor: "#ffffff",
     },
     StatusBar: {
       style: 'LIGHT_CONTENT',
       backgroundColor: '#8B008B',
+      overlaysWebView: false,
+    },
+    Keyboard: {
+      resize: 'body',
+      style: 'DARK',
+      resizeOnFullScreen: true,
     },
     PushNotifications: {
       presentationOptions: ["badge", "sound", "alert"],
