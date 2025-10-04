@@ -17,7 +17,7 @@ export const WebLandingPage = ({ onEnterApp }: WebLandingPageProps) => {
               FLINGZZ
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground font-medium">
-              Elite College Dating Experience
+              Premium Dating Experience
             </p>
           </div>
 
@@ -38,9 +38,9 @@ export const WebLandingPage = ({ onEnterApp }: WebLandingPageProps) => {
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                 <Shield className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="font-semibold text-lg">Verified Students</h3>
+              <h3 className="font-semibold text-lg">Verified Users</h3>
               <p className="text-sm text-muted-foreground">
-                Connect only with verified college students
+                Connect only with verified real people
               </p>
             </div>
 
@@ -68,9 +68,9 @@ export const WebLandingPage = ({ onEnterApp }: WebLandingPageProps) => {
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                 <Users className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="font-semibold text-lg">Campus Connect</h3>
+              <h3 className="font-semibold text-lg">Location Based</h3>
               <p className="text-sm text-muted-foreground">
-                Meet people from your campus and beyond
+                Meet people near you and beyond
               </p>
             </div>
           </div>
@@ -111,7 +111,7 @@ export const WebLandingPage = ({ onEnterApp }: WebLandingPageProps) => {
 
           {/* Footer Note */}
           <p className="text-sm text-muted-foreground pt-8">
-            Available on Web and Android • Premium college dating for exceptional individuals
+            Available on Web and Android • Premium dating for exceptional individuals
           </p>
         </div>
       </div>

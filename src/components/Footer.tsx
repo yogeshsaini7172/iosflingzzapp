@@ -36,13 +36,13 @@ const Footer = () => {
           <div className="lg:col-span-1">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 bg-gradient-primary rounded-lg"></div>
-              <span className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                GradSync
-              </span>
-            </div>
-            <p className="text-muted-foreground text-sm leading-relaxed mb-6">
-              Connecting college students for meaningful relationships and lasting connections.
-            </p>
+            <span className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+              FLINGZZ
+            </span>
+          </div>
+          <p className="text-muted-foreground text-sm leading-relaxed mb-6">
+            Premium dating for meaningful relationships and lasting connections.
+          </p>
             <div className="flex items-center gap-4">
               {/* Social Links */}
               <a href="#" className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-smooth">
@@ -86,12 +86,12 @@ const Footer = () => {
         {/* Bottom Section */}
         <div className="border-t border-border pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-muted-foreground text-sm">
-            © 2024 GradSync. All rights reserved.
+            © 2024 FLINGZZ. All rights reserved.
           </p>
           <div className="flex items-center gap-1 text-muted-foreground text-sm">
             <span>Made with</span>
             <Heart className="w-4 h-4 text-secondary fill-current" />
-            <span>for college students</span>
+            <span>for meaningful connections</span>
           </div>
         </div>
       </div>
