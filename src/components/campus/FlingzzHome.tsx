@@ -498,12 +498,12 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
       </div>
 
       {/* Main Swipe Section */}
-      <div className="flex-1 p-4 pb-24 overflow-y-auto">
+      <div className="flex-1 flex items-center justify-center px-3 pb-24">
         {currentProfile ? (
-          <div className="max-w-md mx-auto">
+          <div className="w-full max-w-md h-[calc(100vh-200px)]">
             {/* Swipe Up Style Card */}
             <div 
-              className="relative bg-card rounded-3xl overflow-hidden shadow-2xl shadow-primary/10"
+              className="relative bg-card rounded-3xl overflow-hidden shadow-2xl shadow-primary/10 h-full"
               style={{
                 transform: `translateX(${swipeOffset}px) rotate(${swipeOffset * 0.1}deg)`,
                 transition: isSwiping ? 'none' : 'transform 0.3s ease-out'
@@ -533,174 +533,145 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                 </div>
               )}
 
-              {/* Main Content */}
-              <div className="flex flex-col h-[600px]">
-                {/* Photo Section - 80% */}
-                <div className="relative h-[480px] overflow-hidden">
-                  <img
-                    src={currentProfile.profile_images?.[currentImageIndex] || currentProfile.profile_images?.[0] || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=600&fit=crop&crop=face'}
-                    alt={currentProfile.first_name}
-                    className="w-full h-full object-cover"
-                  />
-                  
-                  {/* Image Navigation */}
-                  {currentProfile.profile_images?.length > 1 && (
-                    <>
-                      <button
-                        onClick={() => handleImageNavigation('prev')}
-                        className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/30 rounded-full flex items-center justify-center backdrop-blur-sm"
-                      >
-                        <span className="text-white text-sm">‹</span>
-                      </button>
-                      <button
-                        onClick={() => handleImageNavigation('next')}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/30 rounded-full flex items-center justify-center backdrop-blur-sm"
-                      >
-                        <span className="text-white text-sm">›</span>
-                      </button>
-                    </>
-                  )}
+              {/* Main Content - Full Height Image */}
+              <div className="relative h-full">
+                <img
+                  src={currentProfile.profile_images?.[currentImageIndex] || currentProfile.profile_images?.[0] || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=600&fit=crop&crop=face'}
+                  alt={currentProfile.first_name}
+                  className="w-full h-full object-cover"
+                />
+                
+                {/* Image Navigation */}
+                {currentProfile.profile_images?.length > 1 && (
+                  <>
+                    <button
+                      onClick={() => handleImageNavigation('prev')}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/30 rounded-full flex items-center justify-center backdrop-blur-sm"
+                    >
+                      <span className="text-white text-sm">‹</span>
+                    </button>
+                    <button
+                      onClick={() => handleImageNavigation('next')}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/30 rounded-full flex items-center justify-center backdrop-blur-sm"
+                    >
+                      <span className="text-white text-sm">›</span>
+                    </button>
+                  </>
+                )}
 
-                  {/* Swipe Indicators */}
-                  {Math.abs(swipeOffset) > 20 && (
-                    <div className={`absolute inset-0 flex items-center justify-center ${getSwipeIndicatorColor()}`}>
-                      <div className="bg-black/50 rounded-full p-3 backdrop-blur-sm">
-                        {swipeOffset > 0 ? (
-                          <Heart className="w-8 h-8 fill-current" />
-                        ) : (
-                          <X className="w-8 h-8" />
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Profile Info Overlay at Bottom */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6">
-                    <div className="text-white">
-                      <h3 className="text-2xl font-bold mb-1">
-                        {currentProfile.first_name}, {calculateAge(currentProfile.date_of_birth)}
-                      </h3>
-                      <p className="text-sm opacity-90 mb-2 flex items-center space-x-1">
-                        <span>📍</span>
-                        <span>{currentProfile.university || 'IIT'}</span>
-                        <span className="ml-4 text-red-400 font-bold">QCS {currentProfile.total_qcs || 'N/A'}</span>
-                      </p>
-
-                      {/* Compatibility Scores */}
-                      {compatibility && !compatibilityLoading && (
-                        <div className="grid grid-cols-3 gap-4 text-center mb-3">
-                          <div>
-                            <div className="text-lg font-bold text-purple-300">{compatibility.overall_score}%</div>
-                            <div className="text-xs text-white/80">Overall Match</div>
-                          </div>
-                          <div>
-                            <div className="text-lg font-bold text-green-300">{compatibility.physical_score}%</div>
-                            <div className="text-xs text-white/80">Physical</div>
-                          </div>
-                          <div>
-                            <div className="text-lg font-bold text-blue-300">{compatibility.mental_score}%</div>
-                            <div className="text-xs text-white/80">Mental</div>
-                          </div>
-                        </div>
-                      )}
-
-                      {currentProfile.interests && currentProfile.interests.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          {currentProfile.interests.slice(0, 2).map((interest, index) => (
-                            <span
-                              key={index}
-                              className="px-2 py-1 bg-white/20 backdrop-blur-sm text-white text-xs rounded-full"
-                            >
-                              {interest}
-                            </span>
-                          ))}
-                        </div>
+                {/* Swipe Indicators */}
+                {Math.abs(swipeOffset) > 20 && (
+                  <div className={`absolute inset-0 flex items-center justify-center ${getSwipeIndicatorColor()}`}>
+                    <div className="bg-black/50 rounded-full p-3 backdrop-blur-sm">
+                      {swipeOffset > 0 ? (
+                        <Heart className="w-8 h-8 fill-current" />
+                      ) : (
+                        <X className="w-8 h-8" />
                       )}
                     </div>
                   </div>
-                </div>
+                )}
 
-                {/* Bottom Info Section - 20% */}
-                <div className="p-4 bg-card space-y-3 overflow-y-auto max-h-[120px]">
-                  {/* Bio Preview */}
-                  {currentProfile.bio && (
-                    <div>
-                      <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-                        {currentProfile.bio}
-                      </p>
+                {/* Profile Info Overlay at Bottom */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-6">
+                  <div className="text-white">
+                    <h3 className="text-3xl font-bold mb-1 flex items-center space-x-2">
+                      <span>{currentProfile.first_name}</span>
+                      <span className="text-2xl">{calculateAge(currentProfile.date_of_birth)}</span>
+                    </h3>
+                    <p className="text-sm opacity-90 mb-2 flex items-center space-x-1">
+                      <span>📍</span>
+                      <span>{currentProfile.university || 'IIT'}</span>
+                      <span className="ml-4 text-red-400 font-bold">QCS {currentProfile.total_qcs || 'N/A'}</span>
+                    </p>
+
+                    {/* Compact Stats Row */}
+                    <div className="flex space-x-3 mb-3">
+                      {distance !== null && (
+                        <div className="bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs">
+                          📍 {distance.toFixed(1)}km
+                        </div>
+                      )}
+                      {currentProfile.height && (
+                        <div className="bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs">
+                          📏 {currentProfile.height}cm
+                        </div>
+                      )}
+                      {currentProfile.profession && (
+                        <div className="bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs truncate max-w-[120px]">
+                          💼 {currentProfile.profession}
+                        </div>
+                      )}
                     </div>
-                  )}
 
-                  {/* Additional Info Grid */}
-                  <div className="grid grid-cols-2 gap-3 text-xs">
-                    {currentProfile.height && (
-                      <div className="flex items-center space-x-2">
-                        <span className="text-muted-foreground">📏</span>
-                        <span className="font-medium">{currentProfile.height}cm</span>
+                    {/* Compatibility Scores */}
+                    {compatibility && !compatibilityLoading && (
+                      <div className="grid grid-cols-3 gap-3 text-center mb-2">
+                        <div>
+                          <div className="text-base font-bold text-purple-300">{compatibility.overall_score}%</div>
+                          <div className="text-[10px] text-white/80">Overall</div>
+                        </div>
+                        <div>
+                          <div className="text-base font-bold text-green-300">{compatibility.physical_score}%</div>
+                          <div className="text-[10px] text-white/80">Physical</div>
+                        </div>
+                        <div>
+                          <div className="text-base font-bold text-blue-300">{compatibility.mental_score}%</div>
+                          <div className="text-[10px] text-white/80">Mental</div>
+                        </div>
                       </div>
                     )}
-                    {currentProfile.profession && (
-                      <div className="flex items-center space-x-2">
-                        <span className="text-muted-foreground">💼</span>
-                        <span className="font-medium truncate">{currentProfile.profession}</span>
-                      </div>
-                    )}
-                    {currentProfile.relationship_goals && currentProfile.relationship_goals.length > 0 && (
-                      <div className="flex items-center space-x-2 col-span-2">
-                        <span className="text-muted-foreground">💕</span>
-                        <span className="font-medium truncate">{currentProfile.relationship_goals[0]}</span>
+
+                    {currentProfile.interests && currentProfile.interests.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {currentProfile.interests.slice(0, 2).map((interest, index) => (
+                          <span
+                            key={index}
+                            className="px-2 py-1 bg-white/20 backdrop-blur-sm text-white text-xs rounded-full"
+                          >
+                            {interest}
+                          </span>
+                        ))}
                       </div>
                     )}
                   </div>
-
-                  {/* More Interests */}
-                  {currentProfile.interests && currentProfile.interests.length > 2 && (
-                    <div className="flex flex-wrap gap-2">
-                      {currentProfile.interests.slice(2, 5).map((interest, index) => (
-                        <span
-                          key={index}
-                          className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full border border-primary/20"
-                        >
-                          {interest}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Swipe Up Button */}
-                  <button 
-                    className="w-full flex items-center justify-center space-x-2 bg-muted/50 text-foreground px-4 py-2.5 rounded-xl text-xs font-medium hover:bg-muted transition-colors border border-border/20"
-                    onClick={() => setShowDetailedProfile(true)}
-                  >
-                    <Zap className="w-3.5 h-3.5" />
-                    <span>Swipe up for full profile</span>
-                  </button>
                 </div>
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex justify-center space-x-6 mt-6">
+            {/* Large Action Buttons - Reference Style */}
+            <div className="flex items-center justify-center space-x-4 mt-6">
+              {/* Dislike Button */}
               <Button
                 size="lg"
                 variant="outline"
-                className="w-14 h-14 rounded-full border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-100 bg-white"
+                className="w-20 h-20 rounded-full border-2 border-border bg-card hover:bg-muted hover:scale-105 transition-all shadow-lg"
                 onClick={() => handleSwipe('left')}
               >
-                <X className="w-6 h-6 text-gray-600" />
+                <X className="w-8 h-8 text-red-500" strokeWidth={2.5} />
               </Button>
               
+              {/* View Profile Button */}
               <Button
                 size="lg"
-                className="w-16 h-16 rounded-full bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 shadow-lg hover:shadow-xl"
+                className="w-16 h-16 rounded-full bg-card hover:bg-muted border-2 border-border shadow-lg hover:scale-105 transition-all"
+                onClick={() => setShowDetailedProfile(true)}
+              >
+                <Zap className="w-6 h-6 text-primary" />
+              </Button>
+
+              {/* Like Button */}
+              <Button
+                size="lg"
+                className="w-20 h-20 rounded-full bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 shadow-xl hover:shadow-2xl hover:scale-105 transition-all"
                 onClick={() => handleSwipe('right')}
               >
-                <Heart className="w-7 h-7 fill-current text-white" />
+                <Heart className="w-8 h-8 fill-current text-white" />
               </Button>
             </div>
 
             {/* Swipe Hint */}
-            <p className="text-center text-xs text-muted-foreground mt-4">
+            <p className="text-center text-xs text-muted-foreground mt-3">
               Swipe right to like • Swipe left to pass
             </p>
           </div>
