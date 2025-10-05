@@ -90,11 +90,13 @@
     --primary-foreground: 0 0% 100%;
     --primary-glow: 280 100% 70%;
     --primary-variant: 275 95% 65%;
+    --primary-light: 280 100% 75%;
 
     /* Secondary - Vibrant Magenta */
     --secondary: 320 100% 55%;
     --secondary-foreground: 0 0% 100%;
     --secondary-glow: 320 100% 65%;
+    --secondary-light: 320 100% 70%;
 
     /* Accent - Electric Blue */
     --accent: 210 100% 50%;
@@ -176,10 +178,12 @@
     --primary: 280 95% 65%;
     --primary-foreground: 0 0% 100%;
     --primary-glow: 280 100% 75%;
+    --primary-light: 280 100% 80%;
 
     /* Secondary - Vibrant Magenta Dark */
     --secondary: 320 90% 60%;
     --secondary-foreground: 0 0% 100%;
+    --secondary-light: 320 90% 75%;
 
     /* Accent - Electric Blue Dark */
     --accent: 210 95% 55%;
