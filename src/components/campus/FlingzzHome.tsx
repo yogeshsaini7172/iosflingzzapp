@@ -500,7 +500,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
       {/* Main Swipe Section */}
       <div className="flex-1 p-4 pb-24 overflow-y-auto">
         {currentProfile ? (
-          <div className="max-w-sm mx-auto">
+          <div className="max-w-md mx-auto">
             {/* Swipe Up Style Card */}
             <div 
               className="relative bg-card rounded-3xl overflow-hidden shadow-2xl shadow-primary/10"
