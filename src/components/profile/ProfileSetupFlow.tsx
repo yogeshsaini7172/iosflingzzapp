@@ -455,20 +455,20 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-3 sm:p-6">
+    <div className="min-h-screen flex items-center justify-center p-3 sm:p-6 bg-gradient-to-br from-[hsl(270,25%,8%)] via-[hsl(270,20%,12%)] to-[hsl(280,20%,10%)]">
       <div className="w-full max-w-2xl">
-        <Card className="border-0 shadow-premium genZ-glass-card genZ-hover-lift">
+        <Card className="border-0 shadow-premium genZ-glass-card genZ-hover-lift bg-black/20 backdrop-blur-xl">
           <CardHeader className="text-center space-y-6 sm:space-y-8 pb-6 sm:pb-10 px-4 sm:px-8">
             <div className="flex items-center justify-between">
               <Button 
                 variant="ghost" 
                 onClick={handleBack}
-                className="rounded-full w-12 h-12 sm:w-14 sm:h-14 p-0 bg-black/20 hover:bg-primary/20 text-white transition-luxury hover-luxury border border-white/20"
+                className="rounded-full w-12 h-12 sm:w-14 sm:h-14 p-0 bg-black/30 hover:bg-primary/20 text-white transition-luxury hover-luxury border border-white/10"
               >
                 <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6" />
               </Button>
               
-              <div className="text-xs sm:text-sm text-white/80 font-modern font-semibold bg-black/20 px-3 py-2 sm:px-4 sm:py-2 rounded-full border border-white/20">
+              <div className="text-xs sm:text-sm text-white/80 font-modern font-semibold bg-black/30 px-3 py-2 sm:px-4 sm:py-2 rounded-full border border-white/10">
                 Step {currentStep} of {totalSteps}
               </div>
               
@@ -483,18 +483,18 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
             
             <div className="space-y-3 sm:space-y-4">
               <div className="relative">
-                <CardTitle className="text-2xl sm:text-4xl font-elegant font-bold text-gradient-royal animate-fade-in">
+                <CardTitle className="text-2xl sm:text-4xl font-elegant font-bold bg-gradient-to-r from-blue-400 via-violet-400 to-purple-400 bg-clip-text text-transparent animate-fade-in">
                   {stepTitles[currentStep - 1]}
                 </CardTitle>
               </div>
-              <p className="text-white/80 font-modern text-base sm:text-lg">
+              <p className="text-white/70 font-modern text-base sm:text-lg">
                 Create your perfect profile
               </p>
             </div>
           </CardHeader>
 
           <CardContent className="px-4 sm:px-10 pb-8 sm:pb-12 space-y-8 sm:space-y-10">
-            <div className="animate-elegant-entrance genZ-glass-card p-4 sm:p-8 rounded-2xl sm:rounded-3xl border border-white/10">
+            <div className="animate-elegant-entrance genZ-glass-card p-4 sm:p-8 rounded-2xl sm:rounded-3xl border border-white/10 bg-black/20">
               {renderStepContent()}
             </div>
 
@@ -503,7 +503,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
               <Button
                 onClick={handleBack}
                 variant="outline"
-                className="w-full sm:flex-1 h-14 sm:h-16 rounded-2xl font-modern font-bold transition-luxury hover-luxury border-2 border-white/20 bg-black/20 text-white hover:bg-white/10 text-base sm:text-lg"
+                className="w-full sm:flex-1 h-14 sm:h-16 rounded-2xl font-modern font-bold transition-luxury hover-luxury border-2 border-white/10 bg-black/20 text-white hover:bg-white/10 text-base sm:text-lg"
                 disabled={isLoading}
               >
                 <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3" />
@@ -513,7 +513,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
               <Button
                 onClick={handleNext}
                 disabled={!canProceed() || isLoading}
-                className="w-full sm:flex-1 h-14 sm:h-16 rounded-2xl bg-gradient-primary hover:shadow-royal transition-luxury font-modern font-bold text-lg sm:text-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:flex-1 h-14 sm:h-16 rounded-2xl bg-gradient-to-r from-primary via-violet-500 to-purple-500 hover:shadow-royal transition-luxury font-modern font-bold text-lg sm:text-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <div className="flex items-center space-x-2 sm:space-x-3">
