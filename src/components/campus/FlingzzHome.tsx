@@ -67,6 +67,11 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
   const [compatibilityLoading, setCompatibilityLoading] = useState(false);
   const [userLocation, setUserLocation] = useState<LocationData | null>(null);
   
+  // Slider button state
+  const [sliderDragX, setSliderDragX] = useState(0);
+  const [isDraggingSlider, setIsDraggingSlider] = useState(false);
+  const [sliderStartX, setSliderStartX] = useState(0);
+  
   const { toast } = useToast();
   const { user } = useAuth();
   const { threads, loading: threadsLoading, error: threadsError, createThread, deleteThread, updateThread } = useThreads();
@@ -302,6 +307,43 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
     setIsSwiping(false);
     setTouchStartX(0);
     setTouchCurrentX(0);
+  };
+
+  // Slider button handlers
+  const handleSliderStart = (e: React.MouseEvent | React.TouchEvent) => {
+    setIsDraggingSlider(true);
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    setSliderStartX(clientX);
+  };
+
+  const handleSliderMove = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDraggingSlider) return;
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const deltaX = clientX - sliderStartX;
+    
+    // Constrain to slider width (approximately 280px, so -140 to +140)
+    const maxDistance = 140;
+    const constrainedX = Math.max(-maxDistance, Math.min(maxDistance, deltaX));
+    setSliderDragX(constrainedX);
+  };
+
+  const handleSliderEnd = () => {
+    if (!isDraggingSlider) return;
+    
+    const threshold = 100; // Distance needed to trigger action
+    
+    if (sliderDragX > threshold) {
+      // Swiped right - Like
+      handleSwipe('right');
+    } else if (sliderDragX < -threshold) {
+      // Swiped left - Pass
+      handleSwipe('left');
+    }
+    
+    // Reset slider
+    setSliderDragX(0);
+    setIsDraggingSlider(false);
+    setSliderStartX(0);
   };
 
   const toggleSection = (section: string) => {
@@ -664,34 +706,81 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center justify-center gap-6 mt-6">
-              {/* Pass Button */}
-              <button
-                onClick={() => handleSwipe('left')}
-                className="group relative w-16 h-16 rounded-full bg-white shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 border-2 border-red-100"
-              >
-                <X className="w-8 h-8 text-red-500 group-hover:scale-110 transition-transform" strokeWidth={2.5} />
-                <div className="absolute -bottom-6 text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+            {/* Slider-Style Action Control */}
+            <div className="relative w-full max-w-sm mt-5 mx-auto">
+              <div className="relative bg-muted/50 rounded-full h-16 flex items-center justify-between px-6 backdrop-blur-md border border-border/50">
+                {/* Pass Label */}
+                <span className={`text-sm font-medium transition-all duration-300 ${
+                  sliderDragX < -50 ? 'text-red-500 scale-110' : 'text-muted-foreground'
+                }`}>
                   Pass
-                </div>
-              </button>
+                </span>
 
-              {/* Like Button */}
-              <button
-                onClick={() => handleSwipe('right')}
-                className="group relative w-20 h-20 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 border-2 border-pink-300"
-              >
-                <Heart className="w-10 h-10 text-white fill-white group-hover:scale-110 transition-transform" strokeWidth={2.5} />
-                <div className="absolute -bottom-6 text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                {/* Like Label */}
+                <span className={`text-sm font-medium transition-all duration-300 ${
+                  sliderDragX > 50 ? 'text-pink-500 scale-110' : 'text-muted-foreground'
+                }`}>
                   Like
+                </span>
+
+                {/* Draggable Heart Button */}
+                <div
+                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing"
+                  style={{
+                    transform: `translate(calc(-50% + ${sliderDragX}px), -50%) scale(${isDraggingSlider ? 1.1 : 1})`,
+                    transition: isDraggingSlider ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                  }}
+                  onMouseDown={handleSliderStart}
+                  onMouseMove={handleSliderMove}
+                  onMouseUp={handleSliderEnd}
+                  onMouseLeave={handleSliderEnd}
+                  onTouchStart={handleSliderStart}
+                  onTouchMove={handleSliderMove}
+                  onTouchEnd={handleSliderEnd}
+                >
+                  <div className="w-14 h-14 rounded-full bg-white shadow-xl flex items-center justify-center relative overflow-hidden">
+                    {/* Heart icon with conditional styling */}
+                    {sliderDragX < -50 ? (
+                      // Broken heart when sliding left
+                      <div className="relative">
+                        <Heart 
+                          className="w-7 h-7 text-red-500 animate-pulse" 
+                          strokeWidth={2.5}
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-px h-8 bg-red-500 rotate-12 animate-pulse" />
+                        </div>
+                      </div>
+                    ) : sliderDragX > 50 ? (
+                      // Filled heart when sliding right
+                      <Heart 
+                        className="w-7 h-7 text-pink-500 fill-pink-500 animate-pulse" 
+                        strokeWidth={2.5}
+                      />
+                    ) : (
+                      // Normal heart in center
+                      <Heart 
+                        className="w-7 h-7 text-foreground" 
+                        strokeWidth={2.5}
+                      />
+                    )}
+                  </div>
                 </div>
-              </button>
+              </div>
+
+              {/* Direction Hints */}
+              {isDraggingSlider && (
+                <div className="absolute -bottom-8 left-0 right-0 text-center animate-fade-in">
+                  <p className="text-xs text-muted-foreground">
+                    {sliderDragX < -50 ? '← Slide to pass' : sliderDragX > 50 ? 'Slide to like →' : 'Slide left or right'}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Hint Text */}
-            <p className="text-center text-xs text-muted-foreground mt-8 opacity-70">
-              Swipe card left or right, or tap buttons
+            <p className="text-center text-xs text-muted-foreground mt-6 opacity-70">
+              Swipe card or drag heart to like/pass
             </p>
           </div>
         ) : (
