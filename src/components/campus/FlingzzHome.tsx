@@ -500,40 +500,44 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
       {/* Main Swipe Section */}
       <div className="flex-1 flex items-center justify-center px-3 pb-24">
         {currentProfile ? (
-          <div className="w-full max-w-md h-[calc(100vh-200px)]">
-            {/* Swipe Up Style Card */}
+          <div className="w-full max-w-md h-[calc(100vh-200px)] flex flex-col">
+            {/* Swipe Card */}
             <div 
-              className="relative bg-card rounded-3xl overflow-hidden shadow-2xl shadow-primary/10 h-full"
+              className="relative bg-card rounded-3xl overflow-hidden shadow-2xl flex-1 transition-all duration-300"
               style={{
-                transform: `translateX(${swipeOffset}px) rotate(${swipeOffset * 0.1}deg)`,
-                transition: isSwiping ? 'none' : 'transform 0.3s ease-out'
+                transform: `translateX(${swipeOffset}px) rotate(${swipeOffset * 0.05}deg)`,
+                transition: isSwiping ? 'none' : 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                boxShadow: '0 20px 60px -10px rgba(0, 0, 0, 0.3), 0 0 40px -10px rgba(var(--primary), 0.2)'
               }}
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
             >
-              {/* Premium Badge */}
-              <div className="absolute top-4 right-4 z-10">
-                <div className="bg-amber-500 text-white px-3 py-1 rounded-full text-xs font-bold">
-                  PREMIUM
+              {/* Premium Badge with Glow */}
+              <div className="absolute top-4 right-4 z-10 animate-fade-in">
+                <div className="bg-gradient-to-r from-amber-400 to-amber-600 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center space-x-1">
+                  <Star className="w-3 h-3 fill-current" />
+                  <span>PREMIUM</span>
                 </div>
               </div>
 
-              {/* Image Dots */}
+              {/* Image Progress Dots */}
               {currentProfile.profile_images?.length > 1 && (
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 flex space-x-1 z-10">
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 flex space-x-1.5 z-10 animate-fade-in">
                   {currentProfile.profile_images.map((_, index) => (
                     <div
                       key={index}
-                      className={`w-2 h-2 rounded-full ${
-                        index === currentImageIndex ? 'bg-white' : 'bg-white/40'
+                      className={`h-1 rounded-full transition-all duration-300 ${
+                        index === currentImageIndex 
+                          ? 'bg-white w-8 shadow-lg' 
+                          : 'bg-white/40 w-1'
                       }`}
                     />
                   ))}
                 </div>
               )}
 
-              {/* Main Content - Full Height Image */}
+              {/* Full Height Image */}
               <div className="relative h-full">
                 <img
                   src={currentProfile.profile_images?.[currentImageIndex] || currentProfile.profile_images?.[0] || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=600&fit=crop&crop=face'}
@@ -541,64 +545,74 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                   className="w-full h-full object-cover"
                 />
                 
-                {/* Image Navigation */}
+                {/* Image Navigation Arrows */}
                 {currentProfile.profile_images?.length > 1 && (
                   <>
                     <button
                       onClick={() => handleImageNavigation('prev')}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/30 rounded-full flex items-center justify-center backdrop-blur-sm"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center backdrop-blur-md transition-all hover:scale-110 active:scale-95"
                     >
-                      <span className="text-white text-sm">‹</span>
+                      <span className="text-white text-xl font-bold">‹</span>
                     </button>
                     <button
                       onClick={() => handleImageNavigation('next')}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/30 rounded-full flex items-center justify-center backdrop-blur-sm"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center backdrop-blur-md transition-all hover:scale-110 active:scale-95"
                     >
-                      <span className="text-white text-sm">›</span>
+                      <span className="text-white text-xl font-bold">›</span>
                     </button>
                   </>
                 )}
 
-                {/* Swipe Indicators */}
+                {/* Swipe Direction Indicators */}
                 {Math.abs(swipeOffset) > 20 && (
-                  <div className={`absolute inset-0 flex items-center justify-center ${getSwipeIndicatorColor()}`}>
-                    <div className="bg-black/50 rounded-full p-3 backdrop-blur-sm">
+                  <div className={`absolute inset-0 flex items-center justify-center transition-opacity ${getSwipeIndicatorColor()}`}>
+                    <div className={`rounded-full p-4 backdrop-blur-md transition-all animate-scale-in ${
+                      swipeOffset > 0 ? 'bg-green-500/30' : 'bg-red-500/30'
+                    }`}>
                       {swipeOffset > 0 ? (
-                        <Heart className="w-8 h-8 fill-current" />
+                        <Heart className="w-12 h-12 fill-current drop-shadow-2xl" />
                       ) : (
-                        <X className="w-8 h-8" />
+                        <X className="w-12 h-12 drop-shadow-2xl" />
                       )}
                     </div>
                   </div>
                 )}
 
-                {/* Profile Info Overlay at Bottom */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-6 pb-4">
-                  <div className="text-white">
-                    <h3 className="text-3xl font-bold mb-1 flex items-center space-x-2">
-                      <span>{currentProfile.first_name}</span>
-                      <span className="text-2xl">{calculateAge(currentProfile.date_of_birth)}</span>
-                    </h3>
-                    <p className="text-sm opacity-90 mb-2 flex items-center space-x-1">
-                      <span>📍</span>
-                      <span>{currentProfile.university || 'IIT'}</span>
-                      <span className="ml-4 text-red-400 font-bold">QCS {currentProfile.total_qcs || 'N/A'}</span>
-                    </p>
+                {/* Enhanced Profile Info Overlay */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent p-5 pb-4">
+                  <div className="text-white space-y-3">
+                    {/* Name & Age */}
+                    <div>
+                      <h3 className="text-3xl font-bold mb-1 flex items-center space-x-2 drop-shadow-lg">
+                        <span>{currentProfile.first_name}</span>
+                        <span className="text-2xl font-medium opacity-90">{calculateAge(currentProfile.date_of_birth)}</span>
+                      </h3>
+                      <p className="text-sm opacity-90 flex items-center space-x-2">
+                        <span>📍</span>
+                        <span>{currentProfile.university || 'University'}</span>
+                        {currentProfile.total_qcs && (
+                          <>
+                            <span className="text-white/40">•</span>
+                            <span className="text-pink-400 font-bold">QCS {currentProfile.total_qcs}</span>
+                          </>
+                        )}
+                      </p>
+                    </div>
 
-                    {/* Compact Stats Row */}
-                    <div className="flex space-x-3 mb-3">
+                    {/* Quick Stats Pills */}
+                    <div className="flex flex-wrap gap-2">
                       {distance !== null && (
-                        <div className="bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs">
-                          📍 {distance.toFixed(1)}km
+                        <div className="bg-white/15 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-medium border border-white/20">
+                          📍 {distance.toFixed(1)}km away
                         </div>
                       )}
                       {currentProfile.height && (
-                        <div className="bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs">
+                        <div className="bg-white/15 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-medium border border-white/20">
                           📏 {currentProfile.height}cm
                         </div>
                       )}
                       {currentProfile.profession && (
-                        <div className="bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs truncate max-w-[120px]">
+                        <div className="bg-white/15 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-medium border border-white/20 max-w-[150px] truncate">
                           💼 {currentProfile.profession}
                         </div>
                       )}
@@ -606,28 +620,29 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
 
                     {/* Compatibility Scores */}
                     {compatibility && !compatibilityLoading && (
-                      <div className="grid grid-cols-3 gap-3 text-center mb-2">
-                        <div>
-                          <div className="text-base font-bold text-purple-300">{compatibility.overall_score}%</div>
-                          <div className="text-[10px] text-white/80">Overall</div>
+                      <div className="grid grid-cols-3 gap-3 py-2">
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-purple-300">{compatibility.overall_score}%</div>
+                          <div className="text-[10px] text-white/70">Overall</div>
                         </div>
-                        <div>
-                          <div className="text-base font-bold text-green-300">{compatibility.physical_score}%</div>
-                          <div className="text-[10px] text-white/80">Physical</div>
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-green-300">{compatibility.physical_score}%</div>
+                          <div className="text-[10px] text-white/70">Physical</div>
                         </div>
-                        <div>
-                          <div className="text-base font-bold text-blue-300">{compatibility.mental_score}%</div>
-                          <div className="text-[10px] text-white/80">Mental</div>
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-blue-300">{compatibility.mental_score}%</div>
+                          <div className="text-[10px] text-white/70">Mental</div>
                         </div>
                       </div>
                     )}
 
+                    {/* Interests */}
                     {currentProfile.interests && currentProfile.interests.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {currentProfile.interests.slice(0, 2).map((interest, index) => (
+                      <div className="flex flex-wrap gap-2">
+                        {currentProfile.interests.slice(0, 3).map((interest, index) => (
                           <span
                             key={index}
-                            className="px-2 py-1 bg-white/20 backdrop-blur-sm text-white text-xs rounded-full"
+                            className="px-2.5 py-1 bg-white/15 backdrop-blur-md text-white text-xs rounded-full border border-white/20"
                           >
                             {interest}
                           </span>
@@ -635,53 +650,49 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                       </div>
                     )}
 
-                    {/* Swipe Up Button */}
+                    {/* View Full Profile Button */}
                     <button 
-                      className="w-full flex items-center justify-center space-x-2 bg-white/20 backdrop-blur-md text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-white/30 transition-colors border border-white/30"
+                      className="w-full flex items-center justify-center space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-4 py-3 rounded-2xl text-sm font-medium transition-all border border-white/20 hover:border-white/30 active:scale-95"
                       onClick={() => setShowDetailedProfile(true)}
                     >
                       <Zap className="w-4 h-4" />
-                      <span>Swipe up for full profile</span>
-                      <span className="text-xs">↑</span>
+                      <span>View Full Profile</span>
+                      <span className="text-lg">↑</span>
                     </button>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Large Action Buttons - Reference Style */}
-            <div className="flex items-center justify-center space-x-4 mt-6">
+            {/* Enhanced Action Buttons */}
+            <div className="flex items-center justify-center space-x-4 mt-5">
               {/* Dislike Button */}
-              <Button
-                size="lg"
-                variant="outline"
-                className="w-20 h-20 rounded-full border-2 border-border bg-card hover:bg-muted hover:scale-105 transition-all shadow-lg"
+              <button
+                className="w-16 h-16 rounded-full border-3 border-red-500/30 bg-white hover:bg-red-50 hover:border-red-500 hover:scale-110 transition-all shadow-lg hover:shadow-xl active:scale-95 flex items-center justify-center group"
                 onClick={() => handleSwipe('left')}
               >
-                <X className="w-8 h-8 text-red-500" strokeWidth={2.5} />
-              </Button>
+                <X className="w-7 h-7 text-red-500 group-hover:scale-110 transition-transform" strokeWidth={2.5} />
+              </button>
               
-              {/* View Profile Button */}
-              <Button
-                size="lg"
-                className="w-16 h-16 rounded-full bg-card hover:bg-muted border-2 border-border shadow-lg hover:scale-105 transition-all"
+              {/* Info Button */}
+              <button
+                className="w-14 h-14 rounded-full bg-white hover:bg-blue-50 border-2 border-blue-500/30 hover:border-blue-500 shadow-lg hover:shadow-xl hover:scale-110 transition-all active:scale-95 flex items-center justify-center group"
                 onClick={() => setShowDetailedProfile(true)}
               >
-                <Zap className="w-6 h-6 text-primary" />
-              </Button>
+                <Zap className="w-6 h-6 text-blue-500 group-hover:scale-110 transition-transform" />
+              </button>
 
               {/* Like Button */}
-              <Button
-                size="lg"
-                className="w-20 h-20 rounded-full bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 shadow-xl hover:shadow-2xl hover:scale-105 transition-all"
+              <button
+                className="w-16 h-16 rounded-full bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 shadow-xl hover:shadow-2xl hover:scale-110 transition-all active:scale-95 flex items-center justify-center group"
                 onClick={() => handleSwipe('right')}
               >
-                <Heart className="w-8 h-8 fill-current text-white" />
-              </Button>
+                <Heart className="w-7 h-7 fill-current text-white group-hover:scale-110 transition-transform" />
+              </button>
             </div>
 
-            {/* Swipe Hint */}
-            <p className="text-center text-xs text-muted-foreground mt-3">
+            {/* Hint Text */}
+            <p className="text-center text-xs text-muted-foreground mt-3 opacity-70">
               Swipe right to like • Swipe left to pass
             </p>
           </div>
