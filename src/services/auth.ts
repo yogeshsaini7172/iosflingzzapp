@@ -105,12 +105,8 @@ export async function googleLogin() {
   // Use timing protection wrapper with retries
   return await withTimingProtection(async () => {
     console.log('🔍 Starting Google Auth with comprehensive timing protection...');
-    
-    // Ensure all systems are ready
-    const systemsReady = await ensureAllSystemsReady();
-    if (!systemsReady) {
-      throw new Error('System initialization failed - please restart the app');
-    }
+
+    // Removed redundant ensureAllSystemsReady call here because withTimingProtection already calls it
 
     const platform = Capacitor.getPlatform();
     console.log('📱 Platform confirmed and ready:', platform);
@@ -129,7 +125,7 @@ export async function googleLogin() {
       const provider = new GoogleAuthProvider();
       provider.addScope('email');
       provider.addScope('profile');
-      
+
       const result = await signInWithPopup(auth, provider);
       console.log("✅ Web Google authentication successful:", result.user.uid);
       return { user: result.user, error: null };

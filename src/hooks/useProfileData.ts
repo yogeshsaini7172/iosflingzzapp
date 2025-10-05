@@ -31,20 +31,23 @@ export interface Profile {
   height?: number;
   body_type?: string;
   skin_tone?: string;
-  
+  face_type?: string;
+  love_language?: string;
+  lifestyle?: string;
+
   // Personality & Values (arrays to support multiple selections)
   personality_traits?: string[]; // up to 3
   values?: string[]; // up to 3
   mindset?: string[]; // 1-2 selections
-  
+
   // Education/Profession
   education_level?: string;
   profession?: string;
   profession_description?: string;
-  
+
   // Goals & Interests
   relationship_goals?: string[]; // max 3
-  
+
   // Legacy fields for compatibility
   personality_type?: string;
   show_profile?: boolean;
@@ -204,15 +207,13 @@ export const useProfileData = () => {
 
   const updateProfile = async (updates: Partial<Profile>) => {
     const userId = getCurrentUserId();
-    
+
     try {
-      // Transform only legacy fields, but always keep profile_images as array
+      // Keep all fields including arrays
       const dbUpdates: any = {
         ...updates,
         personality_type: updates.personality_traits?.[0] || undefined,
       };
-      // Remove only personality_traits (legacy), but DO NOT delete or transform profile_images
-      delete dbUpdates.personality_traits;
 
       const { error: fnError } = await callDataFunction('update_profile', { profile: dbUpdates });
       if (fnError) throw fnError;

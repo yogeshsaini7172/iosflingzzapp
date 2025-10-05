@@ -28,7 +28,7 @@ import {
   Edit,
   Trash2
 } from "lucide-react";
-import { useProfilesFeed } from '@/hooks/useProfilesFeed';
+import { fetchProfilesFeed } from '@/services/profile';
 import { useToast } from '@/hooks/use-toast';
 import ChatNotificationBadge from '@/components/ui/chat-notification-badge';
 import HeartNotificationBadge from '@/components/ui/heart-notification-badge';
@@ -46,7 +46,8 @@ interface FlingzzHomeProps {
 }
 
 const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
-  const { profiles, loading } = useProfilesFeed();
+  const [profiles, setProfiles] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showWhoLikedMe, setShowWhoLikedMe] = useState(false);
@@ -195,6 +196,27 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
       }
     };
     fetchUserLocation();
+  }, []);
+
+  // Fetch profiles on mount
+  useEffect(() => {
+    const loadProfiles = async () => {
+      try {
+        const response = await fetchProfilesFeed();
+        if (response.profiles) {
+          setProfiles(response.profiles);
+        } else {
+          setProfiles([]);
+        }
+      } catch (error) {
+        console.error('Error fetching profiles:', error);
+        setProfiles([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfiles();
   }, []);
 
   // Compute compatibility when current profile changes

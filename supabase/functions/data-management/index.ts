@@ -293,13 +293,22 @@ serve(async (req: Request) => {
                 ? [qualities.personality_type] 
                 : normalizedProfile.personality_traits || [];
                 
-            normalizedProfile.values = Array.isArray(qualities.values) 
-              ? qualities.values 
-              : Array.isArray(normalizedProfile.values_array)
-                ? normalizedProfile.values_array
-                : normalizedProfile.values
-                  ? [normalizedProfile.values]
-                  : [];
+                console.log(`[DEBUG] Normalizing values for profile ${normalizedProfile.user_id}:`, {
+                  qualities_values: qualities.values,
+                  qualities_values_type: typeof qualities.values,
+                  values_array: normalizedProfile.values_array,
+                  top_level_values: normalizedProfile.values
+                });
+
+                normalizedProfile.values = Array.isArray(qualities.values)
+                  ? qualities.values
+                  : Array.isArray(normalizedProfile.values_array)
+                    ? normalizedProfile.values_array
+                    : normalizedProfile.values
+                      ? [normalizedProfile.values]
+                      : [];
+
+                console.log(`[DEBUG] Final normalized values:`, normalizedProfile.values);
                   
             normalizedProfile.mindset = Array.isArray(qualities.mindset) 
               ? qualities.mindset 

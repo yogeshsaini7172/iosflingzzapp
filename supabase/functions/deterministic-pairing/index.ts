@@ -317,7 +317,8 @@ serve(async (req) => {
         qualities, requirements, date_of_birth, gender,
         university, bio, profile_images, height, body_type,
         skin_tone, face_type, values, mindset, personality_type,
-        personality_traits, relationship_goals
+        personality_traits, relationship_goals, lifestyle,
+        love_language, field_of_study, profession, education_level
       `)
       .gte('total_qcs', qcsRangeMin)
       .lte('total_qcs', qcsRangeMax)

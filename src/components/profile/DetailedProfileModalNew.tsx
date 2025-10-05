@@ -415,49 +415,49 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
                 </h4>
                 <div className="space-y-3 text-sm">
                   {profile.personality_type && (
-                    <div className="flex justify-between">
+                    <div className="flex flex-col sm:flex-row sm:justify-between">
                       <span className="text-foreground/70">Personality Type:</span>
                       <span className="font-medium text-foreground">{profile.personality_type}</span>
                     </div>
                   )}
                   {profile.personality_traits && profile.personality_traits.length > 0 && (
-                    <div className="flex justify-between">
+                    <div className="flex flex-col sm:flex-row sm:justify-between">
                       <span className="text-foreground/70">Personality Traits:</span>
                       <span className="font-medium text-foreground">{formatArrayField(profile.personality_traits)}</span>
                     </div>
                   )}
                   {profile.lifestyle && (
-                    <div className="flex justify-between">
+                    <div className="flex flex-col sm:flex-row sm:justify-between">
                       <span className="text-foreground/70">Lifestyle:</span>
                       <span className="font-medium text-foreground">{profile.lifestyle}</span>
                     </div>
                   )}
                   {profile.love_language && (
-                    <div className="flex justify-between">
+                    <div className="flex flex-col sm:flex-row sm:justify-between">
                       <span className="text-foreground/70">Love Language:</span>
                       <span className="font-medium text-foreground">{profile.love_language}</span>
                     </div>
                   )}
                   {profile.communication_style && (
-                    <div className="flex justify-between">
+                    <div className="flex flex-col sm:flex-row sm:justify-between">
                       <span className="text-foreground/70">Communication Style:</span>
                       <span className="font-medium text-foreground">{profile.communication_style}</span>
                     </div>
                   )}
                   {profile.values && profile.values.length > 0 && (
-                    <div className="flex justify-between">
+                    <div className="flex flex-col sm:flex-row sm:justify-between">
                       <span className="text-foreground/70">Values:</span>
                       <span className="font-medium text-foreground">{formatArrayField(profile.values)}</span>
                     </div>
                   )}
                   {profile.mindset && profile.mindset.length > 0 && (
-                    <div className="flex justify-between">
+                    <div className="flex flex-col sm:flex-row sm:justify-between">
                       <span className="text-foreground/70">Mindset:</span>
                       <span className="font-medium text-foreground">{formatArrayField(profile.mindset)}</span>
                     </div>
                   )}
                   {profile.relationship_goals && (
-                    <div className="flex justify-between">
+                    <div className="flex flex-col sm:flex-row sm:justify-between">
                       <span className="text-foreground/70">Relationship Goals:</span>
                       <span className="font-medium text-foreground">
                         {Array.isArray(profile.relationship_goals)

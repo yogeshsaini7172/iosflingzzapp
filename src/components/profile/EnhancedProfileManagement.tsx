@@ -505,48 +505,65 @@ useEffect(() => {
   };
 
   const handleSaveChanges = async () => {
-    // Update profile
-    await updateProfile({
-      first_name: formData.firstName,
-      last_name: formData.lastName,
-      bio: formData.bio,
-      education_level: formData.educationLevel,
-      profession: formData.profession,
-      profession_description: formData.professionDescription,
-      height: formData.height ? parseInt(formData.height) : undefined,
-      body_type: formData.bodyType,
-      skin_tone: formData.skinTone,
-      // love_language: formData.loveLanguage, // Temporarily commented - type issue
-      // lifestyle: formData.lifestyle, // Temporarily commented - type issue
-      personality_traits: formData.personalityTraits,
-      // values: formData.values, // Temporarily commented - type issue
-      // mindset: formData.mindset, // Temporarily commented - type issue
-      relationship_goals: formData.relationshipGoals,
-      interests: formData.interests,
-      profile_images: formData.profileImages,
-      show_profile: formData.isVisible
-    });
+    try {
+      // Update profile
+      await updateProfile({
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        university: formData.university,
+        bio: formData.bio,
+        education_level: formData.educationLevel,
+        profession: formData.profession,
+        profession_description: formData.professionDescription,
+        height: formData.height ? parseInt(formData.height) : undefined,
+        body_type: formData.bodyType,
+        skin_tone: formData.skinTone,
+        face_type: formData.faceType,
+        love_language: formData.loveLanguage,
+        lifestyle: formData.lifestyle,
+        personality_traits: formData.personalityTraits,
+        values: formData.values,
+        mindset: formData.mindset,
+        relationship_goals: formData.relationshipGoals,
+        interests: formData.interests,
+        profile_images: formData.profileImages,
+        show_profile: formData.isVisible
+      });
 
-  // Update preferences with validation
-  const preferencesToUpdate = {
-    preferred_gender: formData.preferredGender.length > 0 ? formData.preferredGender as any : ['male', 'female'], // Default to both if empty
-    age_range_min: formData.ageRangeMin,
-    age_range_max: formData.ageRangeMax,
-    height_range_min: formData.heightRangeMin,
-    height_range_max: formData.heightRangeMax,
-    preferred_body_types: formData.preferredBodyTypes.length > 0 ? formData.preferredBodyTypes : ['slim', 'athletic', 'average'], // Default to common types
-    preferred_values: formData.preferredValues.length > 0 ? formData.preferredValues : ['family_oriented', 'career_focused'], // Default values
-    preferred_mindset: formData.preferredMindset.length > 0 ? formData.preferredMindset : ['growth_mindset'], // Default mindset
-    preferred_personality_traits: formData.preferredPersonalityTraits.length > 0 ? formData.preferredPersonalityTraits : ['outgoing', 'empathetic'], // Default traits
-    preferred_relationship_goals: formData.preferredRelationshipGoal.length > 0 ? formData.preferredRelationshipGoal : ['serious_relationship'], // Default goal
-    preferred_skin_types: formData.preferredSkinTone,
-    preferred_face_types: formData.preferredFaceType,
-    preferred_love_languages: formData.preferredLoveLanguage,
-    preferred_lifestyle: formData.preferredLifestyle,
-    preferred_professions: formData.preferredProfessions
-  };
+      // Update preferences with validation
+      const preferencesToUpdate = {
+        preferred_gender: formData.preferredGender.length > 0 ? formData.preferredGender as any : ['male', 'female'], // Default to both if empty
+        age_range_min: formData.ageRangeMin,
+        age_range_max: formData.ageRangeMax,
+        height_range_min: formData.heightRangeMin,
+        height_range_max: formData.heightRangeMax,
+        preferred_body_types: formData.preferredBodyTypes.length > 0 ? formData.preferredBodyTypes : ['slim', 'athletic', 'average'], // Default to common types
+        preferred_values: formData.preferredValues.length > 0 ? formData.preferredValues : ['family_oriented', 'career_focused'], // Default values
+        preferred_mindset: formData.preferredMindset.length > 0 ? formData.preferredMindset : ['growth_mindset'], // Default mindset
+        preferred_personality_traits: formData.preferredPersonalityTraits.length > 0 ? formData.preferredPersonalityTraits : ['outgoing', 'empathetic'], // Default traits
+        preferred_relationship_goals: formData.preferredRelationshipGoal.length > 0 ? formData.preferredRelationshipGoal : ['serious_relationship'], // Default goal
+        preferred_skin_types: formData.preferredSkinTone,
+        preferred_face_types: formData.preferredFaceType,
+        preferred_love_languages: formData.preferredLoveLanguage,
+        preferred_lifestyle: formData.preferredLifestyle,
+        preferred_professions: formData.preferredProfessions
+      };
 
-  await updatePreferences(preferencesToUpdate);
+      await updatePreferences(preferencesToUpdate);
+
+      // Show success notification
+      toast({
+        title: "Profile Saved",
+        description: "Your profile and preferences have been saved successfully.",
+      });
+    } catch (error: any) {
+      console.error("Error saving profile:", error);
+      toast({
+        title: "Save Failed",
+        description: error.message || "Failed to save profile. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const toggleArrayItem = (field: keyof typeof formData, item: string, maxItems: number = 10) => {

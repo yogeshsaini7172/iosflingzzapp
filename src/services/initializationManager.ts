@@ -25,25 +25,33 @@ let initState: InitializationState = {
 // Check if Capacitor is fully initialized (only for native platforms)
 export async function ensureCapacitorReady(): Promise<boolean> {
   console.log('🔄 Checking Capacitor readiness...');
-  
-  for (let attempts = 0; attempts < 50; attempts++) {
+
+  for (let attempts = 0; attempts < 100; attempts++) { // Increased from 50 to 100
     try {
-      if (typeof Capacitor !== 'undefined' && 
-          typeof Capacitor.getPlatform === 'function' &&
-          Capacitor.getPlatform() !== 'web') {
-        
+      const capacitorDefined = typeof Capacitor !== 'undefined';
+      const getPlatformDefined = typeof Capacitor?.getPlatform === 'function';
+      const platform = capacitorDefined && getPlatformDefined ? Capacitor.getPlatform() : 'unknown';
+      const isNative = platform !== 'web';
+
+      console.log(`🔄 Capacitor check attempt ${attempts + 1}: defined=${capacitorDefined}, getPlatform=${getPlatformDefined}, platform=${platform}, isNative=${isNative}`);
+
+      if (capacitorDefined && getPlatformDefined && isNative) {
         console.log('✅ Capacitor is ready');
         initState.capacitor = true;
         return true;
+      } else if (platform === 'web') {
+        console.log('ℹ️ Web platform detected, skipping Capacitor readiness check');
+        initState.capacitor = true; // Mark as ready for web
+        return true;
       }
-    } catch (error) {
-      // Continue waiting
+    } catch (error: any) {
+      console.warn(`⚠️ Capacitor check error on attempt ${attempts + 1}:`, error.message);
     }
-    
+
     await new Promise(resolve => setTimeout(resolve, 100));
   }
 
-  console.error('❌ Capacitor readiness timeout');
+  console.error('❌ Capacitor readiness timeout after 100 attempts');
   return false;
 }
 
