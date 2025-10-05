@@ -88,16 +88,19 @@ export function ProfessionCombobox({
           aria-expanded={open}
           className="w-full justify-between rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 hover:border-primary transition-colors"
         >
-          <span className={cn(!value && !multiple && "text-muted-foreground")}>
+          <span className={cn(
+            "truncate text-left",
+            !value && !multiple && "text-muted-foreground"
+          )}>
             {displayValue}
           </span>
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50 flex-shrink-0" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0" align="start">
+      <PopoverContent className="w-[calc(100vw-2rem)] sm:w-full max-w-md p-0 z-50" align="start" sideOffset={4}>
         <Command className="w-full">
           <CommandInput placeholder="Search profession..." className="h-9" />
-          <CommandList>
+          <CommandList className="max-h-[300px]">
             <CommandEmpty>No profession found.</CommandEmpty>
             <CommandGroup>
               {PROFESSIONS.map((profession) => {
@@ -109,11 +112,12 @@ export function ProfessionCombobox({
                     key={profession}
                     value={profession}
                     onSelect={() => handleSelect(profession)}
+                    className="text-sm"
                   >
-                    {profession}
+                    <span className="flex-1 truncate">{profession}</span>
                     <Check
                       className={cn(
-                        "ml-auto h-4 w-4",
+                        "ml-2 h-4 w-4 flex-shrink-0",
                         isSelected ? "opacity-100" : "opacity-0"
                       )}
                     />
