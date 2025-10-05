@@ -890,142 +890,141 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
 
             {/* Desktop Button Design - Premium & Impressive */}
             <div className="hidden md:block mt-8">
-              <div className="flex items-center justify-center gap-12 relative">
-                {/* Connecting Arc Animation */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-32 pointer-events-none">
-                  <svg className="w-full h-full opacity-20" viewBox="0 0 256 128">
-                    <path
-                      d="M 20 64 Q 128 20, 236 64"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      fill="none"
-                      className="text-muted-foreground"
-                      strokeDasharray="5,5"
-                    />
-                  </svg>
-                </div>
-
-                {/* Pass Button - Premium Desktop */}
+              {/* Large Profile Card Container */}
+              <div className="flex items-center justify-center gap-16 relative">
+                {/* Pass Button - Premium Desktop with Advanced Effects */}
                 <div className="relative group">
+                  {/* Outer Glow Ring */}
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-red-500/20 to-red-600/20 blur-2xl scale-150 opacity-0 group-hover:opacity-100 transition-all duration-700" />
+                  
                   <button
                     onClick={() => handleSwipe('left')}
-                    className="relative w-28 h-28 rounded-full bg-gradient-to-br from-white via-gray-50 to-gray-100 shadow-2xl flex items-center justify-center transition-all duration-500 hover:scale-110 hover:shadow-red-500/30 active:scale-95 border-4 border-white hover:border-red-100 overflow-hidden"
+                    className="relative w-36 h-36 rounded-full bg-gradient-to-br from-white via-gray-50 to-gray-100 shadow-2xl flex items-center justify-center transition-all duration-500 hover:scale-110 active:scale-95 border-4 border-white overflow-hidden group"
                   >
-                    {/* Animated Background Layers */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-red-500/0 via-red-500/0 to-red-500/0 group-hover:from-red-500/10 group-hover:via-red-500/5 group-hover:to-transparent transition-all duration-500" />
+                    {/* Animated Shimmer Background */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                     
-                    {/* Rotating Glow Ring */}
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                      <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-red-400 animate-spin" style={{ animationDuration: '3s' }} />
-                    </div>
+                    {/* Multiple Rotating Rings */}
+                    <div className="absolute inset-2 rounded-full border-4 border-transparent border-t-red-400 border-r-red-300 animate-spin opacity-0 group-hover:opacity-100 transition-opacity" style={{ animationDuration: '3s' }} />
+                    <div className="absolute inset-4 rounded-full border-3 border-transparent border-b-red-500 animate-spin opacity-0 group-hover:opacity-100 transition-opacity" style={{ animationDuration: '2s', animationDirection: 'reverse' }} />
                     
-                    {/* Pulse Rings */}
-                    <div className="absolute inset-0 rounded-full border-2 border-red-500/30 scale-100 group-hover:scale-150 opacity-100 group-hover:opacity-0 transition-all duration-700" />
-                    <div className="absolute inset-0 rounded-full border-2 border-red-500/20 scale-100 group-hover:scale-125 opacity-100 group-hover:opacity-0 transition-all duration-500 delay-100" />
+                    {/* Expanding Pulse Rings */}
+                    <div className="absolute inset-0 rounded-full border-4 border-red-500/40 scale-100 group-hover:scale-150 opacity-100 group-hover:opacity-0 transition-all duration-1000" />
+                    <div className="absolute inset-0 rounded-full border-4 border-red-400/30 scale-100 group-hover:scale-125 opacity-100 group-hover:opacity-0 transition-all duration-700 delay-100" />
                     
-                    {/* Icon Container */}
-                    <div className="relative z-10">
-                      <X className="w-14 h-14 text-red-500 group-hover:text-red-600 group-hover:scale-110 group-hover:rotate-180 transition-all duration-500" strokeWidth={2.5} />
+                    {/* Icon with Advanced Animation */}
+                    <div className="relative z-10 transform group-hover:scale-110 group-hover:rotate-180 transition-all duration-500">
+                      <X className="w-16 h-16 text-red-500 drop-shadow-xl" strokeWidth={3} />
                     </div>
                     
                     {/* Floating Particles */}
-                    <div className="absolute top-4 right-4 w-2 h-2 bg-red-400 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-opacity" />
-                    <div className="absolute bottom-6 left-6 w-3 h-3 bg-red-300 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping transition-opacity" style={{ animationDelay: '0.2s' }} />
+                    <div className="absolute top-6 right-8 w-3 h-3 bg-red-400 rounded-full opacity-0 group-hover:opacity-100 animate-ping" />
+                    <div className="absolute bottom-8 left-8 w-4 h-4 bg-red-300 rounded-full opacity-0 group-hover:opacity-100 animate-ping" style={{ animationDelay: '0.2s' }} />
+                    <div className="absolute top-10 left-6 w-2 h-2 bg-red-200 rounded-full opacity-0 group-hover:opacity-100 animate-ping" style={{ animationDelay: '0.4s' }} />
                   </button>
                   
-                  {/* Label with Glow */}
-                  <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 whitespace-nowrap">
-                    <div className="relative">
-                      <span className="text-base font-bold text-muted-foreground group-hover:text-red-500 transition-all duration-300 relative z-10">
+                  {/* Label with Enhanced Design */}
+                  <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                    <div className="relative px-6 py-2 bg-gradient-to-r from-red-500/10 via-red-500/20 to-red-500/10 rounded-full backdrop-blur-sm border border-red-500/30">
+                      <span className="text-xl font-bold bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent">
                         Pass
                       </span>
-                      <div className="absolute inset-0 bg-red-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="absolute inset-0 bg-red-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      Press ←
+                    <p className="text-sm text-muted-foreground mt-2 text-center opacity-70 group-hover:opacity-100 transition-opacity">
+                      Press ← arrow
                     </p>
                   </div>
                 </div>
 
-                {/* Center Divider with Animation */}
-                <div className="relative z-0">
-                  <div className="w-px h-24 bg-gradient-to-b from-transparent via-border to-transparent" />
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-primary animate-pulse" />
-                </div>
-
-                {/* Like Button - Premium Desktop */}
+                {/* Like Button - Premium Desktop with Maximum Effects */}
                 <div className="relative group">
+                  {/* Outer Mega Glow */}
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-500/30 via-rose-500/30 to-pink-600/30 blur-3xl scale-150 opacity-0 group-hover:opacity-100 transition-all duration-700 animate-pulse" />
+                  
                   <button
                     onClick={() => handleSwipe('right')}
-                    className="relative w-32 h-32 rounded-full bg-gradient-to-br from-pink-500 via-rose-500 to-pink-600 shadow-2xl flex items-center justify-center transition-all duration-500 hover:scale-110 hover:shadow-pink-500/50 active:scale-95 border-4 border-pink-300 overflow-hidden"
+                    className="relative w-40 h-40 rounded-full bg-gradient-to-br from-pink-500 via-rose-500 to-pink-600 shadow-2xl flex items-center justify-center transition-all duration-500 hover:scale-115 active:scale-95 border-4 border-pink-300 overflow-hidden group"
                   >
-                    {/* Shimmer Effect */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                    {/* Dual Shimmer Effects */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-transparent via-pink-300/30 to-transparent translate-y-full group-hover:-translate-y-full transition-transform duration-1500" />
                     
-                    {/* Rotating Glow Rings */}
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                      <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-pink-200 border-r-pink-300 animate-spin" style={{ animationDuration: '2s' }} />
-                    </div>
+                    {/* Triple Rotating Glow Rings */}
+                    <div className="absolute inset-1 rounded-full border-4 border-transparent border-t-pink-200 border-r-pink-300 animate-spin opacity-0 group-hover:opacity-100 transition-opacity" style={{ animationDuration: '2s' }} />
+                    <div className="absolute inset-3 rounded-full border-3 border-transparent border-b-pink-100 border-l-pink-200 animate-spin opacity-0 group-hover:opacity-100 transition-opacity" style={{ animationDuration: '3s', animationDirection: 'reverse' }} />
+                    <div className="absolute inset-5 rounded-full border-2 border-transparent border-t-white/50 animate-spin opacity-0 group-hover:opacity-100 transition-opacity" style={{ animationDuration: '1.5s' }} />
                     
-                    {/* Pulsing Background */}
-                    <div className="absolute inset-0 bg-white/20 animate-pulse rounded-full" />
+                    {/* Pulsing Neon Background */}
+                    <div className="absolute inset-0 bg-gradient-radial from-white/20 to-transparent animate-pulse rounded-full" />
                     
-                    {/* Expanding Rings */}
-                    <div className="absolute inset-0 rounded-full border-2 border-pink-300/50 scale-100 group-hover:scale-150 opacity-100 group-hover:opacity-0 transition-all duration-700" />
-                    <div className="absolute inset-0 rounded-full border-2 border-pink-300/30 scale-100 group-hover:scale-125 opacity-100 group-hover:opacity-0 transition-all duration-500 delay-100" />
+                    {/* Multiple Expanding Rings */}
+                    <div className="absolute inset-0 rounded-full border-4 border-pink-300/60 scale-100 group-hover:scale-150 opacity-100 group-hover:opacity-0 transition-all duration-1000" />
+                    <div className="absolute inset-0 rounded-full border-4 border-pink-300/40 scale-100 group-hover:scale-125 opacity-100 group-hover:opacity-0 transition-all duration-700 delay-150" />
+                    <div className="absolute inset-0 rounded-full border-3 border-pink-200/30 scale-100 group-hover:scale-110 opacity-100 group-hover:opacity-0 transition-all duration-500 delay-300" />
                     
-                    {/* Icon with Glow */}
-                    <div className="relative z-10">
-                      <Heart className="w-16 h-16 text-white fill-white group-hover:scale-125 transition-all duration-500 drop-shadow-2xl" strokeWidth={2.5} />
-                      {/* Heart Beat Animation */}
+                    {/* Icon with Heart Beat Animation */}
+                    <div className="relative z-10 transform group-hover:scale-125 transition-all duration-500">
+                      <Heart className="w-20 h-20 text-white fill-white drop-shadow-2xl animate-pulse" strokeWidth={2.5} />
+                      {/* Multiple Heart Beat Layers */}
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                        <Heart className="w-16 h-16 text-pink-200 fill-pink-200 animate-ping" strokeWidth={2.5} />
+                        <Heart className="w-20 h-20 text-pink-200 fill-pink-200 animate-ping" strokeWidth={2} />
+                      </div>
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-70" style={{ animationDelay: '0.2s' }}>
+                        <Heart className="w-24 h-24 text-pink-100 fill-pink-100 animate-ping" strokeWidth={1.5} />
                       </div>
                     </div>
                     
-                    {/* Floating Hearts */}
-                    <div className="absolute top-3 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Heart className="w-3 h-3 text-pink-200 fill-pink-200 animate-bounce" strokeWidth={2} />
+                    {/* Advanced Floating Hearts Cluster */}
+                    <div className="absolute top-4 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Heart className="w-4 h-4 text-pink-200 fill-pink-200 animate-bounce" strokeWidth={2} />
                     </div>
-                    <div className="absolute bottom-4 left-5 opacity-0 group-hover:opacity-100 transition-opacity" style={{ transitionDelay: '0.1s' }}>
-                      <Heart className="w-4 h-4 text-pink-100 fill-pink-100 animate-bounce" strokeWidth={2} style={{ animationDelay: '0.2s' }} />
+                    <div className="absolute bottom-6 left-7 opacity-0 group-hover:opacity-100 transition-opacity" style={{ transitionDelay: '0.1s' }}>
+                      <Heart className="w-5 h-5 text-pink-100 fill-pink-100 animate-bounce" strokeWidth={2} style={{ animationDelay: '0.2s' }} />
                     </div>
-                    <div className="absolute top-6 left-4 opacity-0 group-hover:opacity-100 transition-opacity" style={{ transitionDelay: '0.2s' }}>
-                      <Heart className="w-2.5 h-2.5 text-pink-200 fill-pink-200 animate-bounce" strokeWidth={2} style={{ animationDelay: '0.4s' }} />
+                    <div className="absolute top-8 left-5 opacity-0 group-hover:opacity-100 transition-opacity" style={{ transitionDelay: '0.2s' }}>
+                      <Heart className="w-3 h-3 text-pink-200 fill-pink-200 animate-bounce" strokeWidth={2} style={{ animationDelay: '0.4s' }} />
+                    </div>
+                    <div className="absolute bottom-10 right-8 opacity-0 group-hover:opacity-100 transition-opacity" style={{ transitionDelay: '0.15s' }}>
+                      <Heart className="w-3.5 h-3.5 text-white fill-white animate-bounce" strokeWidth={2} style={{ animationDelay: '0.3s' }} />
                     </div>
                     
-                    {/* Sparkle Particles */}
-                    <div className="absolute top-5 right-6 w-2 h-2 bg-yellow-300 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping" />
-                    <div className="absolute bottom-7 left-7 w-2 h-2 bg-yellow-200 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-ping" style={{ animationDelay: '0.3s' }} />
+                    {/* Sparkle Particles Array */}
+                    <div className="absolute top-6 right-10 w-2 h-2 bg-yellow-300 rounded-full opacity-0 group-hover:opacity-100 animate-ping" />
+                    <div className="absolute bottom-8 left-10 w-2 h-2 bg-yellow-200 rounded-full opacity-0 group-hover:opacity-100 animate-ping" style={{ animationDelay: '0.3s' }} />
+                    <div className="absolute top-12 left-8 w-1.5 h-1.5 bg-yellow-100 rounded-full opacity-0 group-hover:opacity-100 animate-ping" style={{ animationDelay: '0.5s' }} />
+                    <div className="absolute bottom-12 right-10 w-1.5 h-1.5 bg-pink-100 rounded-full opacity-0 group-hover:opacity-100 animate-ping" style={{ animationDelay: '0.4s' }} />
                   </button>
                   
-                  {/* Label with Glow */}
-                  <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 whitespace-nowrap">
-                    <div className="relative">
-                      <span className="text-base font-bold text-pink-400 group-hover:text-pink-300 transition-all duration-300 relative z-10">
+                  {/* Enhanced Label with Glow */}
+                  <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                    <div className="relative px-6 py-2 bg-gradient-to-r from-pink-500/10 via-pink-500/20 to-pink-500/10 rounded-full backdrop-blur-sm border border-pink-500/30">
+                      <span className="text-xl font-bold bg-gradient-to-r from-pink-400 to-rose-600 bg-clip-text text-transparent">
                         Like
                       </span>
-                      <div className="absolute inset-0 bg-pink-500/30 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="absolute inset-0 bg-pink-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      Press →
+                    <p className="text-sm text-muted-foreground mt-2 text-center opacity-70 group-hover:opacity-100 transition-opacity">
+                      Press → arrow
                     </p>
                   </div>
                 </div>
               </div>
               
-              {/* Desktop Keyboard Hint */}
-              <div className="mt-16 text-center">
-                <div className="inline-flex items-center gap-3 px-6 py-3 bg-muted/50 backdrop-blur-sm rounded-full border border-border/50">
-                  <div className="flex items-center gap-2">
-                    <kbd className="px-3 py-1.5 bg-background border border-border rounded text-xs font-mono shadow-sm">←</kbd>
-                    <span className="text-xs text-muted-foreground">Pass</span>
+              {/* Desktop Keyboard Hint - Enhanced Design */}
+              <div className="mt-24 flex justify-center">
+                <div className="inline-flex items-center gap-6 px-8 py-4 bg-gradient-to-r from-muted/30 via-muted/50 to-muted/30 backdrop-blur-md rounded-2xl border border-border/50 shadow-xl">
+                  <div className="flex items-center gap-3">
+                    <kbd className="px-4 py-2.5 bg-gradient-to-br from-background to-muted border-2 border-border rounded-lg text-sm font-mono shadow-lg font-bold">←</kbd>
+                    <span className="text-sm text-muted-foreground font-medium">Pass</span>
                   </div>
-                  <div className="w-px h-4 bg-border" />
-                  <div className="flex items-center gap-2">
-                    <kbd className="px-3 py-1.5 bg-background border border-border rounded text-xs font-mono shadow-sm">→</kbd>
-                    <span className="text-xs text-muted-foreground">Like</span>
+                  <div className="w-px h-8 bg-gradient-to-b from-transparent via-border to-transparent" />
+                  <div className="flex items-center gap-3">
+                    <kbd className="px-4 py-2.5 bg-gradient-to-br from-background to-muted border-2 border-border rounded-lg text-sm font-mono shadow-lg font-bold">→</kbd>
+                    <span className="text-sm text-muted-foreground font-medium">Like</span>
                   </div>
+                  <div className="w-px h-8 bg-gradient-to-b from-transparent via-border to-transparent" />
+                  <span className="text-xs text-muted-foreground/70 italic">or click buttons</span>
                 </div>
               </div>
             </div>
