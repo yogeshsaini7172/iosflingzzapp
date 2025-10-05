@@ -203,6 +203,28 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
     fetchUserLocation();
   }, []);
 
+  // Keyboard navigation for desktop (Arrow keys)
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Only activate on desktop (not mobile)
+      if (window.innerWidth < 768) return;
+      
+      // Prevent if user is typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        handleSwipe('left');
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        handleSwipe('right');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [currentIndex, profiles]); // Re-bind when profile changes
+
   // Fetch profiles on mount
   useEffect(() => {
     const loadProfiles = async () => {
@@ -928,7 +950,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
             {/* Hint Text */}
             <p className="text-center text-xs text-muted-foreground mt-12 opacity-70">
               <span className="md:hidden">Swipe card or drag button</span>
-              <span className="hidden md:inline">Click buttons or swipe card</span>
+              <span className="hidden md:inline">Click buttons, use ← → arrow keys, or swipe card</span>
             </p>
           </div>
         ) : (
