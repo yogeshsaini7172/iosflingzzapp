@@ -534,9 +534,9 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
               )}
 
               {/* Main Content */}
-              <div className="flex flex-col h-[600px]">
-                {/* Full Photo Section - 80% */}
-                <div className="relative h-[480px] overflow-hidden">
+              <div className="flex flex-col h-[650px]">
+                {/* Photo Section - 60% */}
+                <div className="relative h-[390px] overflow-hidden">
                   <img
                     src={currentProfile.profile_images?.[currentImageIndex] || currentProfile.profile_images?.[0] || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=600&fit=crop&crop=face'}
                     alt={currentProfile.first_name}
@@ -620,17 +620,60 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                   </div>
                 </div>
 
-                {/* Bottom Section - 20% */}
-                <div className="p-4 bg-card flex items-center justify-center">
+                {/* Expanded Bottom Section - 40% */}
+                <div className="p-5 bg-card space-y-3 overflow-y-auto">
+                  {/* Bio Preview */}
+                  {currentProfile.bio && (
+                    <div>
+                      <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                        {currentProfile.bio}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Additional Info Grid */}
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    {currentProfile.height && (
+                      <div className="flex items-center space-x-2">
+                        <span className="text-muted-foreground">📏</span>
+                        <span className="font-medium">{currentProfile.height}cm</span>
+                      </div>
+                    )}
+                    {currentProfile.profession && (
+                      <div className="flex items-center space-x-2">
+                        <span className="text-muted-foreground">💼</span>
+                        <span className="font-medium truncate">{currentProfile.profession}</span>
+                      </div>
+                    )}
+                    {currentProfile.relationship_goals && currentProfile.relationship_goals.length > 0 && (
+                      <div className="flex items-center space-x-2 col-span-2">
+                        <span className="text-muted-foreground">💕</span>
+                        <span className="font-medium truncate">{currentProfile.relationship_goals[0]}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* More Interests */}
+                  {currentProfile.interests && currentProfile.interests.length > 2 && (
+                    <div className="flex flex-wrap gap-2">
+                      {currentProfile.interests.slice(2, 5).map((interest, index) => (
+                        <span
+                          key={index}
+                          className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full border border-primary/20"
+                        >
+                          {interest}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Swipe Up Button */}
                   <button 
-                    className="flex items-center space-x-2 bg-gray-600 text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-gray-700 transition-colors"
+                    className="w-full flex items-center justify-center space-x-2 bg-muted/50 text-foreground px-4 py-2.5 rounded-xl text-xs font-medium hover:bg-muted transition-colors border border-border/20"
                     onClick={() => setShowDetailedProfile(true)}
                   >
-                    <Zap className="w-4 h-4" />
-                    <span>Swipe up for more</span>
-                    <div className="w-4 h-4 flex items-center justify-center">
-                      <div className="w-0 h-0 border-l-2 border-r-2 border-b-2 border-transparent border-b-white" />
-                    </div>
+                    <Zap className="w-3.5 h-3.5" />
+                    <span>Swipe up for full profile</span>
                   </button>
                 </div>
               </div>
