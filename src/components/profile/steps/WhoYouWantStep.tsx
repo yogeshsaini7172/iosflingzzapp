@@ -52,11 +52,27 @@ const WhoYouWantStep = ({ data, onChange }: WhoYouWantStepProps) => {
 
   const toggleArrayItem = (field: string, item: string, maxItems: number = 10) => {
     const currentArray = data[field] || [];
-    const newArray = currentArray.includes(item)
-      ? currentArray.filter((i: string) => i !== item)
-      : currentArray.length < maxItems
-      ? [...currentArray, item]
-      : currentArray;
+    
+    // Special handling for "Any" or "All" - they mean "all options accepted"
+    if (item === "Any" || item === "All") {
+      if (!currentArray.includes(item)) {
+        // Selecting "Any"/"All" clears all specific selections
+        updateField(field, [item]);
+      } else {
+        // Deselecting "Any"/"All" clears the preference
+        updateField(field, []);
+      }
+      return;
+    }
+    
+    // If selecting a specific option, remove "Any"/"All" first
+    const filteredArray = currentArray.filter((i: string) => i !== "Any" && i !== "All");
+    
+    const newArray = filteredArray.includes(item)
+      ? filteredArray.filter((i: string) => i !== item)
+      : filteredArray.length < maxItems
+      ? [...filteredArray, item]
+      : filteredArray;
     
     updateField(field, newArray);
   };
