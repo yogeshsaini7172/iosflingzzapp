@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Grad Sync</string>
-    <string name="title_activity_main">Grad Sync</string>
+    <string name="app_name">FLINGZZ</string>
+    <string name="title_activity_main">FLINGZZ</string>
     <string name="package_name">com.gradsync.app</string>
     <string name="custom_url_scheme">com.gradsync.app</string>
 </resources>

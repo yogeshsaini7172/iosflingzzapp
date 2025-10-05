@@ -21,6 +21,7 @@ import { fetchWithFirebaseAuth } from "./lib/fetchWithFirebaseAuth";
 import RebuiltChatSystem from "./components/chat/RebuiltChatSystem";
 import { initializeMobileApp } from "./mobile/capacitor";
 import LoadingScreen from "./components/ui/loading-screen";
+import { WebLandingPage } from "./components/landing/WebLandingPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,6 +42,7 @@ const AuthenticatedApp = () => {
   const [hasProfile, setHasProfile] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(true);
   const [profileCheckComplete, setProfileCheckComplete] = useState(false);
+  const [showLandingPage, setShowLandingPage] = useState(true);
 
   // Initialize mobile app
   useEffect(() => {
@@ -160,6 +162,17 @@ const AuthenticatedApp = () => {
   if (isLoading || checkingProfile) {
     return (
       <LoadingScreen />
+    );
+  }
+
+  // Show landing page first (web only)
+  if (showLandingPage) {
+    return (
+      <TooltipProvider>
+        <div className="min-h-screen">
+          <WebLandingPage onEnterApp={() => setShowLandingPage(false)} />
+        </div>
+      </TooltipProvider>
     );
   }
 

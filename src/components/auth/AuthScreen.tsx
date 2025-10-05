@@ -133,7 +133,7 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
             Welcome to FLINGZZ
           </h1>
           <p className="text-muted-foreground font-prompt text-lg">
-            The verified student dating platform 💜
+            The verified premium dating platform 💜
           </p>
         </div>
 
@@ -144,7 +144,7 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
               Join the Community
             </CardTitle>
             <CardDescription className="text-base font-prompt">
-              Connect with verified students from top universities ✨
+              Connect with verified users who share your vibe ✨
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -285,7 +285,7 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
             <div className="mt-6 text-center space-y-2">
               <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground font-prompt">
                 <Shield className="w-4 h-4 text-success" />
-                <span>Only verified students can join</span>
+                <span>Only verified users can join</span>
               </div>
               <p className="text-xs text-muted-foreground font-prompt">
                 ID verification required after signup • Safe & Secure
