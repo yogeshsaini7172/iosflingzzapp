@@ -534,9 +534,9 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
               )}
 
               {/* Main Content */}
-              <div className="flex flex-col h-[580px]">
-                {/* Photo Section - 65% */}
-                <div className="relative h-[377px] overflow-hidden">
+              <div className="flex flex-col h-[600px]">
+                {/* Photo Section - 80% */}
+                <div className="relative h-[480px] overflow-hidden">
                   <img
                     src={currentProfile.profile_images?.[currentImageIndex] || currentProfile.profile_images?.[0] || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=600&fit=crop&crop=face'}
                     alt={currentProfile.first_name}
@@ -620,8 +620,8 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                   </div>
                 </div>
 
-                {/* Bottom Info Section - 35% */}
-                <div className="p-4 bg-card space-y-2.5 overflow-y-auto max-h-[203px]">
+                {/* Bottom Info Section - 20% */}
+                <div className="p-4 bg-card space-y-3 overflow-y-auto max-h-[120px]">
                   {/* Bio Preview */}
                   {currentProfile.bio && (
                     <div>
@@ -680,7 +680,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex justify-center space-x-6 mt-4">
+            <div className="flex justify-center space-x-6 mt-6">
               <Button
                 size="lg"
                 variant="outline"

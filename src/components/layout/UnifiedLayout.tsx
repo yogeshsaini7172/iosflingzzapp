@@ -12,6 +12,7 @@ import HeartNotificationBadge from '@/components/ui/heart-notification-badge';
 import WhoLikedMeModal from '@/components/likes/WhoLikedMeModal';
 import ChatRequestsModal from '@/components/notifications/ChatRequestsModal';
 import LikeNotificationHandler from '@/components/swipe/LikeNotificationHandler';
+import MobileBottomNav from '@/components/navigation/MobileBottomNav';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 
@@ -118,6 +119,9 @@ const UnifiedLayout = ({ children, title = "FLINGZZ", showHeader = true }: Unifi
       <main className="pb-20">
         {children}
       </main>
+
+      {/* Bottom Navigation */}
+      <MobileBottomNav />
 
       {/* Optional Modals - kept for flexibility */}
       <WhoLikedMeModal 
