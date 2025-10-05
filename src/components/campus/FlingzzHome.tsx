@@ -619,47 +619,23 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                   className="w-full h-full object-cover"
                 />
                 
-                {/* Combined Navigation + Action Arrows - Mobile Only */}
-                <div className="md:hidden">
-                  <button
-                    onClick={() => handleSwipe('left')}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 w-16 h-16 bg-gradient-to-br from-red-500/90 to-red-600/90 hover:from-red-600 hover:to-red-700 rounded-full flex items-center justify-center backdrop-blur-md transition-all hover:scale-110 active:scale-95 shadow-2xl border-2 border-red-400/50"
-                  >
-                    <div className="flex flex-col items-center">
-                      <X className="w-7 h-7 text-white" strokeWidth={3} />
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => handleSwipe('right')}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 w-16 h-16 bg-gradient-to-br from-pink-500/90 via-rose-500/90 to-pink-600/90 hover:from-pink-600 hover:to-rose-700 rounded-full flex items-center justify-center backdrop-blur-md transition-all hover:scale-110 active:scale-95 shadow-2xl border-2 border-pink-400/50"
-                  >
-                    <div className="flex flex-col items-center">
-                      <Heart className="w-7 h-7 text-white fill-white" strokeWidth={3} />
-                    </div>
-                  </button>
-                </div>
-
-                {/* Desktop Navigation Arrows - Combined with Actions */}
-                <div className="hidden md:flex">
-                  <button
-                    onClick={() => handleSwipe('left')}
-                    className="absolute left-6 top-1/2 -translate-y-1/2 w-20 h-20 bg-white/95 dark:bg-gray-800/95 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-full flex items-center justify-center backdrop-blur-md transition-all hover:scale-110 active:scale-95 shadow-2xl border-2 border-red-500/50 group"
-                  >
-                    <div className="flex flex-col items-center">
-                      <X className="w-8 h-8 text-red-500 group-hover:text-red-600 transition-colors" strokeWidth={2.5} />
-                      <span className="text-[9px] font-bold text-red-500 mt-0.5">PASS</span>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => handleSwipe('right')}
-                    className="absolute right-6 top-1/2 -translate-y-1/2 w-20 h-20 bg-gradient-to-br from-pink-500 via-rose-500 to-pink-600 hover:from-pink-600 hover:to-rose-700 rounded-full flex items-center justify-center backdrop-blur-md transition-all hover:scale-110 active:scale-95 shadow-2xl border-2 border-pink-400"
-                  >
-                    <div className="flex flex-col items-center">
-                      <Heart className="w-8 h-8 text-white fill-white" strokeWidth={2.5} />
-                      <span className="text-[9px] font-bold text-white mt-0.5">LIKE</span>
-                    </div>
-                  </button>
-                </div>
+                {/* Image Navigation Arrows - for multiple images */}
+                {currentProfile.profile_images?.length > 1 && (
+                  <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 flex justify-between px-3 pointer-events-none">
+                    <button
+                      onClick={() => handleImageNavigation('prev')}
+                      className="w-10 h-10 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center backdrop-blur-md transition-all hover:scale-110 active:scale-95 pointer-events-auto"
+                    >
+                      <span className="text-white text-xl font-bold">‹</span>
+                    </button>
+                    <button
+                      onClick={() => handleImageNavigation('next')}
+                      className="w-10 h-10 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center backdrop-blur-md transition-all hover:scale-110 active:scale-95 pointer-events-auto"
+                    >
+                      <span className="text-white text-xl font-bold">›</span>
+                    </button>
+                  </div>
+                )}
 
                 {/* Swipe Direction Indicators */}
                 {Math.abs(swipeOffset) > 20 && (
@@ -762,9 +738,30 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
               </div>
             </div>
 
+            {/* Action Buttons at Bottom */}
+            <div className="mt-6 flex items-center justify-center gap-8">
+              {/* Pass Button */}
+              <button
+                onClick={() => handleSwipe('left')}
+                className="relative w-16 h-16 md:w-20 md:h-20 rounded-full bg-white dark:bg-gray-800 shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 border-2 border-gray-200 dark:border-gray-700 hover:border-red-400 dark:hover:border-red-500 group"
+              >
+                <X className="w-7 h-7 md:w-9 md:h-9 text-red-500 group-hover:text-red-600 transition-colors" strokeWidth={2.5} />
+                <div className="absolute inset-0 rounded-full bg-red-500/0 group-hover:bg-red-500/10 transition-colors" />
+              </button>
+
+              {/* Like Button */}
+              <button
+                onClick={() => handleSwipe('right')}
+                className="relative w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-pink-500 via-rose-500 to-pink-600 shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 border-2 border-pink-400"
+              >
+                <Heart className="w-9 h-9 md:w-11 md:h-11 text-white fill-white drop-shadow-lg" strokeWidth={2} />
+                <div className="absolute inset-0 rounded-full bg-white/0 group-hover:bg-white/20 transition-colors" />
+              </button>
+            </div>
+
             {/* Mobile Hint Text */}
-            <p className="text-center text-xs text-muted-foreground mt-4 opacity-70 md:hidden">
-              Tap arrows or swipe card
+            <p className="text-center text-xs text-muted-foreground mt-4 opacity-70">
+              Tap buttons or swipe card
             </p>
           </div>
         ) : (
