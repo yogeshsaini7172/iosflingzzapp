@@ -1122,64 +1122,68 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
 
       {/* Photo Viewer Modal */}
       <Dialog open={showPhotoViewer} onOpenChange={setShowPhotoViewer}>
-        <DialogContent className="max-w-4xl h-[90vh] p-0 bg-black/95 border-none">
-          <div className="relative w-full h-full flex items-center justify-center">
+        <DialogContent className="w-screen h-screen max-w-none p-0 bg-black border-none m-0">
+          <div className="relative w-full h-full flex flex-col items-center justify-center">
             {/* Close Button */}
             <button
               onClick={() => setShowPhotoViewer(false)}
-              className="absolute top-4 right-4 z-50 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md transition-all"
+              className="absolute top-4 right-4 z-50 w-12 h-12 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center backdrop-blur-md transition-all active:scale-95"
             >
               <X className="w-6 h-6 text-white" />
             </button>
 
             {/* Image Counter */}
             {currentProfile?.profile_images && currentProfile.profile_images.length > 1 && (
-              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-black/50 backdrop-blur-md px-4 py-2 rounded-full">
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full">
                 <span className="text-white text-sm font-medium">
                   {photoViewerIndex + 1} / {currentProfile.profile_images.length}
                 </span>
               </div>
             )}
 
-            {/* Main Image */}
-            <img
-              src={currentProfile?.profile_images?.[photoViewerIndex] || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&h=1200&fit=crop&crop=face'}
-              alt={`${currentProfile?.first_name} - Photo ${photoViewerIndex + 1}`}
-              className="max-w-full max-h-full object-contain"
-            />
+            {/* Main Image Container */}
+            <div className="w-full h-full flex items-center justify-center p-4 pb-24">
+              <img
+                src={currentProfile?.profile_images?.[photoViewerIndex] || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&h=1200&fit=crop&crop=face'}
+                alt={`${currentProfile?.first_name} - Photo ${photoViewerIndex + 1}`}
+                className="w-full h-full object-contain"
+              />
+            </div>
 
             {/* Navigation Arrows */}
             {currentProfile?.profile_images && currentProfile.profile_images.length > 1 && (
               <>
                 <button
                   onClick={() => setPhotoViewerIndex((prev) => (prev - 1 + currentProfile.profile_images.length) % currentProfile.profile_images.length)}
-                  className="absolute left-4 w-14 h-14 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md transition-all hover:scale-110"
+                  className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 w-12 h-12 md:w-14 md:h-14 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center backdrop-blur-md transition-all active:scale-95"
                 >
-                  <span className="text-white text-3xl font-bold">‹</span>
+                  <span className="text-white text-2xl md:text-3xl font-bold">‹</span>
                 </button>
                 <button
                   onClick={() => setPhotoViewerIndex((prev) => (prev + 1) % currentProfile.profile_images.length)}
-                  className="absolute right-4 w-14 h-14 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md transition-all hover:scale-110"
+                  className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 w-12 h-12 md:w-14 md:h-14 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center backdrop-blur-md transition-all active:scale-95"
                 >
-                  <span className="text-white text-3xl font-bold">›</span>
+                  <span className="text-white text-2xl md:text-3xl font-bold">›</span>
                 </button>
               </>
             )}
 
             {/* Thumbnail Strip */}
             {currentProfile?.profile_images && currentProfile.profile_images.length > 1 && (
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 bg-black/50 backdrop-blur-md p-2 rounded-xl max-w-full overflow-x-auto">
-                {currentProfile.profile_images.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setPhotoViewerIndex(idx)}
-                    className={`w-16 h-16 rounded-lg overflow-hidden transition-all flex-shrink-0 ${
-                      idx === photoViewerIndex ? 'ring-2 ring-pink-500 scale-110' : 'opacity-60 hover:opacity-100'
-                    }`}
-                  >
-                    <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
-                  </button>
-                ))}
+              <div className="absolute bottom-4 left-0 right-0 px-4">
+                <div className="flex gap-2 bg-black/60 backdrop-blur-md p-2 rounded-xl mx-auto w-fit max-w-[calc(100vw-2rem)] overflow-x-auto scrollbar-hide">
+                  {currentProfile.profile_images.map((img, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setPhotoViewerIndex(idx)}
+                      className={`w-14 h-14 md:w-16 md:h-16 rounded-lg overflow-hidden transition-all flex-shrink-0 ${
+                        idx === photoViewerIndex ? 'ring-2 ring-pink-500 scale-105' : 'opacity-60 hover:opacity-100'
+                      }`}
+                    >
+                      <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
           </div>
