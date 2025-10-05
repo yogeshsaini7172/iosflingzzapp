@@ -574,7 +574,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
       {/* Main Swipe Section */}
       <div className="flex-1 flex items-center justify-center px-3 pb-24">
         {currentProfile ? (
-          <div className="w-full max-w-3xl h-[calc(100vh-200px)] flex flex-col">
+          <div className="w-full max-w-6xl h-[calc(100vh-180px)] flex flex-col">
             {/* Swipe Card */}
             <div 
               className="relative bg-card rounded-3xl overflow-hidden shadow-2xl flex-1 transition-all duration-300"
