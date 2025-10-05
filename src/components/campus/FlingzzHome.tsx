@@ -53,6 +53,8 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
   const [showWhoLikedMe, setShowWhoLikedMe] = useState(false);
   const [showDetailedProfile, setShowDetailedProfile] = useState(false);
   const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({});
+  const [showPhotoViewer, setShowPhotoViewer] = useState(false);
+  const [photoViewerIndex, setPhotoViewerIndex] = useState(0);
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [newThreadContent, setNewThreadContent] = useState('');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -616,7 +618,11 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                 <img
                   src={currentProfile.profile_images?.[currentImageIndex] || currentProfile.profile_images?.[0] || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=600&fit=crop&crop=face'}
                   alt={currentProfile.first_name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover cursor-pointer"
+                  onClick={() => {
+                    setPhotoViewerIndex(currentImageIndex);
+                    setShowPhotoViewer(true);
+                  }}
                 />
                 
                 {/* Image Navigation Arrows - for multiple images */}
@@ -1113,6 +1119,72 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
         onClose={() => setShowWhoLikedMe(false)}
         onLike={() => {}}
       />
+
+      {/* Photo Viewer Modal */}
+      <Dialog open={showPhotoViewer} onOpenChange={setShowPhotoViewer}>
+        <DialogContent className="max-w-4xl h-[90vh] p-0 bg-black/95 border-none">
+          <div className="relative w-full h-full flex items-center justify-center">
+            {/* Close Button */}
+            <button
+              onClick={() => setShowPhotoViewer(false)}
+              className="absolute top-4 right-4 z-50 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md transition-all"
+            >
+              <X className="w-6 h-6 text-white" />
+            </button>
+
+            {/* Image Counter */}
+            {currentProfile?.profile_images && currentProfile.profile_images.length > 1 && (
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-black/50 backdrop-blur-md px-4 py-2 rounded-full">
+                <span className="text-white text-sm font-medium">
+                  {photoViewerIndex + 1} / {currentProfile.profile_images.length}
+                </span>
+              </div>
+            )}
+
+            {/* Main Image */}
+            <img
+              src={currentProfile?.profile_images?.[photoViewerIndex] || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&h=1200&fit=crop&crop=face'}
+              alt={`${currentProfile?.first_name} - Photo ${photoViewerIndex + 1}`}
+              className="max-w-full max-h-full object-contain"
+            />
+
+            {/* Navigation Arrows */}
+            {currentProfile?.profile_images && currentProfile.profile_images.length > 1 && (
+              <>
+                <button
+                  onClick={() => setPhotoViewerIndex((prev) => (prev - 1 + currentProfile.profile_images.length) % currentProfile.profile_images.length)}
+                  className="absolute left-4 w-14 h-14 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md transition-all hover:scale-110"
+                >
+                  <span className="text-white text-3xl font-bold">‹</span>
+                </button>
+                <button
+                  onClick={() => setPhotoViewerIndex((prev) => (prev + 1) % currentProfile.profile_images.length)}
+                  className="absolute right-4 w-14 h-14 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md transition-all hover:scale-110"
+                >
+                  <span className="text-white text-3xl font-bold">›</span>
+                </button>
+              </>
+            )}
+
+            {/* Thumbnail Strip */}
+            {currentProfile?.profile_images && currentProfile.profile_images.length > 1 && (
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 bg-black/50 backdrop-blur-md p-2 rounded-xl max-w-full overflow-x-auto">
+                {currentProfile.profile_images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setPhotoViewerIndex(idx)}
+                    className={`w-16 h-16 rounded-lg overflow-hidden transition-all flex-shrink-0 ${
+                      idx === photoViewerIndex ? 'ring-2 ring-pink-500 scale-110' : 'opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </UnifiedLayout>
   );
 };
