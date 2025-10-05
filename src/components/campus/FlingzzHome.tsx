@@ -572,9 +572,9 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
       </div>
 
       {/* Main Swipe Section */}
-      <div className="flex-1 flex items-center justify-center px-2 pb-4">
+      <div className="flex-1 flex items-center justify-center px-2 pb-2">
         {currentProfile ? (
-          <div className="w-full max-w-md h-[calc(100vh-180px)] md:max-w-2xl md:h-[calc(100vh-80px)] flex flex-col">
+          <div className="w-full max-w-md h-[calc(100vh-160px)] md:max-w-2xl md:h-[calc(100vh-60px)] flex flex-col">
             {/* Swipe Card */}
             <div 
               className="relative bg-card rounded-3xl overflow-hidden shadow-2xl flex-1 transition-all duration-300"
@@ -739,28 +739,28 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
             </div>
 
             {/* Action Buttons at Bottom */}
-            <div className="mt-4 flex items-center justify-center gap-6 md:gap-10">
+            <div className="mt-3 flex items-center justify-center gap-5 md:gap-8">
               {/* Pass Button */}
               <button
                 onClick={() => handleSwipe('left')}
-                className="relative w-14 h-14 md:w-18 md:h-18 rounded-full bg-white dark:bg-gray-800 shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 border-2 border-gray-200 dark:border-gray-700 hover:border-red-400 dark:hover:border-red-500 group"
+                className="relative w-12 h-12 md:w-16 md:h-16 rounded-full bg-white dark:bg-gray-800 shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 border-2 border-gray-200 dark:border-gray-700 hover:border-red-400 dark:hover:border-red-500 group"
               >
-                <X className="w-6 h-6 md:w-8 md:h-8 text-red-500 group-hover:text-red-600 transition-colors" strokeWidth={2.5} />
+                <X className="w-5 h-5 md:w-7 md:h-7 text-red-500 group-hover:text-red-600 transition-colors" strokeWidth={2.5} />
                 <div className="absolute inset-0 rounded-full bg-red-500/0 group-hover:bg-red-500/10 transition-colors" />
               </button>
 
               {/* Like Button */}
               <button
                 onClick={() => handleSwipe('right')}
-                className="relative w-18 h-18 md:w-22 md:h-22 rounded-full bg-gradient-to-br from-pink-500 via-rose-500 to-pink-600 shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 border-2 border-pink-400"
+                className="relative w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-pink-500 via-rose-500 to-pink-600 shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 border-2 border-pink-400"
               >
-                <Heart className="w-8 h-8 md:w-10 md:h-10 text-white fill-white drop-shadow-lg" strokeWidth={2} />
+                <Heart className="w-7 h-7 md:w-9 md:h-9 text-white fill-white drop-shadow-lg" strokeWidth={2} />
                 <div className="absolute inset-0 rounded-full bg-white/0 group-hover:bg-white/20 transition-colors" />
               </button>
             </div>
 
             {/* Mobile Hint Text */}
-            <p className="text-center text-xs text-muted-foreground mt-3 opacity-70">
+            <p className="text-center text-xs text-muted-foreground mt-2 opacity-70">
               Tap buttons or swipe card
             </p>
           </div>
