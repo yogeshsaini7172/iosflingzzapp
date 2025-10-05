@@ -573,7 +573,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                 )}
 
                 {/* Profile Info Overlay at Bottom */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-6">
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-6 pb-4">
                   <div className="text-white">
                     <h3 className="text-3xl font-bold mb-1 flex items-center space-x-2">
                       <span>{currentProfile.first_name}</span>
@@ -623,7 +623,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                     )}
 
                     {currentProfile.interests && currentProfile.interests.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-2 mb-3">
                         {currentProfile.interests.slice(0, 2).map((interest, index) => (
                           <span
                             key={index}
@@ -634,6 +634,16 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                         ))}
                       </div>
                     )}
+
+                    {/* Swipe Up Button */}
+                    <button 
+                      className="w-full flex items-center justify-center space-x-2 bg-white/20 backdrop-blur-md text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-white/30 transition-colors border border-white/30"
+                      onClick={() => setShowDetailedProfile(true)}
+                    >
+                      <Zap className="w-4 h-4" />
+                      <span>Swipe up for full profile</span>
+                      <span className="text-xs">↑</span>
+                    </button>
                   </div>
                 </div>
               </div>
