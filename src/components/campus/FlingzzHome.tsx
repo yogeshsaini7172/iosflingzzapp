@@ -316,15 +316,22 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
   const handleTouchEnd = () => {
     if (!isSwiping) return;
     const deltaX = touchCurrentX - touchStartX;
-    const threshold = 100;
+    const threshold = 120; // Increased threshold for better control
     
     if (Math.abs(deltaX) > threshold) {
-      if (deltaX > 0) {
-        handleSwipe('right');
-      } else {
-        handleSwipe('left');
-      }
+      // Animate card flying off screen before switching
+      const direction = deltaX > 0 ? 1 : -1;
+      setSwipeOffset(direction * window.innerWidth);
+      
+      setTimeout(() => {
+        if (deltaX > 0) {
+          handleSwipe('right');
+        } else {
+          handleSwipe('left');
+        }
+      }, 300); // Match the animation duration
     } else {
+      // Spring back animation
       setSwipeOffset(0);
     }
     
@@ -581,9 +588,14 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
             <div 
               className="relative bg-card rounded-3xl overflow-hidden shadow-2xl flex-1 transition-all duration-300"
               style={{
-                transform: `translateX(${swipeOffset}px) rotate(${swipeOffset * 0.05}deg)`,
-                transition: isSwiping ? 'none' : 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                boxShadow: '0 20px 60px -10px rgba(0, 0, 0, 0.3), 0 0 40px -10px rgba(var(--primary), 0.2)'
+                transform: window.innerWidth < 768 
+                  ? `translateX(${swipeOffset}px) rotate(${swipeOffset * 0.05}deg)` 
+                  : 'none',
+                transition: isSwiping ? 'none' : 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                boxShadow: '0 20px 60px -10px rgba(0, 0, 0, 0.3), 0 0 40px -10px rgba(var(--primary), 0.2)',
+                opacity: window.innerWidth < 768 && Math.abs(swipeOffset) > 50 
+                  ? Math.max(1 - Math.abs(swipeOffset) / 400, 0.3)
+                  : 1
               }}
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
@@ -643,16 +655,24 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                   </div>
                 )}
 
-                {/* Swipe Direction Indicators */}
-                {Math.abs(swipeOffset) > 20 && (
-                  <div className={`absolute inset-0 flex items-center justify-center transition-opacity ${getSwipeIndicatorColor()}`}>
-                    <div className={`rounded-full p-4 backdrop-blur-md transition-all animate-scale-in ${
-                      swipeOffset > 0 ? 'bg-green-500/30' : 'bg-red-500/30'
-                    }`}>
+                {/* Swipe Direction Indicators - Mobile Only */}
+                {window.innerWidth < 768 && Math.abs(swipeOffset) > 30 && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div 
+                      className={`rounded-full p-6 backdrop-blur-md transition-all duration-300 ${
+                        swipeOffset > 0 
+                          ? 'bg-gradient-to-br from-pink-500/40 to-rose-500/40 scale-110' 
+                          : 'bg-gradient-to-br from-red-500/40 to-orange-500/40 scale-110'
+                      }`}
+                      style={{
+                        transform: `scale(${1 + Math.abs(swipeOffset) / 500})`,
+                        opacity: Math.min(Math.abs(swipeOffset) / 150, 1)
+                      }}
+                    >
                       {swipeOffset > 0 ? (
-                        <Heart className="w-12 h-12 fill-current drop-shadow-2xl" />
+                        <Heart className="w-16 h-16 text-white fill-white drop-shadow-2xl animate-pulse" />
                       ) : (
-                        <X className="w-12 h-12 drop-shadow-2xl" />
+                        <X className="w-16 h-16 text-white drop-shadow-2xl animate-pulse" strokeWidth={3} />
                       )}
                     </div>
                   </div>
@@ -744,30 +764,35 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
               </div>
             </div>
 
-            {/* Action Buttons at Bottom */}
-            <div className="mt-3 flex items-center justify-center gap-5 md:gap-8">
+            {/* Action Buttons at Bottom - Desktop Only */}
+            <div className="mt-3 hidden md:flex items-center justify-center gap-8">
               {/* Pass Button */}
               <button
                 onClick={() => handleSwipe('left')}
-                className="relative w-12 h-12 md:w-16 md:h-16 rounded-full bg-white dark:bg-gray-800 shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 border-2 border-gray-200 dark:border-gray-700 hover:border-red-400 dark:hover:border-red-500 group"
+                className="relative w-16 h-16 rounded-full bg-white dark:bg-gray-800 shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 border-2 border-gray-200 dark:border-gray-700 hover:border-red-400 dark:hover:border-red-500 group"
               >
-                <X className="w-5 h-5 md:w-7 md:h-7 text-red-500 group-hover:text-red-600 transition-colors" strokeWidth={2.5} />
+                <X className="w-7 h-7 text-red-500 group-hover:text-red-600 transition-colors" strokeWidth={2.5} />
                 <div className="absolute inset-0 rounded-full bg-red-500/0 group-hover:bg-red-500/10 transition-colors" />
               </button>
 
               {/* Like Button */}
               <button
                 onClick={() => handleSwipe('right')}
-                className="relative w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-pink-500 via-rose-500 to-pink-600 shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 border-2 border-pink-400"
+                className="relative w-20 h-20 rounded-full bg-gradient-to-br from-pink-500 via-rose-500 to-pink-600 shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 border-2 border-pink-400"
               >
-                <Heart className="w-7 h-7 md:w-9 md:h-9 text-white fill-white drop-shadow-lg" strokeWidth={2} />
+                <Heart className="w-9 h-9 text-white fill-white drop-shadow-lg" strokeWidth={2} />
                 <div className="absolute inset-0 rounded-full bg-white/0 group-hover:bg-white/20 transition-colors" />
               </button>
             </div>
 
-            {/* Mobile Hint Text */}
-            <p className="text-center text-xs text-muted-foreground mt-2 opacity-70">
-              Tap buttons or swipe card
+            {/* Mobile: Swipe Instruction */}
+            <p className="text-center text-xs text-muted-foreground mt-3 opacity-70 md:hidden">
+              👈 Swipe to pass • Swipe to like 👉
+            </p>
+            
+            {/* Desktop: Button Instruction */}
+            <p className="text-center text-xs text-muted-foreground mt-2 opacity-70 hidden md:block">
+              Use buttons or keyboard arrows
             </p>
           </div>
         ) : (
