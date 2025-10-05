@@ -574,7 +574,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
       {/* Main Swipe Section */}
       <div className="flex-1 flex items-center justify-center px-2 pb-20">
         {currentProfile ? (
-          <div className="w-full max-w-md h-[calc(100vh-200px)] md:max-w-lg md:h-[calc(100vh-180px)] flex flex-col">
+          <div className="w-full max-w-md h-[calc(100vh-160px)] md:max-w-lg md:h-[calc(100vh-140px)] flex flex-col">
             {/* Swipe Card */}
             <div 
               className="relative bg-card rounded-3xl overflow-hidden shadow-2xl flex-1 transition-all duration-300"
@@ -762,12 +762,12 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                 
                 {/* Pass Label with Icon */}
                 <div className={`flex flex-col items-center transition-all duration-300 relative z-10 ${
-                  sliderDragX < -50 ? 'scale-125' : 'scale-100'
+                  sliderDragX < -50 ? 'scale-110' : 'scale-100'
                 }`}>
-                  <X className={`w-6 h-6 mb-1 transition-all duration-300 ${
+                  <X className={`w-4 h-4 mb-1 transition-all duration-300 ${
                     sliderDragX < -80 ? 'text-red-500 animate-bounce' : 'text-muted-foreground'
                   }`} strokeWidth={2.5} />
-                  <span className={`text-xs font-bold transition-all duration-300 ${
+                  <span className={`text-[10px] font-bold transition-all duration-300 ${
                     sliderDragX < -50 ? 'text-red-500' : 'text-muted-foreground'
                   }`}>
                     Pass
@@ -776,12 +776,12 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
 
                 {/* Like Label with Icon */}
                 <div className={`flex flex-col items-center transition-all duration-300 relative z-10 ${
-                  sliderDragX > 50 ? 'scale-125' : 'scale-100'
+                  sliderDragX > 50 ? 'scale-110' : 'scale-100'
                 }`}>
-                  <Heart className={`w-6 h-6 mb-1 transition-all duration-300 ${
+                  <Heart className={`w-4 h-4 mb-1 transition-all duration-300 ${
                     sliderDragX > 80 ? 'text-pink-500 fill-pink-500 animate-bounce' : 'text-muted-foreground'
                   }`} strokeWidth={2.5} />
-                  <span className={`text-xs font-bold transition-all duration-300 ${
+                  <span className={`text-[10px] font-bold transition-all duration-300 ${
                     sliderDragX > 50 ? 'text-pink-500' : 'text-muted-foreground'
                   }`}>
                     Like
@@ -804,7 +804,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                   onTouchEnd={handleSliderEnd}
                 >
                   <div 
-                    className={`w-16 h-16 rounded-full shadow-2xl flex items-center justify-center relative overflow-hidden transition-all duration-300 ${
+                    className={`w-14 h-14 rounded-full shadow-2xl flex items-center justify-center relative overflow-hidden transition-all duration-300 ${
                       sliderDragX < -80 ? 'bg-gradient-to-br from-red-500 to-red-600 ring-4 ring-red-300/50 animate-pulse' :
                       sliderDragX > 80 ? 'bg-gradient-to-br from-pink-500 via-rose-500 to-pink-600 ring-4 ring-pink-300/50 animate-pulse' :
                       'bg-gradient-to-br from-white to-gray-100'
@@ -827,7 +827,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                     {/* Icon with Advanced States */}
                     {sliderDragX < -80 ? (
                       <div className="relative">
-                        <X className="w-9 h-9 text-white drop-shadow-2xl animate-bounce" strokeWidth={3.5} />
+                        <X className="w-7 h-7 text-white drop-shadow-2xl animate-bounce" strokeWidth={3.5} />
                         {/* Explosion particles */}
                         <div className="absolute -top-2 -right-2 w-3 h-3 bg-red-300 rounded-full animate-ping" />
                         <div className="absolute -bottom-2 -left-2 w-3 h-3 bg-red-300 rounded-full animate-ping" style={{ animationDelay: '0.15s' }} />
@@ -835,14 +835,14 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                       </div>
                     ) : sliderDragX < -50 ? (
                       <div className="relative">
-                        <Heart className="w-8 h-8 text-red-500 transition-all duration-200" strokeWidth={2.5} />
+                        <Heart className="w-6 h-6 text-red-500 transition-all duration-200" strokeWidth={2.5} />
                         <div className="absolute inset-0 flex items-center justify-center">
                           <div className="w-0.5 h-10 bg-red-500 rotate-12" style={{ opacity: (Math.abs(sliderDragX) - 50) / 30 }} />
                         </div>
                       </div>
                     ) : sliderDragX > 80 ? (
                       <div className="relative">
-                        <Heart className="w-9 h-9 text-white fill-white drop-shadow-2xl animate-bounce" strokeWidth={3.5} />
+                        <Heart className="w-7 h-7 text-white fill-white drop-shadow-2xl animate-bounce" strokeWidth={3.5} />
                         {/* Heart particles */}
                         <div className="absolute -top-2 -right-2 w-3 h-3 bg-pink-300 rounded-full animate-ping" />
                         <div className="absolute -bottom-2 -left-2 w-3 h-3 bg-pink-300 rounded-full animate-ping" style={{ animationDelay: '0.1s' }} />
@@ -851,14 +851,14 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                       </div>
                     ) : sliderDragX > 50 ? (
                       <Heart 
-                        className="w-8 h-8 text-pink-500 transition-all duration-200"
+                        className="w-6 h-6 text-pink-500 transition-all duration-200"
                         style={{
                           fill: `rgba(236, 72, 153, ${(sliderDragX - 50) / 50})`
                         }}
                         strokeWidth={2.5}
                       />
                     ) : (
-                      <Heart className="w-8 h-8 text-muted-foreground transition-all duration-200" strokeWidth={2.5} />
+                      <Heart className="w-6 h-6 text-muted-foreground transition-all duration-200" strokeWidth={2.5} />
                     )}
                   </div>
                 </div>
@@ -895,9 +895,9 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                 <div className="relative group">
                   <button
                     onClick={() => handleSwipe('left')}
-                    className="relative w-20 h-20 rounded-full bg-white dark:bg-gray-800 shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 border-2 border-gray-200 dark:border-gray-700 group-hover:border-red-400 dark:group-hover:border-red-500"
+                    className="relative w-16 h-16 rounded-full bg-white dark:bg-gray-800 shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 border-2 border-gray-200 dark:border-gray-700 group-hover:border-red-400 dark:group-hover:border-red-500"
                   >
-                    <X className="w-10 h-10 text-red-500 group-hover:text-red-600 transition-colors" strokeWidth={2.5} />
+                    <X className="w-8 h-8 text-red-500 group-hover:text-red-600 transition-colors" strokeWidth={2.5} />
                     <div className="absolute inset-0 rounded-full bg-red-500/0 group-hover:bg-red-500/10 transition-colors" />
                   </button>
                   
@@ -912,9 +912,9 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                 <div className="relative group">
                   <button
                     onClick={() => handleSwipe('right')}
-                    className="relative w-24 h-24 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 border-2 border-pink-400"
+                    className="relative w-18 h-18 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 border-2 border-pink-400"
                   >
-                    <Heart className="w-12 h-12 text-white fill-white drop-shadow-lg" strokeWidth={2} />
+                    <Heart className="w-9 h-9 text-white fill-white drop-shadow-lg" strokeWidth={2} />
                     <div className="absolute inset-0 rounded-full bg-white/0 group-hover:bg-white/20 transition-colors" />
                   </button>
                   
