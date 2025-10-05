@@ -766,23 +766,6 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
             <p className="text-center text-xs text-muted-foreground mt-4 opacity-70 md:hidden">
               Tap arrows or swipe card
             </p>
-            
-            {/* Desktop Keyboard Hint */}
-            <div className="hidden md:block mt-8">
-              <div className="flex justify-center">
-                <div className="inline-flex items-center gap-4 px-6 py-3 bg-muted/50 backdrop-blur-sm rounded-xl border border-border/50">
-                  <div className="flex items-center gap-2">
-                    <kbd className="px-3 py-1.5 bg-background border border-border rounded-md text-xs font-mono">←</kbd>
-                    <span className="text-xs text-muted-foreground">Pass</span>
-                  </div>
-                  <div className="w-px h-6 bg-border" />
-                  <div className="flex items-center gap-2">
-                    <kbd className="px-3 py-1.5 bg-background border border-border rounded-md text-xs font-mono">→</kbd>
-                    <span className="text-xs text-muted-foreground">Like</span>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         ) : (
           <div className="max-w-sm mx-auto text-center space-y-6">
