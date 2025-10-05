@@ -574,7 +574,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
       {/* Main Swipe Section */}
       <div className="flex-1 flex items-center justify-center px-2 pb-20">
         {currentProfile ? (
-          <div className="w-full max-w-md h-[calc(100vh-200px)] md:max-w-lg md:h-[calc(100vh-140px)] flex flex-col">
+          <div className="w-full max-w-md h-[calc(100vh-200px)] md:max-w-2xl md:h-[calc(100vh-120px)] flex flex-col">
             {/* Swipe Card */}
             <div 
               className="relative bg-card rounded-3xl overflow-hidden shadow-2xl flex-1 transition-all duration-300"
@@ -619,23 +619,47 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                   className="w-full h-full object-cover"
                 />
                 
-                {/* Image Navigation Arrows */}
-                {currentProfile.profile_images?.length > 1 && (
-                  <>
-                    <button
-                      onClick={() => handleImageNavigation('prev')}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center backdrop-blur-md transition-all hover:scale-110 active:scale-95"
-                    >
-                      <span className="text-white text-xl font-bold">‹</span>
-                    </button>
-                    <button
-                      onClick={() => handleImageNavigation('next')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center backdrop-blur-md transition-all hover:scale-110 active:scale-95"
-                    >
-                      <span className="text-white text-xl font-bold">›</span>
-                    </button>
-                  </>
-                )}
+                {/* Combined Navigation + Action Arrows - Mobile Only */}
+                <div className="md:hidden">
+                  <button
+                    onClick={() => handleSwipe('left')}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 w-16 h-16 bg-gradient-to-br from-red-500/90 to-red-600/90 hover:from-red-600 hover:to-red-700 rounded-full flex items-center justify-center backdrop-blur-md transition-all hover:scale-110 active:scale-95 shadow-2xl border-2 border-red-400/50"
+                  >
+                    <div className="flex flex-col items-center">
+                      <X className="w-7 h-7 text-white" strokeWidth={3} />
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => handleSwipe('right')}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 w-16 h-16 bg-gradient-to-br from-pink-500/90 via-rose-500/90 to-pink-600/90 hover:from-pink-600 hover:to-rose-700 rounded-full flex items-center justify-center backdrop-blur-md transition-all hover:scale-110 active:scale-95 shadow-2xl border-2 border-pink-400/50"
+                  >
+                    <div className="flex flex-col items-center">
+                      <Heart className="w-7 h-7 text-white fill-white" strokeWidth={3} />
+                    </div>
+                  </button>
+                </div>
+
+                {/* Desktop Navigation Arrows - Combined with Actions */}
+                <div className="hidden md:flex">
+                  <button
+                    onClick={() => handleSwipe('left')}
+                    className="absolute left-6 top-1/2 -translate-y-1/2 w-20 h-20 bg-white/95 dark:bg-gray-800/95 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-full flex items-center justify-center backdrop-blur-md transition-all hover:scale-110 active:scale-95 shadow-2xl border-2 border-red-500/50 group"
+                  >
+                    <div className="flex flex-col items-center">
+                      <X className="w-8 h-8 text-red-500 group-hover:text-red-600 transition-colors" strokeWidth={2.5} />
+                      <span className="text-[9px] font-bold text-red-500 mt-0.5">PASS</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => handleSwipe('right')}
+                    className="absolute right-6 top-1/2 -translate-y-1/2 w-20 h-20 bg-gradient-to-br from-pink-500 via-rose-500 to-pink-600 hover:from-pink-600 hover:to-rose-700 rounded-full flex items-center justify-center backdrop-blur-md transition-all hover:scale-110 active:scale-95 shadow-2xl border-2 border-pink-400"
+                  >
+                    <div className="flex flex-col items-center">
+                      <Heart className="w-8 h-8 text-white fill-white" strokeWidth={2.5} />
+                      <span className="text-[9px] font-bold text-white mt-0.5">LIKE</span>
+                    </div>
+                  </button>
+                </div>
 
                 {/* Swipe Direction Indicators */}
                 {Math.abs(swipeOffset) > 20 && (
@@ -738,196 +762,14 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
               </div>
             </div>
 
-            {/* Action Controls - Responsive Design */}
+            {/* Mobile Hint Text */}
+            <p className="text-center text-xs text-muted-foreground mt-4 opacity-70 md:hidden">
+              Tap arrows or swipe card
+            </p>
             
-            {/* Mobile Slider Design */}
-            <div className="block md:hidden relative w-full max-w-sm mt-5 mx-auto">
-              <div className="relative bg-gradient-to-r from-red-500/10 via-muted/50 to-pink-500/10 rounded-full h-20 flex items-center justify-between px-8 backdrop-blur-md border-2 border-border/50 overflow-hidden shadow-2xl">
-                {/* Animated Progress Fill */}
-                <div 
-                  className="absolute inset-0 transition-all duration-200 rounded-full"
-                  style={{
-                    background: sliderDragX < -80 
-                      ? 'linear-gradient(to left, rgba(239, 68, 68, 0.4), rgba(220, 38, 38, 0.2), transparent)'
-                      : sliderDragX > 80
-                      ? 'linear-gradient(to right, rgba(236, 72, 153, 0.4), rgba(219, 39, 119, 0.2), transparent)'
-                      : 'transparent',
-                    boxShadow: sliderDragX < -80 
-                      ? 'inset 0 0 30px rgba(239, 68, 68, 0.3)'
-                      : sliderDragX > 80
-                      ? 'inset 0 0 30px rgba(236, 72, 153, 0.3)'
-                      : 'none'
-                  }}
-                />
-                
-                {/* Pass Label with Icon */}
-                <div className={`flex flex-col items-center transition-all duration-300 relative z-10 ${
-                  sliderDragX < -50 ? 'scale-110' : 'scale-100'
-                }`}>
-                  <X className={`w-4 h-4 mb-1 transition-all duration-300 ${
-                    sliderDragX < -80 ? 'text-red-500 animate-bounce' : 'text-muted-foreground'
-                  }`} strokeWidth={2.5} />
-                  <span className={`text-[10px] font-bold transition-all duration-300 ${
-                    sliderDragX < -50 ? 'text-red-500' : 'text-muted-foreground'
-                  }`}>
-                    Pass
-                  </span>
-                </div>
-
-                {/* Like Label with Icon */}
-                <div className={`flex flex-col items-center transition-all duration-300 relative z-10 ${
-                  sliderDragX > 50 ? 'scale-110' : 'scale-100'
-                }`}>
-                  <Heart className={`w-4 h-4 mb-1 transition-all duration-300 ${
-                    sliderDragX > 80 ? 'text-pink-500 fill-pink-500 animate-bounce' : 'text-muted-foreground'
-                  }`} strokeWidth={2.5} />
-                  <span className={`text-[10px] font-bold transition-all duration-300 ${
-                    sliderDragX > 50 ? 'text-pink-500' : 'text-muted-foreground'
-                  }`}>
-                    Like
-                  </span>
-                </div>
-
-                {/* Draggable Button with Morphing Design */}
-                <div
-                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing z-20"
-                  style={{
-                    transform: `translate(calc(-50% + ${sliderDragX}px), -50%) scale(${isDraggingSlider ? 1.2 : 1}) rotate(${sliderDragX * 0.2}deg)`,
-                    transition: isDraggingSlider ? 'transform 0.1s ease-out' : 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)'
-                  }}
-                  onMouseDown={handleSliderStart}
-                  onMouseMove={handleSliderMove}
-                  onMouseUp={handleSliderEnd}
-                  onMouseLeave={handleSliderEnd}
-                  onTouchStart={handleSliderStart}
-                  onTouchMove={handleSliderMove}
-                  onTouchEnd={handleSliderEnd}
-                >
-                  <div 
-                    className={`w-14 h-14 rounded-full shadow-2xl flex items-center justify-center relative overflow-hidden transition-all duration-300 ${
-                      sliderDragX < -80 ? 'bg-gradient-to-br from-red-500 to-red-600 ring-4 ring-red-300/50 animate-pulse' :
-                      sliderDragX > 80 ? 'bg-gradient-to-br from-pink-500 via-rose-500 to-pink-600 ring-4 ring-pink-300/50 animate-pulse' :
-                      'bg-gradient-to-br from-white to-gray-100'
-                    }`}
-                  >
-                    {/* Multiple Glow Layers */}
-                    {sliderDragX < -80 && (
-                      <>
-                        <div className="absolute inset-0 bg-white/40 animate-ping rounded-full" />
-                        <div className="absolute inset-0 bg-red-400/30 blur-xl rounded-full animate-pulse" />
-                      </>
-                    )}
-                    {sliderDragX > 80 && (
-                      <>
-                        <div className="absolute inset-0 bg-white/40 animate-ping rounded-full" />
-                        <div className="absolute inset-0 bg-pink-400/30 blur-xl rounded-full animate-pulse" />
-                      </>
-                    )}
-                    
-                    {/* Icon with Advanced States */}
-                    {sliderDragX < -80 ? (
-                      <div className="relative">
-                        <X className="w-7 h-7 text-white drop-shadow-2xl animate-bounce" strokeWidth={3.5} />
-                        {/* Explosion particles */}
-                        <div className="absolute -top-2 -right-2 w-3 h-3 bg-red-300 rounded-full animate-ping" />
-                        <div className="absolute -bottom-2 -left-2 w-3 h-3 bg-red-300 rounded-full animate-ping" style={{ animationDelay: '0.15s' }} />
-                        <div className="absolute -top-2 -left-2 w-2 h-2 bg-red-200 rounded-full animate-ping" style={{ animationDelay: '0.3s' }} />
-                      </div>
-                    ) : sliderDragX < -50 ? (
-                      <div className="relative">
-                        <Heart className="w-6 h-6 text-red-500 transition-all duration-200" strokeWidth={2.5} />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-0.5 h-10 bg-red-500 rotate-12" style={{ opacity: (Math.abs(sliderDragX) - 50) / 30 }} />
-                        </div>
-                      </div>
-                    ) : sliderDragX > 80 ? (
-                      <div className="relative">
-                        <Heart className="w-7 h-7 text-white fill-white drop-shadow-2xl animate-bounce" strokeWidth={3.5} />
-                        {/* Heart particles */}
-                        <div className="absolute -top-2 -right-2 w-3 h-3 bg-pink-300 rounded-full animate-ping" />
-                        <div className="absolute -bottom-2 -left-2 w-3 h-3 bg-pink-300 rounded-full animate-ping" style={{ animationDelay: '0.1s' }} />
-                        <div className="absolute top-0 left-0 w-2 h-2 bg-pink-200 rounded-full animate-ping" style={{ animationDelay: '0.2s' }} />
-                        <div className="absolute bottom-0 right-0 w-2 h-2 bg-pink-200 rounded-full animate-ping" style={{ animationDelay: '0.3s' }} />
-                      </div>
-                    ) : sliderDragX > 50 ? (
-                      <Heart 
-                        className="w-6 h-6 text-pink-500 transition-all duration-200"
-                        style={{
-                          fill: `rgba(236, 72, 153, ${(sliderDragX - 50) / 50})`
-                        }}
-                        strokeWidth={2.5}
-                      />
-                    ) : (
-                      <Heart className="w-6 h-6 text-muted-foreground transition-all duration-200" strokeWidth={2.5} />
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Enhanced Direction Hints */}
-              <div className="mt-4 text-center">
-                {isDraggingSlider ? (
-                  <div className="animate-fade-in">
-                    <p className={`text-sm font-bold transition-all duration-200 ${
-                      sliderDragX < -80 ? 'text-red-500 scale-110 animate-pulse' :
-                      sliderDragX > 80 ? 'text-pink-500 scale-110 animate-pulse' :
-                      'text-muted-foreground'
-                    }`}>
-                      {sliderDragX < -80 ? '✓ Release to Pass' : 
-                       sliderDragX > 80 ? '✓ Release to Like' : 
-                       sliderDragX < -50 ? '← Keep sliding...' :
-                       sliderDragX > 50 ? 'Keep sliding... →' :
-                       'Slide left or right'}
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-xs text-muted-foreground opacity-70">
-                    Drag the button or swipe card
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Desktop Button Design - Clean & Professional */}
+            {/* Desktop Keyboard Hint */}
             <div className="hidden md:block mt-8">
-              <div className="flex items-center justify-center gap-12 relative">
-                {/* Pass Button - Clean Desktop Design */}
-                <div className="relative group">
-                  <button
-                    onClick={() => handleSwipe('left')}
-                    className="relative w-16 h-16 rounded-full bg-white dark:bg-gray-800 shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 border-2 border-gray-200 dark:border-gray-700 group-hover:border-red-400 dark:group-hover:border-red-500"
-                  >
-                    <X className="w-8 h-8 text-red-500 group-hover:text-red-600 transition-colors" strokeWidth={2.5} />
-                    <div className="absolute inset-0 rounded-full bg-red-500/0 group-hover:bg-red-500/10 transition-colors" />
-                  </button>
-                  
-                  <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 whitespace-nowrap">
-                    <p className="text-sm font-medium text-muted-foreground group-hover:text-red-500 transition-colors">
-                      Pass
-                    </p>
-                  </div>
-                </div>
-
-                {/* Like Button - Clean Desktop Design */}
-                <div className="relative group">
-                  <button
-                    onClick={() => handleSwipe('right')}
-                    className="relative w-18 h-18 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 border-2 border-pink-400"
-                  >
-                    <Heart className="w-9 h-9 text-white fill-white drop-shadow-lg" strokeWidth={2} />
-                    <div className="absolute inset-0 rounded-full bg-white/0 group-hover:bg-white/20 transition-colors" />
-                  </button>
-                  
-                  <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 whitespace-nowrap">
-                    <p className="text-sm font-medium text-muted-foreground group-hover:text-pink-500 transition-colors">
-                      Like
-                    </p>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Desktop Keyboard Hint */}
-              <div className="mt-20 flex justify-center">
+              <div className="flex justify-center">
                 <div className="inline-flex items-center gap-4 px-6 py-3 bg-muted/50 backdrop-blur-sm rounded-xl border border-border/50">
                   <div className="flex items-center gap-2">
                     <kbd className="px-3 py-1.5 bg-background border border-border rounded-md text-xs font-mono">←</kbd>
@@ -941,11 +783,6 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                 </div>
               </div>
             </div>
-
-            {/* Hint Text */}
-            <p className="text-center text-xs text-muted-foreground mt-12 opacity-70 md:hidden">
-              Swipe card or drag button
-            </p>
           </div>
         ) : (
           <div className="max-w-sm mx-auto text-center space-y-6">
