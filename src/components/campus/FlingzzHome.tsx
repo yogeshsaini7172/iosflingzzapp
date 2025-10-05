@@ -333,17 +333,27 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
     const threshold = 100; // Distance needed to trigger action
     
     if (sliderDragX > threshold) {
-      // Swiped right - Like
-      handleSwipe('right');
+      // Liked - Hold animation for 0.45s before executing
+      setTimeout(() => {
+        handleSwipe('right');
+        setSliderDragX(0);
+        setIsDraggingSlider(false);
+        setSliderStartX(0);
+      }, 450);
     } else if (sliderDragX < -threshold) {
-      // Swiped left - Pass
-      handleSwipe('left');
+      // Passed - Hold animation for 0.45s before executing
+      setTimeout(() => {
+        handleSwipe('left');
+        setSliderDragX(0);
+        setIsDraggingSlider(false);
+        setSliderStartX(0);
+      }, 450);
+    } else {
+      // Reset slider if threshold not met
+      setSliderDragX(0);
+      setIsDraggingSlider(false);
+      setSliderStartX(0);
     }
-    
-    // Reset slider
-    setSliderDragX(0);
-    setIsDraggingSlider(false);
-    setSliderStartX(0);
   };
 
   const toggleSection = (section: string) => {
@@ -708,27 +718,39 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
 
             {/* Slider-Style Action Control */}
             <div className="relative w-full max-w-sm mt-5 mx-auto">
-              <div className="relative bg-muted/50 rounded-full h-16 flex items-center justify-between px-6 backdrop-blur-md border border-border/50">
+              <div className="relative bg-muted/50 rounded-full h-16 flex items-center justify-between px-6 backdrop-blur-md border border-border/50 overflow-hidden">
+                {/* Animated Background on Drag */}
+                <div 
+                  className="absolute inset-0 transition-all duration-300"
+                  style={{
+                    background: sliderDragX < -80 
+                      ? 'linear-gradient(to left, rgba(239, 68, 68, 0.2), transparent)'
+                      : sliderDragX > 80
+                      ? 'linear-gradient(to right, rgba(236, 72, 153, 0.2), transparent)'
+                      : 'transparent'
+                  }}
+                />
+                
                 {/* Pass Label */}
-                <span className={`text-sm font-medium transition-all duration-300 ${
-                  sliderDragX < -50 ? 'text-red-500 scale-110' : 'text-muted-foreground'
+                <span className={`text-sm font-medium transition-all duration-300 relative z-10 ${
+                  sliderDragX < -50 ? 'text-red-500 scale-125 font-bold' : 'text-muted-foreground'
                 }`}>
                   Pass
                 </span>
 
                 {/* Like Label */}
-                <span className={`text-sm font-medium transition-all duration-300 ${
-                  sliderDragX > 50 ? 'text-pink-500 scale-110' : 'text-muted-foreground'
+                <span className={`text-sm font-medium transition-all duration-300 relative z-10 ${
+                  sliderDragX > 50 ? 'text-pink-500 scale-125 font-bold' : 'text-muted-foreground'
                 }`}>
                   Like
                 </span>
 
                 {/* Draggable Heart Button */}
                 <div
-                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing"
+                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing z-20"
                   style={{
-                    transform: `translate(calc(-50% + ${sliderDragX}px), -50%) scale(${isDraggingSlider ? 1.1 : 1})`,
-                    transition: isDraggingSlider ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                    transform: `translate(calc(-50% + ${sliderDragX}px), -50%) scale(${isDraggingSlider ? 1.15 : 1})`,
+                    transition: isDraggingSlider ? 'transform 0.1s ease-out' : 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)'
                   }}
                   onMouseDown={handleSliderStart}
                   onMouseMove={handleSliderMove}
@@ -738,29 +760,62 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                   onTouchMove={handleSliderMove}
                   onTouchEnd={handleSliderEnd}
                 >
-                  <div className="w-14 h-14 rounded-full bg-white shadow-xl flex items-center justify-center relative overflow-hidden">
+                  <div 
+                    className={`w-14 h-14 rounded-full shadow-2xl flex items-center justify-center relative overflow-hidden transition-all duration-300 ${
+                      sliderDragX < -80 ? 'bg-red-500 ring-4 ring-red-300' :
+                      sliderDragX > 80 ? 'bg-gradient-to-br from-pink-500 to-rose-500 ring-4 ring-pink-300' :
+                      'bg-white'
+                    }`}
+                  >
+                    {/* Glow effect */}
+                    {(sliderDragX < -80 || sliderDragX > 80) && (
+                      <div className="absolute inset-0 bg-white/30 animate-ping rounded-full" />
+                    )}
+                    
                     {/* Heart icon with conditional styling */}
-                    {sliderDragX < -50 ? (
-                      // Broken heart when sliding left
+                    {sliderDragX < -80 ? (
+                      // Broken heart when sliding left (reached threshold)
+                      <div className="relative animate-pulse">
+                        <X 
+                          className="w-8 h-8 text-white drop-shadow-lg" 
+                          strokeWidth={3}
+                        />
+                      </div>
+                    ) : sliderDragX < -50 ? (
+                      // Breaking heart animation (in progress)
                       <div className="relative">
                         <Heart 
-                          className="w-7 h-7 text-red-500 animate-pulse" 
+                          className="w-7 h-7 text-red-500 transition-all duration-200" 
                           strokeWidth={2.5}
                         />
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-px h-8 bg-red-500 rotate-12 animate-pulse" />
+                          <div className="w-px h-8 bg-red-500 rotate-12 opacity-70" />
                         </div>
                       </div>
+                    ) : sliderDragX > 80 ? (
+                      // Filled heart when sliding right (reached threshold)
+                      <div className="relative animate-bounce">
+                        <Heart 
+                          className="w-8 h-8 text-white fill-white drop-shadow-lg transition-all duration-300" 
+                          strokeWidth={3}
+                        />
+                        {/* Heart particles effect */}
+                        <div className="absolute -top-1 -right-1 w-2 h-2 bg-pink-300 rounded-full animate-ping" />
+                        <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-pink-300 rounded-full animate-ping" style={{ animationDelay: '0.1s' }} />
+                      </div>
                     ) : sliderDragX > 50 ? (
-                      // Filled heart when sliding right
+                      // Filling heart animation (in progress)
                       <Heart 
-                        className="w-7 h-7 text-pink-500 fill-pink-500 animate-pulse" 
+                        className="w-7 h-7 text-pink-500 transition-all duration-200"
+                        style={{
+                          fill: `rgba(236, 72, 153, ${(sliderDragX - 50) / 50})`
+                        }}
                         strokeWidth={2.5}
                       />
                     ) : (
                       // Normal heart in center
                       <Heart 
-                        className="w-7 h-7 text-foreground" 
+                        className="w-7 h-7 text-muted-foreground transition-all duration-200" 
                         strokeWidth={2.5}
                       />
                     )}
@@ -768,18 +823,26 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                 </div>
               </div>
 
-              {/* Direction Hints */}
+              {/* Direction Hints with better feedback */}
               {isDraggingSlider && (
-                <div className="absolute -bottom-8 left-0 right-0 text-center animate-fade-in">
-                  <p className="text-xs text-muted-foreground">
-                    {sliderDragX < -50 ? '← Slide to pass' : sliderDragX > 50 ? 'Slide to like →' : 'Slide left or right'}
+                <div className="absolute -bottom-10 left-0 right-0 text-center animate-fade-in">
+                  <p className={`text-sm font-medium transition-all duration-300 ${
+                    sliderDragX < -80 ? 'text-red-500 scale-110' :
+                    sliderDragX > 80 ? 'text-pink-500 scale-110' :
+                    'text-muted-foreground'
+                  }`}>
+                    {sliderDragX < -80 ? '✓ Release to Pass' : 
+                     sliderDragX > 80 ? '✓ Release to Like' : 
+                     sliderDragX < -50 ? '← Keep sliding to pass' :
+                     sliderDragX > 50 ? 'Keep sliding to like →' :
+                     'Slide left or right'}
                   </p>
                 </div>
               )}
             </div>
 
             {/* Hint Text */}
-            <p className="text-center text-xs text-muted-foreground mt-6 opacity-70">
+            <p className="text-center text-xs text-muted-foreground mt-8 opacity-70">
               Swipe card or drag heart to like/pass
             </p>
           </div>
