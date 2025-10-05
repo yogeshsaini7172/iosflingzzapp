@@ -381,17 +381,17 @@ const WhoYouWantStep = ({ data, onChange }: WhoYouWantStepProps) => {
               placeholder="Select preferred professions"
             />
             {data.preferredProfessions && data.preferredProfessions.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
+              <div className="flex flex-wrap gap-2 mt-2 max-w-full overflow-hidden">
                 {data.preferredProfessions.map((profession: string) => (
                   <Button
                     key={profession}
                     variant="secondary"
                     size="sm"
                     onClick={() => toggleArrayItem('preferredProfessions', profession)}
-                    className="rounded-full text-xs"
+                    className="rounded-full text-xs max-w-full"
                   >
-                    {profession}
-                    <X className="w-3 h-3 ml-1" />
+                    <span className="truncate max-w-[250px]">{profession}</span>
+                    <X className="w-3 h-3 ml-1 flex-shrink-0" />
                   </Button>
                 ))}
               </div>
