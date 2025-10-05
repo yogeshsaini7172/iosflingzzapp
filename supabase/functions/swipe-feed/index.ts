@@ -146,12 +146,23 @@ serve(async (req) => {
     // GENDER FILTERING: Use stored preferences or request filters
     const preferredGenders = userPreferences?.preferred_gender || filters.gender;
     if (preferredGenders && preferredGenders.length > 0) {
-      const normalizedGenders = preferredGenders
-        .map((g: any) => (typeof g === 'string' ? g.toLowerCase().trim() : ''))
-        .filter((g: string) => g === 'male' || g === 'female');
-      console.log('🚻 Applying gender filter:', normalizedGenders);
-      if (normalizedGenders.length > 0) {
-        query = query.in('gender', normalizedGenders)
+      // Check if "All" or "Any" is selected - if so, skip gender filter entirely
+      const hasAllOrAny = preferredGenders.some((g: any) => {
+        const normalized = typeof g === 'string' ? g.toLowerCase().trim() : '';
+        return normalized === 'all' || normalized === 'any';
+      });
+      
+      if (!hasAllOrAny) {
+        // Only apply filter if specific genders are selected (not "All"/"Any")
+        const normalizedGenders = preferredGenders
+          .map((g: any) => (typeof g === 'string' ? g.toLowerCase().trim() : ''))
+          .filter((g: string) => g === 'male' || g === 'female');
+        console.log('🚻 Applying gender filter:', normalizedGenders);
+        if (normalizedGenders.length > 0) {
+          query = query.in('gender', normalizedGenders)
+        }
+      } else {
+        console.log('🚻 "All"/"Any" selected - showing all genders');
       }
     }
 

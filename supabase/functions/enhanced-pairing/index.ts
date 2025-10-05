@@ -77,6 +77,14 @@ function calculateAge(dateOfBirth: string): number {
   return age;
 }
 
+function hasAnyOrAll(arr: any[]): boolean {
+  if (!Array.isArray(arr)) return false;
+  return arr.some(item => {
+    const normalized = typeof item === 'string' ? item.toLowerCase().trim() : '';
+    return normalized === 'any' || normalized === 'all';
+  });
+}
+
 function calculateCompatibility(userProfile: any, candidateProfile: any): any {
   const userQualities = parseJSON(userProfile.qualities);
   const userRequirements = parseJSON(userProfile.requirements);
@@ -278,12 +286,23 @@ serve(async (req) => {
 
     // GENDER FILTERING: Apply user's preferred gender filter
     if (userPreferences?.preferred_gender?.length > 0) {
-      const normalizedGenders = userPreferences.preferred_gender
-        .map((g: string) => (typeof g === 'string' ? g.toLowerCase().trim() : ''))
-        .filter((g: string) => g === 'male' || g === 'female');
-      console.log('Applying gender filter:', normalizedGenders);
-      if (normalizedGenders.length > 0) {
-        query = query.in('gender', normalizedGenders);
+      // Check if "All" or "Any" is selected - if so, skip gender filter entirely
+      const hasAllOrAny = userPreferences.preferred_gender.some((g: string) => {
+        const normalized = typeof g === 'string' ? g.toLowerCase().trim() : '';
+        return normalized === 'all' || normalized === 'any';
+      });
+      
+      if (!hasAllOrAny) {
+        // Only apply filter if specific genders are selected (not "All"/"Any")
+        const normalizedGenders = userPreferences.preferred_gender
+          .map((g: string) => (typeof g === 'string' ? g.toLowerCase().trim() : ''))
+          .filter((g: string) => g === 'male' || g === 'female');
+        console.log('Applying gender filter:', normalizedGenders);
+        if (normalizedGenders.length > 0) {
+          query = query.in('gender', normalizedGenders);
+        }
+      } else {
+        console.log('"All"/"Any" selected - showing all genders');
       }
     }
 

@@ -40,6 +40,16 @@ function matchScore(req: any, qual: any): number {
 
   // List requirement
   if (Array.isArray(req)) {
+    // Check if "Any" or "All" is in the requirement list - if so, accept everything
+    const hasAllOrAny = req.some(r => {
+      const normalized = typeof r === 'string' ? r.toLowerCase().trim() : '';
+      return normalized === 'any' || normalized === 'all';
+    });
+    
+    if (hasAllOrAny) {
+      return 1.0; // "Any"/"All" means no filter - perfect match
+    }
+    
     if (!qual) return 0.0;
     if (Array.isArray(qual)) {
       return req.some(r => qual.includes(r)) ? 1.0 : 0.0;
