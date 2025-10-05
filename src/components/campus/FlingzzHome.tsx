@@ -14,6 +14,7 @@ import {
 import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
 import {
   Heart,
+  HeartCrack,
   X,
   Users,
   Sparkles,
@@ -655,14 +656,14 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                   </div>
                 )}
 
-                {/* Swipe Direction Indicators - Mobile Only */}
+                {/* Swipe Direction Indicators - Mobile Only with Dynamic Heart */}
                 {window.innerWidth < 768 && Math.abs(swipeOffset) > 30 && (
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div 
-                      className={`rounded-full p-6 backdrop-blur-md transition-all duration-300 ${
+                      className={`rounded-full p-6 backdrop-blur-md transition-all duration-200 ${
                         swipeOffset > 0 
-                          ? 'bg-gradient-to-br from-pink-500/40 to-rose-500/40 scale-110' 
-                          : 'bg-gradient-to-br from-red-500/40 to-orange-500/40 scale-110'
+                          ? 'bg-gradient-to-br from-pink-500/40 to-rose-500/40' 
+                          : 'bg-gradient-to-br from-gray-700/40 to-gray-900/40'
                       }`}
                       style={{
                         transform: `scale(${1 + Math.abs(swipeOffset) / 500})`,
@@ -672,7 +673,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                       {swipeOffset > 0 ? (
                         <Heart className="w-16 h-16 text-white fill-white drop-shadow-2xl animate-pulse" />
                       ) : (
-                        <X className="w-16 h-16 text-white drop-shadow-2xl animate-pulse" strokeWidth={3} />
+                        <HeartCrack className="w-16 h-16 text-white drop-shadow-2xl animate-pulse" strokeWidth={2.5} />
                       )}
                     </div>
                   </div>
@@ -785,10 +786,18 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
               </button>
             </div>
 
-            {/* Mobile: Swipe Instruction */}
-            <p className="text-center text-xs text-muted-foreground mt-3 opacity-70 md:hidden">
-              👈 Swipe to pass • Swipe to like 👉
-            </p>
+            {/* Mobile: Swipe Instruction with Dynamic Heart */}
+            <div className="flex items-center justify-center gap-2 mt-3 text-xs text-muted-foreground opacity-70 md:hidden">
+              <span className="flex items-center gap-1">
+                <HeartCrack className="w-4 h-4" />
+                Swipe left
+              </span>
+              <span>•</span>
+              <span className="flex items-center gap-1">
+                Swipe right
+                <Heart className="w-4 h-4 fill-current" />
+              </span>
+            </div>
             
             {/* Desktop: Button Instruction */}
             <p className="text-center text-xs text-muted-foreground mt-2 opacity-70 hidden md:block">
