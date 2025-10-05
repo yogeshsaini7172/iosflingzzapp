@@ -572,9 +572,9 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
       </div>
 
       {/* Main Swipe Section */}
-      <div className="flex-1 flex items-center justify-center px-3 pb-24">
+      <div className="flex-1 flex items-center justify-center px-2 pb-20">
         {currentProfile ? (
-          <div className="w-full max-w-6xl h-[calc(100vh-180px)] flex flex-col">
+          <div className="w-full max-w-md h-[calc(100vh-200px)] md:max-w-lg md:h-[calc(100vh-180px)] flex flex-col">
             {/* Swipe Card */}
             <div 
               className="relative bg-card rounded-3xl overflow-hidden shadow-2xl flex-1 transition-all duration-300"
@@ -653,15 +653,15 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                 )}
 
                 {/* Enhanced Profile Info Overlay */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent p-5 pb-4">
-                  <div className="text-white space-y-3">
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent p-4 pb-6">
+                  <div className="text-white space-y-2.5">
                     {/* Name & Age */}
                     <div>
-                      <h3 className="text-3xl font-bold mb-1 flex items-center space-x-2 drop-shadow-lg">
+                      <h3 className="text-2xl md:text-3xl font-bold mb-1 flex items-center space-x-2 drop-shadow-lg">
                         <span>{currentProfile.first_name}</span>
-                        <span className="text-2xl font-medium opacity-90">{calculateAge(currentProfile.date_of_birth)}</span>
+                        <span className="text-xl md:text-2xl font-medium opacity-90">{calculateAge(currentProfile.date_of_birth)}</span>
                       </h3>
-                      <p className="text-sm opacity-90 flex items-center space-x-2">
+                      <p className="text-xs md:text-sm opacity-90 flex items-center space-x-1.5">
                         <span>📍</span>
                         <span>{currentProfile.university || 'University'}</span>
                         {currentProfile.total_qcs && (
@@ -674,49 +674,49 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                     </div>
 
                     {/* Quick Stats Pills */}
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5">
                       {distance !== null && (
-                        <div className="bg-white/15 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-medium border border-white/20">
-                          📍 {distance.toFixed(1)}km away
+                        <div className="bg-white/15 backdrop-blur-md px-2.5 py-1 rounded-full text-[11px] font-medium border border-white/20">
+                          📍 {distance.toFixed(1)}km
                         </div>
                       )}
                       {currentProfile.height && (
-                        <div className="bg-white/15 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-medium border border-white/20">
+                        <div className="bg-white/15 backdrop-blur-md px-2.5 py-1 rounded-full text-[11px] font-medium border border-white/20">
                           📏 {currentProfile.height}cm
                         </div>
                       )}
                       {currentProfile.profession && (
-                        <div className="bg-white/15 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-medium border border-white/20 max-w-[150px] truncate">
-                          💼 {currentProfile.profession}
+                        <div className="bg-white/15 backdrop-blur-md px-2.5 py-1 rounded-full text-[11px] font-medium border border-white/20 max-w-[120px] truncate">
+                          🎓 {currentProfile.profession}
                         </div>
                       )}
                     </div>
 
                     {/* Compatibility Scores */}
                     {compatibility && !compatibilityLoading && (
-                      <div className="grid grid-cols-3 gap-3 py-2">
+                      <div className="grid grid-cols-3 gap-2 py-1.5">
                         <div className="text-center">
-                          <div className="text-lg font-bold text-purple-300">{compatibility.overall_score}%</div>
-                          <div className="text-[10px] text-white/70">Overall</div>
+                          <div className="text-base md:text-lg font-bold text-purple-300">{compatibility.overall_score}%</div>
+                          <div className="text-[9px] md:text-[10px] text-white/70">Overall</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-lg font-bold text-green-300">{compatibility.physical_score}%</div>
-                          <div className="text-[10px] text-white/70">Physical</div>
+                          <div className="text-base md:text-lg font-bold text-green-300">{compatibility.physical_score}%</div>
+                          <div className="text-[9px] md:text-[10px] text-white/70">Physical</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-lg font-bold text-blue-300">{compatibility.mental_score}%</div>
-                          <div className="text-[10px] text-white/70">Mental</div>
+                          <div className="text-base md:text-lg font-bold text-blue-300">{compatibility.mental_score}%</div>
+                          <div className="text-[9px] md:text-[10px] text-white/70">Mental</div>
                         </div>
                       </div>
                     )}
 
                     {/* Interests */}
                     {currentProfile.interests && currentProfile.interests.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {currentProfile.interests.slice(0, 3).map((interest, index) => (
+                      <div className="flex flex-wrap gap-1.5">
+                        {currentProfile.interests.slice(0, 2).map((interest, index) => (
                           <span
                             key={index}
-                            className="px-2.5 py-1 bg-white/15 backdrop-blur-md text-white text-xs rounded-full border border-white/20"
+                            className="px-2 py-0.5 bg-white/15 backdrop-blur-md text-white text-[10px] rounded-full border border-white/20"
                           >
                             {interest}
                           </span>
@@ -726,12 +726,12 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
 
                     {/* View Full Profile Button */}
                     <button 
-                      className="w-full flex items-center justify-center space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-4 py-3 rounded-2xl text-sm font-medium transition-all border border-white/20 hover:border-white/30 active:scale-95"
+                      className="w-full flex items-center justify-center space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-all border border-white/20 hover:border-white/30 active:scale-95 mt-2"
                       onClick={() => setShowDetailedProfile(true)}
                     >
                       <Zap className="w-4 h-4" />
                       <span>View Full Profile</span>
-                      <span className="text-lg">↑</span>
+                      <span className="text-base">↑</span>
                     </button>
                   </div>
                 </div>
