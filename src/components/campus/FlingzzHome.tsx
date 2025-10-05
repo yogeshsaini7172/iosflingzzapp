@@ -786,17 +786,79 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
               </button>
             </div>
 
-            {/* Mobile: Swipe Instruction with Dynamic Heart */}
-            <div className="flex items-center justify-center gap-2 mt-3 text-xs text-muted-foreground opacity-70 md:hidden">
-              <span className="flex items-center gap-1">
-                <HeartCrack className="w-4 h-4" />
-                Swipe left
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-1">
-                Swipe right
-                <Heart className="w-4 h-4 fill-current" />
-              </span>
+            {/* Slider Interface - Mobile Only */}
+            <div 
+              className="mt-4 md:hidden relative"
+              onMouseMove={handleSliderMove}
+              onMouseUp={handleSliderEnd}
+              onTouchMove={handleSliderMove}
+              onTouchEnd={handleSliderEnd}
+            >
+              {/* Slider Track */}
+              <div className="relative w-full max-w-[320px] h-16 mx-auto bg-gradient-to-r from-gray-800/50 via-gray-700/50 to-gray-800/50 rounded-full backdrop-blur-md border border-white/10 overflow-hidden">
+                
+                {/* Background Hints */}
+                <div className="absolute inset-0 flex items-center justify-between px-6 pointer-events-none">
+                  <div className={`flex items-center gap-2 transition-all duration-200 ${
+                    sliderDragX < -30 ? 'opacity-100 scale-110' : 'opacity-40'
+                  }`}>
+                    <HeartCrack className="w-5 h-5 text-white" />
+                    <span className="text-white text-sm font-medium">Pass</span>
+                  </div>
+                  <div className={`flex items-center gap-2 transition-all duration-200 ${
+                    sliderDragX > 30 ? 'opacity-100 scale-110' : 'opacity-40'
+                  }`}>
+                    <span className="text-white text-sm font-medium">Like</span>
+                    <Heart className="w-5 h-5 text-white fill-white" />
+                  </div>
+                </div>
+
+                {/* Draggable Button */}
+                <div
+                  className="absolute top-1/2 left-1/2 -translate-y-1/2 w-14 h-14 cursor-grab active:cursor-grabbing"
+                  style={{
+                    transform: `translate(calc(-50% + ${sliderDragX}px), -50%)`,
+                    transition: isDraggingSlider ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                  }}
+                  onMouseDown={handleSliderStart}
+                  onTouchStart={handleSliderStart}
+                >
+                  <div className={`w-full h-full rounded-full flex items-center justify-center shadow-2xl transition-all duration-200 ${
+                    sliderDragX > 30 
+                      ? 'bg-gradient-to-br from-pink-500 to-rose-500 scale-110' 
+                      : sliderDragX < -30
+                      ? 'bg-gradient-to-br from-gray-600 to-gray-800 scale-110'
+                      : 'bg-white'
+                  }`}>
+                    {sliderDragX > 30 ? (
+                      <Heart className="w-7 h-7 text-white fill-white" />
+                    ) : sliderDragX < -30 ? (
+                      <HeartCrack className="w-7 h-7 text-white" />
+                    ) : (
+                      <Heart className="w-7 h-7 text-gray-700" />
+                    )}
+                  </div>
+                </div>
+
+                {/* Progress Fill */}
+                {Math.abs(sliderDragX) > 10 && (
+                  <div 
+                    className={`absolute top-0 bottom-0 transition-all duration-100 ${
+                      sliderDragX > 0 
+                        ? 'left-1/2 bg-gradient-to-r from-pink-500/30 to-pink-500/10'
+                        : 'right-1/2 bg-gradient-to-l from-gray-600/30 to-gray-600/10'
+                    }`}
+                    style={{
+                      width: `${Math.abs(sliderDragX)}px`
+                    }}
+                  />
+                )}
+              </div>
+              
+              {/* Instruction Text */}
+              <p className="text-center text-xs text-muted-foreground mt-2 opacity-70">
+                Slide to pass or like
+              </p>
             </div>
             
             {/* Desktop: Button Instruction */}
