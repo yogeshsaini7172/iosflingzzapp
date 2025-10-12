@@ -82,23 +82,25 @@ async function waitForFirebaseAuthPlugin(maxWaitMs: number = 3000): Promise<bool
 
 export async function enhancedNativeGoogleSignIn() {
   try {
-    console.log('🚀 Starting Enhanced Native Google Sign-In with comprehensive timing fixes...');
+    console.log('🚀 Starting Hybrid Google Sign-In (Credential Manager → Web Fallback)...');
     
-    // Step 0: Check credential manager support first
-    console.log('🔍 Checking credential manager support...');
+    // Step 0: Check credential manager support FIRST (quick check)
+    console.log('🔍 Checking Credential Manager support...');
     const credentialSupport = await detectCredentialManagerSupport();
-    console.log('📱 Credential Manager Support:', credentialSupport);
+    console.log('📱 Credential Manager:', credentialSupport.isSupported ? '✅ Available' : '❌ Not Available');
     
     if (!credentialSupport.isSupported) {
-      console.log('⚠️ Credential Manager not supported, will use web fallback');
+      console.log('⚠️ Credential Manager not supported - immediate fallback to web method');
+      console.log('💡 Reason:', credentialSupport.reason);
       throw new Error('CREDENTIAL_MANAGER_NOT_SUPPORTED');
     }
     
-    // Step 1: Ensure all systems are ready using the initialization manager
-    console.log('⏳ Ensuring all systems are ready...');
+    // Step 1: Ensure all systems are ready
+    console.log('⏳ Initializing authentication systems...');
     const systemsReady = await ensureAllSystemsReady();
     if (!systemsReady) {
-      throw new Error('System initialization failed - please restart the app');
+      console.log('❌ System initialization failed - falling back to web method');
+      throw new Error('CREDENTIAL_MANAGER_NOT_SUPPORTED');
     }
     
     // Step 2: Run diagnostics first
@@ -173,11 +175,11 @@ export async function enhancedNativeGoogleSignIn() {
     return { user: userCredential.user, error: null };
     
   } catch (error: any) {
-    console.error('❌ Enhanced native Google sign-in failed:', error);
+    console.error('❌ Native Google sign-in failed:', error);
     
-    // Check if this is a credential manager error
+    // Immediate fallback for credential manager issues
     if (error.message === 'CREDENTIAL_MANAGER_NOT_SUPPORTED' || isCredentialManagerError(error)) {
-      console.log('🔄 Credential Manager not supported, using web fallback');
+      console.log('🔄 Falling back to web authentication method...');
       return { 
         user: null, 
         error: 'CREDENTIAL_MANAGER_NOT_SUPPORTED',
@@ -185,19 +187,26 @@ export async function enhancedNativeGoogleSignIn() {
       };
     }
     
-    // Provide specific error messages based on error type
-    let errorMessage = 'Google sign-in failed';
+    // Handle other specific errors with user-friendly messages
+    let errorMessage = 'Authentication failed';
     
     if (error.message?.includes('No ID token')) {
-      errorMessage = 'Authentication configuration error. Please check your Firebase project settings and SHA-1 fingerprints.';
+      errorMessage = 'Configuration error. Please try again or use phone authentication.';
     } else if (error.message?.includes('not available')) {
-      errorMessage = 'Google Sign-In not available on this device. Please ensure Google Play Services is installed and updated.';
-    } else if (error.code === '10') {
-      errorMessage = 'Google Sign-In configuration error. Check your SHA-1 fingerprints in Firebase Console.';
-    } else if (error.code === '7') {
-      errorMessage = 'Network error. Please check your internet connection and try again.';
-    } else if (error.message?.includes('DEVELOPER_ERROR')) {
-      errorMessage = 'Configuration error: Incorrect SHA-1 fingerprint or package name mismatch.';
+      errorMessage = 'Google Sign-In not available. Trying alternative method...';
+      // Also trigger fallback for this case
+      return { 
+        user: null, 
+        error: 'CREDENTIAL_MANAGER_NOT_SUPPORTED',
+        shouldFallbackToWeb: true 
+      };
+    } else if (error.code === '10' || error.code === '7') {
+      errorMessage = 'Connection error. Trying alternative sign-in method...';
+      return { 
+        user: null, 
+        error: 'CREDENTIAL_MANAGER_NOT_SUPPORTED',
+        shouldFallbackToWeb: true 
+      };
     }
     
     return { user: null, error: errorMessage };
@@ -233,54 +242,60 @@ export async function webGoogleSignInForAndroid() {
   }
 }
 
-// Main authentication function with fallbacks
+// Main authentication function with automatic hybrid fallback
 export async function robustAndroidGoogleAuth() {
-  console.log('🎯 Starting Robust Android Google Authentication...');
+  console.log('🎯 === HYBRID GOOGLE AUTHENTICATION START ===');
+  console.log('📱 Strategy: Credential Manager → Web Fallback → Error');
   
   if (!Capacitor.isNativePlatform()) {
-    console.log('🌐 Not on native platform, using web auth');
+    console.log('🌐 Web platform detected, using web authentication');
     return await webGoogleSignInForAndroid();
   }
   
-  // Try native authentication first
-  console.log('📱 Attempting native authentication...');
+  // === PHASE 1: Try Native Credential Manager ===
+  console.log('📱 Phase 1: Attempting Credential Manager authentication...');
   const nativeResult = await enhancedNativeGoogleSignIn();
   
   if (nativeResult.user) {
+    console.log('✅ SUCCESS: Credential Manager authentication completed');
     return nativeResult;
   }
   
-  // Check if we should immediately fallback to web due to credential manager issues
+  // === PHASE 2: Automatic Web Fallback ===
   if (nativeResult.error === 'CREDENTIAL_MANAGER_NOT_SUPPORTED' || 
       (nativeResult as any).shouldFallbackToWeb) {
-    console.log('🔄 Credential Manager not supported, using web authentication...');
-    console.log('💡', getCredentialManagerErrorMessage());
+    console.log('🔄 Phase 2: Credential Manager unavailable, switching to web method...');
     
     const webResult = await webGoogleSignInForAndroid();
     
     if (webResult.user) {
-      console.log('✅ Web authentication successful as fallback');
+      console.log('✅ SUCCESS: Web authentication completed (fallback)');
       return webResult;
     }
     
-    // Web fallback also failed
+    console.error('❌ FAILURE: Both methods failed');
     return {
       user: null,
-      error: 'Authentication failed. Please ensure you have a stable internet connection and Google Play Services is up to date.'
+      error: 'Unable to complete sign-in. Please check your internet connection and try again.'
     };
   }
   
-  // If native fails for other reasons, also try web fallback
-  console.log('🔄 Native auth failed, trying web fallback...');
+  // === PHASE 3: Try web fallback for any other error ===
+  console.log('🔄 Phase 3: Native auth failed with error, trying web fallback...');
   const webResult = await webGoogleSignInForAndroid();
   
   if (webResult.user) {
+    console.log('✅ SUCCESS: Web authentication completed (emergency fallback)');
     return webResult;
   }
   
-  // Both methods failed
+  // === All methods exhausted ===
+  console.error('❌ FAILURE: All authentication methods failed');
+  console.error('Native error:', nativeResult.error);
+  console.error('Web error:', webResult.error);
+  
   return {
     user: null,
-    error: `Authentication failed. Native error: ${nativeResult.error}. Web error: ${webResult.error}`
+    error: 'Sign-in failed. Please try again or use phone authentication.'
   };
 }

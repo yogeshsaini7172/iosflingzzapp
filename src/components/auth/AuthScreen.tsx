@@ -133,7 +133,7 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
             Welcome to FLINGZZ
           </h1>
           <p className="text-muted-foreground font-prompt text-lg">
-            The verified premium dating platform 💜
+            Sign in with Google for instant access 🚀
           </p>
         </div>
 
@@ -141,10 +141,10 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
         <Card className="shadow-card border-0 bg-gradient-card backdrop-blur-sm hover:shadow-medium transition-smooth">
           <CardHeader className="text-center pb-4">
             <CardTitle className="text-2xl bg-gradient-primary bg-clip-text text-transparent">
-              Join the Community
+              Quick & Secure Sign In
             </CardTitle>
             <CardDescription className="text-base font-prompt">
-              Connect with verified users who share your vibe ✨
+              Works on all Android devices • Automatic fallback support
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
