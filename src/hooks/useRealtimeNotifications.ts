@@ -33,11 +33,28 @@ export const useRealtimeNotifications = ({
     }
   });
 
-  // Listen for new matches
+  // Listen for new matches - user1_id
   useRealtime({
     table: 'enhanced_matches',
     event: 'INSERT',
-    filter: userId ? `user1_id=eq.${userId},user2_id=eq.${userId}` : 'id=eq.00000000-0000-0000-0000-000000000000',
+    filter: userId ? `user1_id=eq.${userId}` : 'id=eq.00000000-0000-0000-0000-000000000000',
+    onInsert: (payload) => {
+      const match = payload.new;
+      if (match.user1_id === userId || match.user2_id === userId) {
+        onNewMatch?.(match);
+        toast({
+          title: "It's a Match! 🎉",
+          description: "You have a new match - start chatting now!",
+        });
+      }
+    }
+  });
+
+  // Listen for new matches - user2_id
+  useRealtime({
+    table: 'enhanced_matches',
+    event: 'INSERT',
+    filter: userId ? `user2_id=eq.${userId}` : 'id=eq.00000000-0000-0000-0000-000000000000',
     onInsert: (payload) => {
       const match = payload.new;
       if (match.user1_id === userId || match.user2_id === userId) {
@@ -79,11 +96,11 @@ export const useRealtimeNotifications = ({
     }
   });
 
-  // Listen for chat request updates
+  // Listen for chat request updates - sender
   useRealtime({
     table: 'chat_requests',
     event: 'UPDATE',
-    filter: userId ? `sender_id=eq.${userId},recipient_id=eq.${userId}` : 'id=eq.00000000-0000-0000-0000-000000000000',
+    filter: userId ? `sender_id=eq.${userId}` : 'id=eq.00000000-0000-0000-0000-000000000000',
     onUpdate: (payload) => {
       const request = payload.new;
       if (request.sender_id === userId || request.recipient_id === userId) {
@@ -96,6 +113,19 @@ export const useRealtimeNotifications = ({
             description: "Your chat request was accepted - start chatting now!",
           });
         }
+      }
+    }
+  });
+
+  // Listen for chat request updates - recipient
+  useRealtime({
+    table: 'chat_requests',
+    event: 'UPDATE',
+    filter: userId ? `recipient_id=eq.${userId}` : 'id=eq.00000000-0000-0000-0000-000000000000',
+    onUpdate: (payload) => {
+      const request = payload.new;
+      if (request.sender_id === userId || request.recipient_id === userId) {
+        onChatRequestUpdate?.(request);
       }
     }
   });
