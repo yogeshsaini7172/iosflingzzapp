@@ -209,6 +209,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return { error: result.error };
       } else {
         console.log('🚪 Sign out successful');
+        // Clear landing page state so it shows again on next visit
+        localStorage.removeItem('landing_dismissed');
         toast.success('Signed out successfully');
         return { error: null };
       }

@@ -42,7 +42,12 @@ const AuthenticatedApp = () => {
   const [hasProfile, setHasProfile] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(true);
   const [profileCheckComplete, setProfileCheckComplete] = useState(false);
-  const [showLandingPage, setShowLandingPage] = useState(true);
+  
+  // Check if user has already dismissed landing page or is authenticated
+  const [showLandingPage, setShowLandingPage] = useState(() => {
+    const dismissed = localStorage.getItem('landing_dismissed');
+    return dismissed !== 'true';
+  });
 
   // Initialize mobile app
   useEffect(() => {
@@ -107,11 +112,20 @@ const AuthenticatedApp = () => {
     }
   };
 
+  // Skip landing page for authenticated users
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      console.log('✅ User authenticated, skipping landing page');
+      setShowLandingPage(false);
+      localStorage.setItem('landing_dismissed', 'true');
+    }
+  }, [isAuthenticated, user]);
+
   useEffect(() => {
     console.log('🔄 App starting, checking auth state...');
     const clearAllLocalStorage = () => {
       try {
-        // Clear all localStorage items for fresh start
+        // Clear all localStorage items for fresh start (but keep landing_dismissed)
         const keys = [
           'demoProfile',
           'demoPreferences', 
@@ -165,12 +179,15 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Show landing page first (web only)
-  if (showLandingPage) {
+  // Show landing page only for non-authenticated users who haven't dismissed it
+  if (showLandingPage && !isAuthenticated && !user) {
     return (
       <TooltipProvider>
         <div className="min-h-screen">
-          <WebLandingPage onEnterApp={() => setShowLandingPage(false)} />
+          <WebLandingPage onEnterApp={() => {
+            setShowLandingPage(false);
+            localStorage.setItem('landing_dismissed', 'true');
+          }} />
         </div>
       </TooltipProvider>
     );
