@@ -37,7 +37,6 @@ import WhoLikedMeModal from '@/components/likes/WhoLikedMeModal';
 import { useSwipeRealtime, useLikeRealtime, useNotificationRealtime } from '@/hooks/useRealtime';
 import UnifiedLayout from '@/components/layout/UnifiedLayout';
 import { useAuth } from '@/contexts/AuthContext';
-import { useThreads } from '@/hooks/useThreads';
 import { calculateCompatibility, type CompatibilityScore } from '@/services/compatibility';
 import { getCurrentLocation, calculateDistance, type LocationData } from '@/utils/locationUtils';
 
@@ -56,11 +55,6 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
   const [expandedSections, setExpandedSections] = useState<{[key: string]: boolean}>({});
   const [showPhotoViewer, setShowPhotoViewer] = useState(false);
   const [photoViewerIndex, setPhotoViewerIndex] = useState(0);
-  const [isPostModalOpen, setIsPostModalOpen] = useState(false);
-  const [newThreadContent, setNewThreadContent] = useState('');
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingThread, setEditingThread] = useState<{id: string, content: string} | null>(null);
-  const [editContent, setEditContent] = useState('');
   
   const [touchStartX, setTouchStartX] = useState(0);
   const [touchCurrentX, setTouchCurrentX] = useState(0);
@@ -77,7 +71,6 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
   
   const { toast } = useToast();
   const { user } = useAuth();
-  const { threads, loading: threadsLoading, error: threadsError, createThread, deleteThread, updateThread } = useThreads();
 
   // Set up realtime listeners
   const userId = user?.uid;
@@ -161,26 +154,6 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
     }
   };
 
-  const handlePostThread = async () => {
-    if (!newThreadContent.trim()) {
-      toast({
-        title: "Error",
-        description: "Please write something to share!",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const success = await createThread(newThreadContent);
-    if (success) {
-      setNewThreadContent('');
-      setIsPostModalOpen(false);
-      toast({
-        title: "Thread posted! 🎉",
-        description: "Your thought has been shared with the community.",
-      });
-    }
-  };
 
   const currentProfile = profiles[currentIndex];
 
@@ -437,147 +410,22 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
         </div>
       </div>
 
-      {/* Compact Community Threads */}
-      <div className="bg-card/30 backdrop-blur-sm px-4 py-2 border-b border-border/10">
-        <div className="max-w-sm mx-auto">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center space-x-2">
-              <MessageCircle className="w-4 h-4 text-primary" />
-              <h4 className="text-sm font-medium text-foreground">Community</h4>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Dialog open={isPostModalOpen} onOpenChange={setIsPostModalOpen}>
-                <DialogTrigger asChild>
-                  <Button size="sm" className="h-6 px-2 text-xs bg-pink-500 hover:bg-pink-600 text-white border border-pink-400 rounded-md">
-                    <Plus className="w-3 h-3 mr-1" />
-                    Post
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle className="flex items-center space-x-2">
-                      <MessageCircle className="w-5 h-5" />
-                      <span>Share Your Thoughts</span>
-                    </DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="thread-content">What's on your mind?</Label>
-                      <Textarea
-                        id="thread-content"
-                        placeholder="Share something interesting with the community..."
-                        value={newThreadContent}
-                        onChange={(e) => setNewThreadContent(e.target.value)}
-                        className="min-h-[120px] resize-none"
-                        maxLength={280}
-                      />
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>Be authentic, be you ✨</span>
-                        <span>{newThreadContent.length}/280</span>
-                      </div>
-                    </div>
-                    <div className="flex justify-end space-x-2">
-                      <Button variant="outline" onClick={() => setIsPostModalOpen(false)}>
-                        Cancel
-                      </Button>
-                      <Button onClick={handlePostThread} disabled={!newThreadContent.trim()}>
-                        <Send className="w-4 h-4 mr-2" />
-                        Share
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
+      {/* Community Section */}
+      <div className="bg-gradient-to-br from-primary/10 to-accent/10 backdrop-blur-sm px-6 py-4 border-b border-border/10">
+        <div className="max-w-md mx-auto text-center space-y-3">
+          <div className="flex items-center justify-center space-x-2 mb-2">
+            <MessageCircle className="w-5 h-5 text-primary" />
+            <h3 className="text-lg font-bold text-foreground">Join FLINGZZ Community</h3>
           </div>
-          {threadsError ? (
-            <div className="text-center py-2">
-              <p className="text-xs text-red-500">Failed to load threads. Please try again.</p>
-            </div>
-          ) : threadsLoading ? (
-            <div className="text-center py-2">
-              <p className="text-xs text-muted-foreground">Loading threads...</p>
-            </div>
-          ) : threads.length > 0 ? (
-            <div className="flex space-x-2 overflow-x-auto pb-1">
-              {(() => {
-                if (!user?.uid) return threads.slice(0, 5);
-                const ownThread = threads.find(thread => thread.user_id === user.uid);
-                const otherThreads = threads.filter(thread => thread.user_id !== user.uid);
-                const reorderedThreads = ownThread ? [ownThread, ...otherThreads] : otherThreads;
-                return reorderedThreads.slice(0, 5);
-              })().map((thread) => (
-                <div
-                  key={thread.id}
-                  className="flex-shrink-0 bg-gradient-to-r from-primary/10 to-accent/10 rounded-full px-3 py-1 border border-primary/20 relative group"
-                >
-                  <div className="flex items-center space-x-2">
-                    <Avatar className="w-5 h-5">
-                      <AvatarImage src={thread.author?.profile_images?.[0]} />
-                      <AvatarFallback className="bg-primary/20 text-primary text-xs flex items-center justify-center">
-                        <User className="w-3 h-3" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <p className={`text-xs font-medium ${
-                      thread.user_id === user?.uid
-                        ? 'text-pink-500'
-                        : 'text-foreground'
-                    }`}>
-                      {thread.user_id === user?.uid
-                        ? 'you'
-                        : (thread.author?.first_name || 'Anonymous')
-                      }
-                    </p>
-                    <p className="text-xs text-muted-foreground max-w-[100px] truncate">
-                      {thread.content}
-                    </p>
-                    {/* Dropdown Menu - Only show for own threads */}
-                    {thread.user_id === user?.uid && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <button className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-white/20 rounded-full">
-                            <MoreVertical className="w-3 h-3 text-foreground" />
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-32">
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setEditingThread({ id: thread.id, content: thread.content });
-                              setEditContent(thread.content);
-                              setIsEditModalOpen(true);
-                            }}
-                            className="text-xs"
-                          >
-                            <Edit className="w-3 h-3 mr-2" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={async () => {
-                              const success = await deleteThread(thread.id);
-                              if (success) {
-                                toast({
-                                  title: "Thread deleted! 🗑️",
-                                  description: "Your thread has been removed.",
-                                });
-                              }
-                            }}
-                            className="text-xs text-red-600"
-                          >
-                            <Trash2 className="w-3 h-3 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-2">
-              <p className="text-xs text-muted-foreground">No threads yet. Be the first to share!</p>
-            </div>
-          )}
+          <p className="text-sm text-muted-foreground">
+            Get exclusive updates, offers, campaigns by FLINGZZ & professional consulting
+          </p>
+          <Button 
+            onClick={() => onNavigate('community')}
+            className="w-full max-w-xs bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white"
+          >
+            Join Now
+          </Button>
         </div>
       </div>
 
@@ -1155,60 +1003,6 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
           </div>
         </div>
       )}
-
-      {/* Edit Thread Modal */}
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2">
-              <Edit className="w-5 h-5" />
-              <span>Edit Thread</span>
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-thread-content">Update your thoughts</Label>
-              <Textarea
-                id="edit-thread-content"
-                placeholder="Share something interesting with the community..."
-                value={editContent}
-                onChange={(e) => setEditContent(e.target.value)}
-                className="min-h-[120px] resize-none"
-                maxLength={280}
-              />
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Be authentic, be you ✨</span>
-                <span>{editContent.length}/280</span>
-              </div>
-            </div>
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => {
-                setIsEditModalOpen(false);
-                setEditingThread(null);
-                setEditContent('');
-              }}>
-                Cancel
-              </Button>
-              <Button
-                onClick={async () => {
-                  if (!editingThread || !editContent.trim()) return;
-
-                  const success = await updateThread(editingThread.id, editContent);
-                  if (success) {
-                    setIsEditModalOpen(false);
-                    setEditingThread(null);
-                    setEditContent('');
-                  }
-                }}
-                disabled={!editContent.trim()}
-              >
-                <Send className="w-4 h-4 mr-2" />
-                Update
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       <WhoLikedMeModal
         isOpen={showWhoLikedMe}

@@ -293,6 +293,39 @@ export type Database = {
         }
         Relationships: []
       }
+      consulting_requests: {
+        Row: {
+          created_at: string
+          description: string
+          existing_preferences: Json | null
+          id: string
+          request_type: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          existing_preferences?: Json | null
+          id?: string
+          request_type: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          existing_preferences?: Json | null
+          id?: string
+          request_type?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       enhanced_matches: {
         Row: {
           chat_room_id: string | null
@@ -920,97 +953,6 @@ export type Database = {
         }
         Relationships: []
       }
-      thread_likes: {
-        Row: {
-          created_at: string
-          id: string
-          thread_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          thread_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          thread_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "thread_likes_thread_id_fkey"
-            columns: ["thread_id"]
-            isOneToOne: false
-            referencedRelation: "threads"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      thread_replies: {
-        Row: {
-          content: string
-          created_at: string
-          id: string
-          thread_id: string
-          user_id: string
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          id?: string
-          thread_id: string
-          user_id: string
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          id?: string
-          thread_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "thread_replies_thread_id_fkey"
-            columns: ["thread_id"]
-            isOneToOne: false
-            referencedRelation: "threads"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      threads: {
-        Row: {
-          content: string
-          created_at: string
-          id: string
-          likes_count: number
-          replies_count: number
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          id?: string
-          likes_count?: number
-          replies_count?: number
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          id?: string
-          likes_count?: number
-          replies_count?: number
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       user_interactions: {
         Row: {
           created_at: string
@@ -1193,28 +1135,6 @@ export type Database = {
       create_match_and_chat: {
         Args: { p_a: string; p_actor_id: string; p_b: string }
         Returns: Json
-      }
-      create_thread_as_user: {
-        Args: { p_content: string; p_user_id: string }
-        Returns: {
-          content: string
-          created_at: string
-          id: string
-          likes_count: number
-          replies_count: number
-          updated_at: string
-          user_id: string
-        }[]
-      }
-      create_thread_reply_as_user: {
-        Args: { p_content: string; p_thread_id: string; p_user_id: string }
-        Returns: {
-          content: string
-          created_at: string
-          id: string
-          thread_id: string
-          user_id: string
-        }[]
       }
       firebase_uid: {
         Args: Record<PropertyKey, never>

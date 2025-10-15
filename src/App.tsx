@@ -11,6 +11,7 @@ import PairingPage from "./pages/PairingPage";
 import ProfilePage from "./pages/ProfilePage";
 import BlindDatePage from "./pages/BlindDatePage";
 import FlingzzHome from "./components/campus/FlingzzHome";
+import CommunityPage from "./pages/CommunityPage";
 
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
@@ -243,6 +244,7 @@ const AuthenticatedApp = () => {
               <Route path="/pairing" element={<PairingPage onNavigate={(view) => navigate(`/${view}`)} />} />
               <Route path="/blind-date" element={<BlindDatePage onNavigate={(view) => navigate(`/${view}`)} />} />
               <Route path="/profile" element={<ProfilePage onNavigate={(view) => navigate(`/${view}`)} />} />
+              <Route path="/community" element={<CommunityPage />} />
               
               {/* --- Chat routes --- */}
               <Route 
