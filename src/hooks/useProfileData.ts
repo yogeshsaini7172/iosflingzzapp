@@ -48,6 +48,12 @@ export interface Profile {
   // Goals & Interests
   relationship_goals?: string[]; // max 3
 
+  // Location
+  location?: string;
+  latitude?: number;
+  longitude?: number;
+  city?: string;
+
   // Legacy fields for compatibility
   personality_type?: string;
   show_profile?: boolean;

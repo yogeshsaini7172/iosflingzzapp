@@ -22,15 +22,20 @@ export const getCurrentLocation = (): Promise<LocationData> => {
         });
       },
       (error) => {
-        console.warn('Geolocation error:', error.message);
-        // Fallback to IP-based lookup if geolocation fails
-        fetchLocationFromIP()
-          .then(resolve)
-          .catch(() => reject(error));
+        console.warn('Geolocation error:', error.message, 'Code:', error.code);
+        
+        // Always reject for permission denied - don't fall back to IP
+        if (error.code === 1) { // PERMISSION_DENIED
+          reject(new Error('Location permission denied by user'));
+          return;
+        }
+        
+        // For other errors (timeout, unavailable), also reject to trigger permission request
+        reject(new Error(`Geolocation failed: ${error.message}`));
       },
       {
         enableHighAccuracy: true,
-        timeout: 8000,
+        timeout: 10000,
         maximumAge: 300000, // 5 minutes
       }
     );

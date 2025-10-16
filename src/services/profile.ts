@@ -35,12 +35,15 @@ export interface FeedProfile {
 
 export async function updateUserLocation(location: LocationUpdate): Promise<{ error?: any }> {
   try {
-    const response = await fetchWithFirebaseAuth('/functions/v1/profile-management', {
+    const response = await fetchWithFirebaseAuth('/functions/v1/data-management', {
       method: 'POST',
       body: JSON.stringify({
-        action: 'update',
+        action: 'update_profile',
         profile: {
           location: JSON.stringify(location),
+          latitude: location.latitude,
+          longitude: location.longitude,
+          city: location.city,
         },
       }),
     });

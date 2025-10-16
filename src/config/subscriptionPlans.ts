@@ -6,6 +6,7 @@ export const SUBSCRIPTION_PLANS = {
     display_name: "Free",
     features: {
       daily_swipes_limit: 20,
+      daily_pairing_limit: 1, // Free users get 1 pairing request per day
       profiles_shown_count: 1,
       can_request_extra_pairings: false,
       extra_pairings_on_purchase: 0,
@@ -17,12 +18,13 @@ export const SUBSCRIPTION_PLANS = {
       ai_compatibility_insights: false
     }
   },
-  basic_49: {
-    id: "basic_49",
-    price_monthly_inr: 49,
+  basic_69: {
+    id: "basic_69",
+    price_monthly_inr: 69,
     display_name: "Basic",
     features: {
-      daily_swipes_limit: 50,
+      daily_swipes_limit: 100,
+      daily_pairing_limit: 5, // Basic plan: 5 pairing requests per day
       profiles_shown_count: 10,
       can_request_extra_pairings: true,
       extra_pairings_on_purchase: 5,
@@ -34,12 +36,13 @@ export const SUBSCRIPTION_PLANS = {
       ai_compatibility_insights: false
     }
   },
-  plus_89: {
-    id: "plus_89",
-    price_monthly_inr: 89,
-    display_name: "Plus",
+  standard_129: {
+    id: "standard_129",
+    price_monthly_inr: 129,
+    display_name: "Standard",
     features: {
-      daily_swipes_limit: null,
+      daily_swipes_limit: null, // Unlimited swipes
+      daily_pairing_limit: 10, // Standard plan: 10 pairing requests per day
       profiles_shown_count: 10,
       can_request_extra_pairings: true,
       extra_pairings_on_purchase: 5,
@@ -51,12 +54,13 @@ export const SUBSCRIPTION_PLANS = {
       ai_compatibility_insights: false
     }
   },
-  pro_129: {
-    id: "pro_129",
-    price_monthly_inr: 129,
-    display_name: "Pro",
+  premium_243: {
+    id: "premium_243",
+    price_monthly_inr: 243,
+    display_name: "Premium",
     features: {
-      daily_swipes_limit: null,
+      daily_swipes_limit: null, // Unlimited swipes
+      daily_pairing_limit: 20, // Premium plan: 20 pairing requests per day
       profiles_shown_count: 10,
       can_request_extra_pairings: true,
       extra_pairings_on_purchase: 5,

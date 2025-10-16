@@ -10,6 +10,7 @@ import {
   signOut as authSignOut
 } from '../services/auth';
 import { toast } from 'sonner';
+import { markLocationPermissionNeeded, setupLocationRequestOnInteraction } from '../services/locationService';
 
 type AuthContextType = {
   user: User | null;
@@ -40,6 +41,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [initialAuthCheck, setInitialAuthCheck] = useState(false);
   const prevUserRef = useRef<User | null>(null);
 
+  // Function to setup location permission request after login
+  const setupLocationRequest = () => {
+    console.log('📍 Setting up location request for after login...');
+    markLocationPermissionNeeded();
+    
+    // Setup location request on next user interaction
+    setTimeout(() => {
+      setupLocationRequestOnInteraction();
+    }, 500);
+  };
+
   useEffect(() => {
     console.log('🔥 Setting up Firebase auth listener...');
 
@@ -59,6 +71,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Only show success message for new logins, not page refreshes
         if (!wasAuthenticated && initialAuthCheck) {
           toast.success('Successfully signed in!');
+          
+          // Setup location permission request after successful login
+          setTimeout(() => {
+            setupLocationRequest();
+          }, 1000); // Small delay to let UI settle
         }
       } else {
         console.log('🔥 No user found - user signed out or no session');
@@ -153,6 +170,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       console.log('🔐 OTP verified successfully:', result.user?.uid);
       toast.success('Phone number verified successfully!');
+      
+      // Setup location permission request after successful phone verification
+      setTimeout(() => {
+        setupLocationRequest();
+      }, 1500);
+      
       return { user: result.user, error: null };
     } catch (error: any) {
       console.error('🔐 OTP verification error:', error);
@@ -189,6 +212,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       console.log('🔍 Google sign-in successful:', result.user?.uid);
       toast.success('Successfully signed in with Google!');
+      
+      // Setup location permission request after successful Google sign-in
+      setTimeout(() => {
+        setupLocationRequest();
+      }, 1500);
+      
       return { user: result.user, error: null };
 
     } catch (error: any) {

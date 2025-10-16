@@ -9,6 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
+import LocationPermission from '@/components/common/LocationPermission';
+import LocationDisplay from '@/components/common/LocationDisplay';
 import { 
   ArrowLeft, 
   Camera, 
@@ -199,7 +201,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
   const { profile, preferences, isLoading, updateProfile, updatePreferences } = useProfileData();
   const { signOut, user } = useAuth();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<'basic' | 'what-you-are' | 'who-you-want' | 'photos' | 'privacy'>('basic');
+  const [activeTab, setActiveTab] = useState<'basic' | 'location' | 'what-you-are' | 'who-you-want' | 'photos' | 'privacy'>('basic');
   const [showPhotoViewer, setShowPhotoViewer] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
@@ -231,6 +233,9 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
     loveLanguage: '',
     lifestyle: '',
 
+    // Location
+    location: null as any,
+
     // Personality & Values (arrays)
     personalityTraits: [] as string[],
     values: [] as string[],
@@ -257,10 +262,13 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
     preferredLifestyle: [] as string[],
     preferredProfessions: [] as string[],
 
-    // Settings
-    isVisible: true,
+    // Settings - Don't default to true, wait for actual database value
+    isVisible: false,
     profileImages: [] as string[]
   });
+
+  // Track whether we've loaded profile data from database
+  const [hasLoadedProfileData, setHasLoadedProfileData] = useState(false);
 
   // Helper function to normalize keys to match UI format
   const normalizeKey = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '_');
@@ -292,6 +300,7 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
   useEffect(() => {
   if (profile) {
     console.log("📊 Loading profile data into form:", profile);
+    console.log("🔍 Current show_profile value:", profile.show_profile, "Type:", typeof profile.show_profile);
 
     // Step 1: Transform profile data
     const transformedData = {
@@ -308,6 +317,20 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       faceType: transformSingleValueToUI((profile as any).face_type || ''),
       loveLanguage: transformSingleValueToUI((profile as any).love_language || ''),
       lifestyle: transformSingleValueToUI((profile as any).lifestyle || ''),
+
+      // Location data
+      location: (profile as any).location ? (() => {
+        try {
+          return JSON.parse((profile as any).location);
+        } catch {
+          return {
+            city: (profile as any).city || '',
+            latitude: (profile as any).latitude || null,
+            longitude: (profile as any).longitude || null,
+            source: 'manual'
+          };
+        }
+      })() : null,
 
       // Normalize arrays into UI key format
       personalityTraits: transformDatabaseToUI((profile as any).personality_traits || []),
@@ -329,18 +352,23 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       ),
       relationshipGoals: transformDatabaseToUI(profile.relationship_goals || []),
       interests: Array.isArray(profile.interests) ? transformDatabaseToUI(profile.interests as any) : [],
-      isVisible: profile.show_profile !== false,
+      isVisible: typeof profile.show_profile === 'boolean' ? profile.show_profile : true,
       profileImages: profile.profile_images || [],
     };
+
+    console.log("🔄 Setting isVisible to:", typeof profile.show_profile === 'boolean' ? profile.show_profile : true);
 
     // Step 2: Debug transformed data
     console.log("🔄 Transformed data:", transformedData);
 
-    // Step 3: Update formData
+    // Step 3: Update formData only if we haven't loaded profile data before or if the visibility changed
     setFormData(prev => ({
       ...prev,
       ...transformedData,
     }));
+
+    // Mark that we've loaded profile data
+    setHasLoadedProfileData(true);
 
     // Debug: Log transformed values
     console.log("🔄 Transformed profile values:", {
@@ -527,7 +555,12 @@ useEffect(() => {
         relationship_goals: formData.relationshipGoals,
         interests: formData.interests,
         profile_images: formData.profileImages,
-        show_profile: formData.isVisible
+        show_profile: formData.isVisible,
+        // Location data
+        location: formData.location ? JSON.stringify(formData.location) : null,
+        latitude: formData.location?.latitude || null,
+        longitude: formData.location?.longitude || null,
+        city: formData.location?.city || null
       });
 
       // Update preferences with validation
@@ -745,6 +778,45 @@ useEffect(() => {
           className="bg-muted border-primary/20"
         />
       </div>
+    </div>
+  );
+
+  const renderLocationSection = () => (
+    <div className="space-y-6">
+      <div className="text-center mb-6">
+        <h3 className="text-lg font-semibold mb-2">Location Settings</h3>
+        <p className="text-muted-foreground text-sm">Manage your location preferences for better matching</p>
+      </div>
+
+      <LocationPermission
+        onLocationUpdate={(location) => {
+          setFormData(prev => ({
+            ...prev,
+            location: {
+              latitude: location.latitude,
+              longitude: location.longitude,
+              city: location.city,
+              region: location.region,
+              country: location.country,
+              address: location.address,
+              source: location.source
+            }
+          }));
+        }}
+        showCard={false}
+        autoFetch={true}
+        className="space-y-4"
+      />
+
+      {formData.location && (
+        <div className="mt-4">
+          <LocationDisplay
+            location={JSON.stringify(formData.location)}
+            showSource={true}
+            className="text-sm"
+          />
+        </div>
+      )}
     </div>
   );
 
@@ -1550,11 +1622,38 @@ useEffect(() => {
               <Label className="text-base font-medium">Profile Visibility</Label>
               <p className="text-sm text-muted-foreground">
                 Make your profile visible to other users for matching
+                {!hasLoadedProfileData && (
+                  <span className="ml-1 text-amber-600">(Loading...)</span>
+                )}
               </p>
             </div>
             <Switch
               checked={formData.isVisible}
-              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isVisible: checked }))}
+              onCheckedChange={async (checked) => {
+                console.log("🔄 Switch toggled to:", checked);
+                setFormData(prev => ({ ...prev, isVisible: checked }));
+                
+                // Auto-save visibility setting immediately using existing updateProfile function
+                try {
+                  console.log("💾 Auto-saving visibility setting:", checked);
+                  await updateProfile({ show_profile: checked });
+                  console.log("✅ Visibility setting saved successfully");
+                  toast({
+                    title: "Saved",
+                    description: `Profile visibility ${checked ? 'enabled' : 'disabled'}`,
+                  });
+                } catch (error) {
+                  console.error("❌ Error saving visibility:", error);
+                  toast({
+                    title: "Error",
+                    description: "Failed to save visibility setting",
+                    variant: "destructive",
+                  });
+                  // Revert the change if save failed
+                  setFormData(prev => ({ ...prev, isVisible: !checked }));
+                }
+              }}
+              disabled={!hasLoadedProfileData}
             />
           </div>
         </CardContent>
@@ -1596,6 +1695,7 @@ useEffect(() => {
 
   const tabs = [
     { id: 'basic', label: 'Basic Info', icon: User },
+    { id: 'location', label: 'Location', icon: MapPin },
     { id: 'what-you-are', label: 'What You Are', icon: User },
     { id: 'who-you-want', label: 'Who You Want', icon: Heart },
     { id: 'photos', label: 'Photos', icon: Camera },
@@ -1692,6 +1792,7 @@ useEffect(() => {
         <Card className="shadow-glow border-border/50 bg-card/80 backdrop-blur-sm">
           <CardContent className="p-6">
             {activeTab === 'basic' && renderBasicInfo()}
+            {activeTab === 'location' && renderLocationSection()}
             {activeTab === 'what-you-are' && renderWhatYouAre()}
             {activeTab === 'who-you-want' && renderWhoYouWant()}
             {activeTab === 'photos' && renderPhotos()}

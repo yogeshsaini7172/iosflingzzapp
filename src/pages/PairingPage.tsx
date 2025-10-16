@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Heart, Brain, Star, MapPin, GraduationCap, Sparkles, Users, RefreshCw, MessageCircle, Zap } from 'lucide-react';
+import { Heart, Brain, Star, MapPin, GraduationCap, Sparkles, Users, RefreshCw, MessageCircle, Zap, Crown } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import DetailedProfileModal from '@/components/profile/DetailedProfileModalNew';
@@ -13,6 +13,8 @@ import { useRequiredAuth } from '@/hooks/useRequiredAuth';
 import UnifiedLayout from '@/components/layout/UnifiedLayout';
 import ProfileImageHandler from '@/components/common/ProfileImageHandler';
 import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
+import { useSubscriptionEntitlements } from '@/hooks/useSubscriptionEntitlements';
+import { PairingLimitService } from '@/services/pairingLimits';
 
 interface Match {
   user_id: string;
@@ -62,6 +64,15 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
   const [myReq, setMyReq] = useState<any>(null);
   const [myQual, setMyQual] = useState<any>(null);
 
+  // Subscription and pairing limits
+  const { entitlements, loading: subscriptionLoading } = useSubscriptionEntitlements();
+  const [pairingLimits, setPairingLimits] = useState({
+    canRequest: true,
+    usedToday: 0,
+    dailyLimit: 1,
+    remainingRequests: 1
+  });
+
   // Show loading state while auth is being checked
   if (authLoading || !userId) {
     return (
@@ -88,6 +99,18 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
       return null;
     }
   };
+
+  // Check pairing limits when user or subscription changes
+  useEffect(() => {
+    if (userId && entitlements) {
+      const limits = PairingLimitService.canMakePairingRequest(userId, entitlements.plan.id);
+      setPairingLimits(limits);
+      console.log('🎯 Pairing limits updated:', limits);
+      
+      // Clean up old localStorage data
+      PairingLimitService.cleanupOldUsageData(userId);
+    }
+  }, [userId, entitlements]);
 
   useEffect(() => {
     console.log('🎯 PairingPage useEffect triggered with userId:', userId);
@@ -328,6 +351,39 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
   }
 
   const handleRefresh = () => {
+    // Check if user can make more pairing requests
+    if (!pairingLimits.canRequest) {
+      // Show upgrade prompt
+      toast.error(
+        `Daily pairing limit reached! You've used ${pairingLimits.usedToday}/${pairingLimits.dailyLimit} requests today.`,
+        {
+          action: {
+            label: "Upgrade Plan",
+            onClick: () => onNavigate('subscription')
+          },
+          duration: 5000
+        }
+      );
+      return;
+    }
+
+    // Increment usage count
+    if (userId && entitlements) {
+      const success = PairingLimitService.incrementDailyUsage(userId);
+      if (success) {
+        // Update local limits state
+        const newLimits = PairingLimitService.canMakePairingRequest(userId, entitlements.plan.id);
+        setPairingLimits(newLimits);
+        
+        console.log(`🎯 Pairing request used: ${newLimits.usedToday}/${newLimits.dailyLimit}`);
+        
+        // Show remaining requests if getting close to limit
+        if (newLimits.remainingRequests <= 2 && newLimits.remainingRequests > 0) {
+          toast.warning(`${newLimits.remainingRequests} pairing requests remaining today`);
+        }
+      }
+    }
+
     loadMatches(userId);
   };
 
@@ -362,13 +418,45 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
             </div>
             <Button
               onClick={handleRefresh}
-              disabled={isLoading}
-              className="bg-gradient-primary shadow-royal hover:opacity-90 text-sm px-3 py-2 sm:px-4 sm:py-2 w-full sm:w-auto"
+              disabled={isLoading || !pairingLimits.canRequest}
+              className="bg-gradient-primary shadow-royal hover:opacity-90 text-sm px-3 py-2 sm:px-4 sm:py-2 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-              <span className="hidden xs:inline">Refresh Matches</span>
-              <span className="xs:hidden">Refresh</span>
+              <Heart className={`h-4 w-4 mr-2 ${isLoading ? 'animate-pulse' : ''}`} />
+              {!pairingLimits.canRequest ? 'Daily Limit Reached' : 'Get Today\'s Pair'}
             </Button>
+          </div>
+
+          {/* Subscription Status & Daily Limits */}
+          <div className="bg-gradient-subtle border border-primary/20 rounded-xl p-4 mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center">
+                  <Crown className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <p className="font-medium text-sm">
+                    {entitlements?.plan.display_name || 'Free'} Plan
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Daily Pairing Requests: {pairingLimits.usedToday}/{pairingLimits.dailyLimit}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-medium text-primary">
+                  {pairingLimits.remainingRequests} Remaining
+                </p>
+                {pairingLimits.remainingRequests === 0 && (
+                  <Button 
+                    size="sm" 
+                    onClick={() => onNavigate('subscription')}
+                    className="bg-gradient-gold text-xs mt-1"
+                  >
+                    Upgrade Plan
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Stats */}
@@ -580,11 +668,15 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
             </div>
             <h3 className="text-lg font-semibold mb-2">No matches found</h3>
             <p className="text-muted-foreground mb-4">
-              Try refreshing or updating your preferences to find more compatible matches.
+              Get your daily pair or update your preferences to find more compatible matches.
             </p>
-            <Button onClick={handleRefresh} className="bg-gradient-primary">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Try Again
+            <Button 
+              onClick={handleRefresh} 
+              disabled={!pairingLimits.canRequest}
+              className="bg-gradient-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Heart className="h-4 w-4 mr-2" />
+              {!pairingLimits.canRequest ? 'Daily Limit Reached' : 'Get Today\'s Pair'}
             </Button>
           </div>
         )}

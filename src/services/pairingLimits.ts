@@ -1,0 +1,234 @@
+import { supabase } from '@/integrations/supabase/client';
+
+export interface DailyPairingUsage {
+  user_id: string;
+  date: string; // YYYY-MM-DD format
+  pairing_requests_used: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface QCSMatchDistribution {
+  range_100_80: number; // 2 pairs
+  range_80_60: number;  // 3 pairs  
+  range_60_40: number;  // 2 pairs
+  range_below_40: number; // 3 pairs (remaining)
+}
+
+export class PairingLimitService {
+  private static readonly QCS_DISTRIBUTION: QCSMatchDistribution = {
+    range_100_80: 2,
+    range_80_60: 3,
+    range_60_40: 2,
+    range_below_40: 3 // Total 10 pairs max
+  };
+
+  /**
+   * Get user's daily pairing usage for today (local timezone) - using localStorage
+   */
+  static getDailyUsage(userId: string): DailyPairingUsage | null {
+    const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD format
+    const storageKey = `pairing_usage_${userId}_${today}`;
+    
+    try {
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+      return null;
+    } catch (error) {
+      console.error('Error getting daily usage from localStorage:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Create or update daily usage record - using localStorage
+   */
+  static incrementDailyUsage(userId: string): boolean {
+    const today = new Date().toLocaleDateString('en-CA');
+    const storageKey = `pairing_usage_${userId}_${today}`;
+    
+    try {
+      const existing = this.getDailyUsage(userId);
+      const now = new Date().toISOString();
+      
+      const usage: DailyPairingUsage = existing ? {
+        ...existing,
+        pairing_requests_used: existing.pairing_requests_used + 1,
+        updated_at: now
+      } : {
+        user_id: userId,
+        date: today,
+        pairing_requests_used: 1,
+        created_at: now,
+        updated_at: now
+      };
+
+      localStorage.setItem(storageKey, JSON.stringify(usage));
+      return true;
+    } catch (error) {
+      console.error('Error updating daily usage in localStorage:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Check if user can make more pairing requests today
+   */
+  static canMakePairingRequest(userId: string, userPlan: string): {
+    canRequest: boolean;
+    usedToday: number;
+    dailyLimit: number;
+    remainingRequests: number;
+  } {
+    try {
+      // Get user's plan limits
+      const planLimits = this.getPlanLimits(userPlan);
+      
+      // Get today's usage
+      const usage = this.getDailyUsage(userId);
+      const usedToday = usage?.pairing_requests_used || 0;
+      
+      const canRequest = usedToday < planLimits.daily_pairing_limit;
+      const remainingRequests = Math.max(0, planLimits.daily_pairing_limit - usedToday);
+
+      return {
+        canRequest,
+        usedToday,
+        dailyLimit: planLimits.daily_pairing_limit,
+        remainingRequests
+      };
+    } catch (error) {
+      console.error('Error checking pairing request limits:', error);
+      return {
+        canRequest: false,
+        usedToday: 0,
+        dailyLimit: 1,
+        remainingRequests: 0
+      };
+    }
+  }
+
+  /**
+   * Get plan-specific limits
+   */
+  private static getPlanLimits(planId: string) {
+    switch (planId) {
+      case 'basic_69':
+        return { daily_pairing_limit: 5 };
+      case 'standard_129':
+        return { daily_pairing_limit: 10 };
+      case 'premium_243':
+        return { daily_pairing_limit: 20 };
+      default: // free plan
+        return { daily_pairing_limit: 1 };
+    }
+  }
+
+  /**
+   * Get QCS-distributed matches (7 total as specified)
+   */
+  static async getQCSDistributedMatches(userId: string): Promise<any[]> {
+    try {
+      const matches: any[] = [];
+
+      // Get 2 matches from 100-80 QCS range
+      const highQCS = await this.getMatchesByQCSRange(userId, 80, 100, 2);
+      matches.push(...highQCS);
+
+      // Get 3 matches from 80-60 QCS range  
+      const mediumQCS = await this.getMatchesByQCSRange(userId, 60, 80, 3);
+      matches.push(...mediumQCS);
+
+      // Get 2 matches from 60-40 QCS range
+      const lowQCS = await this.getMatchesByQCSRange(userId, 40, 60, 2);
+      matches.push(...lowQCS);
+
+      // Get remaining matches from below 40 QCS (up to 7 total)
+      const remainingSlots = 7 - matches.length;
+      if (remainingSlots > 0) {
+        const veryLowQCS = await this.getMatchesByQCSRange(userId, 0, 40, remainingSlots);
+        matches.push(...veryLowQCS);
+      }
+
+      return matches.slice(0, 7); // Ensure max 7 matches
+    } catch (error) {
+      console.error('Error getting QCS distributed matches:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get matches within specific QCS range using enhanced_matches table
+   */
+  private static async getMatchesByQCSRange(
+    userId: string, 
+    minQCS: number, 
+    maxQCS: number, 
+    limit: number
+  ): Promise<any[]> {
+    try {
+      const { data, error } = await supabase
+        .from('enhanced_matches')
+        .select(`
+          *,
+          user1_profile:profiles!enhanced_matches_user1_id_fkey(
+            id,
+            first_name,
+            last_name,
+            profile_images,
+            bio,
+            university,
+            qcs_score
+          ),
+          user2_profile:profiles!enhanced_matches_user2_id_fkey(
+            id,
+            first_name,
+            last_name,
+            profile_images,
+            bio,
+            university,
+            qcs_score
+          )
+        `)
+        .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
+        .gte('compatibility_score', minQCS)
+        .lt('compatibility_score', maxQCS)
+        .order('compatibility_score', { ascending: false })
+        .limit(limit);
+
+      if (error) throw error;
+
+      // Transform the data to get the other user's profile
+      return (data || []).map(match => {
+        const otherProfile = match.user1_id === userId ? match.user2_profile : match.user1_profile;
+        return {
+          ...match,
+          matched_user: otherProfile,
+          qcs_score: match.compatibility_score
+        };
+      });
+    } catch (error) {
+      console.error(`Error getting matches for QCS range ${minQCS}-${maxQCS}:`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Clean up old localStorage entries (run this periodically)
+   */
+  static cleanupOldUsageData(userId: string): void {
+    try {
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      
+      // Remove yesterday's data (you can adjust this to keep more days if needed)
+      const yesterdayKey = `pairing_usage_${userId}_${yesterday.toLocaleDateString('en-CA')}`;
+      localStorage.removeItem(yesterdayKey);
+    } catch (error) {
+      console.error('Error cleaning up old usage data:', error);
+    }
+  }
+}

@@ -8,6 +8,7 @@ import BasicDetailsStep from "./steps/BasicDetailsStep";
 import WhatYouAreStep from "./steps/WhatYouAreStep";
 import WhoYouWantStep from "./steps/WhoYouWantStep";
 import UploadPhotosStep from "./steps/UploadPhotosStep";
+import LocationStep from "./steps/LocationStep";
 import IDVerificationStep from "./steps/IDVerificationStep";
 import ProgressIndicator from "./steps/ProgressIndicator";
 import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
@@ -75,6 +76,9 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
     // Photos
     profileImages: [] as File[],
     
+    // Location
+    location: null as any,
+    
     // Settings
     isProfilePublic: true,
     
@@ -83,12 +87,13 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
     govtIdFile: null as File | null
   });
 
-  const totalSteps = 5;
+  const totalSteps = 6;
   const stepTitles = [
     "Basic Details",
     "What You Are", 
     "Who You Want",
     "Upload Photos",
+    "Location",
     "ID Verification"
   ];
 
@@ -191,7 +196,20 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         swipes_left: 20,
         show_profile: true,
         is_active: true,
-        total_qcs: 0  // Initialize with 0, will be updated after QCS calculation
+        total_qcs: 0,  // Initialize with 0, will be updated after QCS calculation
+        
+        // Location data
+        location: profileData.location ? JSON.stringify({
+          city: profileData.location.city,
+          region: profileData.location.region,
+          country: profileData.location.country,
+          latitude: profileData.location.latitude,
+          longitude: profileData.location.longitude,
+          source: profileData.location.source
+        }) : null,
+        latitude: profileData.location?.latitude || null,
+        longitude: profileData.location?.longitude || null,
+        city: profileData.location?.city || null
       };
 
       // Store partner preferences (optional, kept in localStorage for demo)
@@ -404,7 +422,9 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         return profileData.preferredGender.length > 0 && profileData.preferredRelationshipGoals.length > 0;
       case 4: // Upload Photos
         return profileData.profileImages.length >= 1;
-      case 5: // ID Verification - only proceed after verified
+      case 5: // Location - optional step, can always proceed
+        return true;
+      case 6: // ID Verification - only proceed after verified
         return verificationStatus === 'verified' || profileData.collegeIdFile || profileData.govtIdFile;
       default:
         return true;
@@ -442,6 +462,13 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
           />
         );
       case 5:
+        return (
+          <LocationStep
+            profileData={profileData}
+            setProfileData={setProfileData}
+          />
+        );
+      case 6:
         return (
             <IDVerificationStep
               data={profileData}
