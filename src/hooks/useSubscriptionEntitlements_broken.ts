@@ -43,34 +43,6 @@ export function useSubscriptionEntitlements() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Helper function to normalize plan IDs
-  const normalizePlanId = (planId: string): PlanId => {
-    // Handle legacy plan ID formats
-    switch (planId) {
-      // Legacy 129 formats
-      case '129_pro':
-      case 'standard_129_pro':
-      case '129_standard':
-        return 'standard_129';
-      
-      // Legacy 69 formats  
-      case '69_basic':
-      case 'basic_69_pro':
-      case '69_pro':
-        return 'basic_69';
-      
-      // Legacy 243 formats
-      case '243_premium':
-      case 'premium_243_pro':
-      case '243_pro':
-        return 'premium_243';
-      
-      // Return as-is if already in correct format
-      default:
-        return planId as PlanId;
-    }
-  };
-
   // Helper function to check subscription from database directly
   const checkDatabaseSubscription = async (firebaseUid: string): Promise<SubscriptionEntitlements | null> => {
     try {
@@ -85,14 +57,12 @@ export function useSubscriptionEntitlements() {
         return null;
       }
 
-      const rawPlanId = profile.plan_id || 'free';
-      const planId = normalizePlanId(rawPlanId);
+      const planId = (profile.plan_id || 'free') as PlanId;
       const plan = SUBSCRIPTION_PLANS[planId] || SUBSCRIPTION_PLANS.free;
       
       console.log('🔍 Database subscription check:', { 
         firebaseUid, 
-        rawPlanId,
-        normalizedPlanId: planId,
+        planId, 
         planDisplay: plan.display_name,
         profileData: profile 
       });
@@ -137,6 +107,26 @@ export function useSubscriptionEntitlements() {
     }
   };
 
+  const checkEntitlements = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // First, try to get Firebase UID for database check
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user?.id) {
+        console.log('🔍 Checking database subscription for Firebase UID:', user.id);
+        const dbEntitlements = await checkDatabaseSubscription(user.id);
+        
+        if (dbEntitlements) {
+          console.log('✅ Database subscription found:', dbEntitlements);
+          setEntitlements(dbEntitlements);
+          return;
+        }
+      }
+
+      // If database check fails, try the API
   const checkEntitlements = async () => {
     try {
       setLoading(true);
@@ -313,12 +303,6 @@ export function useSubscriptionEntitlements() {
     return Boolean(entitlements.features[feature as keyof typeof entitlements.features]);
   };
 
-  // Manual refresh function for when subscription is updated externally
-  const refreshEntitlements = async () => {
-    console.log('🔄 Manually refreshing subscription entitlements...');
-    await checkEntitlements();
-  };
-
   useEffect(() => {
     checkEntitlements();
   }, []);
@@ -328,7 +312,6 @@ export function useSubscriptionEntitlements() {
     loading,
     error,
     checkEntitlements,
-    refreshEntitlements,
     upgradePlan,
     downgradePlan,
     requestExtraPairings,

@@ -56,6 +56,8 @@ interface PairingPageProps {
 const PairingPage = ({ onNavigate }: PairingPageProps) => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasLoadedProfiles, setHasLoadedProfiles] = useState(false);
+  const [shouldShowExistingProfiles, setShouldShowExistingProfiles] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [selectedProfile, setSelectedProfile] = useState<Match | null>(null);
   const [selectedChatId, setSelectedChatId] = useState<string>("");
@@ -65,7 +67,7 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
   const [myQual, setMyQual] = useState<any>(null);
 
   // Subscription and pairing limits
-  const { entitlements, loading: subscriptionLoading } = useSubscriptionEntitlements();
+  const { entitlements, loading: subscriptionLoading, refreshEntitlements } = useSubscriptionEntitlements();
   const [pairingLimits, setPairingLimits] = useState({
     canRequest: true,
     usedToday: 0,
@@ -102,10 +104,13 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
 
   // Check pairing limits when user or subscription changes
   useEffect(() => {
-    if (userId && entitlements) {
-      const limits = PairingLimitService.canMakePairingRequest(userId, entitlements.plan.id);
+    if (userId) {
+      // Use entitlements if available, otherwise fallback to free plan
+      const planId = entitlements?.plan.id || 'free';
+      const limits = PairingLimitService.canMakePairingRequest(userId, planId);
       setPairingLimits(limits);
-      console.log('🎯 Pairing limits updated:', limits);
+      console.log('🎯 Pairing limits updated:', limits, 'for plan:', planId);
+      console.log('🎯 Full entitlements:', entitlements);
       
       // Clean up old localStorage data
       PairingLimitService.cleanupOldUsageData(userId);
@@ -119,8 +124,8 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
       return;
     }
     
-    const fetchDataAndMatches = async () => {
-      console.log('🔍 Auto-fetching QCS and matches for user:', userId);
+    const fetchUserData = async () => {
+      console.log('🔍 Fetching user data for:', userId);
       
       // Fetch current user's QCS and requirements via Edge Function (bypasses RLS)
       try {
@@ -144,18 +149,192 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
         console.error('❌ Error calling data-management.get_profile:', e);
         setCurrentUser({ id: userId, profile: { total_qcs: 0 } });
       }
-
-      await loadMatches(userId);
     };
 
-    // Initial fetch
-    fetchDataAndMatches();
-    
-    // Auto-refresh every 30 seconds
-    const autoRefresh = setInterval(fetchDataAndMatches, 30000);
-    
-    return () => clearInterval(autoRefresh);
+    // Only fetch user data initially, not matches automatically
+    // But check if we should show existing profiles
+    fetchUserData();
+    checkExistingProfiles();
   }, [userId]);
+
+  // Additional effect to handle page refresh and ensure profiles persist
+  useEffect(() => {
+    if (userId && !hasLoadedProfiles && !shouldShowExistingProfiles && !isLoading) {
+      console.log('🔄 Checking for existing profiles on page load/refresh...');
+      checkExistingProfiles();
+    }
+  }, [userId, hasLoadedProfiles, shouldShowExistingProfiles, isLoading]);
+
+  // Check if there are existing profiles to show (from previous pairing requests)
+  const checkExistingProfiles = async () => {
+    if (!userId) return;
+    
+    try {
+      // Check if user has made any pairing requests today
+      const today = new Date().toLocaleDateString('en-CA');
+      const usage = PairingLimitService.getDailyUsage(userId);
+      
+      console.log('🔍 Checking existing profiles - Usage:', usage);
+      
+      if (usage && usage.pairing_requests_used > 0) {
+        // User has made requests today, try to load existing matches
+        console.log('🔍 User has made pairing requests today, loading existing matches...');
+        
+        // Add a timeout to prevent infinite loading
+        const timeoutPromise = new Promise<boolean>((resolve) => {
+          setTimeout(() => {
+            console.log('⏰ Loading timeout reached, stopping...');
+            setIsLoading(false);
+            resolve(false);
+          }, 10000); // 10 second timeout
+        });
+        
+        const loadPromise = loadMatchesForDisplay(userId);
+        const hasMatches = await Promise.race([loadPromise, timeoutPromise]);
+        
+        if (hasMatches) {
+          setHasLoadedProfiles(true);
+          setShouldShowExistingProfiles(true);
+        } else {
+          // If no matches found but user has used requests, still show the interface
+          console.log('� No matches found but user has used requests today');
+          setHasLoadedProfiles(true);
+          setShouldShowExistingProfiles(true);
+        }
+      } else {
+        // No usage recorded, just set loading to false
+        console.log('🔍 No usage recorded, setting up fresh state...');
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error('Error checking existing profiles:', error);
+      setIsLoading(false);
+    }
+  };
+
+  // Load matches for display without incrementing usage (for showing existing matches)
+  const loadMatchesForDisplay = async (userId: string): Promise<boolean> => {
+    setIsLoading(true);
+    try {
+      console.log("🔍 Loading existing matches for display:", userId);
+
+      const { data: pairingResults, error } = await supabase.functions.invoke('deterministic-pairing', {
+        body: { user_id: userId }
+      });
+
+      if (error) {
+        console.error('❌ Error loading existing matches:', error);
+        setIsLoading(false);
+        // Return false if we can't load matches, but don't clear existing ones
+        return matches.length > 0;
+      }
+
+      if (!pairingResults.success) {
+        console.error('Pairing function returned error:', pairingResults.error);
+        setIsLoading(false);
+        // Return false if pairing function fails, but don't clear existing ones  
+        return matches.length > 0;
+      }
+
+      // Handle the response format from deterministic-pairing
+      let candidatesData = [];
+      
+      // Check if we have matches or top_candidates
+      if (pairingResults.matches && Array.isArray(pairingResults.matches)) {
+        candidatesData = pairingResults.matches;
+        console.log('✅ Found matches in response:', candidatesData.length);
+      } else if (pairingResults.top_candidates && Array.isArray(pairingResults.top_candidates)) {
+        candidatesData = pairingResults.top_candidates;
+        console.log('✅ Found top_candidates in response:', candidatesData.length);
+      } else {
+        console.log('⚠️ No matches or candidates found in response');
+        setIsLoading(false);
+        return false;
+      }
+
+      const formattedMatches = candidatesData.map((match: any) => {
+        // Handle both formats - direct match format and candidate format
+        if (match.candidate_id) {
+          // Candidate format from deterministic-pairing
+          const [first, ...rest] = (match.candidate_name || '').split(' ');
+          return {
+            user_id: match.candidate_id,
+            first_name: first || 'User',
+            last_name: rest.join(' '),
+            university: match.candidate_university || 'University',
+            bio: match.candidate_bio || 'No bio available',
+            profile_images: match.candidate_images || [],
+            age: match.candidate_age || 0,
+            interests: match.candidate_interests || [],
+            total_qcs: match.candidate_qcs || 0,
+            compatibility_score: Math.round(Number(match.final_score) || Number(match.deterministic_score) || 0),
+            physical_score: Math.round(Number(match.physical_score) || 0),
+            mental_score: Math.round(Number(match.mental_score) || 0),
+            matched_criteria: match.debug_info?.matched || [],
+            not_matched_criteria: match.debug_info?.not_matched || [],
+            face_type: match.candidate_face_type,
+            personality_type: match.candidate_personality_type,
+            personality_traits: match.candidate_personality_traits || [],
+            body_type: match.candidate_body_type,
+            skin_tone: match.candidate_skin_tone,
+            values: match.candidate_values,
+            mindset: match.candidate_mindset,
+            relationship_goals: match.candidate_relationship_goals || [],
+            height: match.candidate_height,
+            location: match.candidate_location,
+            lifestyle: match.candidate_lifestyle,
+            love_language: match.candidate_love_language,
+            field_of_study: match.candidate_field_of_study,
+            profession: match.candidate_profession,
+            education_level: match.candidate_education_level
+          };
+        } else {
+          // Direct match format
+          return {
+            user_id: match.user_id,
+            first_name: match.first_name,
+            last_name: match.last_name,
+            university: match.university,
+            bio: match.bio,
+            profile_images: match.profile_images || [],
+            age: match.age,
+            interests: match.interests || [],
+            total_qcs: match.total_qcs,
+            compatibility_score: match.compatibility_score,
+            physical_score: match.physical_score,
+            mental_score: match.mental_score,
+            matched_criteria: match.matched_criteria || [],
+            not_matched_criteria: match.not_matched_criteria || [],
+            face_type: match.face_type,
+            personality_type: match.personality_type,
+            personality_traits: match.personality_traits || [],
+            body_type: match.body_type,
+            skin_tone: match.skin_tone,
+            values: match.values,
+            mindset: match.mindset,
+            relationship_goals: match.relationship_goals || [],
+            height: match.height,
+            location: match.location,
+            lifestyle: match.lifestyle,
+            love_language: match.love_language,
+            field_of_study: match.field_of_study,
+            profession: match.profession,
+            education_level: match.education_level
+          };
+        }
+      });
+
+      setMatches(formattedMatches);
+      console.log('✅ Existing matches loaded for display:', formattedMatches.length);
+      return formattedMatches.length > 0;
+    } catch (error) {
+      console.error('❌ Error in loadMatchesForDisplay:', error);
+      // Don't clear existing matches on error, keep what we have
+      return matches.length > 0;
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const loadMatches = async (userId: string) => {
     setIsLoading(true);
@@ -350,10 +529,19 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
     );
   }
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     // Check if user can make more pairing requests
     if (!pairingLimits.canRequest) {
-      // Show upgrade prompt
+      // Always ensure existing profiles are visible when limit is reached
+      if (!hasLoadedProfiles && !shouldShowExistingProfiles) {
+        const hasMatches = await loadMatchesForDisplay(userId);
+        if (hasMatches) {
+          setHasLoadedProfiles(true);
+          setShouldShowExistingProfiles(true);
+        }
+      }
+      
+      // Show upgrade prompt but keep existing profiles visible
       toast.error(
         `Daily pairing limit reached! You've used ${pairingLimits.usedToday}/${pairingLimits.dailyLimit} requests today.`,
         {
@@ -367,15 +555,16 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
       return;
     }
 
-    // Increment usage count
-    if (userId && entitlements) {
+    // Increment usage count for new requests
+    if (userId) {
       const success = PairingLimitService.incrementDailyUsage(userId);
       if (success) {
-        // Update local limits state
-        const newLimits = PairingLimitService.canMakePairingRequest(userId, entitlements.plan.id);
+        // Update local limits state using fallback plan if needed
+        const planId = entitlements?.plan.id || 'free';
+        const newLimits = PairingLimitService.canMakePairingRequest(userId, planId);
         setPairingLimits(newLimits);
         
-        console.log(`🎯 Pairing request used: ${newLimits.usedToday}/${newLimits.dailyLimit}`);
+        console.log(`🎯 Pairing request used: ${newLimits.usedToday}/${newLimits.dailyLimit} (plan: ${planId})`);
         
         // Show remaining requests if getting close to limit
         if (newLimits.remainingRequests <= 2 && newLimits.remainingRequests > 0) {
@@ -384,7 +573,9 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
       }
     }
 
-    loadMatches(userId);
+    await loadMatches(userId);
+    setHasLoadedProfiles(true);
+    setShouldShowExistingProfiles(true);
   };
 
   const getCompatibilityColor = (score: number) => {
@@ -455,6 +646,15 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                     Upgrade Plan
                   </Button>
                 )}
+                {/* Debug button for development - remove in production */}
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={refreshEntitlements}
+                  className="text-xs mt-1 opacity-50"
+                >
+                  🔄 Refresh
+                </Button>
               </div>
             </div>
           </div>
@@ -469,7 +669,7 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Total Matches</p>
-                    <p className="text-2xl font-bold">{matches.length}</p>
+                    <p className="text-2xl font-bold">{(hasLoadedProfiles || shouldShowExistingProfiles) ? matches.length : '—'}</p>
                   </div>
                 </div>
               </CardContent>
@@ -511,12 +711,76 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
             <div className="text-center space-y-4">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
               <p className="text-muted-foreground">Finding your perfect matches...</p>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  setIsLoading(false);
+                  console.log('🛑 User cancelled loading');
+                }}
+                className="mt-4"
+              >
+                Cancel Loading
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Initial State - No profiles loaded yet */}
+        {!isLoading && !(hasLoadedProfiles || shouldShowExistingProfiles) && (
+          <div className="text-center py-12">
+            <div className="w-24 h-24 bg-gradient-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Heart className="h-12 w-12 text-primary" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">Ready to find your perfect match?</h3>
+            <p className="text-muted-foreground mb-4">
+              Click the button below to get your personalized daily pairing based on compatibility scoring.
+            </p>
+            <Button 
+              onClick={handleRefresh} 
+              disabled={!pairingLimits.canRequest}
+              className="bg-gradient-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Heart className="h-4 w-4 mr-2" />
+              {!pairingLimits.canRequest ? 'Daily Limit Reached' : 'Get Today\'s Pair'}
+            </Button>
+          </div>
+        )}
+
+        {/* Empty State - Daily limit reached but no profiles to show */}
+        {!isLoading && matches.length === 0 && (hasLoadedProfiles || shouldShowExistingProfiles) && !pairingLimits.canRequest && (
+          <div className="text-center py-12">
+            <div className="w-24 h-24 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Crown className="h-12 w-12 text-amber-500" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">Daily Pairing Limit Reached</h3>
+            <p className="text-muted-foreground mb-4">
+              You've used all {pairingLimits.dailyLimit} of your daily pairing requests. Upgrade your plan for more requests or try again tomorrow!
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button 
+                onClick={() => onNavigate('subscription')}
+                className="bg-gradient-gold"
+              >
+                <Crown className="h-4 w-4 mr-2" />
+                Upgrade Plan
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  // Try to refresh/check for existing profiles again
+                  checkExistingProfiles();
+                }}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Check Again
+              </Button>
             </div>
           </div>
         )}
 
         {/* Matches Grid */}
-        {!isLoading && matches.length > 0 && (
+        {!isLoading && matches.length > 0 && (hasLoadedProfiles || shouldShowExistingProfiles) && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {matches.map((match, index) => (
               <Card key={match.user_id} className="bg-gradient-card border-border/50 hover-elegant shadow-card">
@@ -661,7 +925,7 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
         )}
 
         {/* Empty State */}
-        {!isLoading && matches.length === 0 && (
+        {!isLoading && matches.length === 0 && (hasLoadedProfiles || shouldShowExistingProfiles) && (
           <div className="text-center py-12">
             <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
               <Users className="h-12 w-12 text-muted-foreground" />

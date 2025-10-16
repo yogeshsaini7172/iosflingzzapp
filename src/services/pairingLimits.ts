@@ -115,13 +115,29 @@ export class PairingLimitService {
    */
   private static getPlanLimits(planId: string) {
     switch (planId) {
+      case 'free':
+        return { daily_pairing_limit: 1 };
+      
       case 'basic_69':
+      case '69_basic':      // Legacy format
+      case 'basic_69_pro':  // Legacy format
+      case '69_pro':        // Legacy format
         return { daily_pairing_limit: 5 };
+      
       case 'standard_129':
+      case '129_pro':       // Legacy format
+      case 'standard_129_pro': // Legacy format
+      case '129_standard':  // Legacy format
         return { daily_pairing_limit: 10 };
+      
       case 'premium_243':
+      case '243_premium':   // Legacy format
+      case 'premium_243_pro': // Legacy format
+      case '243_pro':       // Legacy format
         return { daily_pairing_limit: 20 };
-      default: // free plan
+      
+      default: // fallback to free plan for unknown plans
+        console.warn(`Unknown plan ID: ${planId}, defaulting to free plan limits`);
         return { daily_pairing_limit: 1 };
     }
   }
@@ -206,7 +222,7 @@ export class PairingLimitService {
         return {
           ...match,
           matched_user: otherProfile,
-          qcs_score: match.compatibility_score
+          qcs_score: (match as any).compatibility_score || 0 // Type assertion for now
         };
       });
     } catch (error) {
