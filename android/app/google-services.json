@@ -30,6 +30,14 @@
           }
         },
         {
+          "client_id": "533305529581-tmrtbt7ec28v9i7g31j92ace9j96grlg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.gradsync.app",
+            "certificate_hash": "303271bb518c5daeaf0ad803a6ecf8801fa9c669"
+          }
+        },
+        {
           "client_id": "533305529581-ugumugm3t0uke308f3cqglar0nhlanha.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
