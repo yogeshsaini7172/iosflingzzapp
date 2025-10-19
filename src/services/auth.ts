@@ -10,6 +10,7 @@ import {
   signOut as firebaseSignOut,
 } from "firebase/auth";
 import { auth } from "../firebase";
+import { validateAadhaar } from './aadhaarValidation';
 import { Capacitor } from "@capacitor/core";
 import { nativeGoogleSignIn, isNativeAuthAvailable } from './mobileAuth';
 import { robustAndroidGoogleAuth } from './enhancedAndroidAuth';
@@ -174,10 +175,22 @@ export async function phoneLogin(phoneNumber: string) {
 // -----------------------
 // Verify OTP
 // -----------------------
-export async function verifyOTP(confirmationResult: any, otp: string) {
+export async function verifyOTP(confirmationResult: any, otp: string, aadhaarNumber?: string) {
   try {
     const userCredential = await confirmationResult.confirm(otp);
     console.log("✅ Phone verification successful:", userCredential.user.uid);
+    // If an Aadhaar number was provided, run the Surepass validation
+    if (aadhaarNumber) {
+      try {
+        const aadhaarRes = await validateAadhaar(aadhaarNumber);
+        console.log('🔎 Aadhaar validation result:', aadhaarRes);
+        return { user: userCredential.user, aadhaar: aadhaarRes, error: null };
+      } catch (e: any) {
+        console.error('❌ Aadhaar validation errored:', e?.message ?? e);
+        return { user: userCredential.user, aadhaar: null, error: e?.message ?? String(e) };
+      }
+    }
+
     return { user: userCredential.user, error: null };
   } catch (error: any) {
     console.error("❌ OTP verification failed:", error.message);

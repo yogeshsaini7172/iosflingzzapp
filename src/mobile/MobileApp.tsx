@@ -21,6 +21,7 @@ import QCSDiagnostics from '@/components/QCSDiagnostics';
 import QCSSystemRepair from '@/components/QCSSystemRepair';
 import QCSBulkSync from '@/components/QCSBulkSync';
 import RebuiltChatSystem from '@/components/chat/RebuiltChatSystem';
+import AadhaarTest from '@/components/AadhaarTest';
 import NotFound from '@/pages/NotFound';
 import MobileBottomNav from '@/components/navigation/MobileBottomNav';
 // Debug components removed during cleanup
@@ -156,6 +157,7 @@ const MobileAppContent = () => {
         <Route path="/qcs-diagnostics" element={<QCSDiagnostics />} />
         <Route path="/qcs-repair" element={<QCSSystemRepair />} />
         <Route path="/qcs-bulk-sync" element={<QCSBulkSync />} />
+  <Route path="/aadhaar-test" element={<AadhaarTest />} />
         
         {/* Debug/Verification Tools - Removed during cleanup */}
         {/*         {/* Debug/Verification Tools - Removed during cleanup */}

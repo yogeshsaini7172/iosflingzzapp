@@ -23,6 +23,8 @@ import RebuiltChatSystem from "./components/chat/RebuiltChatSystem";
 import { initializeMobileApp } from "./mobile/capacitor";
 import LoadingScreen from "./components/ui/loading-screen";
 import { WebLandingPage } from "./components/landing/WebLandingPage";
+import AadhaarTest from './components/AadhaarTest';
+import PublicAadhaarTest from './pages/PublicAadhaarTest';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -180,6 +182,17 @@ const AuthenticatedApp = () => {
     );
   }
 
+  // Public route for Aadhaar test (available without authentication)
+  // Place this before auth gating so testers can access the page freely
+  const isHashAadhaar = typeof window !== 'undefined' && (window.location.hash === '#/aadhaar-test' || window.location.hash === '#!/aadhaar-test');
+  if (location.pathname === '/aadhaar-test' || isHashAadhaar) {
+    return (
+      <TooltipProvider>
+        <PublicAadhaarTest />
+      </TooltipProvider>
+    );
+  }
+
   // Show landing page only for non-authenticated users who haven't dismissed it
   if (showLandingPage && !isAuthenticated && !user) {
     return (
@@ -259,6 +272,7 @@ const AuthenticatedApp = () => {
               <Route path="/qcs-diagnostics" element={<QCSDiagnostics />} />
               <Route path="/qcs-repair" element={<QCSSystemRepair />} />
               <Route path="/qcs-bulk-sync" element={<QCSBulkSync />} />
+              <Route path="/aadhaar-test" element={<AadhaarTest />} />
               {/* Redirect /home to root */}
               <Route path="/home" element={<Navigate to="/" replace />} />
               {/* Keep the catch-all route for other unknown routes */}

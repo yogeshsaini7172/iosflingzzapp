@@ -14,6 +14,7 @@ const BottomNav = () => {
     { path: "/", icon: Home, label: "Home" },
     { path: "/pairing", icon: Users, label: "Pairing" },
     { path: "/blind-date", icon: Sparkles, label: "Blind Date" },
+    { path: "/aadhaar-test", icon: Sparkles, label: "Aadhaar" },
     { path: "/profile", icon: User, label: "Profile" },
   ];
 
