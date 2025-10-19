@@ -385,63 +385,118 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
             animate={{ y: 0, opacity: 1 }}
             className="bg-card rounded-2xl p-[2vh] shadow-elegant border border-border"
           >
-            {/* Header */}
-            <div className="flex items-center justify-between mb-[2vh]">
-              <div>
-                <h1 className="text-[clamp(1.25rem,4vw,1.5rem)] font-display font-bold mb-[0.5vh]">
-                  Discover Matches
-                </h1>
-                <p className="text-[clamp(0.75rem,2.5vw,0.875rem)] text-muted-foreground">
-                  {pairingLimits.remainingRequests} of {pairingLimits.dailyLimit} requests left
-                </p>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left Section: Info & Stats */}
+              <div className="space-y-4">
+                {/* Header */}
+                <div>
+                  <h1 className="text-[clamp(1.5rem,4vw,1.75rem)] font-display font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
+                    Smart Pairing System
+                  </h1>
+                  <p className="text-[clamp(0.75rem,2.5vw,0.875rem)] text-muted-foreground">
+                    {pairingLimits.remainingRequests} of {pairingLimits.dailyLimit} daily requests remaining
+                  </p>
+                </div>
+
+                {/* How It Works - Point System */}
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-primary flex items-center justify-center text-white text-xs font-bold">
+                      1
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold mb-1">AI-Powered Compatibility</h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Our algorithm analyzes physical attributes, mental traits, values, and QCS scores to find your best matches
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-success to-success/80 flex items-center justify-center text-white text-xs font-bold">
+                      2
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold mb-1">Quality Over Quantity</h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Matches above 80% compatibility unlock instant chat - focus on meaningful connections
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Stats Row */}
+                <div className="grid grid-cols-3 gap-3 pt-4 border-t border-border/50">
+                  <div className="text-center">
+                    <div className="flex items-center justify-center gap-1 mb-1">
+                      <Users className="w-4 h-4 text-primary" />
+                      <p className="text-xl font-bold">
+                        {(hasLoadedProfiles || shouldShowExistingProfiles) ? matches.length : '—'}
+                      </p>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Matches</p>
+                  </div>
+                  
+                  <div className="text-center">
+                    <div className="flex items-center justify-center gap-1 mb-1">
+                      <Star className="w-4 h-4 text-success" />
+                      <p className="text-xl font-bold text-success">
+                        {matches.filter(m => (m.compatibility_score || 0) >= 80).length}
+                      </p>
+                    </div>
+                    <p className="text-xs text-muted-foreground">High QCS</p>
+                  </div>
+
+                  <div className="text-center">
+                    <div className="flex items-center justify-center gap-1 mb-1">
+                      <Target className="w-4 h-4 text-accent" />
+                      <p className="text-xl font-bold text-accent">
+                        {currentUser?.profile?.total_qcs || 0}
+                      </p>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Your QCS</p>
+                  </div>
+                </div>
               </div>
 
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleRefresh}
-                disabled={isLoading || !pairingLimits.canRequest}
-                className="px-[3vw] py-[1.5vh] rounded-xl bg-gradient-primary text-white font-semibold shadow-medium hover:shadow-glow transition-elegant disabled:opacity-50 disabled:cursor-not-allowed text-[clamp(0.875rem,3vw,1rem)]"
-              >
-                <div className="flex items-center gap-2">
-                  <Heart className={`w-[clamp(1rem,4vw,1.25rem)] h-[clamp(1rem,4vw,1.25rem)] ${isLoading ? 'animate-pulse' : ''}`} />
-                  <span>
-                    {!pairingLimits.canRequest ? 'Limit' : isLoading ? 'Finding...' : 'Find'}
-                  </span>
+              {/* Right Section: Visual & Action */}
+              <div className="flex flex-col items-center justify-center gap-4">
+                {/* Visual Illustration */}
+                <div className="relative w-40 h-40">
+                  <div className="absolute inset-0 bg-gradient-primary rounded-full opacity-20 animate-pulse" />
+                  <div className="absolute inset-4 bg-gradient-primary rounded-full opacity-40 animate-pulse" style={{ animationDelay: '0.5s' }} />
+                  <div className="absolute inset-8 bg-gradient-primary rounded-full flex items-center justify-center">
+                    <Heart className="w-16 h-16 text-white" />
+                  </div>
                 </div>
-              </motion.button>
-            </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-3 gap-[2vw] pt-[2vh] border-t border-border">
-              <div className="text-center">
-                <div className="w-[clamp(2.5rem,10vw,3rem)] h-[clamp(2.5rem,10vw,3rem)] mx-auto mb-[1vh] rounded-xl bg-gradient-primary flex items-center justify-center shadow-medium">
-                  <Users className="w-[clamp(1.25rem,5vw,1.5rem)] h-[clamp(1.25rem,5vw,1.5rem)] text-white" />
-                </div>
-                <p className="text-[clamp(1.25rem,5vw,1.5rem)] font-bold">
-                  {(hasLoadedProfiles || shouldShowExistingProfiles) ? matches.length : '—'}
-                </p>
-                <p className="text-[clamp(0.625rem,2vw,0.75rem)] text-muted-foreground mt-[0.5vh]">Total</p>
-              </div>
-              
-              <div className="text-center">
-                <div className="w-[clamp(2.5rem,10vw,3rem)] h-[clamp(2.5rem,10vw,3rem)] mx-auto mb-[1vh] rounded-xl bg-gradient-to-br from-success to-success/80 flex items-center justify-center shadow-medium">
-                  <Star className="w-[clamp(1.25rem,5vw,1.5rem)] h-[clamp(1.25rem,5vw,1.5rem)] text-white" />
-                </div>
-                <p className="text-[clamp(1.25rem,5vw,1.5rem)] font-bold">
-                  {matches.filter(m => (m.compatibility_score || 0) >= 80).length}
-                </p>
-                <p className="text-[clamp(0.625rem,2vw,0.75rem)] text-muted-foreground mt-[0.5vh]">High QCS</p>
-              </div>
+                {/* Action Button */}
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleRefresh}
+                  disabled={isLoading || !pairingLimits.canRequest}
+                  className="px-8 py-4 rounded-xl bg-gradient-primary text-white font-bold shadow-elegant hover:shadow-glow transition-elegant disabled:opacity-50 disabled:cursor-not-allowed text-base w-full max-w-xs"
+                >
+                  <div className="flex items-center justify-center gap-3">
+                    <Sparkles className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
+                    <span>
+                      {!pairingLimits.canRequest ? 'Daily Limit Reached' : isLoading ? 'Finding Matches...' : 'Find My Matches'}
+                    </span>
+                  </div>
+                </motion.button>
 
-              <div className="text-center">
-                <div className="w-[clamp(2.5rem,10vw,3rem)] h-[clamp(2.5rem,10vw,3rem)] mx-auto mb-[1vh] rounded-xl bg-gradient-gold flex items-center justify-center shadow-medium">
-                  <Target className="w-[clamp(1.25rem,5vw,1.5rem)] h-[clamp(1.25rem,5vw,1.5rem)] text-white" />
-                </div>
-                <p className="text-[clamp(1.25rem,5vw,1.5rem)] font-bold">
-                  {currentUser?.profile?.total_qcs || 0}
-                </p>
-                <p className="text-[clamp(0.625rem,2vw,0.75rem)] text-muted-foreground mt-[0.5vh]">Your QCS</p>
+                {/* Progress Indicator */}
+                {pairingLimits.canRequest && (
+                  <div className="w-full max-w-xs">
+                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-primary transition-all duration-500"
+                        style={{ width: `${(pairingLimits.remainingRequests / pairingLimits.dailyLimit) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
