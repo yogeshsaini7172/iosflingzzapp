@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import LocationPermission from '@/components/common/LocationPermission';
 import LocationDisplay from '@/components/common/LocationDisplay';
-import ProfileTabSlider from '@/components/ui/premium-tab-slider';
+import { PremiumTabSlider } from '@/components/ui/premium-tab-slider';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, 
@@ -1695,13 +1695,18 @@ useEffect(() => {
     </div>
   );
 
-  const tabs = [
-    { id: 'basic', label: 'Basic Info', icon: User },
-    { id: 'location', label: 'Location', icon: MapPin },
-    { id: 'what-you-are', label: 'What You Are', icon: User },
-    { id: 'who-you-want', label: 'Who You Want', icon: Heart },
+  // Main navigation tabs
+  const mainTabs = [
+    { id: 'basic', label: 'Basic', icon: User },
     { id: 'photos', label: 'Photos', icon: Camera },
     { id: 'privacy', label: 'Privacy', icon: Shield }
+  ];
+
+  // Slider tabs for the three-section slider
+  const sliderTabs = [
+    { id: 'location', label: 'Location', icon: <MapPin size={20} /> },
+    { id: 'what-you-are', label: 'You Are', icon: <User size={20} /> },
+    { id: 'who-you-want', label: 'You Want', icon: <Heart size={20} /> }
   ];
 
   return (
@@ -1805,50 +1810,53 @@ useEffect(() => {
           </div>
         </Card>
 
-        {/* Premium Slider Navigation - for main profile sections */}
-        {(activeTab === 'location' || activeTab === 'what-you-are' || activeTab === 'who-you-want') && (
-          <div className="mb-6">
-            <ProfileTabSlider 
-              activeTab={activeTab} 
-              onTabChange={(tab) => setActiveTab(tab as any)}
-            />
+        {/* Main Navigation Tabs */}
+        <Card className="premium-card mb-4 animate-fade-in delay-100">
+          <div className="flex gap-2 p-2">
+            {mainTabs.map(({ id, label, icon: Icon }) => (
+              <Button
+                key={id}
+                variant={activeTab === id ? "premium" : "glass"}
+                onClick={() => setActiveTab(id as any)}
+                className={`flex-1 px-4 py-3 text-sm font-semibold transition-all hover-lift ${
+                  activeTab === id 
+                    ? 'shadow-glow' 
+                    : 'hover:shadow-soft'
+                }`}
+                size="sm"
+              >
+                <Icon className="w-4 h-4 mr-2" />
+                {label}
+              </Button>
+            ))}
           </div>
-        )}
+        </Card>
 
-        {/* Other tabs shown as buttons */}
-        {!(activeTab === 'location' || activeTab === 'what-you-are' || activeTab === 'who-you-want') && (
-          <Card className="premium-card mb-6 animate-fade-in delay-100">
-            <div className="flex gap-2 p-2 overflow-x-auto scrollbar-hide">
-              {tabs.filter(t => !['location', 'what-you-are', 'who-you-want'].includes(t.id)).map(({ id, label, icon: Icon }) => (
-                <Button
-                  key={id}
-                  variant={activeTab === id ? "premium" : "glass"}
-                  onClick={() => setActiveTab(id as any)}
-                  className={`shrink-0 px-4 py-2.5 text-xs font-semibold transition-all hover-lift ${
-                    activeTab === id 
-                      ? 'shadow-glow' 
-                      : 'hover:shadow-soft'
-                  }`}
-                  size="sm"
-                >
-                  <Icon className="w-3.5 h-3.5 mr-1.5" />
-                  {label.split(' ')[0]}
-                </Button>
-              ))}
-            </div>
-          </Card>
-        )}
+        {/* Premium Slider Navigation - Always visible, highlights active */}
+        <div className="mb-6">
+          <div className="text-center mb-3">
+            <h3 className="text-sm font-semibold text-muted-foreground">Profile Sections</h3>
+          </div>
+          <PremiumTabSlider 
+            tabs={sliderTabs}
+            activeTab={activeTab} 
+            onTabChange={(tab) => setActiveTab(tab as any)}
+          />
+        </div>
 
         {/* Premium Content Card with animation */}
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ 
+              duration: 0.4,
+              ease: [0.4, 0, 0.2, 1]
+            }}
           >
-            <Card className="premium-card">
+            <Card className="premium-card overflow-hidden">
               <CardContent className="p-6">
                 {activeTab === 'basic' && renderBasicInfo()}
                 {activeTab === 'location' && renderLocationSection()}

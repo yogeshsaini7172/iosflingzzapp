@@ -169,25 +169,4 @@ export function PremiumTabSlider({ tabs, activeTab, onTabChange, className = '' 
 }
 
 // Default export for common use case
-export default function ProfileTabSlider({ 
-  activeTab, 
-  onTabChange 
-}: { 
-  activeTab: string; 
-  onTabChange: (tab: string) => void;
-}) {
-  const tabs: TabItem[] = [
-    { id: 'location', label: 'Location', icon: <MapPin size={20} /> },
-    { id: 'what-you-are', label: 'You Are', icon: <User size={20} /> },
-    { id: 'who-you-want', label: 'You Want', icon: <Heart size={20} /> },
-  ];
-
-  return (
-    <PremiumTabSlider 
-      tabs={tabs} 
-      activeTab={activeTab} 
-      onTabChange={onTabChange}
-      className="mb-6"
-    />
-  );
-}
+// Removed default export - component is used directly with custom tabs
