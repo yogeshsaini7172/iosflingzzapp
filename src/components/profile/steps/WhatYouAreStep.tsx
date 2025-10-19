@@ -8,6 +8,8 @@ import { User, X } from "lucide-react";
 interface ProfileData {
   height?: string;
   bodyType?: string;
+  skinTone?: string;
+  faceType?: string;
   exerciseHabits?: string;
   drinkingHabits?: string;
   smokingHabits?: string;
@@ -205,6 +207,48 @@ const renderMultiSelectTags = (
               <SelectItem value="average">Average</SelectItem>
               <SelectItem value="curvy">Curvy</SelectItem>
               <SelectItem value="plus_size">Plus Size</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Appearance */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="space-y-3">
+          <Label className="text-base font-medium">Skin Tone</Label>
+          <Select value={data.skinTone} onValueChange={(value) => updateField('skinTone', value)}>
+            <SelectTrigger className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors">
+              <SelectValue placeholder="Select skin tone" />
+            </SelectTrigger>
+            <SelectContent className="rounded-2xl">
+              <SelectItem value="porcelain">Porcelain</SelectItem>
+              <SelectItem value="fair">Fair</SelectItem>
+              <SelectItem value="light">Light</SelectItem>
+              <SelectItem value="light_medium">Light Medium</SelectItem>
+              <SelectItem value="medium">Medium</SelectItem>
+              <SelectItem value="tan">Tan</SelectItem>
+              <SelectItem value="olive">Olive</SelectItem>
+              <SelectItem value="brown">Brown</SelectItem>
+              <SelectItem value="dark_brown">Dark Brown</SelectItem>
+              <SelectItem value="deep">Deep</SelectItem>
+              <SelectItem value="ebony">Ebony</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-3">
+          <Label className="text-base font-medium">Face Shape</Label>
+          <Select value={data.faceType} onValueChange={(value) => updateField('faceType', value)}>
+            <SelectTrigger className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors">
+              <SelectValue placeholder="Select face shape" />
+            </SelectTrigger>
+            <SelectContent className="rounded-2xl">
+              <SelectItem value="oval">Oval</SelectItem>
+              <SelectItem value="round">Round</SelectItem>
+              <SelectItem value="square">Square</SelectItem>
+              <SelectItem value="rectangle">Rectangle</SelectItem>
+              <SelectItem value="heart">Heart</SelectItem>
+              <SelectItem value="diamond">Diamond</SelectItem>
+              <SelectItem value="triangle">Triangle</SelectItem>
             </SelectContent>
           </Select>
         </div>

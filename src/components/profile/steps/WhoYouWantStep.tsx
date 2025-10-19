@@ -84,11 +84,67 @@ const WhoYouWantStep = ({ data, onChange }: WhoYouWantStepProps) => {
         <p className="text-muted-foreground">What are you looking for in a partner?</p>
       </div>
 
-      {/* Lifestyle Preferences */}
+      {/* Physical Preferences */}
       <Card className="border-primary/30 bg-gradient-to-r from-primary/5 to-secondary/5">
         <CardHeader className="pb-4">
           <CardTitle className="text-xl flex items-center gap-2 text-primary">
             <Heart className="w-6 h-6 text-primary animate-pulse" />
+            Physical Preferences
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">Select your preferred physical attributes</p>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Preferred Skin Tone */}
+          <div className="space-y-3">
+            <Label className="text-base font-semibold">Preferred Skin Tone</Label>
+            <div className="flex flex-wrap gap-2">
+              {["Porcelain", "Fair", "Light", "Light Medium", "Medium", "Tan", "Olive", "Brown", "Dark Brown", "Deep", "Ebony", "Any"].map((tone) => {
+                const isSelected = data.preferredSkinTone?.includes(tone);
+                return (
+                  <Button
+                    key={tone}
+                    variant={isSelected ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => toggleArrayItem('preferredSkinTone', tone)}
+                    className="rounded-full text-xs font-medium transition-all duration-200 hover:scale-105"
+                  >
+                    {tone}
+                    {isSelected && <X className="w-3 h-3 ml-1" />}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Preferred Face Shape */}
+          <div className="space-y-3">
+            <Label className="text-base font-semibold">Preferred Face Shape</Label>
+            <div className="flex flex-wrap gap-2">
+              {["Oval", "Round", "Square", "Rectangle", "Heart", "Diamond", "Triangle", "Any"].map((type) => {
+                const isSelected = data.preferredFaceType?.includes(type);
+                return (
+                  <Button
+                    key={type}
+                    variant={isSelected ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => toggleArrayItem('preferredFaceType', type)}
+                    className="rounded-full text-xs font-medium transition-all duration-200 hover:scale-105"
+                  >
+                    {type}
+                    {isSelected && <X className="w-3 h-3 ml-1" />}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Lifestyle Preferences */}
+      <Card className="border-border/50">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl flex items-center gap-2">
+            <Target className="w-5 h-5" />
             Lifestyle Preferences
           </CardTitle>
           <p className="text-sm text-muted-foreground">What lifestyle habits are important to you?</p>
