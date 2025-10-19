@@ -19,31 +19,17 @@ export function CompatibilityBadge({
   const hasMatch = checkMatch(userValue, partnerValue);
   const matchStatus = hasMatch === true ? 'match' : hasMatch === false ? 'no-match' : 'neutral';
 
-  // Colors based on match status
-  const getColors = () => {
-    switch (matchStatus) {
-      case 'match':
-        return {
-          bg: 'bg-green-500/10 border-green-500/30',
-          text: 'text-green-600 dark:text-green-400',
-          icon: <Heart className="w-3 h-3" fill="currentColor" />
-        };
-      case 'no-match':
-        return {
-          bg: 'bg-orange-500/10 border-orange-500/30',
-          text: 'text-orange-600 dark:text-orange-400',
-          icon: <Minus className="w-3 h-3" />
-        };
-      default:
-        return {
-          bg: 'bg-muted/50 border-border',
-          text: 'text-muted-foreground',
-          icon: <Sparkles className="w-3 h-3" />
-        };
-    }
-  };
+  // ONLY SHOW MATCHES - hide non-matches
+  if (matchStatus !== 'match') {
+    return null;
+  }
 
-  const colors = getColors();
+  // Colors for matched items only
+  const colors = {
+    bg: 'bg-green-500/10 border-green-500/30',
+    text: 'text-green-600 dark:text-green-400',
+    icon: <Heart className="w-3 h-3" fill="currentColor" />
+  };
 
   return (
     <motion.div
@@ -67,21 +53,19 @@ export function CompatibilityBadge({
         {label}
       </span>
 
-      {/* Match indicator pulse */}
-      {matchStatus === 'match' && (
-        <motion.div
-          className="absolute -inset-0.5 rounded-full bg-green-500/20"
-          animate={{
-            scale: [1, 1.1, 1],
-            opacity: [0.5, 0.8, 0.5],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-        />
-      )}
+      {/* Match indicator pulse - always show since we only render matches */}
+      <motion.div
+        className="absolute -inset-0.5 rounded-full bg-green-500/20"
+        animate={{
+          scale: [1, 1.1, 1],
+          opacity: [0.5, 0.8, 0.5],
+        }}
+        transition={{
+          duration: 2,
+          repeat: Infinity,
+          ease: 'easeInOut',
+        }}
+      />
     </motion.div>
   );
 }
@@ -133,13 +117,16 @@ export function CompatibilityGroup({
   items,
   className = '' 
 }: CompatibilityGroupProps) {
-  if (items.length === 0) return null;
-
-  // Calculate match percentage
-  const matches = items.filter(item => 
+  // Filter to ONLY show matching items
+  const matchingItems = items.filter(item => 
     checkMatch(item.userValue, item.partnerValue) === true
-  ).length;
-  const matchPercentage = Math.round((matches / items.length) * 100);
+  );
+  
+  // Don't render if no matches
+  if (matchingItems.length === 0) return null;
+
+  // Calculate match percentage based on matched items
+  const matchPercentage = 100; // Always 100% since we only show matches
 
   return (
     <motion.div
@@ -155,19 +142,17 @@ export function CompatibilityGroup({
           <h4 className="text-sm font-semibold text-foreground">{title}</h4>
         </div>
         
-        {matchPercentage > 0 && (
-          <Badge 
-            variant={matchPercentage >= 60 ? 'default' : 'secondary'}
-            className="text-xs px-2 py-0.5"
-          >
-            {matchPercentage}% match
-          </Badge>
-        )}
+        <Badge 
+          variant="default"
+          className="text-xs px-2 py-0.5 bg-green-500/20 text-green-600 border-green-500/30"
+        >
+          {matchingItems.length} {matchingItems.length === 1 ? 'match' : 'matches'}
+        </Badge>
       </div>
 
-      {/* Badges */}
+      {/* Badges - only matching items */}
       <div className="flex flex-wrap gap-2">
-        {items.map((item, index) => (
+        {matchingItems.map((item, index) => (
           <CompatibilityBadge
             key={`${item.label}-${index}`}
             {...item}
