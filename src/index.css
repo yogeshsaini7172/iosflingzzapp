@@ -90,7 +90,13 @@
     --primary-foreground: 0 0% 100%;
     --primary-glow: 265 90% 68%;
     --primary-variant: 270 80% 60%;
-    --primary-light: 265 85% 75%;
+    --primary-light: 280 70% 75%;
+    --primary-dark: 280 80% 35%;
+    
+    /* Background gradients */
+    --bg-size-200: 200%;
+    --bg-pos-0: 0%;
+    --bg-pos-100: 100%;
 
     /* Secondary - Rose Gold / Elegant Pink */
     --secondary: 340 75% 55%;
@@ -599,6 +605,74 @@
     background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
     background-size: 200% 100%;
     animation: shimmer 2s infinite;
+  }
+
+  /* Premium utilities */
+  .bg-size-200 {
+    background-size: 200% 100%;
+  }
+
+  .bg-pos-0 {
+    background-position: 0% 0%;
+  }
+
+  .bg-pos-100 {
+    background-position: 100% 0%;
+  }
+
+  .delay-100 {
+    animation-delay: 100ms;
+  }
+
+  .delay-200 {
+    animation-delay: 200ms;
+  }
+
+  /* Premium hover utilities */
+  .hover-lift {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-elegant);
+  }
+
+  .hover-glow {
+    transition: all 0.3s ease;
+  }
+
+  .hover-glow:hover {
+    box-shadow: var(--shadow-glow);
+  }
+
+  /* Premium card */
+  .premium-card {
+    background: var(--gradient-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: var(--shadow-card);
+    transition: all 0.3s ease;
+  }
+
+  .premium-card:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: var(--shadow-elegant);
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Glass effect */
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   /* Premium Text Effects */

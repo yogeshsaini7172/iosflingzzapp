@@ -1703,16 +1703,27 @@ useEffect(() => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted pb-20">
-      {/* Header - Consistent with other sections */}
-      <div className="bg-card/80 backdrop-blur-md border-b border-border/50 px-4 py-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="sm" onClick={() => onNavigate('home')} className="text-foreground hover:text-foreground hover:bg-muted p-2">
+    <div className="min-h-screen bg-background pb-20">
+      {/* Premium Background Effects */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-20 left-10 w-96 h-96 bg-primary/10 rounded-full blur-[120px] animate-float" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/10 rounded-full blur-[120px] animate-float delay-200" />
+      </div>
+
+      {/* Header - Premium Style */}
+      <div className="glass-premium border-b border-white/10 px-4 py-3 safe-area-top relative z-10">
+        <div className="flex items-center justify-between max-w-2xl mx-auto">
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="glass" 
+              size="icon-sm" 
+              onClick={() => onNavigate('home')} 
+              className="hover-lift"
+            >
               <ArrowLeft className="w-4 h-4" />
             </Button>
-            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/40 bg-gradient-primary flex items-center justify-center">
-              {formData.profileImages && formData.profileImages.length > 0 && formData.profileImages[0] ? (
+            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/40 shadow-glow">
+              {formData.profileImages?.[0] ? (
                 <img
                   src={formData.profileImages[0]}
                   alt="Profile"
@@ -1720,76 +1731,102 @@ useEffect(() => {
                   onError={e => { (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.user_id || 'default'}`; }}
                 />
               ) : (
-                <span className="text-primary-foreground font-bold text-sm">DS</span>
+                <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
+                  <User className="w-5 h-5 text-white" />
+                </div>
               )}
             </div>
-            <h1 className="text-base font-display font-bold text-foreground">Profile</h1>
+            <h1 className="text-lg font-bold gradient-text">Profile</h1>
           </div>
-          <div className="flex items-center gap-2">
-            <Button className="bg-gradient-primary text-primary-foreground text-sm px-4 py-2" onClick={handleSaveChanges}>
-              Save
-            </Button>
-          </div>
+          <Button 
+            variant="premium" 
+            size="sm" 
+            onClick={handleSaveChanges}
+            className="shadow-glow"
+          >
+            <Sparkles className="w-4 h-4 mr-1" />
+            Save
+          </Button>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6 max-w-2xl pb-24">
-        {/* Profile Summary Card */}
-        <Card className="mb-6 shadow-glow border-border/50 overflow-hidden bg-card/80 backdrop-blur-sm">
-          <div className="bg-gradient-primary p-6 text-primary-foreground">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white/20">
-                {formData.profileImages[0] ? (
-                  <img
-                    src={formData.profileImages[0] || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.user_id || 'default'}`}
-                    alt="Profile"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=profile-${profile?.user_id || 'default'}`;
-                    }}
-                  />
-                 ) : (
-                   <div className="w-full h-full bg-white/20 flex items-center justify-center">
-                     <User className="w-8 h-8 text-white/60" />
-                   </div>
-                 )}
-               </div>
-               <div>
-                 <h2 className="text-xl font-bold">{formData.firstName} {formData.lastName}</h2>
-                 <div className="flex items-center gap-2 text-white/90">
-                   <Calendar className="w-4 h-4" />
-                   <span className="text-sm">{profile?.university || 'University'}</span>
-                 </div>
-               </div>
-             </div>
-           </div>
-         </Card>
+      <div className="container mx-auto px-4 py-6 max-w-2xl pb-24 relative z-10">
+        {/* Premium Profile Header Card */}
+        <Card className="premium-card mb-6 overflow-hidden group animate-fade-in">
+          <div className="relative">
+            {/* Gradient Background */}
+            <div className="absolute inset-0 bg-gradient-hero opacity-90" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+            
+            {/* Content */}
+            <div className="relative p-6">
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-white/30 shadow-elegant hover-lift transition-all duration-300">
+                    {formData.profileImages?.[0] ? (
+                      <img
+                        src={formData.profileImages[0]}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=profile-${profile?.user_id || 'default'}`;
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-white/20 flex items-center justify-center">
+                        <User className="w-10 h-10 text-white/60" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-primary rounded-full flex items-center justify-center border-2 border-background shadow-elegant">
+                    <Sparkles className="w-3 h-3 text-white" />
+                  </div>
+                </div>
+                
+                <div className="flex-1">
+                  <h2 className="text-2xl font-bold text-white mb-1">
+                    {formData.firstName} {formData.lastName}
+                  </h2>
+                  <div className="flex items-center gap-2 text-white/90">
+                    <GraduationCap className="w-4 h-4" />
+                    <span className="text-sm font-medium">{profile?.university || 'University'}</span>
+                  </div>
+                  {formData.profession && (
+                    <div className="flex items-center gap-2 text-white/80 mt-1">
+                      <Sparkles className="w-3 h-3" />
+                      <span className="text-xs">{formData.profession}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
 
-         {/* Tabs - Fixed Mobile Layout */}
-         <Card className="mb-6 shadow-glow border-border/50 bg-card/80 backdrop-blur-sm">
-           <div className="flex gap-1 p-2 overflow-x-auto scrollbar-hide">
-             {tabs.map(({ id, label, icon: Icon }) => (
-               <Button
-                 key={id}
-                 variant={activeTab === id ? "default" : "ghost"}
-                 onClick={() => setActiveTab(id as any)}
-                 className={`shrink-0 px-3 py-2 text-xs font-medium transition-all ${
-                   activeTab === id 
-                     ? 'bg-primary text-primary-foreground shadow-sm' 
-                     : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                 }`}
-                 size="sm"
-               >
-                 <Icon className="w-3 h-3 mr-1" />
-                 {id === 'what-you-are' ? 'You Are' : id === 'who-you-want' ? 'You Want' : label.split(' ')[0]}
-               </Button>
-             ))}
-           </div>
-         </Card>
+        {/* Premium Tabs */}
+        <Card className="premium-card mb-6 animate-fade-in delay-100">
+          <div className="flex gap-2 p-2 overflow-x-auto scrollbar-hide">
+            {tabs.map(({ id, label, icon: Icon }) => (
+              <Button
+                key={id}
+                variant={activeTab === id ? "premium" : "glass"}
+                onClick={() => setActiveTab(id as any)}
+                className={`shrink-0 px-4 py-2.5 text-xs font-semibold transition-all hover-lift ${
+                  activeTab === id 
+                    ? 'shadow-glow' 
+                    : 'hover:shadow-soft'
+                }`}
+                size="sm"
+              >
+                <Icon className="w-3.5 h-3.5 mr-1.5" />
+                {id === 'what-you-are' ? 'You Are' : id === 'who-you-want' ? 'You Want' : label.split(' ')[0]}
+              </Button>
+            ))}
+          </div>
+        </Card>
 
-        {/* Tab Content */}
-        <Card className="shadow-glow border-border/50 bg-card/80 backdrop-blur-sm">
+        {/* Premium Content Card */}
+        <Card className="premium-card animate-fade-in delay-200">
           <CardContent className="p-6">
             {activeTab === 'basic' && renderBasicInfo()}
             {activeTab === 'location' && renderLocationSection()}
@@ -1799,58 +1836,6 @@ useEffect(() => {
             {activeTab === 'privacy' && renderPrivacy()}
           </CardContent>
         </Card>
-      </div>
-
-      {/* Bottom Navigation */}
-      <div className="hidden">
-        <div className="flex justify-center space-x-8 max-w-md mx-auto">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onNavigate('home')}
-            className="flex flex-col items-center space-y-1 text-muted-foreground hover:text-foreground"
-          >
-            <div className="p-2">
-              <User className="w-5 h-5" />
-            </div>
-            <span className="text-xs">Home</span>
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="sm" 
-            onClick={() => onNavigate('swipe')}
-            className="flex flex-col items-center space-y-1 text-muted-foreground hover:text-foreground"
-          >
-            <div className="p-2">
-              <Heart className="w-5 h-5" />
-            </div>
-            <span className="text-xs">Swipe</span>
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onNavigate('matches')}
-            className="flex flex-col items-center space-y-1 text-muted-foreground hover:text-foreground"
-          >
-            <div className="p-2">
-              <Users className="w-5 h-5" />
-            </div>
-            <span className="text-xs">Matches</span>
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            className="flex flex-col items-center space-y-1 text-primary"
-          >
-            <div className="p-2 bg-gradient-primary rounded-lg">
-              <User className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xs">Profile</span>
-          </Button>
-        </div>
       </div>
     </div>
   );
