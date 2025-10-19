@@ -25,6 +25,7 @@ import LoadingScreen from "./components/ui/loading-screen";
 import { WebLandingPage } from "./components/landing/WebLandingPage";
 import AadhaarTest from './components/AadhaarTest';
 import PublicAadhaarTest from './pages/PublicAadhaarTest';
+import { useAutoLocationUpdate } from "./hooks/useAutoLocationUpdate";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -56,6 +57,9 @@ const AuthenticatedApp = () => {
   useEffect(() => {
     initializeMobileApp();
   }, []);
+
+  // Automatically fetch and update location when app opens
+  useAutoLocationUpdate();
 
   // Function to check if user has completed profile
   const checkUserProfile = async (userId: string) => {
