@@ -461,37 +461,124 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
 
               {/* Right Section: Visual & Action */}
               <div className="flex flex-col items-center justify-center gap-4">
-                {/* Creative Heart with Match Count */}
-                <div className="relative w-32 h-32 group">
+                {/* Two Hearts Connecting Animation */}
+                <div className="relative w-28 h-28 group">
                   {/* Glow effect */}
-                  <div className="absolute inset-0 bg-gradient-primary rounded-full opacity-0 group-hover:opacity-20 blur-2xl transition-all duration-500" />
+                  <div className="absolute inset-0 bg-gradient-primary rounded-full opacity-0 group-hover:opacity-30 blur-3xl transition-all duration-700" />
                   
-                  {/* Heart outline with gradient stroke */}
+                  {/* Hearts container */}
                   <div className="relative w-full h-full flex items-center justify-center">
-                    <Heart 
-                      className="w-28 h-28 text-transparent animate-pulse" 
-                      strokeWidth={3}
-                      style={{
-                        stroke: 'url(#heartGradient)',
-                        fill: 'none',
-                        filter: 'drop-shadow(0 0 12px hsl(var(--primary) / 0.4))'
+                    {/* Left Heart */}
+                    <motion.div
+                      animate={{
+                        x: [-2, -4, -2],
+                        scale: [1, 1.05, 1],
                       }}
-                    />
-                    {/* SVG gradient definition */}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                      className="absolute left-2"
+                    >
+                      <Heart 
+                        className="w-10 h-10 text-transparent" 
+                        strokeWidth={2.5}
+                        style={{
+                          stroke: 'url(#heartGradient1)',
+                          fill: 'hsl(var(--primary) / 0.1)',
+                          filter: 'drop-shadow(0 0 8px hsl(var(--primary) / 0.5))'
+                        }}
+                      />
+                    </motion.div>
+
+                    {/* Right Heart */}
+                    <motion.div
+                      animate={{
+                        x: [2, 4, 2],
+                        scale: [1, 1.05, 1],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 0.3
+                      }}
+                      className="absolute right-2"
+                    >
+                      <Heart 
+                        className="w-10 h-10 text-transparent" 
+                        strokeWidth={2.5}
+                        style={{
+                          stroke: 'url(#heartGradient2)',
+                          fill: 'hsl(var(--primary-glow) / 0.1)',
+                          filter: 'drop-shadow(0 0 8px hsl(var(--primary-glow) / 0.5))'
+                        }}
+                      />
+                    </motion.div>
+
+                    {/* Connecting spark/line animation */}
+                    <motion.div
+                      animate={{
+                        opacity: [0.3, 0.8, 0.3],
+                        scale: [0.8, 1.2, 0.8],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                      className="absolute inset-0 flex items-center justify-center"
+                    >
+                      <div className="w-12 h-0.5 bg-gradient-primary blur-sm" />
+                    </motion.div>
+
+                    {/* Spark particles */}
+                    <motion.div
+                      animate={{
+                        opacity: [0, 1, 0],
+                        scale: [0, 1, 0],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 1
+                      }}
+                      className="absolute inset-0 flex items-center justify-center"
+                    >
+                      <div className="w-2 h-2 rounded-full bg-gradient-primary" />
+                    </motion.div>
+
+                    {/* SVG gradient definitions */}
                     <svg width="0" height="0" style={{ position: 'absolute' }}>
                       <defs>
-                        <linearGradient id="heartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <linearGradient id="heartGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
                           <stop offset="0%" style={{ stopColor: 'hsl(var(--primary))', stopOpacity: 1 }} />
                           <stop offset="100%" style={{ stopColor: 'hsl(var(--primary-glow))', stopOpacity: 1 }} />
+                        </linearGradient>
+                        <linearGradient id="heartGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" style={{ stopColor: 'hsl(var(--primary-glow))', stopOpacity: 1 }} />
+                          <stop offset="100%" style={{ stopColor: 'hsl(var(--primary))', stopOpacity: 1 }} />
                         </linearGradient>
                       </defs>
                     </svg>
                     
-                    {/* Match count centered */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent animate-pulse">
+                    {/* Match count centered between hearts */}
+                    <div className="absolute inset-0 flex items-center justify-center z-10">
+                      <motion.span 
+                        animate={{
+                          scale: [1, 1.1, 1],
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }}
+                        className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent"
+                      >
                         {matches.length}
-                      </span>
+                      </motion.span>
                     </div>
                   </div>
                 </div>
