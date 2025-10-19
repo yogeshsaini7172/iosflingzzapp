@@ -111,6 +111,19 @@ const BasicDetailsStep = ({ data, onChange }: BasicDetailsStepProps) => {
         />
       </div>
 
+      {/* Show University field only for Students or if profession is not set */}
+      {(!data.profession || data.profession.toLowerCase() === 'student') && (
+        <div className="space-y-3 animate-fade-in">
+          <Label className="text-base font-medium">University</Label>
+          <Input
+            placeholder="Enter your university name"
+            value={data.university || ''}
+            onChange={(e) => updateField('university', e.target.value)}
+            className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors"
+          />
+        </div>
+      )}
+
       {/* Conditional fields based on profession */}
       {data.profession && data.profession === 'Student' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-fade-in">
@@ -190,9 +203,9 @@ const BasicDetailsStep = ({ data, onChange }: BasicDetailsStepProps) => {
       {/* Show profession description for all professions except Student and Other */}
       {data.profession && data.profession !== 'Student' && data.profession !== 'Other' && (
         <div className="space-y-3 animate-fade-in">
-          <Label className="text-base font-medium">Explain about your profession</Label>
+          <Label className="text-base font-medium">About Your Work</Label>
           <Input
-            placeholder="Tell us about what you do"
+            placeholder="Describe your work, role, or what you do..."
             value={data.professionDescription || ''}
             onChange={(e) => updateField('professionDescription', e.target.value)}
             className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors"

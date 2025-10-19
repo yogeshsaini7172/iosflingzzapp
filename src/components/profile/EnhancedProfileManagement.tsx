@@ -725,15 +725,18 @@ useEffect(() => {
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label>University</Label>
-        <Input
-          value={formData.university}
-          onChange={(e) => setFormData(prev => ({...prev, university: e.target.value}))}
-          placeholder="Enter your university"
-          className="border-primary/20 focus:border-primary"
-        />
-      </div>
+      {/* Show University only for Students */}
+      {(!formData.profession || formData.profession.toLowerCase() === 'student') && (
+        <div className="space-y-2">
+          <Label>University</Label>
+          <Input
+            value={formData.university}
+            onChange={(e) => setFormData(prev => ({...prev, university: e.target.value}))}
+            placeholder="Enter your university"
+            className="border-primary/20 focus:border-primary"
+          />
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
@@ -751,7 +754,7 @@ useEffect(() => {
         </div>
         
         <div className="space-y-2">
-          <Label>Profession (Optional)</Label>
+          <Label>Profession</Label>
           <Input
             value={formData.profession}
             onChange={(e) => setFormData(prev => ({...prev, profession: e.target.value}))}
@@ -761,16 +764,19 @@ useEffect(() => {
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label>About Your Profession (Optional)</Label>
-        <Textarea
-          value={formData.professionDescription}
-          onChange={(e) => setFormData(prev => ({...prev, professionDescription: e.target.value}))}
-          placeholder="Describe your profession, what you do, or your career goals..."
-          className="border-primary/20 focus:border-primary min-h-[80px]"
-          rows={3}
-        />
-      </div>
+      {/* Show About Your Work only for non-students */}
+      {formData.profession && formData.profession.toLowerCase() !== 'student' && (
+        <div className="space-y-2">
+          <Label>About Your Work</Label>
+          <Textarea
+            value={formData.professionDescription}
+            onChange={(e) => setFormData(prev => ({...prev, professionDescription: e.target.value}))}
+            placeholder="Describe your work, what you do, your role, or your career..."
+            className="border-primary/20 focus:border-primary min-h-[80px]"
+            rows={3}
+          />
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label>Email</Label>
