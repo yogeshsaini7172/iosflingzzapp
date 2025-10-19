@@ -461,71 +461,60 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
 
               {/* Right Section: Visual & Action */}
               <div className="flex flex-col items-center justify-center gap-4">
-                {/* Two Hearts Animation */}
-                <div className="relative w-24 h-20 group">
+                {/* Two Hearts Mixing Animation */}
+                <div className="relative w-20 h-20 group">
                   {/* Glow effect */}
-                  <div className="absolute inset-0 bg-gradient-primary rounded-full opacity-0 group-hover:opacity-20 blur-2xl transition-all duration-500" />
+                  <div className="absolute inset-0 bg-gradient-primary rounded-full opacity-20 blur-2xl animate-pulse" />
                   
                   {/* Hearts container */}
-                  <div className="relative w-full h-full flex items-center justify-center gap-2">
-                    {/* Left Heart */}
+                  <div className="relative w-full h-full flex items-center justify-center">
+                    {/* Purple Heart */}
                     <motion.div
                       animate={{
-                        x: [-1, -2, -1],
-                        scale: [1, 1.05, 1],
+                        x: [-3, 0, -3],
+                        scale: [1, 1.1, 1],
+                        rotate: [-5, 0, -5],
                       }}
                       transition={{
-                        duration: 2,
+                        duration: 3,
                         repeat: Infinity,
                         ease: "easeInOut"
                       }}
+                      className="absolute"
                     >
                       <Heart 
-                        className="w-8 h-8" 
+                        className="w-12 h-12" 
                         strokeWidth={2.5}
                         style={{
                           stroke: 'hsl(var(--primary))',
-                          fill: 'none',
-                          filter: 'drop-shadow(0 0 6px hsl(var(--primary) / 0.4))'
+                          fill: 'hsl(var(--primary) / 0.3)',
+                          filter: 'drop-shadow(0 0 10px hsl(var(--primary) / 0.6))'
                         }}
                       />
                     </motion.div>
 
-                    {/* Match count */}
-                    <motion.span 
-                      animate={{
-                        scale: [1, 1.1, 1],
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
-                      className="text-2xl font-bold text-primary min-w-[2rem] text-center"
-                    >
-                      {matches.length}
-                    </motion.span>
-
-                    {/* Right Heart */}
+                    {/* White Heart */}
                     <motion.div
                       animate={{
-                        x: [1, 2, 1],
-                        scale: [1, 1.05, 1],
+                        x: [3, 0, 3],
+                        scale: [1, 1.1, 1],
+                        rotate: [5, 0, 5],
                       }}
                       transition={{
-                        duration: 2,
+                        duration: 3,
                         repeat: Infinity,
                         ease: "easeInOut",
-                        delay: 0.3
+                        delay: 0.5
                       }}
+                      className="absolute"
                     >
                       <Heart 
-                        className="w-8 h-8" 
+                        className="w-12 h-12" 
                         strokeWidth={2.5}
                         style={{
-                          stroke: 'hsl(var(--primary))',
-                          fill: 'none',
-                          filter: 'drop-shadow(0 0 6px hsl(var(--primary) / 0.4))'
+                          stroke: 'white',
+                          fill: 'rgba(255, 255, 255, 0.2)',
+                          filter: 'drop-shadow(0 0 10px rgba(255, 255, 255, 0.5))'
                         }}
                       />
                     </motion.div>
