@@ -376,22 +376,22 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
 
   return (
     <UnifiedLayout title="Smart Pairing">
-      <div className="min-h-screen relative pb-20">
-        <div className="container relative z-10 mx-auto px-4 py-6 space-y-6 max-w-lg">
+      <div className="h-screen relative overflow-y-auto">
+        <div className="container relative z-10 mx-auto px-4 py-[3vh] space-y-[3vh] max-w-lg min-h-full">
           
           {/* Premium Stats & Action Card */}
           <motion.div 
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="bg-card rounded-2xl p-5 shadow-elegant border border-border"
+            className="bg-card rounded-2xl p-[2vh] shadow-elegant border border-border"
           >
             {/* Header */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-[2vh]">
               <div>
-                <h1 className="text-2xl font-display font-bold mb-1">
+                <h1 className="text-[clamp(1.25rem,4vw,1.5rem)] font-display font-bold mb-[0.5vh]">
                   Discover Matches
                 </h1>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-[clamp(0.75rem,2.5vw,0.875rem)] text-muted-foreground">
                   {pairingLimits.remainingRequests} of {pairingLimits.dailyLimit} requests left
                 </p>
               </div>
@@ -401,10 +401,10 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                 whileTap={{ scale: 0.95 }}
                 onClick={handleRefresh}
                 disabled={isLoading || !pairingLimits.canRequest}
-                className="px-6 py-3 rounded-xl bg-gradient-primary text-white font-semibold shadow-medium hover:shadow-glow transition-elegant disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-[3vw] py-[1.5vh] rounded-xl bg-gradient-primary text-white font-semibold shadow-medium hover:shadow-glow transition-elegant disabled:opacity-50 disabled:cursor-not-allowed text-[clamp(0.875rem,3vw,1rem)]"
               >
                 <div className="flex items-center gap-2">
-                  <Heart className={`w-5 h-5 ${isLoading ? 'animate-pulse' : ''}`} />
+                  <Heart className={`w-[clamp(1rem,4vw,1.25rem)] h-[clamp(1rem,4vw,1.25rem)] ${isLoading ? 'animate-pulse' : ''}`} />
                   <span>
                     {!pairingLimits.canRequest ? 'Limit' : isLoading ? 'Finding...' : 'Find'}
                   </span>
@@ -413,35 +413,35 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-3 gap-4 pt-4 border-t border-border">
+            <div className="grid grid-cols-3 gap-[2vw] pt-[2vh] border-t border-border">
               <div className="text-center">
-                <div className="w-12 h-12 mx-auto mb-2 rounded-xl bg-gradient-primary flex items-center justify-center shadow-medium">
-                  <Users className="w-6 h-6 text-white" />
+                <div className="w-[clamp(2.5rem,10vw,3rem)] h-[clamp(2.5rem,10vw,3rem)] mx-auto mb-[1vh] rounded-xl bg-gradient-primary flex items-center justify-center shadow-medium">
+                  <Users className="w-[clamp(1.25rem,5vw,1.5rem)] h-[clamp(1.25rem,5vw,1.5rem)] text-white" />
                 </div>
-                <p className="text-2xl font-bold">
+                <p className="text-[clamp(1.25rem,5vw,1.5rem)] font-bold">
                   {(hasLoadedProfiles || shouldShowExistingProfiles) ? matches.length : '—'}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">Total</p>
+                <p className="text-[clamp(0.625rem,2vw,0.75rem)] text-muted-foreground mt-[0.5vh]">Total</p>
               </div>
               
               <div className="text-center">
-                <div className="w-12 h-12 mx-auto mb-2 rounded-xl bg-gradient-to-br from-success to-success/80 flex items-center justify-center shadow-medium">
-                  <Star className="w-6 h-6 text-white" />
+                <div className="w-[clamp(2.5rem,10vw,3rem)] h-[clamp(2.5rem,10vw,3rem)] mx-auto mb-[1vh] rounded-xl bg-gradient-to-br from-success to-success/80 flex items-center justify-center shadow-medium">
+                  <Star className="w-[clamp(1.25rem,5vw,1.5rem)] h-[clamp(1.25rem,5vw,1.5rem)] text-white" />
                 </div>
-                <p className="text-2xl font-bold">
+                <p className="text-[clamp(1.25rem,5vw,1.5rem)] font-bold">
                   {matches.filter(m => (m.compatibility_score || 0) >= 80).length}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">High QCS</p>
+                <p className="text-[clamp(0.625rem,2vw,0.75rem)] text-muted-foreground mt-[0.5vh]">High QCS</p>
               </div>
 
               <div className="text-center">
-                <div className="w-12 h-12 mx-auto mb-2 rounded-xl bg-gradient-gold flex items-center justify-center shadow-medium">
-                  <Target className="w-6 h-6 text-white" />
+                <div className="w-[clamp(2.5rem,10vw,3rem)] h-[clamp(2.5rem,10vw,3rem)] mx-auto mb-[1vh] rounded-xl bg-gradient-gold flex items-center justify-center shadow-medium">
+                  <Target className="w-[clamp(1.25rem,5vw,1.5rem)] h-[clamp(1.25rem,5vw,1.5rem)] text-white" />
                 </div>
-                <p className="text-2xl font-bold">
+                <p className="text-[clamp(1.25rem,5vw,1.5rem)] font-bold">
                   {currentUser?.profile?.total_qcs || 0}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">Your QCS</p>
+                <p className="text-[clamp(0.625rem,2vw,0.75rem)] text-muted-foreground mt-[0.5vh]">Your QCS</p>
               </div>
             </div>
           </motion.div>
@@ -451,13 +451,13 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="bg-card rounded-2xl p-12 text-center shadow-card border border-border"
+              className="bg-card rounded-2xl p-[5vh] text-center shadow-card border border-border"
             >
-              <div className="w-20 h-20 bg-gradient-primary rounded-full animate-pulse flex items-center justify-center mx-auto mb-4">
-                <Heart className="w-10 h-10 text-white" />
+              <div className="w-[clamp(4rem,15vw,5rem)] h-[clamp(4rem,15vw,5rem)] bg-gradient-primary rounded-full animate-pulse flex items-center justify-center mx-auto mb-[2vh]">
+                <Heart className="w-[clamp(2rem,8vw,2.5rem)] h-[clamp(2rem,8vw,2.5rem)] text-white" />
               </div>
-              <p className="text-lg font-semibold mb-2">Finding your matches</p>
-              <p className="text-sm text-muted-foreground">Analyzing compatibility...</p>
+              <p className="text-[clamp(1rem,4vw,1.125rem)] font-semibold mb-[1vh]">Finding your matches</p>
+              <p className="text-[clamp(0.875rem,3vw,1rem)] text-muted-foreground">Analyzing compatibility...</p>
             </motion.div>
           )}
 
@@ -466,13 +466,13 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-card rounded-2xl p-12 text-center shadow-card border border-border"
+              className="bg-card rounded-2xl p-[5vh] text-center shadow-card border border-border"
             >
-              <div className="w-24 h-24 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-6 shadow-glow">
-                <Heart className="w-12 h-12 text-white" />
+              <div className="w-[clamp(5rem,18vw,6rem)] h-[clamp(5rem,18vw,6rem)] bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-[3vh] shadow-glow">
+                <Heart className="w-[clamp(2.5rem,10vw,3rem)] h-[clamp(2.5rem,10vw,3rem)] text-white" />
               </div>
-              <h3 className="text-xl font-bold mb-3">Ready to find matches?</h3>
-              <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
+              <h3 className="text-[clamp(1.125rem,4.5vw,1.25rem)] font-bold mb-[1.5vh]">Ready to find matches?</h3>
+              <p className="text-muted-foreground mb-[3vh] max-w-sm mx-auto text-[clamp(0.875rem,3.5vw,1rem)]">
                 Get personalized matches based on compatibility and shared interests
               </p>
               <motion.button 
@@ -480,10 +480,10 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                 whileTap={{ scale: 0.95 }}
                 onClick={handleRefresh} 
                 disabled={!pairingLimits.canRequest}
-                className="px-8 py-3 rounded-xl bg-gradient-primary text-white font-semibold shadow-elegant hover:shadow-glow transition-elegant disabled:opacity-50"
+                className="px-[4vw] py-[1.5vh] rounded-xl bg-gradient-primary text-white font-semibold shadow-elegant hover:shadow-glow transition-elegant disabled:opacity-50 text-[clamp(0.875rem,3.5vw,1rem)]"
               >
                 <div className="flex items-center gap-2">
-                  <Heart className="w-5 h-5" />
+                  <Heart className="w-[clamp(1rem,4vw,1.25rem)] h-[clamp(1rem,4vw,1.25rem)]" />
                   <span>
                     {!pairingLimits.canRequest ? 'Limit Reached' : 'Start Matching'}
                   </span>
@@ -497,7 +497,7 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="space-y-4"
+              className="space-y-[3vh] pb-[3vh]"
             >
               {matches.map((match, index) => (
                 <motion.div
@@ -507,15 +507,15 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                   transition={{ delay: index * 0.05 }}
                   className="group relative overflow-hidden rounded-2xl bg-card shadow-elegant hover:shadow-royal transition-all duration-300 border border-border"
                 >
-                  <div className="p-4">
+                  <div className="p-[2vh]">
                     {/* Image Carousel */}
-                    <div className="relative mb-4">
+                    <div className="relative mb-[2vh]">
                       <Carousel className="w-full">
                         <CarouselContent>
                           {match.profile_images && match.profile_images.length > 0 ? (
                             match.profile_images.map((image, imgIndex) => (
                               <CarouselItem key={imgIndex}>
-                                <div className="relative w-full h-64 rounded-xl overflow-hidden">
+                                <div className="relative w-full h-[35vh] rounded-xl overflow-hidden">
                                   <ProfileImageHandler
                                     src={image}
                                     alt={`${match.first_name}`}
@@ -527,8 +527,8 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                             ))
                           ) : (
                             <CarouselItem>
-                              <div className="w-full h-64 rounded-xl bg-muted flex items-center justify-center">
-                                <span className="text-6xl">👤</span>
+                              <div className="w-full h-[35vh] rounded-xl bg-muted flex items-center justify-center">
+                                <span className="text-[clamp(3rem,12vw,4rem)]">👤</span>
                               </div>
                             </CarouselItem>
                           )}
@@ -542,7 +542,7 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                       </Carousel>
                       
                       {/* Match Score Badge */}
-                      <div className={`absolute top-2 right-2 px-3 py-1.5 rounded-full text-sm font-bold text-white shadow-elegant ${
+                      <div className={`absolute top-[1vh] right-[2vw] px-[2vw] py-[0.75vh] rounded-full text-[clamp(0.75rem,3vw,0.875rem)] font-bold text-white shadow-elegant ${
                         (match.compatibility_score || 0) >= 80 ? 'bg-gradient-to-r from-success to-success/80' :
                         (match.compatibility_score || 0) >= 60 ? 'bg-gradient-primary' :
                         'bg-muted'
@@ -552,51 +552,51 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                     </div>
 
                     {/* Profile Info */}
-                    <div className="space-y-3">
+                    <div className="space-y-[1.5vh]">
                       <div className="flex items-start justify-between">
                         <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-xl font-bold">
+                          <div className="flex items-center gap-2 mb-[0.5vh]">
+                            <h3 className="text-[clamp(1.125rem,4.5vw,1.25rem)] font-bold">
                               {match.first_name}, {match.age}
                             </h3>
-                            <ShieldCheck className="w-5 h-5 text-success flex-shrink-0" />
+                            <ShieldCheck className="w-[clamp(1rem,4vw,1.25rem)] h-[clamp(1rem,4vw,1.25rem)] text-success flex-shrink-0" />
                           </div>
                           
                           {match.university && (
                             <div className="flex items-center gap-2 text-muted-foreground">
-                              <GraduationCap className="w-4 h-4" />
-                              <p className="text-sm">{match.university}</p>
+                              <GraduationCap className="w-[clamp(0.875rem,3.5vw,1rem)] h-[clamp(0.875rem,3.5vw,1rem)]" />
+                              <p className="text-[clamp(0.75rem,3vw,0.875rem)]">{match.university}</p>
                             </div>
                           )}
                         </div>
                       </div>
 
                       {/* Score Pills */}
-                      <div className="flex gap-2">
-                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-gold/10 border border-accent/20">
-                          <Zap className="w-4 h-4 text-accent" />
-                          <span className="text-sm font-semibold">{match.physical_score}% Physical</span>
+                      <div className="flex gap-[1.5vw]">
+                        <div className="flex items-center gap-2 px-[2vw] py-[1vh] rounded-lg bg-gradient-gold/10 border border-accent/20">
+                          <Zap className="w-[clamp(0.875rem,3.5vw,1rem)] h-[clamp(0.875rem,3.5vw,1rem)] text-accent" />
+                          <span className="text-[clamp(0.75rem,3vw,0.875rem)] font-semibold">{match.physical_score}% Physical</span>
                         </div>
-                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10 border border-primary/20">
-                          <Brain className="w-4 h-4 text-primary" />
-                          <span className="text-sm font-semibold">{match.mental_score}% Mental</span>
+                        <div className="flex items-center gap-2 px-[2vw] py-[1vh] rounded-lg bg-primary/10 border border-primary/20">
+                          <Brain className="w-[clamp(0.875rem,3.5vw,1rem)] h-[clamp(0.875rem,3.5vw,1rem)] text-primary" />
+                          <span className="text-[clamp(0.75rem,3vw,0.875rem)] font-semibold">{match.mental_score}% Mental</span>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card border border-border">
-                        <Award className="w-4 h-4 text-success" />
-                        <span className="text-sm font-semibold">{match.total_qcs} QCS Points</span>
+                      <div className="flex items-center gap-2 px-[2vw] py-[1vh] rounded-lg bg-card border border-border">
+                        <Award className="w-[clamp(0.875rem,3.5vw,1rem)] h-[clamp(0.875rem,3.5vw,1rem)] text-success" />
+                        <span className="text-[clamp(0.75rem,3vw,0.875rem)] font-semibold">{match.total_qcs} QCS Points</span>
                       </div>
 
                       {/* Action Buttons */}
-                      <div className="grid grid-cols-2 gap-3 pt-2">
+                      <div className="grid grid-cols-2 gap-[2vw] pt-[1vh]">
                         <motion.button
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => setSelectedProfile(match)}
-                          className="px-4 py-3 rounded-xl bg-muted hover:bg-muted/80 transition-colors font-semibold flex items-center justify-center gap-2"
+                          className="px-[2vw] py-[1.5vh] rounded-xl bg-muted hover:bg-muted/80 transition-colors font-semibold flex items-center justify-center gap-2 text-[clamp(0.875rem,3.5vw,1rem)]"
                         >
-                          <Eye className="w-4 h-4" />
+                          <Eye className="w-[clamp(0.875rem,3.5vw,1rem)] h-[clamp(0.875rem,3.5vw,1rem)]" />
                           View Profile
                         </motion.button>
 
@@ -604,13 +604,13 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => handleChatClick(match)}
-                          className={`px-4 py-3 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2 ${
+                          className={`px-[2vw] py-[1.5vh] rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2 text-[clamp(0.875rem,3.5vw,1rem)] ${
                             (match.compatibility_score || 0) > 80
                               ? 'bg-gradient-to-r from-success to-success/80 shadow-medium hover:shadow-glow'
                               : 'bg-gradient-primary shadow-medium hover:shadow-glow'
                           }`}
                         >
-                          <MessageCircle className="w-4 h-4" />
+                          <MessageCircle className="w-[clamp(0.875rem,3.5vw,1rem)] h-[clamp(0.875rem,3.5vw,1rem)]" />
                           {(match.compatibility_score || 0) > 80 ? 'Chat Now' : 'Request Chat'}
                         </motion.button>
                       </div>
@@ -626,13 +626,13 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="bg-card rounded-2xl p-12 text-center shadow-card border border-border"
+              className="bg-card rounded-2xl p-[5vh] text-center shadow-card border border-border"
             >
-              <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="w-10 h-10 text-muted-foreground" />
+              <div className="w-[clamp(4rem,15vw,5rem)] h-[clamp(4rem,15vw,5rem)] bg-muted rounded-full flex items-center justify-center mx-auto mb-[2vh]">
+                <Users className="w-[clamp(2rem,8vw,2.5rem)] h-[clamp(2rem,8vw,2.5rem)] text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-bold mb-2">No matches found</h3>
-              <p className="text-muted-foreground mb-6">
+              <h3 className="text-[clamp(1rem,4vw,1.125rem)] font-bold mb-[1vh]">No matches found</h3>
+              <p className="text-muted-foreground mb-[3vh] text-[clamp(0.875rem,3.5vw,1rem)]">
                 Complete your profile to find compatible matches
               </p>
               {pairingLimits.canRequest && (
@@ -640,7 +640,7 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleRefresh}
-                  className="px-8 py-3 rounded-xl bg-gradient-primary text-white font-semibold shadow-elegant hover:shadow-glow transition-elegant"
+                  className="px-[4vw] py-[1.5vh] rounded-xl bg-gradient-primary text-white font-semibold shadow-elegant hover:shadow-glow transition-elegant text-[clamp(0.875rem,3.5vw,1rem)]"
                 >
                   Try Again
                 </motion.button>
