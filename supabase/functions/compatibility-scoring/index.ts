@@ -18,6 +18,9 @@ interface UserProfile {
   age?: number;
   interests?: string[];
   relationship_goals?: string[];
+  personality_traits?: string[];
+  values_array?: string[];
+  mindset_array?: string[];
 }
 
 const PHYSICAL_WEIGHTS = {
@@ -31,6 +34,17 @@ const MENTAL_WEIGHTS = {
   values: 0.4,
   personality: 0.3,
   interests: 0.3,
+};
+
+// Helper function to get array fields for new multi-select structure
+const getArrayField = (profile: any, field: string): string[] => {
+  if (profile[`${field}_array`]) {
+    return Array.isArray(profile[`${field}_array`]) ? profile[`${field}_array`] : [];
+  }
+  if (profile[field]) {
+    return Array.isArray(profile[field]) ? profile[field] : [profile[field]];
+  }
+  return [];
 };
 
 function matchScore(req: any, qual: any): number {

@@ -10,9 +10,9 @@ interface ProfileData {
   bodyType?: string;
   skinTone?: string;
   faceType?: string;
-  personalityType?: string;
-  values?: string;
-  mindset?: string;
+  personalityType?: string[];
+  values?: string[];
+  mindset?: string[];
   loveLanguage?: string;
   lifestyle?: string;
   relationshipGoals?: string[];
@@ -31,7 +31,11 @@ const WhatYouAreStep = ({ data, onChange }: WhatYouAreStepProps) => {
   const updateField = <K extends keyof ProfileData>(field: K, value: ProfileData[K]) => {
     onChange((prev: ProfileData) => ({ ...prev, [field]: value }));
   };
-
+const mindsetOptions = [
+  "Growth Mindset", "Positive Thinking", "Pragmatic", "Optimistic", 
+  "Realistic", "Ambitious", "Balanced", "Mindful", "Flexible", 
+  "Open-minded", "Passionate", "Spiritual"
+];
   const personalityTypes = [
     "Adventurous", "Analytical", "Creative", "Outgoing", "Introverted", 
     "Empathetic", "Ambitious", "Laid-back", "Intellectual", "Spontaneous"
@@ -54,17 +58,56 @@ const WhatYouAreStep = ({ data, onChange }: WhatYouAreStepProps) => {
     "Writing", "Volunteering", "Fashion", "Food", "History", "Science", "Politics"
   ];
 
-  const toggleArrayItem = (field: 'relationshipGoals' | 'interests', item: string, maxItems: number = 10) => {
-    const currentArray = data[field] || [];
-    const newArray = currentArray.includes(item)
-      ? currentArray.filter((i: string) => i !== item)
-      : currentArray.length < maxItems
-      ? [...currentArray, item]
-      : currentArray;
-    
-    updateField(field, newArray);
-  };
+// handle multi-select toggle
+const toggleArrayItem = (field: 'personalityType' | 'values' | 'mindset' | 'relationshipGoals' | 'interests', item: string, maxItems: number = 10) => {
+  const currentArray = data[field] || [];
+  const newArray = currentArray.includes(item)
+    ? currentArray.filter((i: string) => i !== item)
+    : currentArray.length < maxItems
+    ? [...currentArray, item]
+    : currentArray;
+  
+  updateField(field, newArray);
+};
 
+// render tag-based multi-select
+const renderMultiSelectTags = (
+  field: 'personalityType' | 'values' | 'mindset',
+  options: string[],
+  maxItems: number,
+  label: string
+) => {
+  const currentArray = data[field] || [];
+  
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <Label className="text-base font-medium">{label}</Label>
+        <span className="text-sm text-muted-foreground">
+          {currentArray.length}/{maxItems}
+        </span>
+      </div>
+      <div className="flex flex-wrap gap-3">
+        {options.map((option) => {
+          const isSelected = currentArray.includes(option);
+          return (
+            <Button
+              key={option}
+              variant={isSelected ? "default" : "outline"}
+              size="sm"
+              onClick={() => toggleArrayItem(field, option, maxItems)}
+              className="rounded-2xl text-sm h-12 px-4 min-w-0 transition-colors"
+              disabled={!isSelected && (currentArray.length >= maxItems)}
+            >
+              {option}
+              {isSelected && <X className="w-3 h-3 ml-2" />}
+            </Button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="text-center mb-8">
@@ -199,55 +242,29 @@ const WhatYouAreStep = ({ data, onChange }: WhatYouAreStepProps) => {
         </div>
       </div>
 
-      {/* Personality - Full Width on Mobile */}
-      <div className="space-y-3">
-        <Label className="text-base font-medium">Personality Type</Label>
-        <Select value={data.personalityType} onValueChange={(value) => updateField('personalityType', value)}>
-          <SelectTrigger className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors">
-            <SelectValue placeholder="Select personality type" />
-          </SelectTrigger>
-          <SelectContent className="rounded-2xl">
-            {personalityTypes.map((type) => (
-              <SelectItem key={type} value={type.toLowerCase().replace(' ', '_')}>
-                {type}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {/* personality multi-select */}
+      {renderMultiSelectTags(
+        'personalityType',
+        personalityTypes,
+        5,
+        'Personality Type (select up to 5)'
+      )}
 
-      <div className="space-y-3">
-        <Label className="text-base font-medium">Values</Label>
-        <Select value={data.values} onValueChange={(value) => updateField('values', value)}>
-          <SelectTrigger className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors">
-            <SelectValue placeholder="Select your values" />
-          </SelectTrigger>
-          <SelectContent className="rounded-2xl">
-            {valueOptions.map((value) => (
-              <SelectItem key={value} value={value.toLowerCase().replace(' ', '_').replace('-', '_')}>
-                {value}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {/* values multi-select */}
+      {renderMultiSelectTags(
+        'values',
+        valueOptions,
+        5,
+        'Values (select up to 5)'
+      )}
 
-      <div className="space-y-3">
-        <Label className="text-base font-medium">Mindset</Label>
-        <Select value={data.mindset} onValueChange={(value) => updateField('mindset', value)}>
-          <SelectTrigger className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors">
-            <SelectValue placeholder="Select your mindset" />
-          </SelectTrigger>
-          <SelectContent className="rounded-2xl">
-            <SelectItem value="growth">Growth Mindset</SelectItem>
-            <SelectItem value="positive">Positive Thinking</SelectItem>
-            <SelectItem value="pragmatic">Pragmatic</SelectItem>
-            <SelectItem value="optimistic">Optimistic</SelectItem>
-            <SelectItem value="realistic">Realistic</SelectItem>
-            <SelectItem value="ambitious">Ambitious</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      {/* mindset multi-select */}
+      {renderMultiSelectTags(
+        'mindset',
+        mindsetOptions,
+        3,
+        'Mindset (select up to 3)'
+      )}
 
       {/* Love Language */}
       <div className="space-y-3">
