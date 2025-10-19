@@ -377,30 +377,22 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
   return (
     <UnifiedLayout title="Smart Pairing">
       <div className="min-h-screen relative pb-20">
-        {/* Subtle premium background */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/4 -left-32 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 -right-32 w-64 h-64 bg-accent/5 rounded-full blur-3xl" />
-        </div>
-
-        <div className="container relative z-10 mx-auto px-4 py-4 space-y-4 max-w-2xl">
+        <div className="container relative z-10 mx-auto px-4 py-6 space-y-6 max-w-lg">
           
-          {/* Compact Unified Header & Stats */}
+          {/* Premium Stats & Action Card */}
           <motion.div 
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="rounded-2xl bg-card/80 backdrop-blur-lg p-4 shadow-lg border border-border/50"
+            className="bg-card rounded-2xl p-5 shadow-elegant border border-border"
           >
-            {/* Top Row: Title & Action */}
-            <div className="flex items-center justify-between mb-3">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
               <div>
-                <h1 className="text-xl font-bold mb-0.5">
-                  <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-                    Discover Matches
-                  </span>
+                <h1 className="text-2xl font-display font-bold mb-1">
+                  Discover Matches
                 </h1>
-                <p className="text-xs text-muted-foreground">
-                  {pairingLimits.remainingRequests}/{pairingLimits.dailyLimit} requests today
+                <p className="text-sm text-muted-foreground">
+                  {pairingLimits.remainingRequests} of {pairingLimits.dailyLimit} requests left
                 </p>
               </div>
 
@@ -409,84 +401,78 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                 whileTap={{ scale: 0.95 }}
                 onClick={handleRefresh}
                 disabled={isLoading || !pairingLimits.canRequest}
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary to-accent text-white font-semibold shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-3 rounded-xl bg-gradient-primary text-white font-semibold shadow-medium hover:shadow-glow transition-elegant disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="flex items-center gap-2">
-                  <Heart className={`w-4 h-4 ${isLoading ? 'animate-pulse' : ''}`} />
-                  <span className="text-sm">
+                  <Heart className={`w-5 h-5 ${isLoading ? 'animate-pulse' : ''}`} />
+                  <span>
                     {!pairingLimits.canRequest ? 'Limit' : isLoading ? 'Finding...' : 'Find'}
                   </span>
                 </div>
               </motion.button>
             </div>
 
-            {/* Unified Stats Row */}
-            <div className="flex items-center justify-between gap-3 pt-3 border-t border-border/50">
-              <div className="flex items-center gap-2 flex-1">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Users className="w-4 h-4 text-primary" />
+            {/* Stats Grid */}
+            <div className="grid grid-cols-3 gap-4 pt-4 border-t border-border">
+              <div className="text-center">
+                <div className="w-12 h-12 mx-auto mb-2 rounded-xl bg-gradient-primary flex items-center justify-center shadow-medium">
+                  <Users className="w-6 h-6 text-white" />
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Matches</p>
-                  <p className="text-lg font-bold text-foreground">
-                    {(hasLoadedProfiles || shouldShowExistingProfiles) ? matches.length : '—'}
-                  </p>
-                </div>
+                <p className="text-2xl font-bold">
+                  {(hasLoadedProfiles || shouldShowExistingProfiles) ? matches.length : '—'}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">Total</p>
               </div>
               
-              <div className="flex items-center gap-2 flex-1">
-                <div className="p-2 rounded-lg bg-success/10">
-                  <Star className="w-4 h-4 text-success" />
+              <div className="text-center">
+                <div className="w-12 h-12 mx-auto mb-2 rounded-xl bg-gradient-to-br from-success to-success/80 flex items-center justify-center shadow-medium">
+                  <Star className="w-6 h-6 text-white" />
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">High Match</p>
-                  <p className="text-lg font-bold text-foreground">
-                    {matches.filter(m => (m.compatibility_score || 0) >= 80).length}
-                  </p>
-                </div>
+                <p className="text-2xl font-bold">
+                  {matches.filter(m => (m.compatibility_score || 0) >= 80).length}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">High QCS</p>
               </div>
 
-              <div className="flex items-center gap-2 flex-1">
-                <div className="p-2 rounded-lg bg-accent/10">
-                  <Target className="w-4 h-4 text-accent" />
+              <div className="text-center">
+                <div className="w-12 h-12 mx-auto mb-2 rounded-xl bg-gradient-gold flex items-center justify-center shadow-medium">
+                  <Target className="w-6 h-6 text-white" />
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Your QCS</p>
-                  <p className="text-lg font-bold text-foreground">
-                    {currentUser?.profile?.total_qcs || 0}
-                  </p>
-                </div>
+                <p className="text-2xl font-bold">
+                  {currentUser?.profile?.total_qcs || 0}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">Your QCS</p>
               </div>
             </div>
           </motion.div>
 
-          {/* Compact Loading State */}
+          {/* Loading State */}
           {isLoading && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="py-12 text-center"
+              className="bg-card rounded-2xl p-12 text-center shadow-card border border-border"
             >
-              <div className="w-16 h-16 bg-gradient-to-r from-primary to-accent rounded-full animate-pulse flex items-center justify-center mx-auto mb-3">
-                <Heart className="w-8 h-8 text-white" />
+              <div className="w-20 h-20 bg-gradient-primary rounded-full animate-pulse flex items-center justify-center mx-auto mb-4">
+                <Heart className="w-10 h-10 text-white" />
               </div>
-              <p className="text-base font-semibold mb-1">Finding matches</p>
-              <p className="text-xs text-muted-foreground">Analyzing compatibility...</p>
+              <p className="text-lg font-semibold mb-2">Finding your matches</p>
+              <p className="text-sm text-muted-foreground">Analyzing compatibility...</p>
             </motion.div>
           )}
 
-          {/* Compact Initial Empty State */}
+          {/* Initial Empty State */}
           {!isLoading && !(hasLoadedProfiles || shouldShowExistingProfiles) && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="py-12 text-center"
+              className="bg-card rounded-2xl p-12 text-center shadow-card border border-border"
             >
-              <div className="w-20 h-20 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center mx-auto mb-4">
-                <Heart className="w-10 h-10 text-white" />
+              <div className="w-24 h-24 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-6 shadow-glow">
+                <Heart className="w-12 h-12 text-white" />
               </div>
-              <h3 className="text-lg font-bold mb-2">Ready to find matches?</h3>
-              <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto">
+              <h3 className="text-xl font-bold mb-3">Ready to find matches?</h3>
+              <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
                 Get personalized matches based on compatibility and shared interests
               </p>
               <motion.button 
@@ -494,10 +480,10 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                 whileTap={{ scale: 0.95 }}
                 onClick={handleRefresh} 
                 disabled={!pairingLimits.canRequest}
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-primary to-accent text-white font-semibold shadow-md hover:shadow-lg transition-all disabled:opacity-50"
+                className="px-8 py-3 rounded-xl bg-gradient-primary text-white font-semibold shadow-elegant hover:shadow-glow transition-elegant disabled:opacity-50"
               >
                 <div className="flex items-center gap-2">
-                  <Heart className="w-4 h-4" />
+                  <Heart className="w-5 h-5" />
                   <span>
                     {!pairingLimits.canRequest ? 'Limit Reached' : 'Start Matching'}
                   </span>
@@ -506,12 +492,12 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
             </motion.div>
           )}
 
-          {/* Compact Modern Match Cards */}
+          {/* Premium Match Cards */}
           {!isLoading && matches.length > 0 && (hasLoadedProfiles || shouldShowExistingProfiles) && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="space-y-3"
+              className="space-y-4"
             >
               {matches.map((match, index) => (
                 <motion.div
@@ -519,110 +505,113 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: index * 0.05 }}
-                  className="group relative overflow-hidden rounded-xl bg-card/80 backdrop-blur-lg shadow-md hover:shadow-xl transition-all duration-300 border border-border/50"
+                  className="group relative overflow-hidden rounded-2xl bg-card shadow-elegant hover:shadow-royal transition-all duration-300 border border-border"
                 >
-                  <div className="flex gap-3 p-3">
-                    {/* Compact Image with Carousel */}
-                    <div className="relative flex-shrink-0">
-                      <Carousel className="w-28 h-28">
+                  <div className="p-4">
+                    {/* Image Carousel */}
+                    <div className="relative mb-4">
+                      <Carousel className="w-full">
                         <CarouselContent>
                           {match.profile_images && match.profile_images.length > 0 ? (
                             match.profile_images.map((image, imgIndex) => (
                               <CarouselItem key={imgIndex}>
-                                <div className="relative w-28 h-28 rounded-lg overflow-hidden">
+                                <div className="relative w-full h-64 rounded-xl overflow-hidden">
                                   <ProfileImageHandler
                                     src={image}
                                     alt={`${match.first_name}`}
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                    className="w-full h-full object-cover"
                                   />
-                                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                                 </div>
                               </CarouselItem>
                             ))
                           ) : (
                             <CarouselItem>
-                              <div className="w-28 h-28 rounded-lg bg-muted flex items-center justify-center">
-                                <span className="text-3xl">👤</span>
+                              <div className="w-full h-64 rounded-xl bg-muted flex items-center justify-center">
+                                <span className="text-6xl">👤</span>
                               </div>
                             </CarouselItem>
                           )}
                         </CarouselContent>
                         {match.profile_images && match.profile_images.length > 1 && (
                           <>
-                            <CarouselPrevious className="left-1 h-6 w-6 bg-black/50 backdrop-blur-sm border-0 text-white" />
-                            <CarouselNext className="right-1 h-6 w-6 bg-black/50 backdrop-blur-sm border-0 text-white" />
+                            <CarouselPrevious className="left-2 h-8 w-8 bg-black/70 backdrop-blur-sm border-0 text-white hover:bg-black/90" />
+                            <CarouselNext className="right-2 h-8 w-8 bg-black/70 backdrop-blur-sm border-0 text-white hover:bg-black/90" />
                           </>
                         )}
                       </Carousel>
                       
                       {/* Match Score Badge */}
-                      <div className={`absolute -top-1 -right-1 px-2 py-0.5 rounded-full text-xs font-bold text-white shadow-md ${
+                      <div className={`absolute top-2 right-2 px-3 py-1.5 rounded-full text-sm font-bold text-white shadow-elegant ${
                         (match.compatibility_score || 0) >= 80 ? 'bg-gradient-to-r from-success to-success/80' :
-                        (match.compatibility_score || 0) >= 60 ? 'bg-gradient-to-r from-primary to-accent' :
+                        (match.compatibility_score || 0) >= 60 ? 'bg-gradient-primary' :
                         'bg-muted'
                       }`}>
-                        {match.compatibility_score || 0}%
+                        {match.compatibility_score || 0}% Match
                       </div>
                     </div>
 
-                    {/* Compact Info */}
-                    <div className="flex-1 min-w-0 flex flex-col justify-between">
-                      <div>
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <h3 className="text-base font-bold truncate">
-                            {match.first_name}, {match.age}
-                          </h3>
-                          <ShieldCheck className="w-3.5 h-3.5 text-success flex-shrink-0" />
-                        </div>
-                        
-                        {match.university && (
-                          <div className="flex items-center gap-1 mb-2">
-                            <GraduationCap className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                            <p className="text-xs text-muted-foreground truncate">{match.university}</p>
+                    {/* Profile Info */}
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="text-xl font-bold">
+                              {match.first_name}, {match.age}
+                            </h3>
+                            <ShieldCheck className="w-5 h-5 text-success flex-shrink-0" />
                           </div>
-                        )}
-
-                        {/* Compact Score Pills */}
-                        <div className="flex gap-1.5 mb-2">
-                          <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-accent/10">
-                            <Zap className="w-3 h-3 text-accent" />
-                            <span className="text-xs font-semibold">{match.physical_score}%</span>
-                          </div>
-                          <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10">
-                            <Brain className="w-3 h-3 text-primary" />
-                            <span className="text-xs font-semibold">{match.mental_score}%</span>
-                          </div>
-                          <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-success/10">
-                            <Award className="w-3 h-3 text-success" />
-                            <span className="text-xs font-semibold">{match.total_qcs}</span>
-                          </div>
+                          
+                          {match.university && (
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <GraduationCap className="w-4 h-4" />
+                              <p className="text-sm">{match.university}</p>
+                            </div>
+                          )}
                         </div>
                       </div>
 
-                      {/* Compact Action Buttons */}
+                      {/* Score Pills */}
                       <div className="flex gap-2">
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-gold/10 border border-accent/20">
+                          <Zap className="w-4 h-4 text-accent" />
+                          <span className="text-sm font-semibold">{match.physical_score}% Physical</span>
+                        </div>
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10 border border-primary/20">
+                          <Brain className="w-4 h-4 text-primary" />
+                          <span className="text-sm font-semibold">{match.mental_score}% Mental</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card border border-border">
+                        <Award className="w-4 h-4 text-success" />
+                        <span className="text-sm font-semibold">{match.total_qcs} QCS Points</span>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="grid grid-cols-2 gap-3 pt-2">
                         <motion.button
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => setSelectedProfile(match)}
-                          className="flex-1 px-3 py-1.5 rounded-lg bg-muted/50 hover:bg-muted transition-colors text-xs font-semibold"
+                          className="px-4 py-3 rounded-xl bg-muted hover:bg-muted/80 transition-colors font-semibold flex items-center justify-center gap-2"
                         >
-                          <Eye className="w-3 h-3 inline mr-1" />
-                          View
+                          <Eye className="w-4 h-4" />
+                          View Profile
                         </motion.button>
 
                         <motion.button
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => handleChatClick(match)}
-                          className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all ${
+                          className={`px-4 py-3 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2 ${
                             (match.compatibility_score || 0) > 80
-                              ? 'bg-gradient-to-r from-success to-success/80 hover:shadow-md'
-                              : 'bg-gradient-to-r from-primary to-accent hover:shadow-md'
+                              ? 'bg-gradient-to-r from-success to-success/80 shadow-medium hover:shadow-glow'
+                              : 'bg-gradient-primary shadow-medium hover:shadow-glow'
                           }`}
                         >
-                          <MessageCircle className="w-3 h-3 inline mr-1" />
-                          {(match.compatibility_score || 0) > 80 ? 'Chat' : 'Request'}
+                          <MessageCircle className="w-4 h-4" />
+                          {(match.compatibility_score || 0) > 80 ? 'Chat Now' : 'Request Chat'}
                         </motion.button>
                       </div>
                     </div>
@@ -632,18 +621,18 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
             </motion.div>
           )}
 
-          {/* Compact Empty Results State */}
+          {/* Empty Results State */}
           {!isLoading && matches.length === 0 && (hasLoadedProfiles || shouldShowExistingProfiles) && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="py-12 text-center"
+              className="bg-card rounded-2xl p-12 text-center shadow-card border border-border"
             >
-              <div className="w-16 h-16 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Users className="w-8 h-8 text-muted-foreground" />
+              <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="w-10 h-10 text-muted-foreground" />
               </div>
-              <h3 className="text-base font-bold mb-1">No matches found</h3>
-              <p className="text-sm text-muted-foreground mb-4">
+              <h3 className="text-lg font-bold mb-2">No matches found</h3>
+              <p className="text-muted-foreground mb-6">
                 Complete your profile to find compatible matches
               </p>
               {pairingLimits.canRequest && (
@@ -651,7 +640,7 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleRefresh}
-                  className="px-6 py-2 rounded-xl bg-gradient-to-r from-primary to-accent text-white font-semibold shadow-md hover:shadow-lg transition-all"
+                  className="px-8 py-3 rounded-xl bg-gradient-primary text-white font-semibold shadow-elegant hover:shadow-glow transition-elegant"
                 >
                   Try Again
                 </motion.button>
