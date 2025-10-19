@@ -162,6 +162,30 @@ if (prefFace?.length > 0 && candidateAttributes?.face_type) {
     notMatched.push("relationship_goals");
   }
   
+  // 5. Lifestyle preferences (drinking habits) - 5 points for compatibility
+  if (userPreferences?.preferred_drinking?.length > 0 && candidateAttributes?.drinking_habits) {
+    if (arrayContainsMatch(userPreferences.preferred_drinking, candidateAttributes.drinking_habits)) {
+      mentalScore += 5;
+      matched.push("drinking_habits");
+    } else {
+      notMatched.push("drinking_habits");
+    }
+  } else {
+    notMatched.push("drinking_habits");
+  }
+  
+  // 6. Lifestyle preferences (smoking habits) - 5 points for compatibility
+  if (userPreferences?.preferred_smoking?.length > 0 && candidateAttributes?.smoking_habits) {
+    if (arrayContainsMatch(userPreferences.preferred_smoking, candidateAttributes.smoking_habits)) {
+      mentalScore += 5;
+      matched.push("smoking_habits");
+    } else {
+      notMatched.push("smoking_habits");
+    }
+  } else {
+    notMatched.push("smoking_habits");
+  }
+  
   // Note: Skipping interests bonus for now as we don't have preferred_interests field in partner_preferences
   
   const totalScore = physicalScore + mentalScore;
@@ -207,8 +231,8 @@ function computeCompatibilityWithPreferences(
     
     // Convert to percentages (user's formula)
     const physicalMax = 40; // 4 categories × 10 points each
-    const mentalMax = 40;   // 4 categories × 10 points each
-    const totalMax = 80;    // physicalMax + mentalMax (excluding interests for now)
+    const mentalMax = 50;   // 4 categories × 10 points + 2 lifestyle × 5 points
+    const totalMax = 90;    // physicalMax + mentalMax (excluding interests for now)
     
     const physicalPercentage = Math.round((physicalScore / physicalMax) * 100);
     const mentalPercentage = Math.round((mentalScore / mentalMax) * 100);

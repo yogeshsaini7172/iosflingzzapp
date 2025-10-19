@@ -201,11 +201,18 @@ const BODY_TYPE_WEIGHTS = {
 };
 
 const SKIN_TONE_WEIGHTS = {
+  "porcelain": 0.75,
   "very fair": 0.7,
   "fair": 0.75,
+  "light": 0.78,
+  "light medium": 0.8,
   "medium": 0.8,
+  "tan": 0.8,
   "olive": 0.8,
   "brown": 0.75,
+  "dark brown": 0.75,
+  "deep": 0.75,
+  "ebony": 0.75,
   "dark": 0.7,
   "prefer not to say": 0.7
 };
@@ -218,7 +225,23 @@ const FACE_TYPE_WEIGHTS = {
   "diamond": 0.9,
   "oblong": 0.8,
   "long": 0.8,
+  "rectangle": 0.85,
+  "triangle": 0.8,
   "prefer not to say": 0.7
+};
+
+const DRINKING_HABITS_WEIGHTS = {
+  "never": 0.95,
+  "socially": 0.85,
+  "regularly": 0.6,
+  "prefer not to say": 0.7
+};
+
+const SMOKING_HABITS_WEIGHTS = {
+  "never": 1.0,
+  "socially": 0.7,
+  "regularly": 0.5,
+  "prefer not to say": 0.65
 };
 
 const PERSONALITY_WEIGHTS = {
@@ -309,12 +332,13 @@ const INTERESTS_WEIGHTS = {
 const CATEGORY_WEIGHTS = {
   "basic": 15,
   "physical": 15,
+  "lifestyle": 10,
   "personality": 15,
-  "values": 15,
+  "values": 10,
   "mindset": 10,
   "relationship": 10,
   "interests": 10,
-  "bio": 10
+  "bio": 5
 };
 
 const POSITIVE_WORDS = ["love", "kind", "happy", "strong", "caring", "supportive", "honest", "grateful", "excited", "optimistic"];
@@ -583,6 +607,27 @@ function deterministicScoring(profile: any): { score: number, perCategoryFractio
     const frac = physComponents.reduce((a, b) => a + b, 0) / physComponents.length;
     perCatFraction["physical"] = frac;
     const w = CATEGORY_WEIGHTS["physical"];
+    includedWeights += w;
+    totalContribution += frac * w;
+  }
+
+  // Lifestyle habits
+  const lifestyleComponents: number[] = [];
+  
+  if (profile.drinking_habits) {
+    const normalized = normalizeOption(profile.drinking_habits, {}, Object.keys(DRINKING_HABITS_WEIGHTS));
+    lifestyleComponents.push(computeSingleOptionFraction(normalized, DRINKING_HABITS_WEIGHTS));
+  }
+  
+  if (profile.smoking_habits) {
+    const normalized = normalizeOption(profile.smoking_habits, {}, Object.keys(SMOKING_HABITS_WEIGHTS));
+    lifestyleComponents.push(computeSingleOptionFraction(normalized, SMOKING_HABITS_WEIGHTS));
+  }
+
+  if (lifestyleComponents.length > 0) {
+    const frac = lifestyleComponents.reduce((a, b) => a + b, 0) / lifestyleComponents.length;
+    perCatFraction["lifestyle"] = frac;
+    const w = CATEGORY_WEIGHTS["lifestyle"];
     includedWeights += w;
     totalContribution += frac * w;
   }

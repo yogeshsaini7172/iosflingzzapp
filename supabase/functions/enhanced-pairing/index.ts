@@ -168,6 +168,33 @@ function calculateCompatibility(userProfile: any, candidateProfile: any): any {
   const sharedValues = userValues.filter((value: string) => candidateValues.includes(value));
   mentalScore += Math.min(sharedValues.length * 10, 30);
 
+  // Lifestyle compatibility (drinking & smoking)
+  maxMentalScore += 20;
+  let lifestyleScore = 0;
+  
+  // Drinking compatibility
+  if (userProfile.drinking_habits && candidateProfile.drinking_habits) {
+    if (userProfile.drinking_habits === candidateProfile.drinking_habits) {
+      lifestyleScore += 10;
+    } else if (
+      (userProfile.drinking_habits === 'never' && candidateProfile.drinking_habits === 'socially') ||
+      (userProfile.drinking_habits === 'socially' && candidateProfile.drinking_habits === 'never')
+    ) {
+      lifestyleScore += 5; // Partial compatibility
+    }
+  }
+  
+  // Smoking compatibility
+  if (userProfile.smoking_habits && candidateProfile.smoking_habits) {
+    if (userProfile.smoking_habits === candidateProfile.smoking_habits) {
+      lifestyleScore += 10;
+    } else if (userProfile.smoking_habits === 'never' && candidateProfile.smoking_habits !== 'regularly') {
+      lifestyleScore += 3; // Slight compatibility
+    }
+  }
+  
+  mentalScore += lifestyleScore;
+
   const finalPhysicalScore = maxPhysicalScore > 0 ? Math.round((physicalScore / maxPhysicalScore) * 100) : 0;
   const finalMentalScore = maxMentalScore > 0 ? Math.round((mentalScore / maxMentalScore) * 100) : 0;
   const overallScore = Math.round((finalMentalScore * 0.6) + (finalPhysicalScore * 0.4));

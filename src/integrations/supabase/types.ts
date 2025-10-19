@@ -521,8 +521,12 @@ export type Database = {
           min_shared_interests: number | null
           personality_compatibility: string | null
           preferred_body_types: string[] | null
+          preferred_children: string[] | null
           preferred_communication_style: string[] | null
+          preferred_diet: string[] | null
+          preferred_drinking: string[] | null
           preferred_education_levels: string[] | null
+          preferred_exercise: string[] | null
           preferred_face_types: string[] | null
           preferred_gender: string[] | null
           preferred_interests: string[] | null
@@ -530,10 +534,12 @@ export type Database = {
           preferred_love_languages: string[] | null
           preferred_mindset: string[] | null
           preferred_personality_traits: string[] | null
+          preferred_pets: string[] | null
           preferred_professions: string[] | null
           preferred_relationship_goals: string[]
           preferred_skin_tone: string[] | null
           preferred_skin_types: string[] | null
+          preferred_smoking: string[] | null
           preferred_values: string[] | null
           updated_at: string
           user_id: string
@@ -549,8 +555,12 @@ export type Database = {
           min_shared_interests?: number | null
           personality_compatibility?: string | null
           preferred_body_types?: string[] | null
+          preferred_children?: string[] | null
           preferred_communication_style?: string[] | null
+          preferred_diet?: string[] | null
+          preferred_drinking?: string[] | null
           preferred_education_levels?: string[] | null
+          preferred_exercise?: string[] | null
           preferred_face_types?: string[] | null
           preferred_gender?: string[] | null
           preferred_interests?: string[] | null
@@ -558,10 +568,12 @@ export type Database = {
           preferred_love_languages?: string[] | null
           preferred_mindset?: string[] | null
           preferred_personality_traits?: string[] | null
+          preferred_pets?: string[] | null
           preferred_professions?: string[] | null
           preferred_relationship_goals?: string[]
           preferred_skin_tone?: string[] | null
           preferred_skin_types?: string[] | null
+          preferred_smoking?: string[] | null
           preferred_values?: string[] | null
           updated_at?: string
           user_id: string
@@ -577,8 +589,12 @@ export type Database = {
           min_shared_interests?: number | null
           personality_compatibility?: string | null
           preferred_body_types?: string[] | null
+          preferred_children?: string[] | null
           preferred_communication_style?: string[] | null
+          preferred_diet?: string[] | null
+          preferred_drinking?: string[] | null
           preferred_education_levels?: string[] | null
+          preferred_exercise?: string[] | null
           preferred_face_types?: string[] | null
           preferred_gender?: string[] | null
           preferred_interests?: string[] | null
@@ -586,10 +602,12 @@ export type Database = {
           preferred_love_languages?: string[] | null
           preferred_mindset?: string[] | null
           preferred_personality_traits?: string[] | null
+          preferred_pets?: string[] | null
           preferred_professions?: string[] | null
           preferred_relationship_goals?: string[]
           preferred_skin_tone?: string[] | null
           preferred_skin_types?: string[] | null
+          preferred_smoking?: string[] | null
           preferred_values?: string[] | null
           updated_at?: string
           user_id?: string
@@ -606,6 +624,8 @@ export type Database = {
           body_type: string | null
           boosts_remaining: number | null
           can_see_who_liked_you: boolean | null
+          children_plans: string | null
+          city: string | null
           college_id_url: string | null
           college_tier: string | null
           compatibility_preferences: Json | null
@@ -615,9 +635,12 @@ export type Database = {
           daily_swipes_reset_at: string | null
           daily_swipes_used: number | null
           date_of_birth: string
+          diet_preference: string | null
           display_name: string | null
+          drinking_habits: string | null
           education_level: string | null
           email: string
+          exercise_habits: string | null
           extra_pairings_left: number | null
           face_type: string | null
           field_of_study: string | null
@@ -636,14 +659,17 @@ export type Database = {
           last_name: string
           last_reset: string | null
           last_swipe_reset: string | null
+          latitude: number | null
           lifestyle: string | null
           location: string | null
+          longitude: number | null
           love_language: string | null
           major: string | null
           mindset: string | null
           pairing_requests_left: number | null
           personality_traits: string[] | null
           personality_type: string | null
+          pet_preference: string | null
           plan_expires_at: string | null
           plan_id: string | null
           plan_started_at: string | null
@@ -661,6 +687,7 @@ export type Database = {
           requirements: Json | null
           show_profile: boolean | null
           skin_tone: string | null
+          smoking_habits: string | null
           student_id_verified: boolean | null
           subscription_expires_at: string | null
           subscription_tier: string | null
@@ -685,6 +712,8 @@ export type Database = {
           body_type?: string | null
           boosts_remaining?: number | null
           can_see_who_liked_you?: boolean | null
+          children_plans?: string | null
+          city?: string | null
           college_id_url?: string | null
           college_tier?: string | null
           compatibility_preferences?: Json | null
@@ -694,9 +723,12 @@ export type Database = {
           daily_swipes_reset_at?: string | null
           daily_swipes_used?: number | null
           date_of_birth: string
+          diet_preference?: string | null
           display_name?: string | null
+          drinking_habits?: string | null
           education_level?: string | null
           email: string
+          exercise_habits?: string | null
           extra_pairings_left?: number | null
           face_type?: string | null
           field_of_study?: string | null
@@ -715,14 +747,17 @@ export type Database = {
           last_name: string
           last_reset?: string | null
           last_swipe_reset?: string | null
+          latitude?: number | null
           lifestyle?: string | null
           location?: string | null
+          longitude?: number | null
           love_language?: string | null
           major?: string | null
           mindset?: string | null
           pairing_requests_left?: number | null
           personality_traits?: string[] | null
           personality_type?: string | null
+          pet_preference?: string | null
           plan_expires_at?: string | null
           plan_id?: string | null
           plan_started_at?: string | null
@@ -740,6 +775,7 @@ export type Database = {
           requirements?: Json | null
           show_profile?: boolean | null
           skin_tone?: string | null
+          smoking_habits?: string | null
           student_id_verified?: boolean | null
           subscription_expires_at?: string | null
           subscription_tier?: string | null
@@ -764,6 +800,8 @@ export type Database = {
           body_type?: string | null
           boosts_remaining?: number | null
           can_see_who_liked_you?: boolean | null
+          children_plans?: string | null
+          city?: string | null
           college_id_url?: string | null
           college_tier?: string | null
           compatibility_preferences?: Json | null
@@ -773,9 +811,12 @@ export type Database = {
           daily_swipes_reset_at?: string | null
           daily_swipes_used?: number | null
           date_of_birth?: string
+          diet_preference?: string | null
           display_name?: string | null
+          drinking_habits?: string | null
           education_level?: string | null
           email?: string
+          exercise_habits?: string | null
           extra_pairings_left?: number | null
           face_type?: string | null
           field_of_study?: string | null
@@ -794,14 +835,17 @@ export type Database = {
           last_name?: string
           last_reset?: string | null
           last_swipe_reset?: string | null
+          latitude?: number | null
           lifestyle?: string | null
           location?: string | null
+          longitude?: number | null
           love_language?: string | null
           major?: string | null
           mindset?: string | null
           pairing_requests_left?: number | null
           personality_traits?: string[] | null
           personality_type?: string | null
+          pet_preference?: string | null
           plan_expires_at?: string | null
           plan_id?: string | null
           plan_started_at?: string | null
@@ -819,6 +863,7 @@ export type Database = {
           requirements?: Json | null
           show_profile?: boolean | null
           skin_tone?: string | null
+          smoking_habits?: string | null
           student_id_verified?: boolean | null
           subscription_expires_at?: string | null
           subscription_tier?: string | null
