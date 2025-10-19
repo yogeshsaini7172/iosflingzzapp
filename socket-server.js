@@ -61,7 +61,11 @@ app.post('/api/validate-aadhaar', async (req, res) => {
 
     // Use env var first; fall back to a hardcoded token if not provided.
     // NOTE: Hardcoding secrets in source is insecure for production. Prefer env vars or a secret manager.
-    const surepassToken = process.env.SUREPASS_TOKEN || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2MDY5Njc2NSwianRpIjoiNTU2YTg1YTYtY2M5NC00NTYyLTkxMjQtMGJkMjZkOGY2M2Y2IiwidHlwZSI6ImFjY2VzcyIsImlkZW50aXR5IjoiZGV2LmF0b21uZXR3b3JraW5nQHN1cmVwYXNzLmlvIiwibmJmIjoxNzYwNjk2NzY1LCJleHAiOjE3NjMyODg3NjUsImVtYWlsIjoiYXRvbW5ldHdvcmtpbmdAc3VyZXBhc3MuaW8iLCJ0ZW5hbnRfaWQiOiJtYWluIiwidXNlcl9jbGFpbXMiOnsic2NvcGVzIjpbInVzZXIiXX19.Wot2R5Yshf_YyCpwVhJcZZMDnBQ9LiUBxYE2ODkxzdA';
+    const surepassToken = process.env.SUREPASS_TOKEN;
+    if (!surepassToken) {
+      console.error('Missing SUREPASS_TOKEN environment variable');
+      return res.status(500).json({ error: 'Missing server SUREPASS_TOKEN environment variable' });
+    }
 
     const SP_URL_BASE = SUREPASS_MODE === 'sandbox' ? 'https://sandbox.surepass.io' : 'https://kyc-api.surepass.io';
     const SP_URL = `${SP_URL_BASE}/api/v1/aadhaar-validation/aadhaar-validation`;
@@ -130,7 +134,8 @@ app.post('/api/validate-aadhaar-redirect', async (req, res) => {
     const hostedBase = SUREPASS_MODE === 'sandbox' ? 'https://sandbox.surepass.io/verify' : 'https://kyc.surepass.io/verify';
     const redirectUrl = `${hostedBase}?client_id=${encodeURIComponent(clientId)}`;
 
-    return res.status(200).json({ success: true, redirect_url: redirectUrl, data: json?.data ?? null });
+    // Instruct browser to follow the redirect (302) — this prevents exposing tokens to client and lets browser land on Surepass UI
+    return res.redirect(302, redirectUrl);
   } catch (err) {
     console.error('Error in /api/validate-aadhaar-redirect:', err);
     return res.status(500).json({ error: err?.message ?? String(err) });

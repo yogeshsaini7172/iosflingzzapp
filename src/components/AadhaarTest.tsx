@@ -12,27 +12,19 @@ export default function AadhaarTest() {
     setError(null);
     setResult(null);
     try {
-      // Call the redirect-capable endpoint which returns a hosted UI URL when available
-      const resp = await fetch('/api/validate-aadhaar-redirect', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id_number: id.trim() }),
-      });
-
-      const json = await resp.json().catch(() => null);
-      if (!resp.ok) {
-        setError(json?.error || json?.message || `Surepass error: ${resp.status}`);
-        setResult(json ?? null);
-        return;
-      }
-
-      // If server provides redirect_url, navigate browser to it
-      if (json?.redirect_url) {
-        window.location.href = json.redirect_url;
-        return;
-      }
-
-      setResult(json ?? null);
+      // Submit a standard HTML form POST so the browser will follow a server-side 302 redirect
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/api/validate-aadhaar-redirect';
+      // add CSRF or x-api-secret header as hidden input if you use API_SECRET
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'id_number';
+      input.value = id.trim();
+      form.appendChild(input);
+      document.body.appendChild(form);
+      form.submit();
+      return; // browser will navigate away
     } catch (e: any) {
       setError(e?.message ?? String(e));
     } finally {
