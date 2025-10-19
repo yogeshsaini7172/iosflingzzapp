@@ -163,8 +163,12 @@ if (prefFace?.length > 0 && candidateAttributes?.face_type) {
   }
   
   // 5. Lifestyle preferences (drinking habits) - 5 points for compatibility
+  // "any" means match with all candidates regardless of their drinking habits
   if (userPreferences?.preferred_drinking?.length > 0 && candidateAttributes?.drinking_habits) {
-    if (arrayContainsMatch(userPreferences.preferred_drinking, candidateAttributes.drinking_habits)) {
+    const hasAny = userPreferences.preferred_drinking.some((pref: string) => 
+      pref.toLowerCase().trim() === 'any'
+    );
+    if (hasAny || arrayContainsMatch(userPreferences.preferred_drinking, candidateAttributes.drinking_habits)) {
       mentalScore += 5;
       matched.push("drinking_habits");
     } else {
@@ -175,8 +179,12 @@ if (prefFace?.length > 0 && candidateAttributes?.face_type) {
   }
   
   // 6. Lifestyle preferences (smoking habits) - 5 points for compatibility
+  // "any" means match with all candidates regardless of their smoking habits
   if (userPreferences?.preferred_smoking?.length > 0 && candidateAttributes?.smoking_habits) {
-    if (arrayContainsMatch(userPreferences.preferred_smoking, candidateAttributes.smoking_habits)) {
+    const hasAny = userPreferences.preferred_smoking.some((pref: string) => 
+      pref.toLowerCase().trim() === 'any'
+    );
+    if (hasAny || arrayContainsMatch(userPreferences.preferred_smoking, candidateAttributes.smoking_habits)) {
       mentalScore += 5;
       matched.push("smoking_habits");
     } else {
