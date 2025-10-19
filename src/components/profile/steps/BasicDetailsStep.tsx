@@ -111,8 +111,8 @@ const BasicDetailsStep = ({ data, onChange }: BasicDetailsStepProps) => {
         />
       </div>
 
-      {/* Show University field only for Students or if profession is not set */}
-      {(!data.profession || data.profession.toLowerCase() === 'student') && (
+      {/* Show University field only for Students */}
+      {data.profession === 'Student' && (
         <div className="space-y-3 animate-fade-in">
           <Label className="text-base font-medium">University</Label>
           <Input
