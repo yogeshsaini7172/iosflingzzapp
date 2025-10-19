@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Heart, Brain, Star, MapPin, GraduationCap, Sparkles, Users, RefreshCw, MessageCircle, Zap, Crown } from 'lucide-react';
+import { Heart, Brain, Star, MapPin, GraduationCap, Sparkles, Users, RefreshCw, MessageCircle, Zap, Crown, Eye, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import DetailedProfileModal from '@/components/profile/DetailedProfileModalNew';
@@ -31,7 +31,6 @@ interface Match {
   mental_score?: number;
   matched_criteria?: string[];
   not_matched_criteria?: string[];
-  // Additional fields for detailed profile view
   face_type?: string;
   personality_type?: string;
   personality_traits?: string[];
@@ -66,7 +65,6 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
   const [myReq, setMyReq] = useState<any>(null);
   const [myQual, setMyQual] = useState<any>(null);
 
-  // Subscription and pairing limits
   const { entitlements, loading: subscriptionLoading, refreshEntitlements } = useSubscriptionEntitlements();
   const [pairingLimits, setPairingLimits] = useState({
     canRequest: true,
@@ -75,7 +73,6 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
     remainingRequests: 1
   });
 
-  // Show loading state while auth is being checked
   if (authLoading || !userId) {
     return (
       <UnifiedLayout title="Smart Pairing">
@@ -94,40 +91,26 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
   const parseJsonSafe = (v: any) => {
     if (!v) return null;
     try {
-      // Handle stored strings like "\"{...}\""
-      const s = typeof v === 'string' ? v.replace(/^"|"$/g, '') : v;
+      const s = typeof v === 'string' ? v.replace(/^\"|\"$/g, '') : v;
       return typeof s === 'string' ? JSON.parse(s) : s;
     } catch {
       return null;
     }
   };
 
-  // Check pairing limits when user or subscription changes
   useEffect(() => {
     if (userId) {
-      // Use entitlements if available, otherwise fallback to free plan
       const planId = entitlements?.plan.id || 'free';
       const limits = PairingLimitService.canMakePairingRequest(userId, planId);
       setPairingLimits(limits);
-      console.log('🎯 Pairing limits updated:', limits, 'for plan:', planId);
-      console.log('🎯 Full entitlements:', entitlements);
-      
-      // Clean up old localStorage data
       PairingLimitService.cleanupOldUsageData(userId);
     }
   }, [userId, entitlements]);
 
   useEffect(() => {
-    console.log('🎯 PairingPage useEffect triggered with userId:', userId);
-    if (!userId) {
-      console.log('⚠️ No userId available, skipping QCS fetch');
-      return;
-    }
+    if (!userId) return;
     
     const fetchUserData = async () => {
-      console.log('🔍 Fetching user data for:', userId);
-      
-      // Fetch current user's QCS and requirements via Edge Function (bypasses RLS)
       try {
         const response = await fetchWithFirebaseAuth('/functions/v1/data-management', {
           method: 'POST',
@@ -135,58 +118,40 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
         });
 
         if (!response.ok) {
-          const err = await response.json().catch(() => ({}));
-          console.error('❌ get_profile failed:', err);
           setCurrentUser({ id: userId, profile: { total_qcs: 0 } });
         } else {
           const result = await response.json();
           const profile = result?.data?.profile || null;
-          console.log('✅ Profile via function:', profile);
           setCurrentUser({ id: userId, profile: { total_qcs: profile?.total_qcs || 0 } });
           setMyReq(parseJsonSafe(profile?.requirements));
         }
       } catch (e) {
-        console.error('❌ Error calling data-management.get_profile:', e);
         setCurrentUser({ id: userId, profile: { total_qcs: 0 } });
       }
     };
 
-    // Only fetch user data initially, not matches automatically
-    // But check if we should show existing profiles
     fetchUserData();
     checkExistingProfiles();
   }, [userId]);
 
-  // Additional effect to handle page refresh and ensure profiles persist
   useEffect(() => {
     if (userId && !hasLoadedProfiles && !shouldShowExistingProfiles && !isLoading) {
-      console.log('🔄 Checking for existing profiles on page load/refresh...');
       checkExistingProfiles();
     }
   }, [userId, hasLoadedProfiles, shouldShowExistingProfiles, isLoading]);
 
-  // Check if there are existing profiles to show (from previous pairing requests)
   const checkExistingProfiles = async () => {
     if (!userId) return;
     
     try {
-      // Check if user has made any pairing requests today
-      const today = new Date().toLocaleDateString('en-CA');
       const usage = PairingLimitService.getDailyUsage(userId);
       
-      console.log('🔍 Checking existing profiles - Usage:', usage);
-      
       if (usage && usage.pairing_requests_used > 0) {
-        // User has made requests today, try to load existing matches
-        console.log('🔍 User has made pairing requests today, loading existing matches...');
-        
-        // Add a timeout to prevent infinite loading
         const timeoutPromise = new Promise<boolean>((resolve) => {
           setTimeout(() => {
-            console.log('⏰ Loading timeout reached, stopping...');
             setIsLoading(false);
             resolve(false);
-          }, 10000); // 10 second timeout
+          }, 10000);
         });
         
         const loadPromise = loadMatchesForDisplay(userId);
@@ -196,66 +161,41 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
           setHasLoadedProfiles(true);
           setShouldShowExistingProfiles(true);
         } else {
-          // If no matches found but user has used requests, still show the interface
-          console.log('� No matches found but user has used requests today');
           setHasLoadedProfiles(true);
           setShouldShowExistingProfiles(true);
         }
       } else {
-        // No usage recorded, just set loading to false
-        console.log('🔍 No usage recorded, setting up fresh state...');
         setIsLoading(false);
       }
     } catch (error) {
-      console.error('Error checking existing profiles:', error);
       setIsLoading(false);
     }
   };
 
-  // Load matches for display without incrementing usage (for showing existing matches)
   const loadMatchesForDisplay = async (userId: string): Promise<boolean> => {
     setIsLoading(true);
     try {
-      console.log("🔍 Loading existing matches for display:", userId);
-
       const { data: pairingResults, error } = await supabase.functions.invoke('deterministic-pairing', {
         body: { user_id: userId }
       });
 
-      if (error) {
-        console.error('❌ Error loading existing matches:', error);
+      if (error || !pairingResults.success) {
         setIsLoading(false);
-        // Return false if we can't load matches, but don't clear existing ones
         return matches.length > 0;
       }
 
-      if (!pairingResults.success) {
-        console.error('Pairing function returned error:', pairingResults.error);
-        setIsLoading(false);
-        // Return false if pairing function fails, but don't clear existing ones  
-        return matches.length > 0;
-      }
-
-      // Handle the response format from deterministic-pairing
       let candidatesData = [];
-      
-      // Check if we have matches or top_candidates
       if (pairingResults.matches && Array.isArray(pairingResults.matches)) {
         candidatesData = pairingResults.matches;
-        console.log('✅ Found matches in response:', candidatesData.length);
       } else if (pairingResults.top_candidates && Array.isArray(pairingResults.top_candidates)) {
         candidatesData = pairingResults.top_candidates;
-        console.log('✅ Found top_candidates in response:', candidatesData.length);
       } else {
-        console.log('⚠️ No matches or candidates found in response');
         setIsLoading(false);
         return false;
       }
 
       const formattedMatches = candidatesData.map((match: any) => {
-        // Handle both formats - direct match format and candidate format
         if (match.candidate_id) {
-          // Candidate format from deterministic-pairing
           const [first, ...rest] = (match.candidate_name || '').split(' ');
           return {
             user_id: match.candidate_id,
@@ -289,47 +229,13 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
             education_level: match.candidate_education_level
           };
         } else {
-          // Direct match format
-          return {
-            user_id: match.user_id,
-            first_name: match.first_name,
-            last_name: match.last_name,
-            university: match.university,
-            bio: match.bio,
-            profile_images: match.profile_images || [],
-            age: match.age,
-            interests: match.interests || [],
-            total_qcs: match.total_qcs,
-            compatibility_score: match.compatibility_score,
-            physical_score: match.physical_score,
-            mental_score: match.mental_score,
-            matched_criteria: match.matched_criteria || [],
-            not_matched_criteria: match.not_matched_criteria || [],
-            face_type: match.face_type,
-            personality_type: match.personality_type,
-            personality_traits: match.personality_traits || [],
-            body_type: match.body_type,
-            skin_tone: match.skin_tone,
-            values: match.values,
-            mindset: match.mindset,
-            relationship_goals: match.relationship_goals || [],
-            height: match.height,
-            location: match.location,
-            lifestyle: match.lifestyle,
-            love_language: match.love_language,
-            field_of_study: match.field_of_study,
-            profession: match.profession,
-            education_level: match.education_level
-          };
+          return match;
         }
       });
 
       setMatches(formattedMatches);
-      console.log('✅ Existing matches loaded for display:', formattedMatches.length);
       return formattedMatches.length > 0;
     } catch (error) {
-      console.error('❌ Error in loadMatchesForDisplay:', error);
-      // Don't clear existing matches on error, keep what we have
       return matches.length > 0;
     } finally {
       setIsLoading(false);
@@ -339,26 +245,17 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
   const loadMatches = async (userId: string) => {
     setIsLoading(true);
     try {
-      console.log("🔍 Loading matches for user:", userId);
-
-      // Compute REAL compatibility first; only show profiles after scoring
-      console.log("📡 Calling deterministic-pairing function...");
       const { data: pairingResults, error } = await supabase.functions.invoke('deterministic-pairing', {
         body: { user_id: userId }
       });
 
       if (error) {
-        console.error('❌ Error invoking deterministic-pairing:', error);
         toast.error(`Pairing error: ${error.message || 'Unknown error'}`);
         setMatches([]);
         return;
       }
 
-      console.log('✅ Deterministic pairing results:', pairingResults);
-
-      // Handle different response types
       if (!pairingResults.success) {
-        console.error('Pairing function returned error:', pairingResults.error);
         if (pairingResults.error?.includes('profile not found')) {
           toast.error('Please complete your profile setup first to use pairing.');
         } else {
@@ -369,7 +266,6 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
       }
 
       const candidates = pairingResults?.top_candidates || [];
-      console.log(`Found ${candidates.length} candidates from deterministic pairing`);
 
       if (candidates.length === 0) {
         toast.info(pairingResults.message || 'No matches found. Try again later!');
@@ -377,26 +273,14 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
         return;
       }
 
-      // Display exact scores calculated by deterministic algorithm
-      console.log('🔍 Raw candidates from deterministic-pairing:', candidates);
-      
       const formattedMatches = candidates
         .filter((c: any) => c?.candidate_id)
         .map((c: any) => {
           const [first, ...rest] = (c.candidate_name || '').split(' ');
           
-          // Use EXACT scores from deterministic algorithm - no fallbacks
           const compatibilityScore = Number(c.final_score) || Number(c.deterministic_score) || 0;
           const physicalScore = Number(c.physical_score) || 0;
           const mentalScore = Number(c.mental_score) || 0;
-          
-          console.log(`📊 ${c.candidate_name}:`, {
-            compatibility: compatibilityScore,
-            physical: physicalScore, 
-            mental: mentalScore,
-            matched: c.debug_info?.matched || [],
-            not_matched: c.debug_info?.not_matched || []
-          });
           
           return {
             user_id: c.candidate_id,
@@ -411,10 +295,8 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
             compatibility_score: Math.round(compatibilityScore),
             physical_score: Math.round(physicalScore),
             mental_score: Math.round(mentalScore),
-            // Add debugging info for display
             matched_criteria: c.debug_info?.matched || [],
             not_matched_criteria: c.debug_info?.not_matched || [],
-            // Map additional profile fields from deterministic-pairing response
             face_type: c.candidate_face_type,
             personality_type: c.candidate_personality_type,
             personality_traits: c.candidate_personality_traits,
@@ -431,517 +313,362 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
             profession: c.candidate_profession,
             education_level: c.candidate_education_level
           };
-        })
-        .sort((a: any, b: any) => (b.compatibility_score || 0) - (a.compatibility_score || 0));
+        });
 
       setMatches(formattedMatches);
-      toast.success(`Found ${formattedMatches.length} calculated matches`);
+      setHasLoadedProfiles(true);
+      setShouldShowExistingProfiles(true);
+      toast.success(`Found ${formattedMatches.length} compatible matches!`);
     } catch (error) {
-      console.error('Error in loadMatches:', error);
-      toast.error('Failed to load matches. Please check your internet connection.');
+      toast.error('Failed to load matches');
+      setMatches([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleChatClick = async (match: Match) => {
-    const compatibilityScore = match.compatibility_score || 0;
-    
-    // If compatibility score is 80% or below, send a chat request
-    if (compatibilityScore <= 80) {
-      try {
-        const response = await fetchWithFirebaseAuth('/functions/v1/chat-request-handler', {
-          method: 'POST',
-          body: JSON.stringify({
-            action: 'send_request',
-            recipient_id: match.user_id,
-            message: `Hi ${match.first_name}! I would like to start a conversation with you.`
-          })
-        });
-        if (!response.ok) throw new Error('Failed to send chat request');
-        toast.success(`Chat request sent to ${match.first_name}! 💌`);
-        toast.info("They'll be notified and can choose to accept your request.");
-        return;
-      } catch (error: any) {
-        console.error('Error sending chat request:', error);
-        toast.error(error.message || 'Failed to send chat request');
-        return;
-      }
-    }
-    
-    // If compatibility score is above 80%, allow direct chat
-    try {
-      console.log(`💬 Opening chat with ${match.first_name} (compatibility: ${compatibilityScore}%)`);
-      
-      // Check if chat room already exists
-      const { data: existingRoom } = await supabase
-        .from("chat_rooms")
-        .select("id")
-        .or(`and(user1_id.eq.${userId},user2_id.eq.${match.user_id}),and(user1_id.eq.${match.user_id},user2_id.eq.${userId})`)
-        .maybeSingle();
-
-      let chatRoomId = existingRoom?.id;
-
-      if (!chatRoomId) {
-        console.log("🏗️ Creating new chat room for high compatibility match");
-        
-        // Create new chat room for high compatibility
-        const { data: newRoom, error: roomError } = await supabase
-          .from("chat_rooms")
-          .insert({
-            user1_id: userId < match.user_id ? userId : match.user_id,
-            user2_id: userId < match.user_id ? match.user_id : userId
-          })
-          .select()
-          .single();
-
-        if (roomError) throw roomError;
-        chatRoomId = newRoom.id;
-        
-        console.log("✅ High compatibility chat room created:", newRoom);
-        
-        toast.success(`🎯 High compatibility detected! Chat with ${match.first_name} is now available.`);
-      } else {
-        console.log("♻️ Using existing chat room:", existingRoom);
-      }
-
-      setSelectedChatId(chatRoomId);
-      toast.success("Chat opened! Start the conversation! 💬");
-    } catch (error: any) {
-      console.error("❌ Error opening chat:", error);
-      toast.error("Failed to open chat");
-    }
-  };
-
-  // If chat is selected, show chat interface
-  if (selectedChatId) {
-    return (
-      <div className="space-y-4">
-        <Button
-          variant="outline"
-          onClick={() => setSelectedChatId("")}
-          className="mb-4"
-        >
-          ← Back to Pairing
-        </Button>
-        <RebuiltChatSystem onNavigate={onNavigate} selectedChatId={selectedChatId} />
-      </div>
-    );
-  }
-
   const handleRefresh = async () => {
-    // Check if user can make more pairing requests
     if (!pairingLimits.canRequest) {
-      // Always ensure existing profiles are visible when limit is reached
-      if (!hasLoadedProfiles && !shouldShowExistingProfiles) {
-        const hasMatches = await loadMatchesForDisplay(userId);
-        if (hasMatches) {
-          setHasLoadedProfiles(true);
-          setShouldShowExistingProfiles(true);
-        }
-      }
-      
-      // Show upgrade prompt but keep existing profiles visible
       toast.error(
         `Daily pairing limit reached! You've used ${pairingLimits.usedToday}/${pairingLimits.dailyLimit} requests today.`,
-        {
-          action: {
-            label: "Upgrade Plan",
-            onClick: () => onNavigate('subscription')
-          },
-          duration: 5000
-        }
+        { duration: 4000 }
       );
       return;
     }
 
-    // Increment usage count for new requests
-    if (userId) {
+    if (!userId) return;
+
+    try {
       const success = PairingLimitService.incrementDailyUsage(userId);
+      
       if (success) {
-        // Update local limits state using fallback plan if needed
-        const planId = entitlements?.plan.id || 'free';
-        const newLimits = PairingLimitService.canMakePairingRequest(userId, planId);
+        const newLimits = PairingLimitService.canMakePairingRequest(userId, entitlements?.plan.id || 'free');
         setPairingLimits(newLimits);
         
-        console.log(`🎯 Pairing request used: ${newLimits.usedToday}/${newLimits.dailyLimit} (plan: ${planId})`);
-        
-        // Show remaining requests if getting close to limit
-        if (newLimits.remainingRequests <= 2 && newLimits.remainingRequests > 0) {
+        if (newLimits.remainingRequests > 0) {
           toast.warning(`${newLimits.remainingRequests} pairing requests remaining today`);
         }
       }
-    }
 
-    await loadMatches(userId);
-    setHasLoadedProfiles(true);
-    setShouldShowExistingProfiles(true);
+      await loadMatches(userId);
+    } catch (error) {
+      toast.error('Failed to load matches');
+    }
+  };
+
+  const handleChatClick = (match: Match) => {
+    setSelectedChatId(match.user_id);
   };
 
   const getCompatibilityColor = (score: number) => {
-    if (score >= 80) return 'text-green-500 bg-green-500/10';
-    if (score >= 60) return 'text-yellow-500 bg-yellow-500/10';
-    return 'text-red-500 bg-red-500/10';
-  };
-
-  const getCompatibilityText = (score: number) => {
-    if (score >= 90) return 'Excellent Match';
-    if (score >= 80) return 'Great Match';
-    if (score >= 70) return 'Good Match';
-    if (score >= 60) return 'Fair Match';
-    return 'Limited Match';
+    if (score >= 80) return 'bg-success text-white';
+    if (score >= 60) return 'bg-primary text-white';
+    return 'bg-muted text-foreground';
   };
 
   return (
     <UnifiedLayout title="Smart Pairing">
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-8 space-y-8">
 
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-elegant font-bold text-gradient-primary mb-2">
-                Smart Pairing
-              </h1>
-              <p className="text-muted-foreground text-sm sm:text-base">
-                AI-powered compatibility matching based on your profile and preferences
-              </p>
-            </div>
-            <Button
-              onClick={handleRefresh}
-              disabled={isLoading || !pairingLimits.canRequest}
-              className="bg-gradient-primary shadow-royal hover:opacity-90 text-sm px-3 py-2 sm:px-4 sm:py-2 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Heart className={`h-4 w-4 mr-2 ${isLoading ? 'animate-pulse' : ''}`} />
-              {!pairingLimits.canRequest ? 'Daily Limit Reached' : 'Get Today\'s Pair'}
-            </Button>
-          </div>
-
-          {/* Subscription Status & Daily Limits */}
-          <div className="bg-gradient-subtle border border-primary/20 rounded-xl p-4 mb-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center">
-                  <Crown className="w-4 h-4 text-white" />
+        {/* Premium Hero Section */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-royal p-8 sm:p-10 shadow-premium animate-fade-in">
+          <div className="absolute inset-0 bg-gradient-magic opacity-50" />
+          <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary-glow/20 rounded-full blur-3xl" />
+          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-secondary-glow/20 rounded-full blur-3xl" />
+          
+          <div className="relative z-10">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+              <div className="flex-1 space-y-3">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-white/10 backdrop-blur-sm rounded-xl">
+                    <Sparkles className="w-6 h-6 text-white" />
+                  </div>
+                  <h1 className="text-3xl sm:text-4xl font-display font-bold text-white drop-shadow-lg">
+                    Smart Pairing
+                  </h1>
                 </div>
-                <div>
-                  <p className="font-medium text-sm">
-                    {entitlements?.plan.display_name || 'Free'} Plan
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Daily Pairing Requests: {pairingLimits.usedToday}/{pairingLimits.dailyLimit}
-                  </p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-medium text-primary">
-                  {pairingLimits.remainingRequests} Remaining
+                <p className="text-white/90 text-base sm:text-lg font-medium max-w-2xl">
+                  AI-powered compatibility matching based on advanced algorithms and personality analysis
                 </p>
-                {pairingLimits.remainingRequests === 0 && (
-                  <Button 
-                    size="sm" 
-                    onClick={() => onNavigate('subscription')}
-                    className="bg-gradient-gold text-xs mt-1"
-                  >
-                    Upgrade Plan
-                  </Button>
-                )}
-                {/* Debug button for development - remove in production */}
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={refreshEntitlements}
-                  className="text-xs mt-1 opacity-50"
+                
+                {/* Plan Badge */}
+                <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-2">
+                  <Crown className="w-4 h-4 text-accent" />
+                  <span className="text-white font-semibold text-sm">
+                    {entitlements?.plan.display_name || 'Free'} Plan
+                  </span>
+                  <span className="text-white/70 text-xs">•</span>
+                  <span className="text-white/90 text-sm">
+                    {pairingLimits.remainingRequests}/{pairingLimits.dailyLimit} Requests
+                  </span>
+                </div>
+              </div>
+
+              {/* CTA Button */}
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={handleRefresh}
+                  disabled={isLoading || !pairingLimits.canRequest}
+                  className="group relative overflow-hidden rounded-2xl bg-white px-8 py-4 shadow-elegant hover:shadow-royal transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                 >
-                  🔄 Refresh
-                </Button>
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="relative flex items-center justify-center gap-3">
+                    <Heart className={`h-5 w-5 text-primary ${isLoading ? 'animate-pulse' : ''}`} />
+                    <span className="font-bold text-lg bg-gradient-royal bg-clip-text text-transparent">
+                      {!pairingLimits.canRequest ? 'Limit Reached' : 'Find Matches'}
+                    </span>
+                  </div>
+                </button>
+                
+                {pairingLimits.remainingRequests === 0 && (
+                  <button
+                    onClick={() => onNavigate('subscription')}
+                    className="rounded-xl bg-gradient-gold px-6 py-2.5 shadow-gold hover:shadow-elegant transition-all duration-300 active:scale-95"
+                  >
+                    <span className="font-semibold text-sm text-white">Upgrade Plan</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Premium Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+          {/* Total Matches */}
+          <div className="group relative overflow-hidden rounded-2xl bg-gradient-card border border-primary/20 p-6 shadow-card hover:shadow-elegant transition-all duration-500 hover:scale-[1.02] animate-fade-in">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative flex items-start justify-between">
+              <div className="space-y-2">
+                <p className="text-muted-foreground text-sm font-medium">Total Matches</p>
+                <p className="text-4xl font-display font-bold text-foreground">
+                  {(hasLoadedProfiles || shouldShowExistingProfiles) ? matches.length : '—'}
+                </p>
+                <p className="text-xs text-muted-foreground">Available profiles</p>
+              </div>
+              <div className="p-3 bg-primary/10 rounded-xl group-hover:bg-primary/20 transition-colors">
+                <Users className="h-6 w-6 text-primary" />
               </div>
             </div>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <Card className="bg-gradient-card border-border/50">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <Users className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total Matches</p>
-                    <p className="text-2xl font-bold">{(hasLoadedProfiles || shouldShowExistingProfiles) ? matches.length : '—'}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-gradient-card border-border/50">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-green-500/10 rounded-lg">
-                    <Star className="h-5 w-5 text-green-500" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">High Compatibility</p>
-                    <p className="text-2xl font-bold">
-                      {matches.filter(m => (m.compatibility_score || 0) >= 80).length}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-gradient-card border-border/50">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-accent/10 rounded-lg">
-                    <Sparkles className="h-5 w-5 text-accent" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Your QCS</p>
-                    <p className="text-2xl font-bold">{currentUser?.profile?.total_qcs || 0}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          {/* High Compatibility */}
+          <div className="group relative overflow-hidden rounded-2xl bg-gradient-card border border-success/20 p-6 shadow-card hover:shadow-elegant transition-all duration-500 hover:scale-[1.02] animate-fade-in [animation-delay:100ms]">
+            <div className="absolute inset-0 bg-gradient-to-br from-success/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative flex items-start justify-between">
+              <div className="space-y-2">
+                <p className="text-muted-foreground text-sm font-medium">High Match</p>
+                <p className="text-4xl font-display font-bold text-success">
+                  {matches.filter(m => (m.compatibility_score || 0) >= 80).length}
+                </p>
+                <p className="text-xs text-muted-foreground">80%+ compatible</p>
+              </div>
+              <div className="p-3 bg-success/10 rounded-xl group-hover:bg-success/20 transition-colors">
+                <Star className="h-6 w-6 text-success" />
+              </div>
+            </div>
+          </div>
+
+          {/* Your QCS */}
+          <div className="group relative overflow-hidden rounded-2xl bg-gradient-card border border-accent/20 p-6 shadow-card hover:shadow-elegant transition-all duration-500 hover:scale-[1.02] animate-fade-in [animation-delay:200ms]">
+            <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative flex items-start justify-between">
+              <div className="space-y-2">
+                <p className="text-muted-foreground text-sm font-medium">Your QCS</p>
+                <p className="text-4xl font-display font-bold text-accent">
+                  {currentUser?.profile?.total_qcs || 0}
+                </p>
+                <p className="text-xs text-muted-foreground">Quality score</p>
+              </div>
+              <div className="p-3 bg-accent/10 rounded-xl group-hover:bg-accent/20 transition-colors">
+                <Sparkles className="h-6 w-6 text-accent" />
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Loading State */}
         {isLoading && (
-          <div className="flex justify-center items-center py-12">
-            <div className="text-center space-y-4">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="text-muted-foreground">Finding your perfect matches...</p>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => {
-                  setIsLoading(false);
-                  console.log('🛑 User cancelled loading');
-                }}
-                className="mt-4"
-              >
-                Cancel Loading
-              </Button>
+          <div className="flex justify-center items-center py-20">
+            <div className="text-center space-y-6 animate-fade-in">
+              <div className="relative">
+                <div className="w-20 h-20 bg-gradient-royal rounded-full animate-pulse-glow flex items-center justify-center mx-auto">
+                  <Heart className="w-10 h-10 text-white animate-pulse" />
+                </div>
+              </div>
+              <div>
+                <p className="text-lg font-semibold mb-1">Finding your perfect matches</p>
+                <p className="text-sm text-muted-foreground">Analyzing compatibility...</p>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Initial State - No profiles loaded yet */}
+        {/* Initial State */}
         {!isLoading && !(hasLoadedProfiles || shouldShowExistingProfiles) && (
-          <div className="text-center py-12">
-            <div className="w-24 h-24 bg-gradient-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Heart className="h-12 w-12 text-primary" />
+          <div className="text-center py-20">
+            <div className="relative inline-block mb-6">
+              <div className="w-28 h-28 bg-gradient-royal rounded-full flex items-center justify-center animate-float">
+                <Heart className="h-14 w-14 text-white" />
+              </div>
+              <div className="absolute -top-2 -right-2 w-12 h-12 bg-accent rounded-full flex items-center justify-center animate-bounce-in">
+                <Sparkles className="w-6 h-6 text-white" />
+              </div>
             </div>
-            <h3 className="text-lg font-semibold mb-2">Ready to find your perfect match?</h3>
-            <p className="text-muted-foreground mb-4">
-              Click the button below to get your personalized daily pairing based on compatibility scoring.
+            <h3 className="text-2xl font-display font-bold mb-3">Ready to find your match?</h3>
+            <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+              Get personalized matches based on compatibility, personality, and shared interests
             </p>
-            <Button 
+            <button 
               onClick={handleRefresh} 
               disabled={!pairingLimits.canRequest}
-              className="bg-gradient-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group relative overflow-hidden rounded-2xl bg-gradient-royal px-8 py-4 shadow-elegant hover:shadow-royal transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
             >
-              <Heart className="h-4 w-4 mr-2" />
-              {!pairingLimits.canRequest ? 'Daily Limit Reached' : 'Get Today\'s Pair'}
-            </Button>
+              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 opacity-0 group-hover:opacity-100 group-hover:animate-shimmer" />
+              <div className="relative flex items-center justify-center gap-3">
+                <Heart className="h-5 w-5 text-white" />
+                <span className="font-bold text-white">
+                  {!pairingLimits.canRequest ? 'Limit Reached' : 'Start Matching'}
+                </span>
+              </div>
+            </button>
           </div>
         )}
 
-        {/* Empty State - Daily limit reached but no profiles to show */}
-        {!isLoading && matches.length === 0 && (hasLoadedProfiles || shouldShowExistingProfiles) && !pairingLimits.canRequest && (
-          <div className="text-center py-12">
-            <div className="w-24 h-24 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Crown className="h-12 w-12 text-amber-500" />
-            </div>
-            <h3 className="text-lg font-semibold mb-2">Daily Pairing Limit Reached</h3>
-            <p className="text-muted-foreground mb-4">
-              You've used all {pairingLimits.dailyLimit} of your daily pairing requests. Upgrade your plan for more requests or try again tomorrow!
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button 
-                onClick={() => onNavigate('subscription')}
-                className="bg-gradient-gold"
-              >
-                <Crown className="h-4 w-4 mr-2" />
-                Upgrade Plan
-              </Button>
-              <Button 
-                variant="outline"
-                onClick={() => {
-                  // Try to refresh/check for existing profiles again
-                  checkExistingProfiles();
-                }}
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Check Again
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Matches Grid */}
+        {/* Premium Matches Grid */}
         {!isLoading && matches.length > 0 && (hasLoadedProfiles || shouldShowExistingProfiles) && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {matches.map((match, index) => (
-              <Card key={match.user_id} className="bg-gradient-card border-border/50 hover-elegant shadow-card">
-                <CardContent className="p-0">
-                  {/* Profile Image - Shorter */}
-                  <div className="relative h-32 overflow-hidden rounded-t-lg">
-                    <ProfileImageHandler
-                      src={match.profile_images?.[0]}
-                      alt={`${match.first_name} ${match.last_name}`}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute top-2 right-2">
-                      <Badge className={`${getCompatibilityColor(match.compatibility_score || 0)} border-0 text-xs`}>
-                        {match.compatibility_score || 0}%
-                      </Badge>
-                    </div>
-                    <div className="absolute top-2 left-2">
-                      <Badge variant="secondary" className="bg-black/50 text-white border-0 text-xs">
-                        #{index + 1}
-                      </Badge>
-                    </div>
+              <div 
+                key={match.user_id}
+                className="group relative overflow-hidden rounded-3xl bg-gradient-card border border-border/50 shadow-card hover:shadow-elegant transition-all duration-500 hover:scale-[1.02] animate-fade-in"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                {/* Profile Image */}
+                <div className="relative h-80 overflow-hidden">
+                  <ProfileImageHandler
+                    src={match.profile_images?.[0]}
+                    alt={`${match.first_name} ${match.last_name}`}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  />
+                  
+                  {/* Gradient Overlays */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-transparent" />
+                  
+                  {/* Top Badges */}
+                  <div className="absolute top-4 left-4 right-4 flex items-start justify-between">
+                    <Badge className="bg-black/70 backdrop-blur-md text-white border-0 px-3 py-1.5 font-bold">
+                      #{index + 1}
+                    </Badge>
+                    <Badge className={`${getCompatibilityColor(match.compatibility_score || 0)} border-0 px-3 py-1.5 font-bold shadow-lg`}>
+                      {match.compatibility_score || 0}%
+                    </Badge>
                   </div>
 
-                  <div className="p-3 space-y-3">
-                    {/* Basic Info - Compact */}
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <h3 className="text-base font-semibold truncate">
-                          {match.first_name} {match.last_name}
-                        </h3>
-                        <span className="text-xs text-muted-foreground">
-                          {match.age}y
-                        </span>
+                  {/* Bottom Info */}
+                  <div className="absolute bottom-0 left-0 right-0 p-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="text-2xl font-display font-bold text-white drop-shadow-lg">
+                        {match.first_name}, {match.age}
+                      </h3>
+                      <ShieldCheck className="w-5 h-5 text-success drop-shadow-lg" />
+                    </div>
+                    <div className="flex items-center gap-2 text-white/90 text-sm mb-3">
+                      <GraduationCap className="w-4 h-4" />
+                      <span className="drop-shadow-md truncate">{match.university}</span>
+                    </div>
+                    
+                    {/* Score Pills */}
+                    <div className="flex gap-2">
+                      <div className="inline-flex items-center gap-1.5 bg-black/50 backdrop-blur-md rounded-full px-3 py-1.5 border border-white/10">
+                        <Zap className="w-3.5 h-3.5 text-accent" />
+                        <span className="text-xs font-semibold text-white">{match.physical_score}%</span>
                       </div>
-                      <div className="flex items-center text-xs text-muted-foreground mb-1">
-                        <GraduationCap className="h-3 w-3 mr-1" />
-                        <span className="truncate">{match.university}</span>
+                      <div className="inline-flex items-center gap-1.5 bg-black/50 backdrop-blur-md rounded-full px-3 py-1.5 border border-white/10">
+                        <Brain className="w-3.5 h-3.5 text-primary" />
+                        <span className="text-xs font-semibold text-white">{match.mental_score}%</span>
+                      </div>
+                      <div className="inline-flex items-center gap-1.5 bg-black/50 backdrop-blur-md rounded-full px-3 py-1.5 border border-white/10">
+                        <Star className="w-3.5 h-3.5 text-success" />
+                        <span className="text-xs font-semibold text-white">{match.total_qcs}</span>
                       </div>
                     </div>
+                  </div>
+                </div>
 
-                    {/* Detailed Scoring Breakdown */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center space-x-3">
-                          <div className="flex items-center">
-                            <Zap className="h-3 w-3 mr-1 text-amber-500" />
-                            <span className="font-medium">Physical: {match.physical_score}%</span>
-                          </div>
-                          <div className="flex items-center">
-                            <Brain className="h-3 w-3 mr-1 text-blue-500" />
-                            <span className="font-medium">Mental: {match.mental_score}%</span>
-                          </div>
-                        </div>
-                        <Badge variant="outline" className="text-xs font-bold">
-                          QCS: {match.total_qcs}
+                {/* Action Buttons */}
+                <div className="p-5 space-y-3">
+                  {/* Bio Preview */}
+                  {match.bio && (
+                    <p className="text-sm text-muted-foreground line-clamp-2">{match.bio}</p>
+                  )}
+
+                  {/* Interests */}
+                  {match.interests && match.interests.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {match.interests.slice(0, 3).map((interest, idx) => (
+                        <Badge key={idx} variant="secondary" className="text-xs px-2.5 py-1 bg-primary/10 text-primary border-0">
+                          {interest}
                         </Badge>
-                      </div>
-                      
-                      {/* Match Criteria Breakdown */}
-                      {(match.matched_criteria?.length > 0 || match.not_matched_criteria?.length > 0) && (
-                        <div className="text-xs space-y-1">
-                          {match.matched_criteria?.length > 0 && (
-                            <div className="flex flex-wrap gap-1">
-                              <span className="text-green-600 font-medium">✓</span>
-                              {match.matched_criteria.map((criteria, idx) => (
-                                <Badge key={idx} variant="secondary" className="text-xs bg-green-100 text-green-700">
-                                  {criteria.replace('_', ' ')}
-                                </Badge>
-                              ))}
-                            </div>
-                          )}
-                          {match.not_matched_criteria?.length > 0 && (
-                            <div className="flex flex-wrap gap-1">
-                              <span className="text-red-500 font-medium">✗</span>
-                              {match.not_matched_criteria.slice(0, 3).map((criteria, idx) => (
-                                <Badge key={idx} variant="outline" className="text-xs text-red-600 border-red-200">
-                                  {criteria.replace('_', ' ')}
-                                </Badge>
-                              ))}
-                              {match.not_matched_criteria.length > 3 && (
-                                <span className="text-xs text-muted-foreground">+{match.not_matched_criteria.length - 3} more</span>
-                              )}
-                            </div>
-                          )}
-                        </div>
+                      ))}
+                      {match.interests.length > 3 && (
+                        <Badge variant="secondary" className="text-xs px-2.5 py-1 border-0">
+                          +{match.interests.length - 3}
+                        </Badge>
                       )}
                     </div>
+                  )}
 
-                    {/* Action Buttons - Compact */}
-                    <div className="flex space-x-2 relative z-10">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="flex-1 hover:bg-muted/80 text-xs py-1 cursor-pointer"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          console.log('🔍 View Profile clicked for:', match.first_name, match.user_id);
-                          setSelectedProfile(match);
-                        }}
+                  <div className="flex gap-2.5 pt-2">
+                    <button
+                      onClick={() => setSelectedProfile(match)}
+                      className="flex-1 rounded-xl bg-card hover:bg-muted border border-border transition-all duration-300 py-3 active:scale-95"
+                    >
+                      <div className="flex items-center justify-center gap-2">
+                        <Eye className="w-4 h-4" />
+                        <span className="text-sm font-semibold">View</span>
+                      </div>
+                    </button>
+                    
+                    {(match.compatibility_score || 0) > 80 ? (
+                      <button
+                        onClick={() => handleChatClick(match)}
+                        className="flex-1 rounded-xl bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 shadow-lg transition-all duration-300 py-3 active:scale-95"
                       >
-                        View Profile
-                      </Button>
-                      
-                      {/* Conditional Chat Button based on compatibility score */}
-                      {(match.compatibility_score || 0) > 80 ? (
-                        <Button 
-                          size="sm" 
-                          className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg text-white cursor-pointer"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log('💬 Chat Now clicked for:', match.first_name, match.user_id);
-                            handleChatClick(match);
-                          }}
-                        >
-                          <MessageCircle className="h-4 w-4 mr-1" />
-                          Chat Now
-                        </Button>
-                      ) : (
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          className="flex-1 border-rose-300 text-rose-600 hover:bg-rose-50 hover:border-rose-400 cursor-pointer"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log('📨 Chat Request clicked for:', match.first_name, match.user_id);
-                            handleChatClick(match);
-                          }}
-                        >
-                          <MessageCircle className="h-4 w-4 mr-1" />
-                          Chat Request
-                        </Button>
-                      )}
-                    </div>
+                        <div className="flex items-center justify-center gap-2">
+                          <MessageCircle className="w-4 h-4 text-white" />
+                          <span className="text-sm font-bold text-white">Chat</span>
+                        </div>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleChatClick(match)}
+                        className="flex-1 rounded-xl bg-gradient-royal hover:opacity-90 shadow-elegant transition-all duration-300 py-3 active:scale-95"
+                      >
+                        <div className="flex items-center justify-center gap-2">
+                          <MessageCircle className="w-4 h-4 text-white" />
+                          <span className="text-sm font-bold text-white">Request</span>
+                        </div>
+                      </button>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         )}
 
         {/* Empty State */}
         {!isLoading && matches.length === 0 && (hasLoadedProfiles || shouldShowExistingProfiles) && (
-          <div className="text-center py-12">
-            <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="text-center py-20">
+            <div className="w-24 h-24 bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-4">
               <Users className="h-12 w-12 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">No matches found</h3>
-            <p className="text-muted-foreground mb-4">
-              Get your daily pair or update your preferences to find more compatible matches.
+            <h3 className="text-xl font-display font-bold mb-2">No matches found</h3>
+            <p className="text-muted-foreground mb-6">
+              Complete your profile and preferences to find compatible matches
             </p>
-            <Button 
-              onClick={handleRefresh} 
-              disabled={!pairingLimits.canRequest}
-              className="bg-gradient-primary disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Heart className="h-4 w-4 mr-2" />
-              {!pairingLimits.canRequest ? 'Daily Limit Reached' : 'Get Today\'s Pair'}
-            </Button>
           </div>
         )}
 
@@ -964,7 +691,6 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
               matched_criteria: selectedProfile.matched_criteria,
               not_matched_criteria: selectedProfile.not_matched_criteria,
               interests: selectedProfile.interests,
-              // Pass all additional profile fields for complete display
               face_type: selectedProfile.face_type,
               personality_type: selectedProfile.personality_type,
               personality_traits: selectedProfile.personality_traits,
@@ -982,20 +708,22 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
               education_level: selectedProfile.education_level
             }}
             isOpen={!!selectedProfile}
-            onClose={() => {
-              console.log('🔴 Closing modal');
-              setSelectedProfile(null);
-            }}
+            onClose={() => setSelectedProfile(null)}
             onChatRequest={(userId) => {
-              console.log('💬 Chat request from modal for:', userId);
               const m = matches.find(m => m.user_id === userId) || selectedProfile;
               if (m) handleChatClick(m);
             }}
           />
         )}
-      </div>
 
-      {/* Bottom navigation handled globally by UnifiedLayout */}
+        {/* Chat System */}
+        {selectedChatId && (
+          <RebuiltChatSystem
+            onClose={() => setSelectedChatId("")}
+            targetUserId={selectedChatId}
+          />
+        )}
+      </div>
     </UnifiedLayout>
   );
 };
