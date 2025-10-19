@@ -60,8 +60,8 @@ interface DetailedProfileModalProps {
     matched_criteria?: string[];
     not_matched_criteria?: string[];
     // New fields from database
-    values?: string[];
-    mindset?: string[];
+    values?: string[] | string;
+    mindset?: string[] | string;
     body_type?: string;
     face_type?: string;
     lifestyle?: string;
@@ -466,32 +466,48 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
                   )}
 
                   {/* Values Match */}
-                  {profile.values && profile.values.length > 0 && (
-                    <CompatibilityGroup
-                      title="Values"
-                      icon={<Heart className="w-4 h-4" />}
-                      items={profile.values.slice(0, 3).map((value: string) => ({
-                        label: value,
-                        userValue: userProfile?.values,
-                        partnerValue: value,
-                        type: 'value'
-                      }))}
-                    />
-                  )}
+                  {(() => {
+                    const valuesArray = Array.isArray(profile.values) 
+                      ? profile.values 
+                      : typeof profile.values === 'string' 
+                        ? profile.values.split(',').map(v => v.trim()).filter(Boolean)
+                        : [];
+                    
+                    return valuesArray.length > 0 && (
+                      <CompatibilityGroup
+                        title="Values"
+                        icon={<Heart className="w-4 h-4" />}
+                        items={valuesArray.slice(0, 3).map((value: string) => ({
+                          label: value,
+                          userValue: userProfile?.values,
+                          partnerValue: value,
+                          type: 'value'
+                        }))}
+                      />
+                    );
+                  })()}
 
                   {/* Mindset Match */}
-                  {profile.mindset && profile.mindset.length > 0 && (
-                    <CompatibilityGroup
-                      title="Mindset"
-                      icon={<Brain className="w-4 h-4" />}
-                      items={profile.mindset.map((mindset: string) => ({
-                        label: mindset,
-                        userValue: userProfile?.mindset,
-                        partnerValue: mindset,
-                        type: 'value'
-                      }))}
-                    />
-                  )}
+                  {(() => {
+                    const mindsetArray = Array.isArray(profile.mindset) 
+                      ? profile.mindset 
+                      : typeof profile.mindset === 'string' 
+                        ? profile.mindset.split(',').map(v => v.trim()).filter(Boolean)
+                        : [];
+                    
+                    return mindsetArray.length > 0 && (
+                      <CompatibilityGroup
+                        title="Mindset"
+                        icon={<Brain className="w-4 h-4" />}
+                        items={mindsetArray.map((mindset: string) => ({
+                          label: mindset,
+                          userValue: userProfile?.mindset,
+                          partnerValue: mindset,
+                          type: 'value'
+                        }))}
+                      />
+                    );
+                  })()}
 
                   {/* Additional Info - Only if matched */}
                   <div className="pt-3 border-t border-border/50 space-y-2">
@@ -534,16 +550,29 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
                   </div>
 
                   {/* No matches message */}
-                  {!profile.personality_type && 
-                   (!profile.personality_traits || profile.personality_traits.length === 0) && 
-                   !profile.lifestyle && 
-                   (!profile.values || profile.values.length === 0) && 
-                   (!profile.mindset || profile.mindset.length === 0) && (
-                    <div className="text-center py-4 text-muted-foreground text-sm">
-                      <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                      No matching personality or lifestyle traits found
-                    </div>
-                  )}
+                  {(() => {
+                    const valuesArray = Array.isArray(profile.values) 
+                      ? profile.values 
+                      : typeof profile.values === 'string' 
+                        ? profile.values.split(',').map(v => v.trim()).filter(Boolean)
+                        : [];
+                    const mindsetArray = Array.isArray(profile.mindset) 
+                      ? profile.mindset 
+                      : typeof profile.mindset === 'string' 
+                        ? profile.mindset.split(',').map(v => v.trim()).filter(Boolean)
+                        : [];
+                    
+                    return !profile.personality_type && 
+                      (!profile.personality_traits || profile.personality_traits.length === 0) && 
+                      !profile.lifestyle && 
+                      valuesArray.length === 0 && 
+                      mindsetArray.length === 0 && (
+                      <div className="text-center py-4 text-muted-foreground text-sm">
+                        <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                        No matching personality or lifestyle traits found
+                      </div>
+                    );
+                  })()}
                 </div>
               </CardContent>
             </Card>
