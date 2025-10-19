@@ -265,6 +265,8 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
     preferredFaceType: [] as string[],
     preferredLoveLanguage: [] as string[],
     preferredLifestyle: [] as string[],
+    preferredDrinking: [] as string[],
+    preferredSmoking: [] as string[],
     preferredProfessions: [] as string[],
 
     // Settings - Don't default to true, wait for actual database value
@@ -452,63 +454,14 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
       preferredLifestyle: Array.isArray(preferences.preferred_lifestyle) 
         ? transformDatabaseToUI(preferences.preferred_lifestyle) 
         : [],
+      preferredDrinking: Array.isArray((preferences as any).preferred_drinking)
+        ? transformDatabaseToUI((preferences as any).preferred_drinking)
+        : [],
+      preferredSmoking: Array.isArray((preferences as any).preferred_smoking)
+        ? transformDatabaseToUI((preferences as any).preferred_smoking)
+        : [],
       preferredProfessions: Array.isArray((preferences as any).preferred_professions)
         ? (preferences as any).preferred_professions
-        : [],
-    }));
-  }
-
-  if (preferences) {
-    console.log("📊 Loading preferences data into form:", preferences);
-
-  setFormData(prev => ({
-      ...prev,
-      preferredGender: Array.isArray(preferences.preferred_gender)
-        ? transformDatabaseToUI(preferences.preferred_gender.map(g => g.toString()))
-        : ['male', 'female'], // Default to both genders
-      ageRangeMin: preferences.age_range_min || 18,
-      ageRangeMax: preferences.age_range_max || 30,
-      heightRangeMin: preferences.height_range_min || 150,
-      heightRangeMax: preferences.height_range_max || 200,
-      preferredBodyTypes:
-        Array.isArray(preferences.preferred_body_types) && preferences.preferred_body_types.length > 0
-          ? transformDatabaseToUI(preferences.preferred_body_types)
-          : ['slim', 'athletic', 'average'],
-      preferredValues:
-        Array.isArray(preferences.preferred_values) && preferences.preferred_values.length > 0
-          ? transformDatabaseToUI(preferences.preferred_values)
-          : ['family_oriented', 'career_focused'],
-      preferredMindset:
-        Array.isArray(preferences.preferred_mindset) && preferences.preferred_mindset.length > 0
-          ? transformDatabaseToUI(preferences.preferred_mindset)
-          : ['growth_mindset'],
-      preferredPersonalityTraits:
-        Array.isArray(preferences.preferred_personality_traits) && preferences.preferred_personality_traits.length > 0
-          ? transformDatabaseToUI(preferences.preferred_personality_traits)
-          : ['outgoing', 'empathetic'],
-      preferredRelationshipGoal:
-        Array.isArray((preferences as any).preferred_relationship_goals)
-          ? transformDatabaseToUI((preferences as any).preferred_relationship_goals)
-          : Array.isArray((preferences as any).preferred_relationship_goal)
-            ? transformDatabaseToUI((preferences as any).preferred_relationship_goal)
-            : ['serious_relationship'],
-      preferredSkinTone: Array.isArray((preferences as any).preferred_skin_tone)
-        ? transformDatabaseToUI((preferences as any).preferred_skin_tone)
-        : Array.isArray((preferences as any).preferred_skin_types)
-          ? transformDatabaseToUI((preferences as any).preferred_skin_types)
-          : [],
-      preferredFaceType: Array.isArray((preferences as any).preferred_face_types)
-        ? transformDatabaseToUI((preferences as any).preferred_face_types)
-        : Array.isArray((preferences as any).preferred_face_type)
-          ? transformDatabaseToUI((preferences as any).preferred_face_type)
-          : [],
-      preferredLoveLanguage: Array.isArray((preferences as any).preferred_love_languages)
-        ? transformDatabaseToUI((preferences as any).preferred_love_languages)
-        : Array.isArray((preferences as any).preferred_love_language)
-          ? transformDatabaseToUI((preferences as any).preferred_love_language)
-          : [],
-      preferredLifestyle: Array.isArray(preferences.preferred_lifestyle) 
-        ? transformDatabaseToUI(preferences.preferred_lifestyle) 
         : [],
     }));
   }
@@ -590,6 +543,8 @@ useEffect(() => {
         preferred_face_types: formData.preferredFaceType,
         preferred_love_languages: formData.preferredLoveLanguage,
         preferred_lifestyle: formData.preferredLifestyle,
+        preferred_drinking: formData.preferredDrinking,
+        preferred_smoking: formData.preferredSmoking,
         preferred_professions: formData.preferredProfessions
       };
 
@@ -1458,6 +1413,54 @@ useEffect(() => {
                     onClick={() => toggleArrayItem('preferredLifestyle', lifestyleKey)}
                   >
                     {lifestyle}
+                  </Badge>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <Label>Preferred Drinking Habits</Label>
+            <div className="flex flex-wrap gap-2">
+              {['Never', 'Socially', 'Regularly', 'Any'].map((habit) => {
+                const habitKey = habit.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                const isSelected = formData.preferredDrinking.includes(habitKey);
+                return (
+                  <Badge
+                    key={habit}
+                    variant={isSelected ? "default" : "outline"}
+                    className={`cursor-pointer ${
+                      isSelected 
+                        ? 'bg-gradient-primary text-white hover:opacity-90' 
+                        : 'border-primary/20 hover:border-primary'
+                    }`}
+                    onClick={() => toggleArrayItem('preferredDrinking', habitKey)}
+                  >
+                    {habit}
+                  </Badge>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <Label>Preferred Smoking Habits</Label>
+            <div className="flex flex-wrap gap-2">
+              {['Never', 'Socially', 'Regularly', 'Any'].map((habit) => {
+                const habitKey = habit.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                const isSelected = formData.preferredSmoking.includes(habitKey);
+                return (
+                  <Badge
+                    key={habit}
+                    variant={isSelected ? "default" : "outline"}
+                    className={`cursor-pointer ${
+                      isSelected 
+                        ? 'bg-gradient-primary text-white hover:opacity-90' 
+                        : 'border-primary/20 hover:border-primary'
+                    }`}
+                    onClick={() => toggleArrayItem('preferredSmoking', habitKey)}
+                  >
+                    {habit}
                   </Badge>
                 );
               })}

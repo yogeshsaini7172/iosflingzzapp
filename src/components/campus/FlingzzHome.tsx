@@ -778,7 +778,10 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                   </h2>
                   <p className="text-xs md:text-sm opacity-90 flex items-center space-x-1 mb-3">
                     <span>📍</span>
-                    <span>USA, {currentProfile.university || 'University'}</span>
+                    <span>
+                      {currentProfile.city || currentProfile.state || currentProfile.university || 'Location not set'}
+                      {distance !== null && ` • ${Math.round(distance)} km away`}
+                    </span>
                   </p>
                   
                   {/* Stats */}

@@ -535,6 +535,8 @@ serve(async (req: Request) => {
           preferred_professions: preferencesData.preferred_professions ?? [],
           preferred_interests: preferencesData.preferred_interests ?? [],
           preferred_communication_style: preferencesData.preferred_communication_style ?? [],
+          preferred_drinking: preferencesData.preferred_drinking ?? [],
+          preferred_smoking: preferencesData.preferred_smoking ?? [],
           min_shared_interests: preferencesData.min_shared_interests ?? 2,
           personality_compatibility: preferencesData.personality_compatibility ?? 'moderate',
           lifestyle_compatibility: preferencesData.lifestyle_compatibility ?? 'important',
