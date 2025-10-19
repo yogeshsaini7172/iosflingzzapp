@@ -665,6 +665,8 @@ export type Database = {
           longitude: number | null
           love_language: string | null
           major: string | null
+          match_by_state: boolean | null
+          match_radius_km: number | null
           mindset: string | null
           pairing_requests_left: number | null
           personality_traits: string[] | null
@@ -688,6 +690,7 @@ export type Database = {
           show_profile: boolean | null
           skin_tone: string | null
           smoking_habits: string | null
+          state: string | null
           student_id_verified: boolean | null
           subscription_expires_at: string | null
           subscription_tier: string | null
@@ -753,6 +756,8 @@ export type Database = {
           longitude?: number | null
           love_language?: string | null
           major?: string | null
+          match_by_state?: boolean | null
+          match_radius_km?: number | null
           mindset?: string | null
           pairing_requests_left?: number | null
           personality_traits?: string[] | null
@@ -776,6 +781,7 @@ export type Database = {
           show_profile?: boolean | null
           skin_tone?: string | null
           smoking_habits?: string | null
+          state?: string | null
           student_id_verified?: boolean | null
           subscription_expires_at?: string | null
           subscription_tier?: string | null
@@ -841,6 +847,8 @@ export type Database = {
           longitude?: number | null
           love_language?: string | null
           major?: string | null
+          match_by_state?: boolean | null
+          match_radius_km?: number | null
           mindset?: string | null
           pairing_requests_left?: number | null
           personality_traits?: string[] | null
@@ -864,6 +872,7 @@ export type Database = {
           show_profile?: boolean | null
           skin_tone?: string | null
           smoking_habits?: string | null
+          state?: string | null
           student_id_verified?: boolean | null
           subscription_expires_at?: string | null
           subscription_tier?: string | null

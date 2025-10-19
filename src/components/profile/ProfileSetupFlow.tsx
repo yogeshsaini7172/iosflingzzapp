@@ -80,6 +80,9 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
     
     // Location
     location: null as any,
+    matchRadiusKm: 50,
+    matchByState: false,
+    state: "",
     
     // Settings
     isProfilePublic: true,
@@ -214,7 +217,10 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         }) : null,
         latitude: profileData.location?.latitude || null,
         longitude: profileData.location?.longitude || null,
-        city: profileData.location?.city || null
+        city: profileData.location?.city || null,
+        state: profileData.state || profileData.location?.region || null,
+        match_radius_km: profileData.matchRadiusKm || 50,
+        match_by_state: profileData.matchByState || false
       };
 
       // Store partner preferences (optional, kept in localStorage for demo)

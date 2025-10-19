@@ -1,7 +1,10 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Navigation, Globe, Edit3 } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
+import { MapPin, Navigation, Globe, Edit3, Target, Map } from 'lucide-react';
 import LocationPermission from '@/components/common/LocationPermission';
 import { LocationData } from '@/hooks/useLocation';
 
@@ -25,9 +28,26 @@ const LocationStep: React.FC<LocationStepProps> = ({
         country: location.country,
         address: location.address,
         source: location.source
-      }
+      },
+      state: location.region || prev.state
     }));
   };
+
+  const handleRadiusChange = (value: number[]) => {
+    setProfileData((prev: any) => ({
+      ...prev,
+      matchRadiusKm: value[0]
+    }));
+  };
+
+  const handleStateMatchToggle = (checked: boolean) => {
+    setProfileData((prev: any) => ({
+      ...prev,
+      matchByState: checked
+    }));
+  };
+
+  const radius = profileData.matchRadiusKm || 50;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -132,6 +152,80 @@ const LocationStep: React.FC<LocationStepProps> = ({
         autoFetch={true}
         className="space-y-4"
       />
+
+      {/* Matching Preferences */}
+      {profileData.location && (
+        <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+          <CardContent className="p-6 space-y-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
+                <Target className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg">Matching Preferences</h3>
+                <p className="text-sm text-muted-foreground">
+                  Control who you see based on location
+                </p>
+              </div>
+            </div>
+
+            {/* State-wise matching toggle */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Map className="w-5 h-5 text-primary" />
+                  <div>
+                    <Label htmlFor="state-match" className="font-medium">
+                      Match by State Only
+                    </Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Show only profiles from {profileData.state || 'your state'}
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  id="state-match"
+                  checked={profileData.matchByState || false}
+                  onCheckedChange={handleStateMatchToggle}
+                />
+              </div>
+            </div>
+
+            {/* Radius slider - disabled when state-wise matching is enabled */}
+            {!profileData.matchByState && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Navigation className="w-5 h-5 text-primary" />
+                    <Label className="font-medium">Match Radius</Label>
+                  </div>
+                  <Badge variant="secondary" className="text-sm">
+                    {radius} km
+                  </Badge>
+                </div>
+                <Slider
+                  value={[radius]}
+                  onValueChange={handleRadiusChange}
+                  min={10}
+                  max={500}
+                  step={10}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>10 km</span>
+                  <span>500 km</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {radius < 50 && "🏘️ Nearby area"}
+                  {radius >= 50 && radius < 150 && "🌆 Same city & surroundings"}
+                  {radius >= 150 && radius < 300 && "🗺️ Regional matches"}
+                  {radius >= 300 && "🌍 Nationwide matches"}
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Privacy Notice */}
       <Card className="bg-muted/30 border-muted">

@@ -237,6 +237,9 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
 
     // Location
     location: null as any,
+    matchRadiusKm: 50,
+    matchByState: false,
+    state: '',
 
     // Personality & Values (arrays)
     personalityTraits: [] as string[],
@@ -333,6 +336,9 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
           };
         }
       })() : null,
+      matchRadiusKm: (profile as any).match_radius_km || 50,
+      matchByState: (profile as any).match_by_state || false,
+      state: (profile as any).state || '',
 
       // Normalize arrays into UI key format
       personalityTraits: transformDatabaseToUI((profile as any).personality_traits || []),
@@ -562,8 +568,11 @@ useEffect(() => {
         location: formData.location ? JSON.stringify(formData.location) : null,
         latitude: formData.location?.latitude || null,
         longitude: formData.location?.longitude || null,
-        city: formData.location?.city || null
-      });
+        city: formData.location?.city || null,
+        state: formData.state || formData.location?.region || null,
+        match_radius_km: formData.matchRadiusKm || 50,
+        match_by_state: formData.matchByState || false
+      } as any);
 
       // Update preferences with validation
       const preferencesToUpdate = {
@@ -789,44 +798,122 @@ useEffect(() => {
     </div>
   );
 
-  const renderLocationSection = () => (
-    <div className="space-y-6">
-      <div className="text-center mb-6">
-        <h3 className="text-lg font-semibold mb-2">Location Settings</h3>
-        <p className="text-muted-foreground text-sm">Manage your location preferences for better matching</p>
-      </div>
-
-      <LocationPermission
-        onLocationUpdate={(location) => {
-          setFormData(prev => ({
-            ...prev,
-            location: {
-              latitude: location.latitude,
-              longitude: location.longitude,
-              city: location.city,
-              region: location.region,
-              country: location.country,
-              address: location.address,
-              source: location.source
-            }
-          }));
-        }}
-        showCard={false}
-        autoFetch={true}
-        className="space-y-4"
-      />
-
-      {formData.location && (
-        <div className="mt-4">
-          <LocationDisplay
-            location={JSON.stringify(formData.location)}
-            showSource={true}
-            className="text-sm"
-          />
+  const renderLocationSection = () => {
+    const radius = formData.matchRadiusKm || 50;
+    
+    return (
+      <div className="space-y-6">
+        <div className="text-center mb-6">
+          <h3 className="text-lg font-semibold mb-2">Location Settings</h3>
+          <p className="text-muted-foreground text-sm">Manage your location preferences for better matching</p>
         </div>
-      )}
-    </div>
-  );
+
+        <LocationPermission
+          onLocationUpdate={(location) => {
+            setFormData(prev => ({
+              ...prev,
+              location: {
+                latitude: location.latitude,
+                longitude: location.longitude,
+                city: location.city,
+                region: location.region,
+                country: location.country,
+                address: location.address,
+                source: location.source
+              },
+              state: location.region || prev.state
+            }));
+          }}
+          showCard={false}
+          autoFetch={true}
+          className="space-y-4"
+        />
+
+        {formData.location && (
+          <div className="mt-4">
+            <LocationDisplay
+              location={JSON.stringify(formData.location)}
+              showSource={true}
+              className="text-sm"
+            />
+          </div>
+        )}
+
+        {/* Matching Preferences Card */}
+        {formData.location && (
+          <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="w-5 h-5 text-primary" />
+                Matching Preferences
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* State-wise matching toggle */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <MapPin className="w-5 h-5 text-primary" />
+                    <div>
+                      <Label htmlFor="state-match-edit" className="font-medium">
+                        Match by State Only
+                      </Label>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {formData.state ? `Show only profiles from ${formData.state}` : 'Set your state to enable'}
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    id="state-match-edit"
+                    checked={formData.matchByState || false}
+                    onCheckedChange={(checked) => 
+                      setFormData(prev => ({ ...prev, matchByState: checked }))
+                    }
+                    disabled={!formData.state}
+                  />
+                </div>
+              </div>
+
+              {/* Radius slider - disabled when state-wise matching is enabled */}
+              {!formData.matchByState && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Move className="w-5 h-5 text-primary" />
+                      <Label className="font-medium">Match Radius</Label>
+                    </div>
+                    <Badge variant="secondary" className="text-sm">
+                      {radius} km
+                    </Badge>
+                  </div>
+                  <Slider
+                    value={[radius]}
+                    onValueChange={(value) => 
+                      setFormData(prev => ({ ...prev, matchRadiusKm: value[0] }))
+                    }
+                    min={10}
+                    max={500}
+                    step={10}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>10 km</span>
+                    <span>500 km</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground text-center">
+                    {radius < 50 && "🏘️ Nearby area"}
+                    {radius >= 50 && radius < 150 && "🌆 Same city & surroundings"}
+                    {radius >= 150 && radius < 300 && "🗺️ Regional matches"}
+                    {radius >= 300 && "🌍 Nationwide matches"}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  };
 
   const renderWhatYouAre = () => (
     <div className="space-y-6">
