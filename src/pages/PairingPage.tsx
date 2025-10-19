@@ -377,7 +377,7 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
   return (
     <UnifiedLayout title="Smart Pairing">
       <div className="h-screen relative overflow-y-auto">
-        <div className="container relative z-10 mx-auto px-4 py-[3vh] space-y-[3vh] max-w-lg min-h-full">
+        <div className="container relative z-10 mx-auto px-4 py-[3vh] space-y-[3vh] max-w-7xl min-h-full">
           
           {/* Premium Stats & Action Card */}
           <motion.div 
@@ -492,12 +492,12 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
             </motion.div>
           )}
 
-          {/* Premium Match Cards */}
+          {/* Premium Match Cards - Responsive Grid */}
           {!isLoading && matches.length > 0 && (hasLoadedProfiles || shouldShowExistingProfiles) && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="space-y-[3vh] pb-[3vh]"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-[3vh]"
             >
               {matches.map((match, index) => (
                 <motion.div
@@ -505,115 +505,113 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: index * 0.05 }}
-                  className="group relative overflow-hidden rounded-2xl bg-card shadow-elegant hover:shadow-royal transition-all duration-300 border border-border"
+                  className="group relative overflow-hidden rounded-2xl bg-card shadow-elegant hover:shadow-royal transition-all duration-500 border border-border hover:border-primary/30"
                 >
-                  <div className="p-[2vh]">
-                    {/* Image Carousel */}
-                    <div className="relative mb-[2vh]">
-                      <Carousel className="w-full">
-                        <CarouselContent>
-                          {match.profile_images && match.profile_images.length > 0 ? (
-                            match.profile_images.map((image, imgIndex) => (
-                              <CarouselItem key={imgIndex}>
-                                <div className="relative w-full h-[35vh] rounded-xl overflow-hidden">
-                                  <ProfileImageHandler
-                                    src={image}
-                                    alt={`${match.first_name}`}
-                                    className="w-full h-full object-cover"
-                                  />
-                                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                                </div>
-                              </CarouselItem>
-                            ))
-                          ) : (
-                            <CarouselItem>
-                              <div className="w-full h-[35vh] rounded-xl bg-muted flex items-center justify-center">
-                                <span className="text-[clamp(3rem,12vw,4rem)]">👤</span>
+                  {/* Image Section with Overlay Info */}
+                  <div className="relative h-80 overflow-hidden">
+                    <Carousel className="w-full h-full">
+                      <CarouselContent>
+                        {match.profile_images && match.profile_images.length > 0 ? (
+                          match.profile_images.map((image, imgIndex) => (
+                            <CarouselItem key={imgIndex}>
+                              <div className="relative w-full h-80">
+                                <ProfileImageHandler
+                                  src={image}
+                                  alt={`${match.first_name}`}
+                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                />
+                                {/* Gradient Overlay */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
                               </div>
                             </CarouselItem>
-                          )}
-                        </CarouselContent>
-                        {match.profile_images && match.profile_images.length > 1 && (
-                          <>
-                            <CarouselPrevious className="left-2 h-8 w-8 bg-black/70 backdrop-blur-sm border-0 text-white hover:bg-black/90" />
-                            <CarouselNext className="right-2 h-8 w-8 bg-black/70 backdrop-blur-sm border-0 text-white hover:bg-black/90" />
-                          </>
+                          ))
+                        ) : (
+                          <CarouselItem>
+                            <div className="w-full h-80 bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
+                              <span className="text-6xl opacity-30">👤</span>
+                            </div>
+                          </CarouselItem>
                         )}
-                      </Carousel>
-                      
-                      {/* Match Score Badge */}
-                      <div className={`absolute top-[1vh] right-[2vw] px-[2vw] py-[0.75vh] rounded-full text-[clamp(0.75rem,3vw,0.875rem)] font-bold text-white shadow-elegant ${
-                        (match.compatibility_score || 0) >= 80 ? 'bg-gradient-to-r from-success to-success/80' :
-                        (match.compatibility_score || 0) >= 60 ? 'bg-gradient-primary' :
-                        'bg-muted'
+                      </CarouselContent>
+                      {match.profile_images && match.profile_images.length > 1 && (
+                        <>
+                          <CarouselPrevious className="left-3 h-9 w-9 bg-black/60 backdrop-blur-md border-0 text-white hover:bg-black/80" />
+                          <CarouselNext className="right-3 h-9 w-9 bg-black/60 backdrop-blur-md border-0 text-white hover:bg-black/80" />
+                        </>
+                      )}
+                    </Carousel>
+                    
+                    {/* Top Badges */}
+                    <div className="absolute top-3 left-3 right-3 flex items-start justify-between">
+                      <div className={`px-4 py-2 rounded-full text-sm font-bold text-white shadow-elegant backdrop-blur-md ${
+                        (match.compatibility_score || 0) >= 80 ? 'bg-success/90' :
+                        (match.compatibility_score || 0) >= 60 ? 'bg-primary/90' :
+                        'bg-muted/90'
                       }`}>
-                        {match.compatibility_score || 0}% Match
+                        {match.compatibility_score || 0}%
+                      </div>
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-black/60 backdrop-blur-md">
+                        <Award className="w-4 h-4 text-accent" />
+                        <span className="text-sm font-bold text-white">{match.total_qcs}</span>
                       </div>
                     </div>
 
-                    {/* Profile Info */}
-                    <div className="space-y-[1.5vh]">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <div className="flex items-center gap-2 mb-[0.5vh]">
-                            <h3 className="text-[clamp(1.125rem,4.5vw,1.25rem)] font-bold">
-                              {match.first_name}, {match.age}
-                            </h3>
-                            <ShieldCheck className="w-[clamp(1rem,4vw,1.25rem)] h-[clamp(1rem,4vw,1.25rem)] text-success flex-shrink-0" />
-                          </div>
-                          
-                          {match.university && (
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                              <GraduationCap className="w-[clamp(0.875rem,3.5vw,1rem)] h-[clamp(0.875rem,3.5vw,1rem)]" />
-                              <p className="text-[clamp(0.75rem,3vw,0.875rem)]">{match.university}</p>
-                            </div>
-                          )}
+                    {/* Bottom Profile Info Overlay */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="text-2xl font-bold">
+                          {match.first_name}, {match.age}
+                        </h3>
+                        <ShieldCheck className="w-5 h-5 text-success flex-shrink-0" />
+                      </div>
+                      
+                      {match.university && (
+                        <div className="flex items-center gap-2 text-white/90 mb-3">
+                          <GraduationCap className="w-4 h-4" />
+                          <p className="text-sm font-medium">{match.university}</p>
+                        </div>
+                      )}
+
+                      {/* Score Indicators */}
+                      <div className="flex gap-2">
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/40 backdrop-blur-sm">
+                          <Zap className="w-3.5 h-3.5 text-accent" />
+                          <span className="text-xs font-semibold">{match.physical_score}%</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/40 backdrop-blur-sm">
+                          <Brain className="w-3.5 h-3.5 text-primary" />
+                          <span className="text-xs font-semibold">{match.mental_score}%</span>
                         </div>
                       </div>
+                    </div>
+                  </div>
 
-                      {/* Score Pills */}
-                      <div className="flex gap-[1.5vw]">
-                        <div className="flex items-center gap-2 px-[2vw] py-[1vh] rounded-lg bg-gradient-gold/10 border border-accent/20">
-                          <Zap className="w-[clamp(0.875rem,3.5vw,1rem)] h-[clamp(0.875rem,3.5vw,1rem)] text-accent" />
-                          <span className="text-[clamp(0.75rem,3vw,0.875rem)] font-semibold">{match.physical_score}% Physical</span>
-                        </div>
-                        <div className="flex items-center gap-2 px-[2vw] py-[1vh] rounded-lg bg-primary/10 border border-primary/20">
-                          <Brain className="w-[clamp(0.875rem,3.5vw,1rem)] h-[clamp(0.875rem,3.5vw,1rem)] text-primary" />
-                          <span className="text-[clamp(0.75rem,3vw,0.875rem)] font-semibold">{match.mental_score}% Mental</span>
-                        </div>
-                      </div>
+                  {/* Action Buttons Section */}
+                  <div className="p-4 bg-gradient-card">
+                    <div className="grid grid-cols-2 gap-3">
+                      <motion.button
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => setSelectedProfile(match)}
+                        className="px-4 py-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors font-semibold flex items-center justify-center gap-2 text-sm border border-border/50"
+                      >
+                        <Eye className="w-4 h-4" />
+                        View
+                      </motion.button>
 
-                      <div className="flex items-center gap-2 px-[2vw] py-[1vh] rounded-lg bg-card border border-border">
-                        <Award className="w-[clamp(0.875rem,3.5vw,1rem)] h-[clamp(0.875rem,3.5vw,1rem)] text-success" />
-                        <span className="text-[clamp(0.75rem,3vw,0.875rem)] font-semibold">{match.total_qcs} QCS Points</span>
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="grid grid-cols-2 gap-[2vw] pt-[1vh]">
-                        <motion.button
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => setSelectedProfile(match)}
-                          className="px-[2vw] py-[1.5vh] rounded-xl bg-muted hover:bg-muted/80 transition-colors font-semibold flex items-center justify-center gap-2 text-[clamp(0.875rem,3.5vw,1rem)]"
-                        >
-                          <Eye className="w-[clamp(0.875rem,3.5vw,1rem)] h-[clamp(0.875rem,3.5vw,1rem)]" />
-                          View Profile
-                        </motion.button>
-
-                        <motion.button
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => handleChatClick(match)}
-                          className={`px-[2vw] py-[1.5vh] rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2 text-[clamp(0.875rem,3.5vw,1rem)] ${
-                            (match.compatibility_score || 0) > 80
-                              ? 'bg-gradient-to-r from-success to-success/80 shadow-medium hover:shadow-glow'
-                              : 'bg-gradient-primary shadow-medium hover:shadow-glow'
-                          }`}
-                        >
-                          <MessageCircle className="w-[clamp(0.875rem,3.5vw,1rem)] h-[clamp(0.875rem,3.5vw,1rem)]" />
-                          {(match.compatibility_score || 0) > 80 ? 'Chat Now' : 'Request Chat'}
-                        </motion.button>
-                      </div>
+                      <motion.button
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => handleChatClick(match)}
+                        className={`px-4 py-3 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2 text-sm ${
+                          (match.compatibility_score || 0) > 80
+                            ? 'bg-gradient-to-r from-success to-success/90 shadow-medium hover:shadow-glow'
+                            : 'bg-gradient-primary shadow-medium hover:shadow-glow'
+                        }`}
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        {(match.compatibility_score || 0) > 80 ? 'Chat' : 'Request'}
+                      </motion.button>
                     </div>
                   </div>
                 </motion.div>
