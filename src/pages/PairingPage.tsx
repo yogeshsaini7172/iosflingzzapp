@@ -461,13 +461,38 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
 
               {/* Right Section: Visual & Action */}
               <div className="flex flex-col items-center justify-center gap-4">
-                {/* Visual Illustration with Matches Count */}
-                <div className="relative w-24 h-24">
-                  <Heart className="w-24 h-24 text-primary fill-primary/20" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-2xl font-bold text-primary">
-                      {matches.length}
-                    </span>
+                {/* Creative Heart with Match Count */}
+                <div className="relative w-32 h-32 group">
+                  {/* Glow effect */}
+                  <div className="absolute inset-0 bg-gradient-primary rounded-full opacity-0 group-hover:opacity-20 blur-2xl transition-all duration-500" />
+                  
+                  {/* Heart outline with gradient stroke */}
+                  <div className="relative w-full h-full flex items-center justify-center">
+                    <Heart 
+                      className="w-28 h-28 text-transparent animate-pulse" 
+                      strokeWidth={3}
+                      style={{
+                        stroke: 'url(#heartGradient)',
+                        fill: 'none',
+                        filter: 'drop-shadow(0 0 12px hsl(var(--primary) / 0.4))'
+                      }}
+                    />
+                    {/* SVG gradient definition */}
+                    <svg width="0" height="0" style={{ position: 'absolute' }}>
+                      <defs>
+                        <linearGradient id="heartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" style={{ stopColor: 'hsl(var(--primary))', stopOpacity: 1 }} />
+                          <stop offset="100%" style={{ stopColor: 'hsl(var(--primary-glow))', stopOpacity: 1 }} />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                    
+                    {/* Match count centered */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent animate-pulse">
+                        {matches.length}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
