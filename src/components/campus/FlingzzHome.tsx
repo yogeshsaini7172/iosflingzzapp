@@ -722,8 +722,8 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
           </div>
         ) : (
           <div className="max-w-sm mx-auto text-center space-y-6">
-            <div className="w-24 h-24 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center mx-auto">
-              <Zap className="w-12 h-12 text-primary-foreground" />
+            <div className="w-24 h-24 bg-gradient-primary rounded-full flex items-center justify-center mx-auto shadow-elegant">
+              <Zap className="w-12 h-12 text-white" />
             </div>
             <div>
               <h3 className="text-xl font-bold text-foreground mb-2">You're all caught up!</h3>
