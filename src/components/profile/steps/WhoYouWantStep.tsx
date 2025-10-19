@@ -84,31 +84,31 @@ const WhoYouWantStep = ({ data, onChange }: WhoYouWantStepProps) => {
         <p className="text-muted-foreground">What are you looking for in a partner?</p>
       </div>
 
-      {/* Physical Preferences - MOVED TO TOP FOR VISIBILITY */}
+      {/* Lifestyle Preferences */}
       <Card className="border-primary/30 bg-gradient-to-r from-primary/5 to-secondary/5">
         <CardHeader className="pb-4">
           <CardTitle className="text-xl flex items-center gap-2 text-primary">
             <Heart className="w-6 h-6 text-primary animate-pulse" />
-            Physical Preferences ✨ NEW!
+            Lifestyle Preferences
           </CardTitle>
-          <p className="text-sm text-muted-foreground">Select your preferred physical attributes</p>
+          <p className="text-sm text-muted-foreground">What lifestyle habits are important to you?</p>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Preferred Skin Tone */}
+          {/* Exercise Habits */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold">Preferred Skin Tone</Label>
+            <Label className="text-base font-semibold">Exercise Habits</Label>
             <div className="flex flex-wrap gap-2">
-              {["Fair", "Light", "Medium", "Olive", "Tan", "Dark", "Any"].map((tone) => {
-                const isSelected = data.preferredSkinTone?.includes(tone);
+              {["Daily", "Few times a week", "Weekly", "Occasionally", "Rarely", "Any"].map((habit) => {
+                const isSelected = data.preferredExercise?.includes(habit);
                 return (
                   <Button
-                    key={tone}
+                    key={habit}
                     variant={isSelected ? "default" : "outline"}
                     size="sm"
-                    onClick={() => toggleArrayItem('preferredSkinTone', tone)}
+                    onClick={() => toggleArrayItem('preferredExercise', habit)}
                     className="rounded-full text-xs font-medium transition-all duration-200 hover:scale-105"
                   >
-                    {tone}
+                    {habit}
                     {isSelected && <X className="w-3 h-3 ml-1" />}
                   </Button>
                 );
@@ -116,21 +116,109 @@ const WhoYouWantStep = ({ data, onChange }: WhoYouWantStepProps) => {
             </div>
           </div>
 
-          {/* Preferred Face Type */}
+          {/* Drinking Habits */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold">Preferred Face Type</Label>
+            <Label className="text-base font-semibold">Drinking Habits</Label>
             <div className="flex flex-wrap gap-2">
-              {["Oval", "Round", "Square", "Heart", "Diamond", "Long", "Any"].map((type) => {
-                const isSelected = data.preferredFaceType?.includes(type);
+              {["Never", "Socially", "Regularly", "Any"].map((habit) => {
+                const isSelected = data.preferredDrinking?.includes(habit);
                 return (
                   <Button
-                    key={type}
+                    key={habit}
                     variant={isSelected ? "default" : "outline"}
                     size="sm"
-                    onClick={() => toggleArrayItem('preferredFaceType', type)}
+                    onClick={() => toggleArrayItem('preferredDrinking', habit)}
                     className="rounded-full text-xs font-medium transition-all duration-200 hover:scale-105"
                   >
-                    {type}
+                    {habit}
+                    {isSelected && <X className="w-3 h-3 ml-1" />}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Smoking Habits */}
+          <div className="space-y-3">
+            <Label className="text-base font-semibold">Smoking Habits</Label>
+            <div className="flex flex-wrap gap-2">
+              {["Never", "Socially", "Regularly", "Any"].map((habit) => {
+                const isSelected = data.preferredSmoking?.includes(habit);
+                return (
+                  <Button
+                    key={habit}
+                    variant={isSelected ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => toggleArrayItem('preferredSmoking', habit)}
+                    className="rounded-full text-xs font-medium transition-all duration-200 hover:scale-105"
+                  >
+                    {habit}
+                    {isSelected && <X className="w-3 h-3 ml-1" />}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Diet Preference */}
+          <div className="space-y-3">
+            <Label className="text-base font-semibold">Diet Preference</Label>
+            <div className="flex flex-wrap gap-2">
+              {["Vegetarian", "Vegan", "Pescatarian", "Omnivore", "Halal", "Kosher", "Any"].map((diet) => {
+                const isSelected = data.preferredDiet?.includes(diet);
+                return (
+                  <Button
+                    key={diet}
+                    variant={isSelected ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => toggleArrayItem('preferredDiet', diet)}
+                    className="rounded-full text-xs font-medium transition-all duration-200 hover:scale-105"
+                  >
+                    {diet}
+                    {isSelected && <X className="w-3 h-3 ml-1" />}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Pet Preference */}
+          <div className="space-y-3">
+            <Label className="text-base font-semibold">Pet Preference</Label>
+            <div className="flex flex-wrap gap-2">
+              {["Have pets", "Want pets", "No pets", "Any"].map((pref) => {
+                const isSelected = data.preferredPets?.includes(pref);
+                return (
+                  <Button
+                    key={pref}
+                    variant={isSelected ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => toggleArrayItem('preferredPets', pref)}
+                    className="rounded-full text-xs font-medium transition-all duration-200 hover:scale-105"
+                  >
+                    {pref}
+                    {isSelected && <X className="w-3 h-3 ml-1" />}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Children Plans */}
+          <div className="space-y-3">
+            <Label className="text-base font-semibold">Children Plans</Label>
+            <div className="flex flex-wrap gap-2">
+              {["Want children", "Don't want", "Have children", "Open to children", "Any"].map((plan) => {
+                const isSelected = data.preferredChildren?.includes(plan);
+                return (
+                  <Button
+                    key={plan}
+                    variant={isSelected ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => toggleArrayItem('preferredChildren', plan)}
+                    className="rounded-full text-xs font-medium transition-all duration-200 hover:scale-105"
+                  >
+                    {plan}
                     {isSelected && <X className="w-3 h-3 ml-1" />}
                   </Button>
                 );

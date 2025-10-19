@@ -8,8 +8,12 @@ import { User, X } from "lucide-react";
 interface ProfileData {
   height?: string;
   bodyType?: string;
-  skinTone?: string;
-  faceType?: string;
+  exerciseHabits?: string;
+  drinkingHabits?: string;
+  smokingHabits?: string;
+  dietPreference?: string;
+  petPreference?: string;
+  childrenPlans?: string;
   personalityType?: string[];
   values?: string[];
   mindset?: string[];
@@ -206,37 +210,101 @@ const renderMultiSelectTags = (
         </div>
       </div>
 
+      {/* Lifestyle Habits */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div className="space-y-3">
-          <Label className="text-base font-medium">Skin Tone</Label>
-          <Select value={data.skinTone} onValueChange={(value) => updateField('skinTone', value)}>
+          <Label className="text-base font-medium">Exercise Habits</Label>
+          <Select value={data.exerciseHabits} onValueChange={(value) => updateField('exerciseHabits', value)}>
             <SelectTrigger className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors">
-              <SelectValue placeholder="Select skin tone" />
+              <SelectValue placeholder="How often do you exercise?" />
             </SelectTrigger>
             <SelectContent className="rounded-2xl">
-              <SelectItem value="very_fair">Very Fair</SelectItem>
-              <SelectItem value="fair">Fair</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="olive">Olive</SelectItem>
-              <SelectItem value="brown">Brown</SelectItem>
-              <SelectItem value="dark">Dark</SelectItem>
+              <SelectItem value="daily">Daily</SelectItem>
+              <SelectItem value="few_times_week">Few times a week</SelectItem>
+              <SelectItem value="weekly">Weekly</SelectItem>
+              <SelectItem value="occasionally">Occasionally</SelectItem>
+              <SelectItem value="rarely">Rarely</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-3">
-          <Label className="text-base font-medium">Face Type</Label>
-          <Select value={data.faceType} onValueChange={(value) => updateField('faceType', value)}>
+          <Label className="text-base font-medium">Drinking Habits</Label>
+          <Select value={data.drinkingHabits} onValueChange={(value) => updateField('drinkingHabits', value)}>
             <SelectTrigger className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors">
-              <SelectValue placeholder="Select face type" />
+              <SelectValue placeholder="Do you drink?" />
             </SelectTrigger>
             <SelectContent className="rounded-2xl">
-              <SelectItem value="round">Round</SelectItem>
-              <SelectItem value="oval">Oval</SelectItem>
-              <SelectItem value="square">Square</SelectItem>
-              <SelectItem value="heart_shaped">Heart-shaped</SelectItem>
-              <SelectItem value="diamond">Diamond</SelectItem>
-              <SelectItem value="long">Long</SelectItem>
+              <SelectItem value="never">Never</SelectItem>
+              <SelectItem value="socially">Socially</SelectItem>
+              <SelectItem value="regularly">Regularly</SelectItem>
               <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="space-y-3">
+          <Label className="text-base font-medium">Smoking Habits</Label>
+          <Select value={data.smokingHabits} onValueChange={(value) => updateField('smokingHabits', value)}>
+            <SelectTrigger className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors">
+              <SelectValue placeholder="Do you smoke?" />
+            </SelectTrigger>
+            <SelectContent className="rounded-2xl">
+              <SelectItem value="never">Never</SelectItem>
+              <SelectItem value="socially">Socially</SelectItem>
+              <SelectItem value="regularly">Regularly</SelectItem>
+              <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-3">
+          <Label className="text-base font-medium">Diet Preference</Label>
+          <Select value={data.dietPreference} onValueChange={(value) => updateField('dietPreference', value)}>
+            <SelectTrigger className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors">
+              <SelectValue placeholder="Your dietary preference" />
+            </SelectTrigger>
+            <SelectContent className="rounded-2xl">
+              <SelectItem value="vegetarian">Vegetarian</SelectItem>
+              <SelectItem value="vegan">Vegan</SelectItem>
+              <SelectItem value="pescatarian">Pescatarian</SelectItem>
+              <SelectItem value="omnivore">Omnivore</SelectItem>
+              <SelectItem value="halal">Halal</SelectItem>
+              <SelectItem value="kosher">Kosher</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Life Goals */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="space-y-3">
+          <Label className="text-base font-medium">Pets</Label>
+          <Select value={data.petPreference} onValueChange={(value) => updateField('petPreference', value)}>
+            <SelectTrigger className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors">
+              <SelectValue placeholder="Your pet situation" />
+            </SelectTrigger>
+            <SelectContent className="rounded-2xl">
+              <SelectItem value="have_pets">Have pets and love them</SelectItem>
+              <SelectItem value="want_pets">Want pets someday</SelectItem>
+              <SelectItem value="allergic">Allergic to pets</SelectItem>
+              <SelectItem value="no_pets">Don't want pets</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-3">
+          <Label className="text-base font-medium">Children Plans</Label>
+          <Select value={data.childrenPlans} onValueChange={(value) => updateField('childrenPlans', value)}>
+            <SelectTrigger className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors">
+              <SelectValue placeholder="Your plans about children" />
+            </SelectTrigger>
+            <SelectContent className="rounded-2xl">
+              <SelectItem value="want_children">Want children someday</SelectItem>
+              <SelectItem value="dont_want_children">Don't want children</SelectItem>
+              <SelectItem value="have_children">Have children</SelectItem>
+              <SelectItem value="open_to_children">Open to children</SelectItem>
+              <SelectItem value="not_sure">Not sure yet</SelectItem>
             </SelectContent>
           </Select>
         </div>
