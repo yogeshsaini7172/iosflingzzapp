@@ -362,16 +362,12 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
   if (authLoading || !userId) {
     return (
       <UnifiedLayout title="Smart Pairing">
-        <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
-          <div className="absolute inset-0">
-            <div className="absolute top-1/4 -left-48 w-[500px] h-[500px] bg-gradient-primary opacity-20 rounded-full blur-3xl animate-float" />
-            <div className="absolute bottom-1/4 -right-48 w-[500px] h-[500px] bg-gradient-secondary opacity-20 rounded-full blur-3xl floating" style={{ animationDelay: '1.5s' }} />
-          </div>
-          <div className="relative text-center animate-fade-in">
-            <div className="w-20 h-20 bg-gradient-royal rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse-glow">
-              <Heart className="w-10 h-10 text-white" />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center mx-auto mb-3 animate-pulse">
+              <Heart className="w-8 h-8 text-white" />
             </div>
-            <p className="text-lg font-medium text-muted-foreground">Loading your matches...</p>
+            <p className="text-base font-medium text-muted-foreground">Loading matches...</p>
           </div>
         </div>
       </UnifiedLayout>
@@ -381,39 +377,30 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
   return (
     <UnifiedLayout title="Smart Pairing">
       <div className="min-h-screen relative pb-20">
-        {/* Premium floating background orbs */}
+        {/* Subtle premium background */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 -left-48 w-96 h-96 bg-gradient-primary opacity-20 rounded-full blur-3xl animate-float" />
-          <div className="absolute bottom-20 -right-48 w-96 h-96 bg-gradient-secondary opacity-20 rounded-full blur-3xl floating" style={{ animationDelay: '2s' }} />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-royal opacity-10 rounded-full blur-3xl" />
+          <div className="absolute top-1/4 -left-32 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 -right-32 w-64 h-64 bg-accent/5 rounded-full blur-3xl" />
         </div>
 
-        <div className="container relative z-10 mx-auto px-4 py-6 space-y-6">
+        <div className="container relative z-10 mx-auto px-4 py-4 space-y-4 max-w-2xl">
           
-          {/* Premium Header with glass morphism */}
+          {/* Compact Unified Header & Stats */}
           <motion.div 
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="glass-premium rounded-3xl p-6 sm:p-8 shadow-premium border border-primary/20"
+            className="rounded-2xl bg-card/80 backdrop-blur-lg p-4 shadow-lg border border-border/50"
           >
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-              <div className="flex-1 text-center sm:text-left">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-royal/10 border border-primary/30 mb-3">
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-primary blur-sm" />
-                    <Sparkles className="relative w-4 h-4 text-primary" />
-                  </div>
-                  <span className="text-sm font-semibold bg-gradient-royal bg-clip-text text-transparent">
-                    {entitlements?.plan.display_name || 'Free'} Member
-                  </span>
-                </div>
-                <h1 className="text-3xl sm:text-4xl font-display font-bold mb-2">
-                  <span className="bg-gradient-royal bg-clip-text text-transparent">
+            {/* Top Row: Title & Action */}
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h1 className="text-xl font-bold mb-0.5">
+                  <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
                     Discover Matches
                   </span>
                 </h1>
-                <p className="text-muted-foreground text-sm sm:text-base">
-                  {pairingLimits.remainingRequests} of {pairingLimits.dailyLimit} daily requests remaining
+                <p className="text-xs text-muted-foreground">
+                  {pairingLimits.remainingRequests}/{pairingLimits.dailyLimit} requests today
                 </p>
               </div>
 
@@ -422,98 +409,96 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                 whileTap={{ scale: 0.95 }}
                 onClick={handleRefresh}
                 disabled={isLoading || !pairingLimits.canRequest}
-                className="relative group overflow-hidden rounded-2xl px-8 py-4 bg-gradient-royal shadow-royal hover:shadow-glow transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary to-accent text-white font-semibold shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 group-hover:animate-shimmer" />
-                <div className="relative flex items-center gap-3">
-                  <Heart className={`w-5 h-5 text-white ${isLoading ? 'animate-pulse' : ''}`} />
-                  <span className="font-bold text-white">
-                    {!pairingLimits.canRequest ? 'Limit Reached' : isLoading ? 'Finding...' : 'Find Matches'}
+                <div className="flex items-center gap-2">
+                  <Heart className={`w-4 h-4 ${isLoading ? 'animate-pulse' : ''}`} />
+                  <span className="text-sm">
+                    {!pairingLimits.canRequest ? 'Limit' : isLoading ? 'Finding...' : 'Find'}
                   </span>
                 </div>
               </motion.button>
             </div>
+
+            {/* Unified Stats Row */}
+            <div className="flex items-center justify-between gap-3 pt-3 border-t border-border/50">
+              <div className="flex items-center gap-2 flex-1">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Users className="w-4 h-4 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Matches</p>
+                  <p className="text-lg font-bold text-foreground">
+                    {(hasLoadedProfiles || shouldShowExistingProfiles) ? matches.length : '—'}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2 flex-1">
+                <div className="p-2 rounded-lg bg-success/10">
+                  <Star className="w-4 h-4 text-success" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">High Match</p>
+                  <p className="text-lg font-bold text-foreground">
+                    {matches.filter(m => (m.compatibility_score || 0) >= 80).length}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 flex-1">
+                <div className="p-2 rounded-lg bg-accent/10">
+                  <Target className="w-4 h-4 text-accent" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Your QCS</p>
+                  <p className="text-lg font-bold text-foreground">
+                    {currentUser?.profile?.total_qcs || 0}
+                  </p>
+                </div>
+              </div>
+            </div>
           </motion.div>
 
-          {/* Premium Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {[
-              { icon: Users, label: 'Total Matches', value: (hasLoadedProfiles || shouldShowExistingProfiles) ? matches.length : '—', gradient: 'from-primary to-primary-glow', delay: 0 },
-              { icon: Star, label: 'High Match', value: matches.filter(m => (m.compatibility_score || 0) >= 80).length, gradient: 'from-success to-success/80', delay: 0.1 },
-              { icon: Target, label: 'Your QCS', value: currentUser?.profile?.total_qcs || 0, gradient: 'from-accent to-accent-glow', delay: 0.2 },
-            ].map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: stat.delay }}
-                className="group relative overflow-hidden rounded-2xl glass-premium p-6 shadow-card hover:shadow-elegant transition-all duration-500 border border-border/50"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="relative flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground mb-1">{stat.label}</p>
-                    <p className="text-4xl font-display font-bold">
-                      <span className={`bg-gradient-to-r ${stat.gradient} bg-clip-text text-transparent`}>
-                        {stat.value}
-                      </span>
-                    </p>
-                  </div>
-                  <div className={`p-3 rounded-xl bg-gradient-to-br ${stat.gradient} shadow-lg`}>
-                    <stat.icon className="w-6 h-6 text-white" />
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Loading State */}
+          {/* Compact Loading State */}
           {isLoading && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="py-20 text-center"
+              className="py-12 text-center"
             >
-              <div className="relative inline-block mb-6">
-                <div className="w-20 h-20 bg-gradient-royal rounded-full animate-pulse-glow flex items-center justify-center">
-                  <Heart className="w-10 h-10 text-white animate-pulse" />
-                </div>
+              <div className="w-16 h-16 bg-gradient-to-r from-primary to-accent rounded-full animate-pulse flex items-center justify-center mx-auto mb-3">
+                <Heart className="w-8 h-8 text-white" />
               </div>
-              <p className="text-lg font-semibold mb-1">Finding your perfect matches</p>
-              <p className="text-sm text-muted-foreground">Analyzing compatibility...</p>
+              <p className="text-base font-semibold mb-1">Finding matches</p>
+              <p className="text-xs text-muted-foreground">Analyzing compatibility...</p>
             </motion.div>
           )}
 
-          {/* Initial Empty State */}
+          {/* Compact Initial Empty State */}
           {!isLoading && !(hasLoadedProfiles || shouldShowExistingProfiles) && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="py-20 text-center"
+              className="py-12 text-center"
             >
-              <div className="relative inline-block mb-8">
-                <div className="w-28 h-28 bg-gradient-royal rounded-full flex items-center justify-center animate-float">
-                  <Heart className="w-14 h-14 text-white" />
-                </div>
-                <div className="absolute -top-2 -right-2 w-12 h-12 bg-gradient-gold rounded-full flex items-center justify-center animate-bounce-in">
-                  <Sparkles className="w-6 h-6 text-white" />
-                </div>
+              <div className="w-20 h-20 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center mx-auto mb-4">
+                <Heart className="w-10 h-10 text-white" />
               </div>
-              <h3 className="text-2xl font-display font-bold mb-3">Ready to find your match?</h3>
-              <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-                Get personalized matches based on compatibility, personality, and shared interests
+              <h3 className="text-lg font-bold mb-2">Ready to find matches?</h3>
+              <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto">
+                Get personalized matches based on compatibility and shared interests
               </p>
               <motion.button 
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleRefresh} 
                 disabled={!pairingLimits.canRequest}
-                className="relative group overflow-hidden rounded-2xl px-8 py-4 bg-gradient-royal shadow-royal hover:shadow-glow transition-all duration-300 disabled:opacity-50"
+                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-primary to-accent text-white font-semibold shadow-md hover:shadow-lg transition-all disabled:opacity-50"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 group-hover:animate-shimmer" />
-                <div className="relative flex items-center gap-3">
-                  <Heart className="w-5 h-5 text-white" />
-                  <span className="font-bold text-white">
+                <div className="flex items-center gap-2">
+                  <Heart className="w-4 h-4" />
+                  <span>
                     {!pairingLimits.canRequest ? 'Limit Reached' : 'Start Matching'}
                   </span>
                 </div>
@@ -521,169 +506,125 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
             </motion.div>
           )}
 
-          {/* Premium Magazine-Style Match Cards */}
+          {/* Compact Modern Match Cards */}
           {!isLoading && matches.length > 0 && (hasLoadedProfiles || shouldShowExistingProfiles) && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="space-y-6"
+              className="space-y-3"
             >
               {matches.map((match, index) => (
                 <motion.div
                   key={match.user_id}
-                  initial={{ y: 50, opacity: 0 }}
+                  initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="group relative overflow-hidden rounded-3xl glass-premium shadow-premium hover:shadow-glow transition-all duration-700 border border-border/50"
+                  transition={{ delay: index * 0.05 }}
+                  className="group relative overflow-hidden rounded-xl bg-card/80 backdrop-blur-lg shadow-md hover:shadow-xl transition-all duration-300 border border-border/50"
                 >
-                  {/* Image Carousel Section */}
-                  <Carousel className="w-full">
-                    <CarouselContent>
-                      {match.profile_images && match.profile_images.length > 0 ? (
-                        match.profile_images.map((image, imgIndex) => (
-                          <CarouselItem key={imgIndex}>
-                            <div className="relative aspect-[4/5] sm:aspect-[16/9] overflow-hidden">
-                              <ProfileImageHandler
-                                src={image}
-                                alt={`${match.first_name} photo ${imgIndex + 1}`}
-                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                              />
-                              {/* Gradient overlays */}
-                              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-                              <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-transparent" />
-                            </div>
-                          </CarouselItem>
-                        ))
-                      ) : (
-                        <CarouselItem>
-                          <div className="relative aspect-[4/5] sm:aspect-[16/9] bg-gradient-subtle flex items-center justify-center">
-                            <div className="text-center">
-                              <div className="w-20 h-20 bg-primary/20 rounded-full mx-auto mb-4 flex items-center justify-center">
-                                <span className="text-4xl">👤</span>
+                  <div className="flex gap-3 p-3">
+                    {/* Compact Image with Carousel */}
+                    <div className="relative flex-shrink-0">
+                      <Carousel className="w-28 h-28">
+                        <CarouselContent>
+                          {match.profile_images && match.profile_images.length > 0 ? (
+                            match.profile_images.map((image, imgIndex) => (
+                              <CarouselItem key={imgIndex}>
+                                <div className="relative w-28 h-28 rounded-lg overflow-hidden">
+                                  <ProfileImageHandler
+                                    src={image}
+                                    alt={`${match.first_name}`}
+                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                  />
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                                </div>
+                              </CarouselItem>
+                            ))
+                          ) : (
+                            <CarouselItem>
+                              <div className="w-28 h-28 rounded-lg bg-muted flex items-center justify-center">
+                                <span className="text-3xl">👤</span>
                               </div>
-                              <p className="text-muted-foreground">No photo</p>
-                            </div>
-                          </div>
-                        </CarouselItem>
-                      )}
-                    </CarouselContent>
-                    {match.profile_images && match.profile_images.length > 1 && (
-                      <>
-                        <CarouselPrevious className="left-4 bg-black/50 backdrop-blur-sm border-white/20 text-white hover:bg-black/70" />
-                        <CarouselNext className="right-4 bg-black/50 backdrop-blur-sm border-white/20 text-white hover:bg-black/70" />
-                      </>
-                    )}
-
-                    {/* Floating badges on image */}
-                    <div className="absolute top-4 left-4 right-4 flex items-start justify-between z-10 pointer-events-none">
-                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/70 backdrop-blur-md border border-white/10">
-                        <span className="text-sm font-bold text-white">#{index + 1}</span>
-                      </div>
-                      <div className={`px-4 py-2 rounded-full bg-gradient-to-r ${getCompatibilityColor(match.compatibility_score || 0)} shadow-glow`}>
-                        <span className="text-sm font-bold text-white">{match.compatibility_score || 0}% Match</span>
-                      </div>
-                    </div>
-
-                    {/* Bottom profile info overlay */}
-                    <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
-                      <div className="flex items-end justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className="text-2xl sm:text-3xl font-display font-bold text-white drop-shadow-lg truncate">
-                              {match.first_name}, {match.age}
-                            </h3>
-                            <ShieldCheck className="w-6 h-6 text-success drop-shadow-lg flex-shrink-0" />
-                          </div>
-                          {match.university && (
-                            <div className="flex items-center gap-2 text-white/90 mb-3">
-                              <GraduationCap className="w-4 h-4 flex-shrink-0" />
-                              <span className="text-sm font-medium drop-shadow-md truncate">{match.university}</span>
-                            </div>
+                            </CarouselItem>
                           )}
-                          {/* Score pills */}
-                          <div className="flex flex-wrap gap-2">
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10">
-                              <Zap className="w-3.5 h-3.5 text-accent" />
-                              <span className="text-xs font-bold text-white">{match.physical_score}%</span>
-                            </div>
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10">
-                              <Brain className="w-3.5 h-3.5 text-primary" />
-                              <span className="text-xs font-bold text-white">{match.mental_score}%</span>
-                            </div>
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10">
-                              <Award className="w-3.5 h-3.5 text-success" />
-                              <span className="text-xs font-bold text-white">QCS {match.total_qcs}</span>
-                            </div>
-                          </div>
-                        </div>
+                        </CarouselContent>
+                        {match.profile_images && match.profile_images.length > 1 && (
+                          <>
+                            <CarouselPrevious className="left-1 h-6 w-6 bg-black/50 backdrop-blur-sm border-0 text-white" />
+                            <CarouselNext className="right-1 h-6 w-6 bg-black/50 backdrop-blur-sm border-0 text-white" />
+                          </>
+                        )}
+                      </Carousel>
+                      
+                      {/* Match Score Badge */}
+                      <div className={`absolute -top-1 -right-1 px-2 py-0.5 rounded-full text-xs font-bold text-white shadow-md ${
+                        (match.compatibility_score || 0) >= 80 ? 'bg-gradient-to-r from-success to-success/80' :
+                        (match.compatibility_score || 0) >= 60 ? 'bg-gradient-to-r from-primary to-accent' :
+                        'bg-muted'
+                      }`}>
+                        {match.compatibility_score || 0}%
                       </div>
                     </div>
-                  </Carousel>
 
-                  {/* Content Section with glass effect */}
-                  <div className="p-6 space-y-4 bg-gradient-card/50 backdrop-blur-sm">
-                    {/* Bio */}
-                    {match.bio && (
-                      <p className="text-sm text-foreground/80 line-clamp-2 leading-relaxed">
-                        {match.bio}
-                      </p>
-                    )}
-
-                    {/* Interests */}
-                    {match.interests && match.interests.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {match.interests.slice(0, 4).map((interest, idx) => (
-                          <span key={idx} className="px-3 py-1.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
-                            {interest}
-                          </span>
-                        ))}
-                        {match.interests.length > 4 && (
-                          <span className="px-3 py-1.5 rounded-full text-xs font-medium bg-muted/50 border border-border">
-                            +{match.interests.length - 4} more
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-3 pt-2">
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => setSelectedProfile(match)}
-                        className="flex-1 rounded-xl bg-card/50 hover:bg-muted/50 border border-border transition-all duration-300 py-3.5 backdrop-blur-sm"
-                      >
-                        <div className="flex items-center justify-center gap-2">
-                          <Eye className="w-4 h-4" />
-                          <span className="text-sm font-semibold">View Profile</span>
+                    {/* Compact Info */}
+                    <div className="flex-1 min-w-0 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <h3 className="text-base font-bold truncate">
+                            {match.first_name}, {match.age}
+                          </h3>
+                          <ShieldCheck className="w-3.5 h-3.5 text-success flex-shrink-0" />
                         </div>
-                      </motion.button>
+                        
+                        {match.university && (
+                          <div className="flex items-center gap-1 mb-2">
+                            <GraduationCap className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                            <p className="text-xs text-muted-foreground truncate">{match.university}</p>
+                          </div>
+                        )}
 
-                      {(match.compatibility_score || 0) > 80 ? (
+                        {/* Compact Score Pills */}
+                        <div className="flex gap-1.5 mb-2">
+                          <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-accent/10">
+                            <Zap className="w-3 h-3 text-accent" />
+                            <span className="text-xs font-semibold">{match.physical_score}%</span>
+                          </div>
+                          <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10">
+                            <Brain className="w-3 h-3 text-primary" />
+                            <span className="text-xs font-semibold">{match.mental_score}%</span>
+                          </div>
+                          <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-success/10">
+                            <Award className="w-3 h-3 text-success" />
+                            <span className="text-xs font-semibold">{match.total_qcs}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Compact Action Buttons */}
+                      <div className="flex gap-2">
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setSelectedProfile(match)}
+                          className="flex-1 px-3 py-1.5 rounded-lg bg-muted/50 hover:bg-muted transition-colors text-xs font-semibold"
+                        >
+                          <Eye className="w-3 h-3 inline mr-1" />
+                          View
+                        </motion.button>
+
                         <motion.button
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => handleChatClick(match)}
-                          className="flex-1 rounded-xl bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 shadow-lg transition-all duration-300 py-3.5"
+                          className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all ${
+                            (match.compatibility_score || 0) > 80
+                              ? 'bg-gradient-to-r from-success to-success/80 hover:shadow-md'
+                              : 'bg-gradient-to-r from-primary to-accent hover:shadow-md'
+                          }`}
                         >
-                          <div className="flex items-center justify-center gap-2">
-                            <MessageCircle className="w-4 h-4 text-white" />
-                            <span className="text-sm font-bold text-white">Chat Now</span>
-                          </div>
+                          <MessageCircle className="w-3 h-3 inline mr-1" />
+                          {(match.compatibility_score || 0) > 80 ? 'Chat' : 'Request'}
                         </motion.button>
-                      ) : (
-                        <motion.button
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => handleChatClick(match)}
-                          className="flex-1 rounded-xl bg-gradient-royal hover:opacity-90 shadow-elegant transition-all duration-300 py-3.5"
-                        >
-                          <div className="flex items-center justify-center gap-2">
-                            <MessageCircle className="w-4 h-4 text-white" />
-                            <span className="text-sm font-bold text-white">Send Request</span>
-                          </div>
-                        </motion.button>
-                      )}
+                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -691,26 +632,26 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
             </motion.div>
           )}
 
-          {/* Empty Results State */}
+          {/* Compact Empty Results State */}
           {!isLoading && matches.length === 0 && (hasLoadedProfiles || shouldShowExistingProfiles) && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="py-20 text-center"
+              className="py-12 text-center"
             >
-              <div className="w-24 h-24 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="w-12 h-12 text-muted-foreground" />
+              <div className="w-16 h-16 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Users className="w-8 h-8 text-muted-foreground" />
               </div>
-              <h3 className="text-xl font-display font-bold mb-2">No matches found</h3>
-              <p className="text-muted-foreground mb-6">
-                Complete your profile and preferences to find compatible matches
+              <h3 className="text-base font-bold mb-1">No matches found</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Complete your profile to find compatible matches
               </p>
               {pairingLimits.canRequest && (
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleRefresh}
-                  className="px-8 py-3 rounded-xl bg-gradient-royal text-white font-semibold shadow-royal hover:shadow-glow transition-all"
+                  className="px-6 py-2 rounded-xl bg-gradient-to-r from-primary to-accent text-white font-semibold shadow-md hover:shadow-lg transition-all"
                 >
                   Try Again
                 </motion.button>
