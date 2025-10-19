@@ -1,14 +1,27 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Heart, Brain, Star, MapPin, GraduationCap, Sparkles, Users, RefreshCw, MessageCircle, Zap, Crown, Eye, ShieldCheck } from 'lucide-react';
+import { Heart, Brain, Star, MapPin, Sparkles, Users, MessageCircle, Zap, Crown, Eye, ShieldCheck, TrendingUp, Target, Award, GraduationCap, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  type CarouselApi,
+} from '@/components/ui/carousel';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import DetailedProfileModal from '@/components/profile/DetailedProfileModalNew';
-import RebuiltChatSystem from '@/components/chat/RebuiltChatSystem';
 import { useRequiredAuth } from '@/hooks/useRequiredAuth';
 import UnifiedLayout from '@/components/layout/UnifiedLayout';
 import ProfileImageHandler from '@/components/common/ProfileImageHandler';
@@ -60,10 +73,11 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [selectedProfile, setSelectedProfile] = useState<Match | null>(null);
   const [selectedChatId, setSelectedChatId] = useState<string>("");
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const { userId, isLoading: authLoading } = useRequiredAuth();
   const [myReq, setMyReq] = useState<any>(null);
-  const [myQual, setMyQual] = useState<any>(null);
 
   const { entitlements, loading: subscriptionLoading, refreshEntitlements } = useSubscriptionEntitlements();
   const [pairingLimits, setPairingLimits] = useState({
@@ -72,21 +86,6 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
     dailyLimit: 1,
     remainingRequests: 1
   });
-
-  if (authLoading || !userId) {
-    return (
-      <UnifiedLayout title="Smart Pairing">
-        <div className="flex items-center justify-center h-96">
-          <div className="text-center animate-fade-in">
-            <div className="w-16 h-16 bg-gradient-royal rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse-glow">
-              <Heart className="w-8 h-8 text-white" />
-            </div>
-            <p className="text-foreground/70 font-modern text-lg">Loading your elite matches...</p>
-          </div>
-        </div>
-      </UnifiedLayout>
-    );
-  }
 
   const parseJsonSafe = (v: any) => {
     if (!v) return null;
@@ -133,12 +132,6 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
     fetchUserData();
     checkExistingProfiles();
   }, [userId]);
-
-  useEffect(() => {
-    if (userId && !hasLoadedProfiles && !shouldShowExistingProfiles && !isLoading) {
-      checkExistingProfiles();
-    }
-  }, [userId, hasLoadedProfiles, shouldShowExistingProfiles, isLoading]);
 
   const checkExistingProfiles = async () => {
     if (!userId) return;
@@ -361,316 +354,370 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
   };
 
   const getCompatibilityColor = (score: number) => {
-    if (score >= 80) return 'bg-success text-white';
-    if (score >= 60) return 'bg-primary text-white';
-    return 'bg-muted text-foreground';
+    if (score >= 80) return 'from-success to-success/80';
+    if (score >= 60) return 'from-primary to-primary-glow';
+    return 'from-muted to-muted/80';
   };
+
+  if (authLoading || !userId) {
+    return (
+      <UnifiedLayout title="Smart Pairing">
+        <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+          <div className="absolute inset-0">
+            <div className="absolute top-1/4 -left-48 w-[500px] h-[500px] bg-gradient-primary opacity-20 rounded-full blur-3xl animate-float" />
+            <div className="absolute bottom-1/4 -right-48 w-[500px] h-[500px] bg-gradient-secondary opacity-20 rounded-full blur-3xl floating" style={{ animationDelay: '1.5s' }} />
+          </div>
+          <div className="relative text-center animate-fade-in">
+            <div className="w-20 h-20 bg-gradient-royal rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse-glow">
+              <Heart className="w-10 h-10 text-white" />
+            </div>
+            <p className="text-lg font-medium text-muted-foreground">Loading your matches...</p>
+          </div>
+        </div>
+      </UnifiedLayout>
+    );
+  }
 
   return (
     <UnifiedLayout title="Smart Pairing">
-      <div className="container mx-auto px-4 py-8 space-y-8">
+      <div className="min-h-screen relative pb-20">
+        {/* Premium floating background orbs */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 -left-48 w-96 h-96 bg-gradient-primary opacity-20 rounded-full blur-3xl animate-float" />
+          <div className="absolute bottom-20 -right-48 w-96 h-96 bg-gradient-secondary opacity-20 rounded-full blur-3xl floating" style={{ animationDelay: '2s' }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-royal opacity-10 rounded-full blur-3xl" />
+        </div>
 
-        {/* Premium Hero Section */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-royal p-8 sm:p-10 shadow-premium animate-fade-in">
-          <div className="absolute inset-0 bg-gradient-magic opacity-50" />
-          <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary-glow/20 rounded-full blur-3xl" />
-          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-secondary-glow/20 rounded-full blur-3xl" />
+        <div className="container relative z-10 mx-auto px-4 py-6 space-y-6">
           
-          <div className="relative z-10">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-              <div className="flex-1 space-y-3">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 bg-white/10 backdrop-blur-sm rounded-xl">
-                    <Sparkles className="w-6 h-6 text-white" />
+          {/* Premium Header with glass morphism */}
+          <motion.div 
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="glass-premium rounded-3xl p-6 sm:p-8 shadow-premium border border-primary/20"
+          >
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+              <div className="flex-1 text-center sm:text-left">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-royal/10 border border-primary/30 mb-3">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-primary blur-sm" />
+                    <Sparkles className="relative w-4 h-4 text-primary" />
                   </div>
-                  <h1 className="text-3xl sm:text-4xl font-display font-bold text-white drop-shadow-lg">
-                    Smart Pairing
-                  </h1>
-                </div>
-                <p className="text-white/90 text-base sm:text-lg font-medium max-w-2xl">
-                  AI-powered compatibility matching based on advanced algorithms and personality analysis
-                </p>
-                
-                {/* Plan Badge */}
-                <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-2">
-                  <Crown className="w-4 h-4 text-accent" />
-                  <span className="text-white font-semibold text-sm">
-                    {entitlements?.plan.display_name || 'Free'} Plan
-                  </span>
-                  <span className="text-white/70 text-xs">•</span>
-                  <span className="text-white/90 text-sm">
-                    {pairingLimits.remainingRequests}/{pairingLimits.dailyLimit} Requests
+                  <span className="text-sm font-semibold bg-gradient-royal bg-clip-text text-transparent">
+                    {entitlements?.plan.display_name || 'Free'} Member
                   </span>
                 </div>
+                <h1 className="text-3xl sm:text-4xl font-display font-bold mb-2">
+                  <span className="bg-gradient-royal bg-clip-text text-transparent">
+                    Discover Matches
+                  </span>
+                </h1>
+                <p className="text-muted-foreground text-sm sm:text-base">
+                  {pairingLimits.remainingRequests} of {pairingLimits.dailyLimit} daily requests remaining
+                </p>
               </div>
 
-              {/* CTA Button */}
-              <div className="flex flex-col gap-3">
-                <button
-                  onClick={handleRefresh}
-                  disabled={isLoading || !pairingLimits.canRequest}
-                  className="group relative overflow-hidden rounded-2xl bg-white px-8 py-4 shadow-elegant hover:shadow-royal transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <div className="relative flex items-center justify-center gap-3">
-                    <Heart className={`h-5 w-5 text-primary ${isLoading ? 'animate-pulse' : ''}`} />
-                    <span className="font-bold text-lg bg-gradient-royal bg-clip-text text-transparent">
-                      {!pairingLimits.canRequest ? 'Limit Reached' : 'Find Matches'}
-                    </span>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleRefresh}
+                disabled={isLoading || !pairingLimits.canRequest}
+                className="relative group overflow-hidden rounded-2xl px-8 py-4 bg-gradient-royal shadow-royal hover:shadow-glow transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 group-hover:animate-shimmer" />
+                <div className="relative flex items-center gap-3">
+                  <Heart className={`w-5 h-5 text-white ${isLoading ? 'animate-pulse' : ''}`} />
+                  <span className="font-bold text-white">
+                    {!pairingLimits.canRequest ? 'Limit Reached' : isLoading ? 'Finding...' : 'Find Matches'}
+                  </span>
+                </div>
+              </motion.button>
+            </div>
+          </motion.div>
+
+          {/* Premium Stats Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              { icon: Users, label: 'Total Matches', value: (hasLoadedProfiles || shouldShowExistingProfiles) ? matches.length : '—', gradient: 'from-primary to-primary-glow', delay: 0 },
+              { icon: Star, label: 'High Match', value: matches.filter(m => (m.compatibility_score || 0) >= 80).length, gradient: 'from-success to-success/80', delay: 0.1 },
+              { icon: Target, label: 'Your QCS', value: currentUser?.profile?.total_qcs || 0, gradient: 'from-accent to-accent-glow', delay: 0.2 },
+            ].map((stat, index) => (
+              <motion.div
+                key={stat.label}
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: stat.delay }}
+                className="group relative overflow-hidden rounded-2xl glass-premium p-6 shadow-card hover:shadow-elegant transition-all duration-500 border border-border/50"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">{stat.label}</p>
+                    <p className="text-4xl font-display font-bold">
+                      <span className={`bg-gradient-to-r ${stat.gradient} bg-clip-text text-transparent`}>
+                        {stat.value}
+                      </span>
+                    </p>
                   </div>
-                </button>
-                
-                {pairingLimits.remainingRequests === 0 && (
-                  <button
-                    onClick={() => onNavigate('subscription')}
-                    className="rounded-xl bg-gradient-gold px-6 py-2.5 shadow-gold hover:shadow-elegant transition-all duration-300 active:scale-95"
-                  >
-                    <span className="font-semibold text-sm text-white">Upgrade Plan</span>
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Premium Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-          {/* Total Matches */}
-          <div className="group relative overflow-hidden rounded-2xl bg-gradient-card border border-primary/20 p-6 shadow-card hover:shadow-elegant transition-all duration-500 hover:scale-[1.02] animate-fade-in">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <div className="relative flex items-start justify-between">
-              <div className="space-y-2">
-                <p className="text-muted-foreground text-sm font-medium">Total Matches</p>
-                <p className="text-4xl font-display font-bold text-foreground">
-                  {(hasLoadedProfiles || shouldShowExistingProfiles) ? matches.length : '—'}
-                </p>
-                <p className="text-xs text-muted-foreground">Available profiles</p>
-              </div>
-              <div className="p-3 bg-primary/10 rounded-xl group-hover:bg-primary/20 transition-colors">
-                <Users className="h-6 w-6 text-primary" />
-              </div>
-            </div>
+                  <div className={`p-3 rounded-xl bg-gradient-to-br ${stat.gradient} shadow-lg`}>
+                    <stat.icon className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
 
-          {/* High Compatibility */}
-          <div className="group relative overflow-hidden rounded-2xl bg-gradient-card border border-success/20 p-6 shadow-card hover:shadow-elegant transition-all duration-500 hover:scale-[1.02] animate-fade-in [animation-delay:100ms]">
-            <div className="absolute inset-0 bg-gradient-to-br from-success/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <div className="relative flex items-start justify-between">
-              <div className="space-y-2">
-                <p className="text-muted-foreground text-sm font-medium">High Match</p>
-                <p className="text-4xl font-display font-bold text-success">
-                  {matches.filter(m => (m.compatibility_score || 0) >= 80).length}
-                </p>
-                <p className="text-xs text-muted-foreground">80%+ compatible</p>
-              </div>
-              <div className="p-3 bg-success/10 rounded-xl group-hover:bg-success/20 transition-colors">
-                <Star className="h-6 w-6 text-success" />
-              </div>
-            </div>
-          </div>
-
-          {/* Your QCS */}
-          <div className="group relative overflow-hidden rounded-2xl bg-gradient-card border border-accent/20 p-6 shadow-card hover:shadow-elegant transition-all duration-500 hover:scale-[1.02] animate-fade-in [animation-delay:200ms]">
-            <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <div className="relative flex items-start justify-between">
-              <div className="space-y-2">
-                <p className="text-muted-foreground text-sm font-medium">Your QCS</p>
-                <p className="text-4xl font-display font-bold text-accent">
-                  {currentUser?.profile?.total_qcs || 0}
-                </p>
-                <p className="text-xs text-muted-foreground">Quality score</p>
-              </div>
-              <div className="p-3 bg-accent/10 rounded-xl group-hover:bg-accent/20 transition-colors">
-                <Sparkles className="h-6 w-6 text-accent" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Loading State */}
-        {isLoading && (
-          <div className="flex justify-center items-center py-20">
-            <div className="text-center space-y-6 animate-fade-in">
-              <div className="relative">
-                <div className="w-20 h-20 bg-gradient-royal rounded-full animate-pulse-glow flex items-center justify-center mx-auto">
+          {/* Loading State */}
+          {isLoading && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="py-20 text-center"
+            >
+              <div className="relative inline-block mb-6">
+                <div className="w-20 h-20 bg-gradient-royal rounded-full animate-pulse-glow flex items-center justify-center">
                   <Heart className="w-10 h-10 text-white animate-pulse" />
                 </div>
               </div>
-              <div>
-                <p className="text-lg font-semibold mb-1">Finding your perfect matches</p>
-                <p className="text-sm text-muted-foreground">Analyzing compatibility...</p>
-              </div>
-            </div>
-          </div>
-        )}
+              <p className="text-lg font-semibold mb-1">Finding your perfect matches</p>
+              <p className="text-sm text-muted-foreground">Analyzing compatibility...</p>
+            </motion.div>
+          )}
 
-        {/* Initial State */}
-        {!isLoading && !(hasLoadedProfiles || shouldShowExistingProfiles) && (
-          <div className="text-center py-20">
-            <div className="relative inline-block mb-6">
-              <div className="w-28 h-28 bg-gradient-royal rounded-full flex items-center justify-center animate-float">
-                <Heart className="h-14 w-14 text-white" />
-              </div>
-              <div className="absolute -top-2 -right-2 w-12 h-12 bg-accent rounded-full flex items-center justify-center animate-bounce-in">
-                <Sparkles className="w-6 h-6 text-white" />
-              </div>
-            </div>
-            <h3 className="text-2xl font-display font-bold mb-3">Ready to find your match?</h3>
-            <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-              Get personalized matches based on compatibility, personality, and shared interests
-            </p>
-            <button 
-              onClick={handleRefresh} 
-              disabled={!pairingLimits.canRequest}
-              className="group relative overflow-hidden rounded-2xl bg-gradient-royal px-8 py-4 shadow-elegant hover:shadow-royal transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+          {/* Initial Empty State */}
+          {!isLoading && !(hasLoadedProfiles || shouldShowExistingProfiles) && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="py-20 text-center"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 opacity-0 group-hover:opacity-100 group-hover:animate-shimmer" />
-              <div className="relative flex items-center justify-center gap-3">
-                <Heart className="h-5 w-5 text-white" />
-                <span className="font-bold text-white">
-                  {!pairingLimits.canRequest ? 'Limit Reached' : 'Start Matching'}
-                </span>
-              </div>
-            </button>
-          </div>
-        )}
-
-        {/* Premium Matches Grid */}
-        {!isLoading && matches.length > 0 && (hasLoadedProfiles || shouldShowExistingProfiles) && (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {matches.map((match, index) => (
-              <div 
-                key={match.user_id}
-                className="group relative overflow-hidden rounded-3xl bg-gradient-card border border-border/50 shadow-card hover:shadow-elegant transition-all duration-500 hover:scale-[1.02] animate-fade-in"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                {/* Profile Image */}
-                <div className="relative h-80 overflow-hidden">
-                  <ProfileImageHandler
-                    src={match.profile_images?.[0]}
-                    alt={`${match.first_name} ${match.last_name}`}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
-                  
-                  {/* Gradient Overlays */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                  <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-transparent" />
-                  
-                  {/* Top Badges */}
-                  <div className="absolute top-4 left-4 right-4 flex items-start justify-between">
-                    <Badge className="bg-black/70 backdrop-blur-md text-white border-0 px-3 py-1.5 font-bold">
-                      #{index + 1}
-                    </Badge>
-                    <Badge className={`${getCompatibilityColor(match.compatibility_score || 0)} border-0 px-3 py-1.5 font-bold shadow-lg`}>
-                      {match.compatibility_score || 0}%
-                    </Badge>
-                  </div>
-
-                  {/* Bottom Info */}
-                  <div className="absolute bottom-0 left-0 right-0 p-6">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="text-2xl font-display font-bold text-white drop-shadow-lg">
-                        {match.first_name}, {match.age}
-                      </h3>
-                      <ShieldCheck className="w-5 h-5 text-success drop-shadow-lg" />
-                    </div>
-                    <div className="flex items-center gap-2 text-white/90 text-sm mb-3">
-                      <GraduationCap className="w-4 h-4" />
-                      <span className="drop-shadow-md truncate">{match.university}</span>
-                    </div>
-                    
-                    {/* Score Pills */}
-                    <div className="flex gap-2">
-                      <div className="inline-flex items-center gap-1.5 bg-black/50 backdrop-blur-md rounded-full px-3 py-1.5 border border-white/10">
-                        <Zap className="w-3.5 h-3.5 text-accent" />
-                        <span className="text-xs font-semibold text-white">{match.physical_score}%</span>
-                      </div>
-                      <div className="inline-flex items-center gap-1.5 bg-black/50 backdrop-blur-md rounded-full px-3 py-1.5 border border-white/10">
-                        <Brain className="w-3.5 h-3.5 text-primary" />
-                        <span className="text-xs font-semibold text-white">{match.mental_score}%</span>
-                      </div>
-                      <div className="inline-flex items-center gap-1.5 bg-black/50 backdrop-blur-md rounded-full px-3 py-1.5 border border-white/10">
-                        <Star className="w-3.5 h-3.5 text-success" />
-                        <span className="text-xs font-semibold text-white">{match.total_qcs}</span>
-                      </div>
-                    </div>
-                  </div>
+              <div className="relative inline-block mb-8">
+                <div className="w-28 h-28 bg-gradient-royal rounded-full flex items-center justify-center animate-float">
+                  <Heart className="w-14 h-14 text-white" />
                 </div>
+                <div className="absolute -top-2 -right-2 w-12 h-12 bg-gradient-gold rounded-full flex items-center justify-center animate-bounce-in">
+                  <Sparkles className="w-6 h-6 text-white" />
+                </div>
+              </div>
+              <h3 className="text-2xl font-display font-bold mb-3">Ready to find your match?</h3>
+              <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+                Get personalized matches based on compatibility, personality, and shared interests
+              </p>
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleRefresh} 
+                disabled={!pairingLimits.canRequest}
+                className="relative group overflow-hidden rounded-2xl px-8 py-4 bg-gradient-royal shadow-royal hover:shadow-glow transition-all duration-300 disabled:opacity-50"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 group-hover:animate-shimmer" />
+                <div className="relative flex items-center gap-3">
+                  <Heart className="w-5 h-5 text-white" />
+                  <span className="font-bold text-white">
+                    {!pairingLimits.canRequest ? 'Limit Reached' : 'Start Matching'}
+                  </span>
+                </div>
+              </motion.button>
+            </motion.div>
+          )}
 
-                {/* Action Buttons */}
-                <div className="p-5 space-y-3">
-                  {/* Bio Preview */}
-                  {match.bio && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">{match.bio}</p>
-                  )}
+          {/* Premium Magazine-Style Match Cards */}
+          {!isLoading && matches.length > 0 && (hasLoadedProfiles || shouldShowExistingProfiles) && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="space-y-6"
+            >
+              {matches.map((match, index) => (
+                <motion.div
+                  key={match.user_id}
+                  initial={{ y: 50, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="group relative overflow-hidden rounded-3xl glass-premium shadow-premium hover:shadow-glow transition-all duration-700 border border-border/50"
+                >
+                  {/* Image Carousel Section */}
+                  <Carousel className="w-full">
+                    <CarouselContent>
+                      {match.profile_images && match.profile_images.length > 0 ? (
+                        match.profile_images.map((image, imgIndex) => (
+                          <CarouselItem key={imgIndex}>
+                            <div className="relative aspect-[4/5] sm:aspect-[16/9] overflow-hidden">
+                              <ProfileImageHandler
+                                src={image}
+                                alt={`${match.first_name} photo ${imgIndex + 1}`}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                              />
+                              {/* Gradient overlays */}
+                              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                              <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-transparent" />
+                            </div>
+                          </CarouselItem>
+                        ))
+                      ) : (
+                        <CarouselItem>
+                          <div className="relative aspect-[4/5] sm:aspect-[16/9] bg-gradient-subtle flex items-center justify-center">
+                            <div className="text-center">
+                              <div className="w-20 h-20 bg-primary/20 rounded-full mx-auto mb-4 flex items-center justify-center">
+                                <span className="text-4xl">👤</span>
+                              </div>
+                              <p className="text-muted-foreground">No photo</p>
+                            </div>
+                          </div>
+                        </CarouselItem>
+                      )}
+                    </CarouselContent>
+                    {match.profile_images && match.profile_images.length > 1 && (
+                      <>
+                        <CarouselPrevious className="left-4 bg-black/50 backdrop-blur-sm border-white/20 text-white hover:bg-black/70" />
+                        <CarouselNext className="right-4 bg-black/50 backdrop-blur-sm border-white/20 text-white hover:bg-black/70" />
+                      </>
+                    )}
 
-                  {/* Interests */}
-                  {match.interests && match.interests.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {match.interests.slice(0, 3).map((interest, idx) => (
-                        <Badge key={idx} variant="secondary" className="text-xs px-2.5 py-1 bg-primary/10 text-primary border-0">
-                          {interest}
-                        </Badge>
-                      ))}
-                      {match.interests.length > 3 && (
-                        <Badge variant="secondary" className="text-xs px-2.5 py-1 border-0">
-                          +{match.interests.length - 3}
-                        </Badge>
+                    {/* Floating badges on image */}
+                    <div className="absolute top-4 left-4 right-4 flex items-start justify-between z-10 pointer-events-none">
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/70 backdrop-blur-md border border-white/10">
+                        <span className="text-sm font-bold text-white">#{index + 1}</span>
+                      </div>
+                      <div className={`px-4 py-2 rounded-full bg-gradient-to-r ${getCompatibilityColor(match.compatibility_score || 0)} shadow-glow`}>
+                        <span className="text-sm font-bold text-white">{match.compatibility_score || 0}% Match</span>
+                      </div>
+                    </div>
+
+                    {/* Bottom profile info overlay */}
+                    <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
+                      <div className="flex items-end justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="text-2xl sm:text-3xl font-display font-bold text-white drop-shadow-lg truncate">
+                              {match.first_name}, {match.age}
+                            </h3>
+                            <ShieldCheck className="w-6 h-6 text-success drop-shadow-lg flex-shrink-0" />
+                          </div>
+                          {match.university && (
+                            <div className="flex items-center gap-2 text-white/90 mb-3">
+                              <GraduationCap className="w-4 h-4 flex-shrink-0" />
+                              <span className="text-sm font-medium drop-shadow-md truncate">{match.university}</span>
+                            </div>
+                          )}
+                          {/* Score pills */}
+                          <div className="flex flex-wrap gap-2">
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10">
+                              <Zap className="w-3.5 h-3.5 text-accent" />
+                              <span className="text-xs font-bold text-white">{match.physical_score}%</span>
+                            </div>
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10">
+                              <Brain className="w-3.5 h-3.5 text-primary" />
+                              <span className="text-xs font-bold text-white">{match.mental_score}%</span>
+                            </div>
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10">
+                              <Award className="w-3.5 h-3.5 text-success" />
+                              <span className="text-xs font-bold text-white">QCS {match.total_qcs}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Carousel>
+
+                  {/* Content Section with glass effect */}
+                  <div className="p-6 space-y-4 bg-gradient-card/50 backdrop-blur-sm">
+                    {/* Bio */}
+                    {match.bio && (
+                      <p className="text-sm text-foreground/80 line-clamp-2 leading-relaxed">
+                        {match.bio}
+                      </p>
+                    )}
+
+                    {/* Interests */}
+                    {match.interests && match.interests.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {match.interests.slice(0, 4).map((interest, idx) => (
+                          <span key={idx} className="px-3 py-1.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                            {interest}
+                          </span>
+                        ))}
+                        {match.interests.length > 4 && (
+                          <span className="px-3 py-1.5 rounded-full text-xs font-medium bg-muted/50 border border-border">
+                            +{match.interests.length - 4} more
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-3 pt-2">
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setSelectedProfile(match)}
+                        className="flex-1 rounded-xl bg-card/50 hover:bg-muted/50 border border-border transition-all duration-300 py-3.5 backdrop-blur-sm"
+                      >
+                        <div className="flex items-center justify-center gap-2">
+                          <Eye className="w-4 h-4" />
+                          <span className="text-sm font-semibold">View Profile</span>
+                        </div>
+                      </motion.button>
+
+                      {(match.compatibility_score || 0) > 80 ? (
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => handleChatClick(match)}
+                          className="flex-1 rounded-xl bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 shadow-lg transition-all duration-300 py-3.5"
+                        >
+                          <div className="flex items-center justify-center gap-2">
+                            <MessageCircle className="w-4 h-4 text-white" />
+                            <span className="text-sm font-bold text-white">Chat Now</span>
+                          </div>
+                        </motion.button>
+                      ) : (
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => handleChatClick(match)}
+                          className="flex-1 rounded-xl bg-gradient-royal hover:opacity-90 shadow-elegant transition-all duration-300 py-3.5"
+                        >
+                          <div className="flex items-center justify-center gap-2">
+                            <MessageCircle className="w-4 h-4 text-white" />
+                            <span className="text-sm font-bold text-white">Send Request</span>
+                          </div>
+                        </motion.button>
                       )}
                     </div>
-                  )}
-
-                  <div className="flex gap-2.5 pt-2">
-                    <button
-                      onClick={() => setSelectedProfile(match)}
-                      className="flex-1 rounded-xl bg-card hover:bg-muted border border-border transition-all duration-300 py-3 active:scale-95"
-                    >
-                      <div className="flex items-center justify-center gap-2">
-                        <Eye className="w-4 h-4" />
-                        <span className="text-sm font-semibold">View</span>
-                      </div>
-                    </button>
-                    
-                    {(match.compatibility_score || 0) > 80 ? (
-                      <button
-                        onClick={() => handleChatClick(match)}
-                        className="flex-1 rounded-xl bg-gradient-to-r from-success to-success/80 hover:from-success/90 hover:to-success/70 shadow-lg transition-all duration-300 py-3 active:scale-95"
-                      >
-                        <div className="flex items-center justify-center gap-2">
-                          <MessageCircle className="w-4 h-4 text-white" />
-                          <span className="text-sm font-bold text-white">Chat</span>
-                        </div>
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handleChatClick(match)}
-                        className="flex-1 rounded-xl bg-gradient-royal hover:opacity-90 shadow-elegant transition-all duration-300 py-3 active:scale-95"
-                      >
-                        <div className="flex items-center justify-center gap-2">
-                          <MessageCircle className="w-4 h-4 text-white" />
-                          <span className="text-sm font-bold text-white">Request</span>
-                        </div>
-                      </button>
-                    )}
                   </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
 
-        {/* Empty State */}
-        {!isLoading && matches.length === 0 && (hasLoadedProfiles || shouldShowExistingProfiles) && (
-          <div className="text-center py-20">
-            <div className="w-24 h-24 bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Users className="h-12 w-12 text-muted-foreground" />
-            </div>
-            <h3 className="text-xl font-display font-bold mb-2">No matches found</h3>
-            <p className="text-muted-foreground mb-6">
-              Complete your profile and preferences to find compatible matches
-            </p>
-          </div>
-        )}
+          {/* Empty Results State */}
+          {!isLoading && matches.length === 0 && (hasLoadedProfiles || shouldShowExistingProfiles) && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="py-20 text-center"
+            >
+              <div className="w-24 h-24 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="w-12 h-12 text-muted-foreground" />
+              </div>
+              <h3 className="text-xl font-display font-bold mb-2">No matches found</h3>
+              <p className="text-muted-foreground mb-6">
+                Complete your profile and preferences to find compatible matches
+              </p>
+              {pairingLimits.canRequest && (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleRefresh}
+                  className="px-8 py-3 rounded-xl bg-gradient-royal text-white font-semibold shadow-royal hover:shadow-glow transition-all"
+                >
+                  Try Again
+                </motion.button>
+              )}
+            </motion.div>
+          )}
+        </div>
 
         {/* Profile Modal */}
         {selectedProfile && (
@@ -713,14 +760,6 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
               const m = matches.find(m => m.user_id === userId) || selectedProfile;
               if (m) handleChatClick(m);
             }}
-          />
-        )}
-
-        {/* Chat System */}
-        {selectedChatId && (
-          <RebuiltChatSystem
-            onClose={() => setSelectedChatId("")}
-            targetUserId={selectedChatId}
           />
         )}
       </div>
