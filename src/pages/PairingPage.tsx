@@ -517,39 +517,6 @@ const PairingPage = ({ onNavigate }: PairingPageProps) => {
                       />
                     </motion.div>
 
-                    {/* Connecting spark/line animation */}
-                    <motion.div
-                      animate={{
-                        opacity: [0.3, 0.8, 0.3],
-                        scale: [0.8, 1.2, 0.8],
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
-                      className="absolute inset-0 flex items-center justify-center"
-                    >
-                      <div className="w-12 h-0.5 bg-gradient-primary blur-sm" />
-                    </motion.div>
-
-                    {/* Spark particles */}
-                    <motion.div
-                      animate={{
-                        opacity: [0, 1, 0],
-                        scale: [0, 1, 0],
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                        delay: 1
-                      }}
-                      className="absolute inset-0 flex items-center justify-center"
-                    >
-                      <div className="w-2 h-2 rounded-full bg-gradient-primary" />
-                    </motion.div>
-
                     {/* SVG gradient definitions */}
                     <svg width="0" height="0" style={{ position: 'absolute' }}>
                       <defs>
