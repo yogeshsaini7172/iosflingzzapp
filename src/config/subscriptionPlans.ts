@@ -111,7 +111,7 @@ export function isUnlimited(planId: string, feature: 'daily_swipes_limit' | 'sup
 export const PLAN_IDS = Object.keys(SUBSCRIPTION_PLANS) as PlanId[];
 
 // Plan hierarchy for upgrades/downgrades
-export const PLAN_HIERARCHY = ['free', 'basic_49', 'plus_89', 'pro_129'] as const;
+export const PLAN_HIERARCHY = ['free', 'basic_69', 'standard_129', 'premium_243'] as const;
 
 export function canUpgradeTo(currentPlan: string, targetPlan: string): boolean {
   const currentIndex = PLAN_HIERARCHY.indexOf(currentPlan as any);

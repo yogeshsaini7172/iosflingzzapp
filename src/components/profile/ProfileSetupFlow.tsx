@@ -9,7 +9,7 @@ import WhatYouAreStep from "./steps/WhatYouAreStep";
 import WhoYouWantStep from "./steps/WhoYouWantStep";
 import UploadPhotosStep from "./steps/UploadPhotosStep";
 import LocationStep from "./steps/LocationStep";
-import IDVerificationStep from "./steps/IDVerificationStep";
+import AadhaarVerificationStep from "./steps/AadhaarVerificationStep";
 import ProgressIndicator from "./steps/ProgressIndicator";
 import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -474,7 +474,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         );
       case 6:
         return (
-            <IDVerificationStep
+            <AadhaarVerificationStep
               data={profileData}
               onChange={setProfileData}
               onVerificationStatusChange={(s) => setVerificationStatus(s)}

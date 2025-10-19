@@ -42,9 +42,9 @@ const SubscriptionPlans = ({
       ]
     },
     {
-      id: 'basic_49' as const,
-      name: SUBSCRIPTION_PLANS.basic_49.display_name,
-      price: `₹${SUBSCRIPTION_PLANS.basic_49.price_monthly_inr}`,
+      id: 'basic_69' as const,
+      name: SUBSCRIPTION_PLANS.basic_69.display_name,
+      price: `₹${SUBSCRIPTION_PLANS.basic_69.price_monthly_inr}`,
       period: 'per month',
       description: 'Enhanced features for better connections',
       icon: <Crown className="w-6 h-6" />,
@@ -60,9 +60,9 @@ const SubscriptionPlans = ({
       ]
     },
     {
-      id: 'plus_89' as const,
-      name: SUBSCRIPTION_PLANS.plus_89.display_name,
-      price: `₹${SUBSCRIPTION_PLANS.plus_89.price_monthly_inr}`,
+      id: 'standard_129' as const,
+      name: SUBSCRIPTION_PLANS.standard_129.display_name,
+      price: `₹${SUBSCRIPTION_PLANS.standard_129.price_monthly_inr}`,
       period: 'per month',
       description: 'Unlimited swiping with premium features',
       icon: <Zap className="w-6 h-6" />,
@@ -80,9 +80,9 @@ const SubscriptionPlans = ({
       ]
     },
     {
-      id: 'pro_129' as const,
-      name: SUBSCRIPTION_PLANS.pro_129.display_name,
-      price: `₹${SUBSCRIPTION_PLANS.pro_129.price_monthly_inr}`,
+      id: 'premium_243' as const,
+      name: SUBSCRIPTION_PLANS.premium_243.display_name,
+      price: `₹${SUBSCRIPTION_PLANS.premium_243.price_monthly_inr}`,
       period: 'per month',
       description: 'Ultimate premium experience with AI insights',
       icon: <Gem className="w-6 h-6" />,
@@ -252,9 +252,9 @@ const SubscriptionPlans = ({
                 disabled={isLoading || (currentPlan === plan.id && showCurrentPlan)}
                 className={`w-full font-professional font-semibold text-sm sm:text-base py-2.5 rounded-xl transition-all duration-300 ${
                   plan.id === 'free' ? 'bg-gradient-to-r from-gray-500 to-gray-600 hover:shadow-glow' :
-                  plan.id === 'basic_49' ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:shadow-glow' :
-                  plan.id === 'plus_89' ? 'bg-gradient-primary hover:shadow-glow' :
-                  plan.id === 'pro_129' ? 'bg-gradient-to-r from-purple-500 to-purple-600 hover:shadow-glow' :
+                  plan.id === 'basic_69' ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:shadow-glow' :
+                  plan.id === 'standard_129' ? 'bg-gradient-primary hover:shadow-glow' :
+                  plan.id === 'premium_243' ? 'bg-gradient-to-r from-purple-500 to-purple-600 hover:shadow-glow' :
                   'bg-card border border-border hover:bg-card/80 text-muted-foreground'
                 }`}
                 variant="default"
