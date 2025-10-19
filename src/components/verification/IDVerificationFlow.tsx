@@ -186,7 +186,7 @@ const IDVerificationFlow = ({ onBack, onComplete, onSkip }: IDVerificationFlowPr
 
             <Button
               onClick={() => setCurrentStep(2)}
-              variant="coral"
+              variant="premium"
               className="w-full rounded-xl h-12 font-semibold"
             >
               Start Verification Process
@@ -327,7 +327,7 @@ const IDVerificationFlow = ({ onBack, onComplete, onSkip }: IDVerificationFlowPr
                 
                 <Button
                   onClick={() => setCurrentStep(3)}
-                  variant="coral"
+                  variant="premium"
                   className="w-full rounded-xl h-12 font-semibold mt-4"
                 >
                   Continue to Review
@@ -418,7 +418,7 @@ const IDVerificationFlow = ({ onBack, onComplete, onSkip }: IDVerificationFlowPr
 
             <Button
               onClick={handleSubmitVerification}
-              variant="coral"
+              variant="premium"
               className="w-full rounded-xl h-12 font-semibold"
               disabled={isLoading}
             >

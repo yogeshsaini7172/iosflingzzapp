@@ -5,25 +5,25 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold ring-offset-background transition-all duration-200 ease-elegant focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 transform-gpu touch-feedback pwa-ready",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold ring-offset-background transition-all duration-300 ease-elegant focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 transform-gpu touch-feedback pwa-ready",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft hover:shadow-medium active:scale-95",
+        default: "bg-gradient-primary text-primary-foreground hover:shadow-glow hover:scale-105 shadow-elegant active:scale-98 relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-700",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-soft active:scale-95",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-soft hover:shadow-medium active:scale-98",
         outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground shadow-soft active:scale-95",
+          "border-2 border-primary/30 bg-background/50 backdrop-blur-sm hover:bg-primary/10 hover:border-primary/50 hover:shadow-soft active:scale-98",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-soft hover:shadow-medium active:scale-95",
-        ghost: "hover:bg-accent hover:text-accent-foreground rounded-xl active:scale-95",
-        link: "text-primary underline-offset-4 hover:underline active:scale-95",
-        hero: "bg-gradient-primary text-white hover:shadow-glow hover:scale-105 transition-bounce shadow-medium border-0 font-bold active:scale-95",
-        coral: "bg-gradient-coral text-white hover:shadow-coral hover:scale-105 transition-bounce shadow-medium border-0 font-bold active:scale-95",
-        verified: "bg-gradient-verified text-success-foreground hover:shadow-verified hover:scale-105 transition-bounce shadow-medium border-0 font-bold active:scale-95",
-        "ghost-white": "bg-white/10 text-white border border-white/20 hover:bg-white/20 backdrop-blur-sm rounded-xl active:scale-95",
-        premium: "bg-gradient-hero text-white hover:shadow-glow hover:scale-105 transition-bounce shadow-love border-0 font-bold relative overflow-hidden active:scale-95",
-        neon: "bg-primary/10 text-primary border-2 border-primary hover:bg-primary hover:text-primary-foreground shadow-glow backdrop-blur-sm font-bold active:scale-95",
+          "bg-gradient-secondary text-secondary-foreground hover:shadow-romantic hover:scale-105 shadow-soft active:scale-98",
+        ghost: "hover:bg-accent/10 hover:text-accent-foreground rounded-xl active:scale-98 backdrop-blur-sm",
+        link: "text-primary underline-offset-4 hover:underline active:scale-98",
+        hero: "bg-gradient-hero text-white hover:shadow-premium hover:scale-105 transition-luxury shadow-royal border-0 font-bold active:scale-98 relative overflow-hidden",
+        "ghost-white": "bg-white/5 text-white border border-white/10 hover:bg-white/10 hover:border-white/20 backdrop-blur-md rounded-xl active:scale-98 shadow-soft",
+        premium: "bg-gradient-royal text-white hover:shadow-glow hover:scale-105 transition-luxury shadow-premium border-0 font-bold relative overflow-hidden active:scale-98 before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-1000",
+        neon: "bg-primary/5 text-primary border-2 border-primary/50 hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-glow backdrop-blur-sm font-bold active:scale-98 transition-all duration-500",
+        glass: "glass-premium text-foreground hover:bg-white/10 hover:shadow-elegant active:scale-98",
+        gold: "bg-gradient-gold text-card hover:shadow-gold hover:scale-105 shadow-soft active:scale-98 font-bold",
       },
       size: {
         default: "h-11 px-5 py-2.5 min-w-[44px]", // Instagram-like minimum touch target

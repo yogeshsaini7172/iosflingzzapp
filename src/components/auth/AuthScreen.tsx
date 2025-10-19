@@ -151,12 +151,12 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
             {!showOTPInput ? (
               <div className="space-y-6">
                 {/* Google OAuth */}
-                <Button
-                  onClick={handleGoogleAuth}
-                  disabled={isLoading}
-                  className="w-full rounded-xl h-12 font-medium"
-                  variant="coral"
-                >
+              <Button
+                onClick={handleGoogleAuth}
+                disabled={isLoading}
+                className="w-full rounded-xl h-12 font-medium"
+                variant="premium"
+              >
                   {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : (
                     <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24">
                       <path
@@ -255,12 +255,12 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
                   >
                     Back
                   </Button>
-                  <Button
-                    onClick={handleOTPVerification}
-                    disabled={isLoading || otp.length !== 6}
-                    className="h-12 rounded-xl"
-                    variant="coral"
-                  >
+                <Button
+                  onClick={handleOTPVerification}
+                  disabled={isLoading || otp.length !== 6}
+                  className="h-12 rounded-xl"
+                  variant="premium"
+                >
                     {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                     Verify
                   </Button>

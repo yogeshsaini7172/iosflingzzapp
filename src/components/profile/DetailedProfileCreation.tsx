@@ -883,7 +883,7 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
           {currentStep < totalSteps ? (
             <Button
               onClick={handleNext}
-              variant="coral"
+              variant="premium"
               className="rounded-xl px-8 font-semibold"
               disabled={
                 (currentStep === 1 && profileData.profileImages.length === 0) ||
@@ -898,7 +898,7 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
           ) : (
             <Button
               onClick={handleSubmit}
-              variant="coral"
+              variant="premium"
               className="rounded-xl px-8 font-semibold"
               disabled={isLoading}
             >
