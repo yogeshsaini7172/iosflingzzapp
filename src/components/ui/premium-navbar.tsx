@@ -3,7 +3,6 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import NotificationCenter from '@/components/notifications/NotificationCenter';
 import {
   Home,
@@ -14,10 +13,11 @@ import {
   Calendar,
   Zap,
   Menu,
-  Settings
+  Settings,
+  Sparkles
 } from 'lucide-react';
 
-const Navbar = () => {
+const PremiumNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
@@ -41,16 +41,36 @@ const Navbar = () => {
     <NavLink
       to={to}
       className={({ isActive }) =>
-        `flex items-center space-x-2 px-3 py-2 rounded-xl transition-all duration-200 hover:bg-muted ${
+        `group relative flex items-center gap-3 px-4 py-2.5 rounded-xl transition-elegant overflow-hidden ${
           isActiveRoute(to)
-            ? 'bg-muted text-foreground font-semibold shadow-sm'
-            : 'text-foreground hover:text-foreground'
-        } ${mobile ? 'w-full justify-center' : ''}`
+            ? 'text-primary-foreground font-semibold'
+            : 'text-foreground/80 hover:text-foreground'
+        } ${mobile ? 'w-full' : ''}`
       }
       onClick={() => mobile && setIsOpen(false)}
     >
-      <Icon className="h-4 w-4" />
-      <span className={mobile ? 'hidden sm:inline' : ''}>{label}</span>
+      {/* Active background with gradient */}
+      {isActiveRoute(to) && (
+        <div className="absolute inset-0 bg-gradient-primary opacity-100 -z-10 transition-elegant" />
+      )}
+      
+      {/* Hover background */}
+      <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/5 opacity-0 group-hover:opacity-100 -z-10 transition-elegant" />
+      
+      {/* Icon with glow effect on active */}
+      <div className="relative">
+        {isActiveRoute(to) && (
+          <div className="absolute inset-0 blur-lg bg-primary-glow/50 animate-pulse-glow" />
+        )}
+        <Icon className="h-5 w-5 relative z-10" strokeWidth={isActiveRoute(to) ? 2.5 : 2} />
+      </div>
+      
+      <span className={mobile ? '' : 'hidden xl:inline'}>{label}</span>
+      
+      {/* Active indicator */}
+      {isActiveRoute(to) && (
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary-glow rounded-full blur-sm" />
+      )}
     </NavLink>
   );
 
@@ -69,7 +89,7 @@ const Navbar = () => {
                 <Heart className="h-6 w-6 text-primary-foreground" strokeWidth={2.5} />
               </div>
             </div>
-            <div className="hidden sm:flex flex-col">
+            <div className="flex flex-col">
               <span className="text-2xl font-display font-bold gradient-text tracking-tight">
                 FLINGZZ
               </span>
@@ -87,7 +107,7 @@ const Navbar = () => {
           </div>
 
           {/* Right side items */}
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-4">
             {/* Notifications with premium styling */}
             <div className="relative">
               <NotificationCenter />
@@ -97,14 +117,14 @@ const Navbar = () => {
             <NavLink to="/profile" className="group">
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-primary blur-md opacity-0 group-hover:opacity-50 transition-elegant rounded-full" />
-                <Avatar className="h-10 w-10 sm:h-11 sm:w-11 border-2 border-primary/30 group-hover:border-primary transition-elegant shadow-medium group-hover:scale-110 cursor-pointer relative">
+                <Avatar className="h-11 w-11 border-2 border-primary/30 group-hover:border-primary transition-elegant shadow-medium group-hover:scale-110 cursor-pointer relative">
                   <AvatarImage src="/api/placeholder/44/44" />
                   <AvatarFallback className="bg-gradient-primary text-primary-foreground text-sm font-bold">
                     AW
                   </AvatarFallback>
                 </Avatar>
                 {/* Online status indicator */}
-                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 sm:w-4 sm:h-4 bg-success rounded-full border-2 border-background shadow-sm" />
+                <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-success rounded-full border-2 border-background shadow-sm" />
               </div>
             </NavLink>
 
@@ -115,7 +135,7 @@ const Navbar = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="relative group h-10 w-10 p-0"
+                    className="relative group"
                   >
                     <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-10 rounded-lg transition-elegant" />
                     <Menu className="h-6 w-6" />
@@ -144,7 +164,7 @@ const Navbar = () => {
                           <p className="text-foreground font-bold text-base truncate">Andrew Williams</p>
                           <p className="text-muted-foreground text-sm truncate">University of Texas</p>
                           <div className="flex items-center gap-1 mt-1">
-                            <div className="w-2 h-2 bg-gradient-primary rounded-full" />
+                            <Sparkles className="h-3 w-3 text-primary" />
                             <span className="text-xs text-primary font-medium">Premium Member</span>
                           </div>
                         </div>
@@ -179,4 +199,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default PremiumNavbar;

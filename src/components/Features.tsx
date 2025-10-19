@@ -36,31 +36,45 @@ const Features = () => {
   ];
 
   return (
-    <section id="features" className="py-24 bg-gradient-card">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl lg:text-5xl font-bold mb-6 bg-gradient-primary bg-clip-text text-transparent">
+    <section id="features" className="relative py-32 overflow-hidden">
+      {/* Premium background with mesh gradient */}
+      <div className="absolute inset-0 mesh-gradient opacity-50" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/50 to-background" />
+      
+      <div className="container relative mx-auto px-4 lg:px-8">
+        <div className="text-center mb-20 animate-fade-in">
+          <h2 className="text-5xl lg:text-7xl font-bold mb-6 gradient-text tracking-tight">
             Why Choose WebFlow?
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Powerful features designed to help your business grow and succeed in the digital world.
           </p>
         </div>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {features.map((feature, index) => (
-            <Card key={index} className="relative group hover:shadow-medium transition-smooth bg-card/50 backdrop-blur-sm border-border/50">
-              <CardHeader className="text-center pb-4">
-                <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:shadow-glow transition-smooth">
-                  <feature.icon className="w-8 h-8 text-white" />
+            <Card 
+              key={index} 
+              className="relative overflow-hidden animate-elegant-entrance"
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              <CardHeader className="text-center pb-6 relative z-10">
+                <div className="relative w-20 h-20 mx-auto mb-6 group-hover:scale-110 transition-elegant">
+                  <div className="absolute inset-0 bg-gradient-primary rounded-3xl blur-xl opacity-50 group-hover:opacity-75 transition-elegant" />
+                  <div className="relative w-full h-full bg-gradient-primary rounded-3xl flex items-center justify-center shadow-elegant group-hover:shadow-glow">
+                    <feature.icon className="w-10 h-10 text-white" strokeWidth={1.5} />
+                  </div>
                 </div>
-                <CardTitle className="text-xl mb-2">{feature.title}</CardTitle>
+                <CardTitle className="text-2xl mb-3">{feature.title}</CardTitle>
               </CardHeader>
-              <CardContent className="text-center">
-                <CardDescription className="text-muted-foreground leading-relaxed">
+              <CardContent className="text-center relative z-10">
+                <CardDescription className="text-base text-muted-foreground leading-relaxed">
                   {feature.description}
                 </CardDescription>
               </CardContent>
+              
+              {/* Shimmer effect on hover */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-smooth shimmer pointer-events-none" />
             </Card>
           ))}
         </div>
