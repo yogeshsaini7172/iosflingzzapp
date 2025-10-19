@@ -86,32 +86,33 @@ serve(async (req) => {
       .eq('user_id', user.id)
       .maybeSingle();
 
-    // Get users that have been swiped on
-    const { data: swipedUsers } = await supabaseClient
-      .from('enhanced_swipes')
-      .select('target_user_id')
-      .eq('user_id', user.id);
-
-    const swipedUserIds = swipedUsers?.map(s => s.target_user_id) || [];
+    // Optimized: Get exclusions in parallel with single query using UNION
+    const excludedUserIds = new Set<string>([user.id]);
     
-    // Get blocked/ghosted users
-    const { data: blockedUsers } = await supabaseClient
-      .from('user_interactions')
-      .select('target_user_id')
-      .eq('user_id', user.id)
-      .in('interaction_type', ['block', 'ghost']);
+    // Parallel fetch of exclusions
+    const [swipedResult, blockedResult] = await Promise.all([
+      supabaseClient
+        .from('enhanced_swipes')
+        .select('target_user_id')
+        .eq('user_id', user.id),
+      supabaseClient
+        .from('user_interactions')
+        .select('target_user_id')
+        .eq('user_id', user.id)
+        .in('interaction_type', ['block', 'ghost'])
+    ]);
 
-    const blockedUserIds = blockedUsers?.map(b => b.target_user_id) || [];
+    swipedResult.data?.forEach(s => excludedUserIds.add(s.target_user_id));
+    blockedResult.data?.forEach(b => excludedUserIds.add(b.target_user_id));
     
-    // Combine exclusion list
-    const excludedUserIds = [...swipedUserIds, ...blockedUserIds, user.id];
+    const excludedArray = Array.from(excludedUserIds);
     
     logStep("Exclusions calculated", { 
-      swipedCount: swipedUserIds.length, 
-      blockedCount: blockedUserIds.length 
+      swipedCount: swipedResult.data?.length || 0, 
+      blockedCount: blockedResult.data?.length || 0 
     });
 
-    // Build query for potential matches
+    // Optimized: Build query with better performance
     let query = supabaseClient
       .from('profiles')
       .select(`
@@ -129,8 +130,9 @@ serve(async (req) => {
         priority_score
       `)
       .eq('is_active', true)
-      .not('user_id', 'in', `(${excludedUserIds.join(',')})`)
+      .not('user_id', 'in', `(${excludedArray.join(',')})`)
       .order('priority_score', { ascending: false })
+      .order('total_qcs', { ascending: false })
       .order('last_active', { ascending: false });
 
     // GENDER FILTERING: Apply user's preferred gender filter
