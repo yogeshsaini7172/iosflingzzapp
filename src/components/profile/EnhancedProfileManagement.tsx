@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import LocationPermission from '@/components/common/LocationPermission';
 import LocationDisplay from '@/components/common/LocationDisplay';
+import ProfileTabSlider from '@/components/ui/premium-tab-slider';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, 
   Camera, 
@@ -1803,39 +1805,61 @@ useEffect(() => {
           </div>
         </Card>
 
-        {/* Premium Tabs */}
-        <Card className="premium-card mb-6 animate-fade-in delay-100">
-          <div className="flex gap-2 p-2 overflow-x-auto scrollbar-hide">
-            {tabs.map(({ id, label, icon: Icon }) => (
-              <Button
-                key={id}
-                variant={activeTab === id ? "premium" : "glass"}
-                onClick={() => setActiveTab(id as any)}
-                className={`shrink-0 px-4 py-2.5 text-xs font-semibold transition-all hover-lift ${
-                  activeTab === id 
-                    ? 'shadow-glow' 
-                    : 'hover:shadow-soft'
-                }`}
-                size="sm"
-              >
-                <Icon className="w-3.5 h-3.5 mr-1.5" />
-                {id === 'what-you-are' ? 'You Are' : id === 'who-you-want' ? 'You Want' : label.split(' ')[0]}
-              </Button>
-            ))}
+        {/* Premium Slider Navigation - for main profile sections */}
+        {(activeTab === 'location' || activeTab === 'what-you-are' || activeTab === 'who-you-want') && (
+          <div className="mb-6">
+            <ProfileTabSlider 
+              activeTab={activeTab} 
+              onTabChange={(tab) => setActiveTab(tab as any)}
+            />
           </div>
-        </Card>
+        )}
 
-        {/* Premium Content Card */}
-        <Card className="premium-card animate-fade-in delay-200">
-          <CardContent className="p-6">
-            {activeTab === 'basic' && renderBasicInfo()}
-            {activeTab === 'location' && renderLocationSection()}
-            {activeTab === 'what-you-are' && renderWhatYouAre()}
-            {activeTab === 'who-you-want' && renderWhoYouWant()}
-            {activeTab === 'photos' && renderPhotos()}
-            {activeTab === 'privacy' && renderPrivacy()}
-          </CardContent>
-        </Card>
+        {/* Other tabs shown as buttons */}
+        {!(activeTab === 'location' || activeTab === 'what-you-are' || activeTab === 'who-you-want') && (
+          <Card className="premium-card mb-6 animate-fade-in delay-100">
+            <div className="flex gap-2 p-2 overflow-x-auto scrollbar-hide">
+              {tabs.filter(t => !['location', 'what-you-are', 'who-you-want'].includes(t.id)).map(({ id, label, icon: Icon }) => (
+                <Button
+                  key={id}
+                  variant={activeTab === id ? "premium" : "glass"}
+                  onClick={() => setActiveTab(id as any)}
+                  className={`shrink-0 px-4 py-2.5 text-xs font-semibold transition-all hover-lift ${
+                    activeTab === id 
+                      ? 'shadow-glow' 
+                      : 'hover:shadow-soft'
+                  }`}
+                  size="sm"
+                >
+                  <Icon className="w-3.5 h-3.5 mr-1.5" />
+                  {label.split(' ')[0]}
+                </Button>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        {/* Premium Content Card with animation */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card className="premium-card">
+              <CardContent className="p-6">
+                {activeTab === 'basic' && renderBasicInfo()}
+                {activeTab === 'location' && renderLocationSection()}
+                {activeTab === 'what-you-are' && renderWhatYouAre()}
+                {activeTab === 'who-you-want' && renderWhoYouWant()}
+                {activeTab === 'photos' && renderPhotos()}
+                {activeTab === 'privacy' && renderPrivacy()}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );

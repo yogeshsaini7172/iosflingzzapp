@@ -27,7 +27,9 @@ import {
   Zap,
   MoreVertical,
   Edit,
-  Trash2
+  Trash2,
+  Brain,
+  Activity
 } from "lucide-react";
 import { fetchProfilesFeed } from '@/services/profile';
 import { useToast } from '@/hooks/use-toast';
@@ -39,6 +41,9 @@ import UnifiedLayout from '@/components/layout/UnifiedLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { calculateCompatibility, type CompatibilityScore } from '@/services/compatibility';
 import { getCurrentLocation, calculateDistance, type LocationData } from '@/utils/locationUtils';
+import { CompatibilityGroup, CompatibilityBadge } from '@/components/swipe/CompatibilityBadge';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useProfileData } from '@/hooks/useProfileData';
 
 
 interface FlingzzHomeProps {
@@ -71,6 +76,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
   
   const { toast } = useToast();
   const { user } = useAuth();
+  const { profile: userProfile } = useProfileData();
 
   // Set up realtime listeners
   const userId = user?.uid;
@@ -877,54 +883,105 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                     )}
                   </div>
 
-                  {/* Personality & Lifestyle - Expandable */}
+                  {/* Personality & Lifestyle - with Compatibility Badges */}
                   <div className="bg-muted/30 rounded-lg mb-3">
                     <button 
                       onClick={() => toggleSection('personality')}
                       className="w-full p-3 flex items-center justify-between hover:bg-muted/50 rounded-lg transition-colors"
                     >
                       <div className="flex items-center space-x-2">
-                        <span className="text-sm">🧠</span>
+                        <Brain className="w-4 h-4 text-primary" />
                         <h4 className="font-semibold text-sm">Personality & Lifestyle</h4>
+                        <span className="text-[10px] text-muted-foreground">(Compatibility)</span>
                       </div>
                       <span className={`text-sm transition-transform ${expandedSections.personality ? 'rotate-180' : ''}`}>
                         ▼
                       </span>
                     </button>
                     {expandedSections.personality && (
-                      <div className="px-3 pb-3 text-xs space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Personality Type:</span>
-                          <span className="font-medium capitalize">
-                            {currentProfile.personality_type || 'Not specified'}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Lifestyle:</span>
-                          <span className="font-medium capitalize">
-                            {currentProfile.lifestyle || 'Not specified'}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Values:</span>
-                          <span className="font-medium">
-                            {currentProfile.values && Array.isArray(currentProfile.values) && currentProfile.values.length > 0
-                              ? currentProfile.values.join(', ')
-                              : 'Not specified'
-                            }
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Love Language:</span>
-                          <span className="font-medium capitalize">
-                            {currentProfile.love_language || 'Not specified'}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Humor Style:</span>
-                          <span className="font-medium capitalize">
-                            {currentProfile.humor_type || 'Not specified'}
-                          </span>
+                      <div className="px-3 pb-4 space-y-4">
+                        {/* Personality Type Match */}
+                        {currentProfile.personality_type && (
+                          <CompatibilityGroup
+                            title="Personality"
+                            icon={<User className="w-4 h-4" />}
+                            items={[
+                              {
+                                label: currentProfile.personality_type,
+                                userValue: userProfile?.personality_type,
+                                partnerValue: currentProfile.personality_type,
+                                type: 'personality'
+                              }
+                            ]}
+                          />
+                        )}
+
+                        {/* Lifestyle Match */}
+                        {currentProfile.lifestyle && (
+                          <CompatibilityGroup
+                            title="Lifestyle"
+                            icon={<Activity className="w-4 h-4" />}
+                            items={[
+                              {
+                                label: currentProfile.lifestyle,
+                                userValue: userProfile?.lifestyle,
+                                partnerValue: currentProfile.lifestyle,
+                                type: 'lifestyle'
+                              }
+                            ]}
+                          />
+                        )}
+
+                        {/* Values Match */}
+                        {currentProfile.values && Array.isArray(currentProfile.values) && currentProfile.values.length > 0 && (
+                          <CompatibilityGroup
+                            title="Values"
+                            icon={<Heart className="w-4 h-4" />}
+                            items={currentProfile.values.slice(0, 3).map((value: string) => ({
+                              label: value,
+                              userValue: userProfile?.values,
+                              partnerValue: value,
+                              type: 'value'
+                            }))}
+                          />
+                        )}
+
+                        {/* Interests Match */}
+                        {currentProfile.interests && currentProfile.interests.length > 0 && (
+                          <CompatibilityGroup
+                            title="Interests"
+                            icon={<Sparkles className="w-4 h-4" />}
+                            items={currentProfile.interests.slice(0, 4).map((interest: string) => ({
+                              label: interest,
+                              userValue: userProfile?.interests,
+                              partnerValue: interest,
+                              type: 'interest'
+                            }))}
+                          />
+                        )}
+
+                        {/* Additional Info */}
+                        <div className="pt-3 border-t border-border/50 space-y-2 text-xs">
+                          {currentProfile.love_language && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-muted-foreground">Love Language:</span>
+                              <CompatibilityBadge
+                                label={currentProfile.love_language}
+                                userValue={userProfile?.love_language}
+                                partnerValue={currentProfile.love_language}
+                              />
+                            </div>
+                          )}
+                          {currentProfile.humor_type && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-muted-foreground">Humor Style:</span>
+                              <CompatibilityBadge
+                                label={currentProfile.humor_type}
+                                userValue={(userProfile as any)?.humor_type}
+                                partnerValue={currentProfile.humor_type}
+                              />
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
