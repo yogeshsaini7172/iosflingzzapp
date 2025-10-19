@@ -47,9 +47,9 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
     bodyType: "",
     skinTone: "",
     faceType: "",
-    personalityType: "",
-    values: "",
-    mindset: "",
+    personalityType: [] as string[],
+    values: [] as string[],
+    mindset: [] as string[],
     loveLanguage: "",
     lifestyle: "",
     relationshipGoals: [] as string[],
@@ -174,11 +174,12 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         body_type: profileData.bodyType,
         skin_tone: profileData.skinTone,
         face_type: profileData.faceType,
-        personality_type: profileData.personalityType,
-        personality_traits: profileData.personalityType ? [profileData.personalityType] : [],
-        values: profileData.values,
-        values_array: profileData.values ? [profileData.values] : [],
-        mindset: profileData.mindset,
+        personality_type: profileData.personalityType[0] || null,
+        personality_traits: profileData.personalityType,
+        values: profileData.values[0] || null,
+        values_array: profileData.values,
+        mindset: profileData.mindset[0] || null,
+        mindset_array: profileData.mindset,
         love_language: profileData.loveLanguage,
         lifestyle: profileData.lifestyle,
         relationship_goals: profileData.relationshipGoals,
@@ -417,7 +418,10 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         return profileData.firstName && profileData.lastName && profileData.dateOfBirth && 
                profileData.gender && isAgeValid && hasProfession;
       case 2: // What You Are
-        return profileData.personalityType && profileData.values && profileData.bio;
+      return profileData.personalityType.length > 0 && 
+      profileData.values.length > 0 && 
+      profileData.mindset.length > 0 && 
+      profileData.bio;
       case 3: // Who You Want
         return profileData.preferredGender.length > 0 && profileData.preferredRelationshipGoals.length > 0;
       case 4: // Upload Photos

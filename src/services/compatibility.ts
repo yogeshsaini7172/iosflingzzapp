@@ -29,6 +29,17 @@ export async function calculateCompatibility(userId1: string, userId2: string): 
 
     const [profile1, profile2] = profiles;
 
+    // Helper function to get array fields
+    const getArrayField = (profile: any, field: string): string[] => {
+      if (profile[`${field}_array`]) {
+        return Array.isArray(profile[`${field}_array`]) ? profile[`${field}_array`] : [];
+      }
+      if (profile[field]) {
+        return Array.isArray(profile[field]) ? profile[field] : [profile[field]];
+      }
+      return [];
+    };
+
     // Parse qualities and requirements (same as enhanced-pairing)
     const qualities1 = parseJSON(profile1.qualities) || {};
     const requirements1 = parseJSON(profile1.requirements) || {};
@@ -95,15 +106,15 @@ export async function calculateCompatibility(userId1: string, userId2: string): 
     // Mental compatibility
     // Shared interests
     maxMentalScore += 40;
-    const userInterests = qualities1.interests || [];
-    const candidateInterests = qualities2.interests || [];
+    const userInterests = getArrayField(profile1, 'interests');
+    const candidateInterests = getArrayField(profile2, 'interests');
     const sharedInterests = userInterests.filter((interest: string) => candidateInterests.includes(interest));
     mentalScore += Math.min(sharedInterests.length * 8, 40);
 
     // Relationship goals compatibility
     maxMentalScore += 30;
-    const userGoals = qualities1.relationship_goals || [];
-    const candidateGoals = qualities2.relationship_goals || [];
+    const userGoals = getArrayField(profile1, 'relationship_goals');
+    const candidateGoals = getArrayField(profile2, 'relationship_goals');
     const sharedGoals = userGoals.filter((goal: string) => candidateGoals.includes(goal));
     if (sharedGoals.length > 0) {
       mentalScore += 30;
@@ -111,8 +122,8 @@ export async function calculateCompatibility(userId1: string, userId2: string): 
 
     // Values compatibility
     maxMentalScore += 30;
-    const userValues = qualities1.values || [];
-    const candidateValues = qualities2.values || [];
+    const userValues = getArrayField(profile1, 'values');
+    const candidateValues = getArrayField(profile2, 'values');
     const sharedValues = userValues.filter((value: string) => candidateValues.includes(value));
     mentalScore += Math.min(sharedValues.length * 10, 30);
 
@@ -220,10 +231,22 @@ function calculatePhysicalCompatibility(
 
 function calculateMentalCompatibility(
   qualities1: any, requirements1: any,
-  qualities2: any, requirements2: any
+  qualities2: any, requirements2: any,
+  profile1: any, profile2: any
 ): number {
   let score = 0;
   let maxScore = 0;
+
+  // Helper function to get array fields
+  const getArrayField = (profile: any, field: string): string[] => {
+    if (profile[`${field}_array`]) {
+      return Array.isArray(profile[`${field}_array`]) ? profile[`${field}_array`] : [];
+    }
+    if (profile[field]) {
+      return Array.isArray(profile[field]) ? profile[field] : [profile[field]];
+    }
+    return [];
+  };
 
   // Professional compatibility
   maxScore += 15;
@@ -250,16 +273,16 @@ function calculateMentalCompatibility(
 
   // Shared interests (high weight)
   maxScore += 30;
-  const interests1 = qualities1.interests || [];
-  const interests2 = qualities2.interests || [];
+  const interests1 = getArrayField(profile1, 'interests');
+  const interests2 = getArrayField(profile2, 'interests');
   const sharedInterests = interests1.filter((interest: string) => interests2.includes(interest));
   const interestCompatibility = Math.min(sharedInterests.length * 10, 30);
   score += interestCompatibility;
 
   // Personality traits compatibility
   maxScore += 25;
-  const traits1 = qualities1.personality_traits || [];
-  const traits2 = qualities2.personality_traits || [];
+  const traits1 = getArrayField(profile1, 'personality_traits');
+  const traits2 = getArrayField(profile2, 'personality_traits');
   const preferredTraits1 = requirements1.preferred_personality_traits || [];
   const preferredTraits2 = requirements2.preferred_personality_traits || [];
   
@@ -279,8 +302,8 @@ function calculateMentalCompatibility(
 
   // Values compatibility
   maxScore += 20;
-  const values1 = qualities1.values || [];
-  const values2 = qualities2.values || [];
+  const values1 = getArrayField(profile1, 'values');
+  const values2 = getArrayField(profile2, 'values');
   const preferredValues1 = requirements1.preferred_values || [];
   const preferredValues2 = requirements2.preferred_values || [];
   
@@ -300,8 +323,8 @@ function calculateMentalCompatibility(
 
   // Relationship goals compatibility
   maxScore += 25;
-  const goals1 = qualities1.relationship_goals || [];
-  const goals2 = qualities2.relationship_goals || [];
+  const goals1 = getArrayField(profile1, 'relationship_goals');
+  const goals2 = getArrayField(profile2, 'relationship_goals');
   const preferredGoals1 = requirements1.preferred_relationship_goals || [];
   const preferredGoals2 = requirements2.preferred_relationship_goals || [];
   
