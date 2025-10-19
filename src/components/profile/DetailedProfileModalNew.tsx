@@ -24,9 +24,12 @@ import {
   ChevronLeft,
   ChevronRight,
   User,
-  Activity
+  Activity,
+  Sparkles
 } from 'lucide-react';
 import { getCurrentLocation, calculateDistance } from '@/utils/locationUtils';
+import { CompatibilityGroup, CompatibilityBadge } from '@/components/swipe/CompatibilityBadge';
+import { useProfileData } from '@/hooks/useProfileData';
 
 interface DetailedProfileModalProps {
   isOpen: boolean;
@@ -110,6 +113,7 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
   const [distance, setDistance] = React.useState<number | null>(null);
+  const { profile: userProfile } = useProfileData();
 
   const images = profile.profile_images && profile.profile_images.length > 0
     ? profile.profile_images
@@ -406,64 +410,138 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
               </CardContent>
             </Card>
 
-            {/* Personality & Lifestyle */}
+            {/* Personality & Lifestyle - With Compatibility Badges */}
             <Card className="bg-card/80 border border-border/50">
               <CardContent className="p-4">
-                <h4 className="font-medium text-foreground mb-3 flex items-center">
+                <h4 className="font-medium text-foreground mb-4 flex items-center">
                   <Brain className="w-4 h-4 mr-2" />
                   Personality & Lifestyle
+                  <span className="ml-2 text-xs text-muted-foreground">(Only Matches Shown)</span>
                 </h4>
-                <div className="space-y-3 text-sm">
+                <div className="space-y-4">
+                  {/* Personality Type Match */}
                   {profile.personality_type && (
-                    <div className="flex flex-col sm:flex-row sm:justify-between">
-                      <span className="text-foreground/70">Personality Type:</span>
-                      <span className="font-medium text-foreground">{profile.personality_type}</span>
-                    </div>
+                    <CompatibilityGroup
+                      title="Personality"
+                      icon={<User className="w-4 h-4" />}
+                      items={[
+                        {
+                          label: profile.personality_type,
+                          userValue: userProfile?.personality_type,
+                          partnerValue: profile.personality_type,
+                          type: 'personality'
+                        }
+                      ]}
+                    />
                   )}
+
+                  {/* Personality Traits Match */}
                   {profile.personality_traits && profile.personality_traits.length > 0 && (
-                    <div className="flex flex-col sm:flex-row sm:justify-between">
-                      <span className="text-foreground/70">Personality Traits:</span>
-                      <span className="font-medium text-foreground">{formatArrayField(profile.personality_traits)}</span>
-                    </div>
+                    <CompatibilityGroup
+                      title="Traits"
+                      icon={<Star className="w-4 h-4" />}
+                      items={profile.personality_traits.map((trait: string) => ({
+                        label: trait,
+                        userValue: userProfile?.personality_traits,
+                        partnerValue: trait,
+                        type: 'personality'
+                      }))}
+                    />
                   )}
+
+                  {/* Lifestyle Match */}
                   {profile.lifestyle && (
-                    <div className="flex flex-col sm:flex-row sm:justify-between">
-                      <span className="text-foreground/70">Lifestyle:</span>
-                      <span className="font-medium text-foreground">{profile.lifestyle}</span>
-                    </div>
+                    <CompatibilityGroup
+                      title="Lifestyle"
+                      icon={<Activity className="w-4 h-4" />}
+                      items={[
+                        {
+                          label: profile.lifestyle,
+                          userValue: userProfile?.lifestyle,
+                          partnerValue: profile.lifestyle,
+                          type: 'lifestyle'
+                        }
+                      ]}
+                    />
                   )}
-                  {profile.love_language && (
-                    <div className="flex flex-col sm:flex-row sm:justify-between">
-                      <span className="text-foreground/70">Love Language:</span>
-                      <span className="font-medium text-foreground">{profile.love_language}</span>
-                    </div>
-                  )}
-                  {profile.communication_style && (
-                    <div className="flex flex-col sm:flex-row sm:justify-between">
-                      <span className="text-foreground/70">Communication Style:</span>
-                      <span className="font-medium text-foreground">{profile.communication_style}</span>
-                    </div>
-                  )}
+
+                  {/* Values Match */}
                   {profile.values && profile.values.length > 0 && (
-                    <div className="flex flex-col sm:flex-row sm:justify-between">
-                      <span className="text-foreground/70">Values:</span>
-                      <span className="font-medium text-foreground">{formatArrayField(profile.values)}</span>
-                    </div>
+                    <CompatibilityGroup
+                      title="Values"
+                      icon={<Heart className="w-4 h-4" />}
+                      items={profile.values.slice(0, 3).map((value: string) => ({
+                        label: value,
+                        userValue: userProfile?.values,
+                        partnerValue: value,
+                        type: 'value'
+                      }))}
+                    />
                   )}
+
+                  {/* Mindset Match */}
                   {profile.mindset && profile.mindset.length > 0 && (
-                    <div className="flex flex-col sm:flex-row sm:justify-between">
-                      <span className="text-foreground/70">Mindset:</span>
-                      <span className="font-medium text-foreground">{formatArrayField(profile.mindset)}</span>
-                    </div>
+                    <CompatibilityGroup
+                      title="Mindset"
+                      icon={<Brain className="w-4 h-4" />}
+                      items={profile.mindset.map((mindset: string) => ({
+                        label: mindset,
+                        userValue: userProfile?.mindset,
+                        partnerValue: mindset,
+                        type: 'value'
+                      }))}
+                    />
                   )}
-                  {profile.relationship_goals && (
-                    <div className="flex flex-col sm:flex-row sm:justify-between">
-                      <span className="text-foreground/70">Relationship Goals:</span>
-                      <span className="font-medium text-foreground">
-                        {Array.isArray(profile.relationship_goals)
-                          ? formatArrayField(profile.relationship_goals)
-                          : profile.relationship_goals}
-                      </span>
+
+                  {/* Additional Info - Only if matched */}
+                  <div className="pt-3 border-t border-border/50 space-y-2">
+                    {profile.love_language && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-foreground/70">Love Language:</span>
+                        <CompatibilityBadge
+                          label={profile.love_language}
+                          userValue={userProfile?.love_language}
+                          partnerValue={profile.love_language}
+                        />
+                      </div>
+                    )}
+                    {profile.communication_style && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-foreground/70">Communication:</span>
+                        <CompatibilityBadge
+                          label={profile.communication_style}
+                          userValue={(userProfile as any)?.communication_style}
+                          partnerValue={profile.communication_style}
+                        />
+                      </div>
+                    )}
+                    {profile.relationship_goals && (
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        <span className="text-sm text-foreground/70 w-full">Relationship Goals:</span>
+                        {(Array.isArray(profile.relationship_goals) 
+                          ? profile.relationship_goals 
+                          : [profile.relationship_goals]
+                        ).map((goal: string, idx: number) => (
+                          <CompatibilityBadge
+                            key={idx}
+                            label={goal}
+                            userValue={userProfile?.relationship_goals}
+                            partnerValue={goal}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* No matches message */}
+                  {!profile.personality_type && 
+                   (!profile.personality_traits || profile.personality_traits.length === 0) && 
+                   !profile.lifestyle && 
+                   (!profile.values || profile.values.length === 0) && 
+                   (!profile.mindset || profile.mindset.length === 0) && (
+                    <div className="text-center py-4 text-muted-foreground text-sm">
+                      <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      No matching personality or lifestyle traits found
                     </div>
                   )}
                 </div>
