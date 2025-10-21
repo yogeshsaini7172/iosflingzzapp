@@ -7,13 +7,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Edit2, Save, X } from "lucide-react";
+import { Plus, Edit2, Save, X, Clock, CheckCircle, MessageSquare } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const ConsultingPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
+  const [myRequests, setMyRequests] = useState<any[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [showNewForm, setShowNewForm] = useState(false);
   const [editData, setEditData] = useState({
@@ -29,6 +31,7 @@ const ConsultingPage = () => {
   useEffect(() => {
     if (user?.uid) {
       fetchProfileData();
+      fetchMyRequests();
     }
   }, [user]);
 
@@ -38,7 +41,7 @@ const ConsultingPage = () => {
         .from("profiles")
         .select("interests, relationship_goals, bio, first_name, last_name")
         .eq("firebase_uid", user?.uid)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       if (data) {
@@ -48,9 +51,28 @@ const ConsultingPage = () => {
           relationship_goals: data.relationship_goals || [],
           bio: data.bio || "",
         });
+      } else {
+        // No profile exists yet - this is okay, user can still submit consulting requests
+        setProfileData(null);
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
+      // Don't show error to user - profile might not exist yet
+    }
+  };
+
+  const fetchMyRequests = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("consulting_requests")
+        .select("*")
+        .eq("user_id", user?.uid)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setMyRequests(data || []);
+    } catch (error) {
+      console.error("Error fetching requests:", error);
     }
   };
 
@@ -117,6 +139,7 @@ const ConsultingPage = () => {
       });
       setShowNewForm(false);
       setNewRequest({ type: "", description: "" });
+      fetchMyRequests(); // Refresh the list
     } catch (error) {
       console.error("Error submitting request:", error);
       toast({
@@ -127,6 +150,16 @@ const ConsultingPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusStyles: Record<string, string> = {
+      pending: "bg-yellow-100 text-yellow-800",
+      in_progress: "bg-blue-100 text-blue-800",
+      completed: "bg-green-100 text-green-800",
+      closed: "bg-gray-100 text-gray-800",
+    };
+    return statusStyles[status] || "bg-gray-100 text-gray-800";
   };
 
   return (
@@ -334,6 +367,106 @@ const ConsultingPage = () => {
             </div>
           </CardContent>
         )}
+      </Card>
+
+      {/* My Consulting Requests History */}
+      <Card>
+        <CardHeader>
+          <CardTitle>My Requests</CardTitle>
+          <p className="text-sm text-muted-foreground mt-1">
+            Track your consulting requests and admin responses
+          </p>
+        </CardHeader>
+        <CardContent>
+          {myRequests.length > 0 ? (
+            <div className="space-y-4">
+              {myRequests.map((request) => (
+                <div
+                  key={request.id}
+                  className="border border-border rounded-lg p-4 space-y-3"
+                >
+                  {/* Request Header */}
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-medium capitalize">
+                          {request.request_type.replace(/_/g, " ")}
+                        </h4>
+                        <Badge className={getStatusBadge(request.status)}>
+                          {request.status}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Clock className="w-3 h-3" />
+                        <span>
+                          {new Date(request.created_at).toLocaleDateString()} at{" "}
+                          {new Date(request.created_at).toLocaleTimeString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Request Description */}
+                  <div>
+                    <Label className="text-sm font-medium">Your Request:</Label>
+                    <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">
+                      {request.description}
+                    </p>
+                  </div>
+
+                  {/* Admin Response */}
+                  {request.admin_response && (
+                    <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-md p-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <MessageSquare className="w-4 h-4 text-green-600" />
+                        <Label className="text-sm font-medium text-green-700 dark:text-green-400">
+                          Admin Response:
+                        </Label>
+                      </div>
+                      <p className="text-sm whitespace-pre-wrap text-green-900 dark:text-green-100">
+                        {request.admin_response}
+                      </p>
+                      {request.responded_at && (
+                        <div className="flex items-center gap-2 mt-2 text-xs text-green-600 dark:text-green-400">
+                          <CheckCircle className="w-3 h-3" />
+                          <span>
+                            Responded on{" "}
+                            {new Date(request.responded_at).toLocaleDateString()} at{" "}
+                            {new Date(request.responded_at).toLocaleTimeString()}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Status Messages */}
+                  {!request.admin_response && request.status === "pending" && (
+                    <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-3">
+                      <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                        ⏳ Your request is pending review. Our team will get back to you soon!
+                      </p>
+                    </div>
+                  )}
+
+                  {!request.admin_response && request.status === "in_progress" && (
+                    <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-md p-3">
+                      <p className="text-sm text-blue-800 dark:text-blue-200">
+                        🔄 Your request is being reviewed. You'll receive a response shortly!
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <MessageSquare className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">
+                No consulting requests yet. Create your first request above!
+              </p>
+            </div>
+          )}
+        </CardContent>
       </Card>
     </div>
   );
