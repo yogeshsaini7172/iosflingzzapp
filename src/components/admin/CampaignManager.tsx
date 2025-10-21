@@ -39,6 +39,7 @@ const CampaignManager = () => {
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [formData, setFormData] = useState<CreateCampaignData>({
     title: '',
     description: '',
@@ -128,22 +129,21 @@ const CampaignManager = () => {
 
   // Handle delete
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this campaign?')) {
-      try {
-        await deleteCampaign(id);
-        toast({
-          title: "Success",
-          description: "Campaign deleted successfully"
-        });
-        fetchCampaigns();
-      } catch (error) {
-        console.error('Error deleting campaign:', error);
-        toast({
-          title: "Error",
-          description: "Failed to delete campaign",
-          variant: "destructive"
-        });
-      }
+    try {
+      await deleteCampaign(id);
+      toast({
+        title: "Success",
+        description: "Campaign deleted successfully"
+      });
+      setDeleteConfirmId(null);
+      fetchCampaigns();
+    } catch (error) {
+      console.error('Error deleting campaign:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete campaign",
+        variant: "destructive"
+      });
     }
   };
 
@@ -397,7 +397,7 @@ const CampaignManager = () => {
                   variant="outline" 
                   size="sm" 
                   className="text-destructive"
-                  onClick={() => handleDelete(campaign.id)}
+                  onClick={() => setDeleteConfirmId(campaign.id)}
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
                   Delete
@@ -425,6 +425,36 @@ const CampaignManager = () => {
             </Button>
           </CardContent>
         </Card>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md mx-4">
+            <CardHeader>
+              <CardTitle>Confirm Delete</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-6">
+                Are you sure you want to delete this campaign? This action cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setDeleteConfirmId(null)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => handleDelete(deleteConfirmId)}
+                >
+                  Delete
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
     </div>
   );

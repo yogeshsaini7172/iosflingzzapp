@@ -77,7 +77,7 @@ export const createNewsArticle = async (newsData: CreateNewsData): Promise<NewsA
     .from('news')
     .insert([{
       ...newsData,
-      created_by: (await supabase.auth.getUser()).data.user?.id,
+      // created_by is nullable since we use Firebase Auth, not Supabase Auth
     }])
     .select()
     .single();

@@ -330,6 +330,131 @@ const ConsultingManager = () => {
         </Card>
       )}
 
+      {/* View Details Modal */}
+      {selectedRequest && !showResponseForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setSelectedRequest(null)}>
+          <Card className="w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div>
+                  <CardTitle className="text-xl">Request Details</CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">Full information about this consulting request</p>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setSelectedRequest(null)}
+                >
+                  ✕
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* User Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">User Name</Label>
+                  <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    {selectedRequest.userName}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Email</Label>
+                  <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
+                    <Mail className="w-4 h-4" />
+                    {selectedRequest.userEmail}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Request Type</Label>
+                  <p className="text-sm text-muted-foreground mt-1">{selectedRequest.requestType}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Status</Label>
+                  <Badge className={getStatusColor(selectedRequest.status)}>
+                    {selectedRequest.status}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Request Description */}
+              <div>
+                <Label className="text-sm font-medium">Request Description</Label>
+                <div className="mt-2 p-4 bg-muted/50 rounded-md">
+                  <p className="text-sm whitespace-pre-wrap">{selectedRequest.description}</p>
+                </div>
+              </div>
+
+              {/* Existing Preferences */}
+              {selectedRequest.existingPreferences && (
+                <div>
+                  <Label className="text-sm font-medium">User's Current Preferences</Label>
+                  <div className="mt-2 p-4 bg-muted/50 rounded-md">
+                    <pre className="text-xs overflow-x-auto">
+                      {JSON.stringify(selectedRequest.existingPreferences, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+              )}
+
+              {/* Admin Response (if exists) */}
+              {selectedRequest.adminResponse && (
+                <div>
+                  <Label className="text-sm font-medium">Admin Response</Label>
+                  <div className="mt-2 p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-md">
+                    <p className="text-sm whitespace-pre-wrap">{selectedRequest.adminResponse}</p>
+                    {selectedRequest.respondedAt && (
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Responded on {new Date(selectedRequest.respondedAt).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Timestamps */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+                <div>
+                  <Label className="text-sm font-medium">Created At</Label>
+                  <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    {new Date(selectedRequest.createdAt).toLocaleString()}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Last Updated</Label>
+                  <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    {new Date(selectedRequest.updatedAt).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2 justify-end pt-4 border-t">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setSelectedRequest(null)}
+                >
+                  Close
+                </Button>
+                {selectedRequest.status === 'in_progress' && (
+                  <Button 
+                    onClick={() => {
+                      setShowResponseForm(true);
+                    }}
+                  >
+                    <Reply className="w-4 h-4 mr-2" />
+                    Respond to Request
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Response Form Modal */}
       {showResponseForm && selectedRequest && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">

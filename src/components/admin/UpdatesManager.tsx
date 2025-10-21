@@ -37,6 +37,7 @@ const UpdatesManager = () => {
   const [editingUpdate, setEditingUpdate] = useState<Update | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [formData, setFormData] = useState<CreateUpdateData>({
     title: '',
     content: '',
@@ -120,22 +121,21 @@ const UpdatesManager = () => {
 
   // Handle delete
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this update?')) {
-      try {
-        await deleteUpdate(id);
-        toast({
-          title: "Success",
-          description: "Update deleted successfully"
-        });
-        fetchUpdates();
-      } catch (error) {
-        console.error('Error deleting update:', error);
-        toast({
-          title: "Error",
-          description: "Failed to delete update",
-          variant: "destructive"
-        });
-      }
+    try {
+      await deleteUpdate(id);
+      toast({
+        title: "Success",
+        description: "Update deleted successfully"
+      });
+      setDeleteConfirmId(null);
+      fetchUpdates();
+    } catch (error) {
+      console.error('Error deleting update:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete update",
+        variant: "destructive"
+      });
     }
   };
 
@@ -248,6 +248,126 @@ const UpdatesManager = () => {
         </select>
       </div>
 
+      {/* Create/Edit Form */}
+      {showCreateForm && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>{editingUpdate ? 'Edit Update' : 'Create New Update'}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="content">Content</Label>
+                <Textarea
+                  id="content"
+                  value={formData.content}
+                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                  required
+                  rows={6}
+                  placeholder="Update details..."
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="category">Category</Label>
+                  <select
+                    id="category"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value as any })}
+                    className="w-full px-3 py-2 border border-border rounded-md bg-background"
+                  >
+                    <option value="feature">Feature</option>
+                    <option value="update">Update</option>
+                    <option value="announcement">Announcement</option>
+                    <option value="maintenance">Maintenance</option>
+                  </select>
+                </div>
+                <div>
+                  <Label htmlFor="status">Status</Label>
+                  <select
+                    id="status"
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                    className="w-full px-3 py-2 border border-border rounded-md bg-background"
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="image_url">Image URL</Label>
+                  <Input
+                    id="image_url"
+                    value={formData.image_url}
+                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                    placeholder="https://..."
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="external_link">External Link</Label>
+                  <Input
+                    id="external_link"
+                    value={formData.external_link}
+                    onChange={(e) => setFormData({ ...formData, external_link: e.target.value })}
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="priority">Priority (0-10)</Label>
+                <Input
+                  id="priority"
+                  type="number"
+                  min="0"
+                  max="10"
+                  value={formData.priority}
+                  onChange={(e) => setFormData({ ...formData, priority: parseInt(e.target.value) || 0 })}
+                />
+              </div>
+              
+              <div className="flex gap-2">
+                <Button type="submit">
+                  {editingUpdate ? 'Update' : 'Create'} Update
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  onClick={() => {
+                    setShowCreateForm(false);
+                    setEditingUpdate(null);
+                    setFormData({
+                      title: '',
+                      content: '',
+                      category: 'update',
+                      status: 'draft',
+                      target_audience: [],
+                    });
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Updates List */}
       <div className="grid gap-4">
         {filteredUpdates.map((update) => (
@@ -285,15 +405,40 @@ const UpdatesManager = () => {
                 )}
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm">
-                  <Eye className="w-4 h-4 mr-2" />
-                  View
-                </Button>
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleEdit(update)}
+                >
                   <Edit className="w-4 h-4 mr-2" />
                   Edit
                 </Button>
-                <Button variant="outline" size="sm" className="text-destructive">
+                {update.status === 'draft' && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handlePublish(update.id)}
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Publish
+                  </Button>
+                )}
+                {update.status === 'published' && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleArchive(update.id)}
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    Archive
+                  </Button>
+                )}
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-destructive"
+                  onClick={() => setDeleteConfirmId(update.id)}
+                >
                   <Trash2 className="w-4 h-4 mr-2" />
                   Delete
                 </Button>
@@ -320,6 +465,36 @@ const UpdatesManager = () => {
             </Button>
           </CardContent>
         </Card>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md mx-4">
+            <CardHeader>
+              <CardTitle>Confirm Delete</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-6">
+                Are you sure you want to delete this update? This action cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setDeleteConfirmId(null)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => handleDelete(deleteConfirmId)}
+                >
+                  Delete
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
     </div>
   );

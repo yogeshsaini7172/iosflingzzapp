@@ -72,7 +72,7 @@ export const createUpdate = async (updateData: CreateUpdateData): Promise<Update
     .from('updates')
     .insert([{
       ...updateData,
-      created_by: (await supabase.auth.getUser()).data.user?.id,
+      // created_by is nullable since we use Firebase Auth, not Supabase Auth
     }])
     .select()
     .single();

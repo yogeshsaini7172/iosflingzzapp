@@ -38,6 +38,7 @@ const NewsManager = () => {
   const [editingArticle, setEditingArticle] = useState<NewsArticle | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [formData, setFormData] = useState<CreateNewsData>({
     title: '',
     excerpt: '',
@@ -121,22 +122,21 @@ const NewsManager = () => {
 
   // Handle delete
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this news article?')) {
-      try {
-        await deleteNewsArticle(id);
-        toast({
-          title: "Success",
-          description: "News article deleted successfully"
-        });
-        fetchArticles();
-      } catch (error) {
-        console.error('Error deleting news article:', error);
-        toast({
-          title: "Error",
-          description: "Failed to delete news article",
-          variant: "destructive"
-        });
-      }
+    try {
+      await deleteNewsArticle(id);
+      toast({
+        title: "Success",
+        description: "News article deleted successfully"
+      });
+      setDeleteConfirmId(null);
+      fetchArticles();
+    } catch (error) {
+      console.error('Error deleting news article:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete news article",
+        variant: "destructive"
+      });
     }
   };
 
@@ -239,6 +239,128 @@ const NewsManager = () => {
         </select>
       </div>
 
+      {/* Create/Edit Form */}
+      {showCreateForm && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>{editingArticle ? 'Edit Article' : 'Create New Article'}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="excerpt">Excerpt</Label>
+                <Textarea
+                  id="excerpt"
+                  value={formData.excerpt}
+                  onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
+                  rows={2}
+                  placeholder="Brief summary..."
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="content">Content</Label>
+                <Textarea
+                  id="content"
+                  value={formData.content}
+                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                  required
+                  rows={6}
+                  placeholder="Full article content..."
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="featured_image">Featured Image URL</Label>
+                  <Input
+                    id="featured_image"
+                    value={formData.featured_image}
+                    onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })}
+                    placeholder="https://..."
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="external_link">External Link</Label>
+                  <Input
+                    id="external_link"
+                    value={formData.external_link}
+                    onChange={(e) => setFormData({ ...formData, external_link: e.target.value })}
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="author_name">Author Name</Label>
+                  <Input
+                    id="author_name"
+                    value={formData.author_name}
+                    onChange={(e) => setFormData({ ...formData, author_name: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="category">Category</Label>
+                  <Input
+                    id="category"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="status">Status</Label>
+                <select
+                  id="status"
+                  value={formData.status}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                  className="w-full px-3 py-2 border border-border rounded-md bg-background"
+                >
+                  <option value="draft">Draft</option>
+                  <option value="published">Published</option>
+                  <option value="archived">Archived</option>
+                </select>
+              </div>
+              
+              <div className="flex gap-2">
+                <Button type="submit">
+                  {editingArticle ? 'Update' : 'Create'} Article
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  onClick={() => {
+                    setShowCreateForm(false);
+                    setEditingArticle(null);
+                    setFormData({
+                      title: '',
+                      excerpt: '',
+                      content: '',
+                      status: 'draft',
+                      tags: [],
+                    });
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Articles List */}
       <div className="grid gap-4">
         {filteredArticles.map((article) => (
@@ -279,21 +401,50 @@ const NewsManager = () => {
                 )}
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm">
-                  <Eye className="w-4 h-4 mr-2" />
-                  View
-                </Button>
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleEdit(article)}
+                >
                   <Edit className="w-4 h-4 mr-2" />
                   Edit
                 </Button>
+                {article.status === 'draft' && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handlePublish(article.id)}
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Publish
+                  </Button>
+                )}
+                {article.status === 'published' && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleArchive(article.id)}
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    Archive
+                  </Button>
+                )}
                 {article.external_link && (
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => window.open(article.external_link, '_blank')}
+                  >
                     <ExternalLink className="w-4 h-4 mr-2" />
                     External Link
                   </Button>
                 )}
-                <Button variant="outline" size="sm" className="text-destructive">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-destructive"
+                  onClick={() => setDeleteConfirmId(article.id)}
+                >
                   <Trash2 className="w-4 h-4 mr-2" />
                   Delete
                 </Button>
@@ -320,6 +471,36 @@ const NewsManager = () => {
             </Button>
           </CardContent>
         </Card>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md mx-4">
+            <CardHeader>
+              <CardTitle>Confirm Delete</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-6">
+                Are you sure you want to delete this news article? This action cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setDeleteConfirmId(null)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => handleDelete(deleteConfirmId)}
+                >
+                  Delete
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
     </div>
   );
