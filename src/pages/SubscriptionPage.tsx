@@ -89,7 +89,7 @@ const SubscriptionPage: React.FC = () => {
         handler: async (response: RazorpayHandlerResponse) => {
           try {
             const verifyUrl = `${FUNCTIONS_BASE}/verify-subscription-payment`;
-            const verifyResp = await fetch(verifyUrl, {
+            const verifyResp = await fetchWithFirebaseAuth(verifyUrl, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ razorpay_payment_id: response.razorpay_payment_id, razorpay_order_id: response.razorpay_order_id, razorpay_signature: response.razorpay_signature, subscriptionId: createData.subscriptionId })
