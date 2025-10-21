@@ -16,7 +16,7 @@ function buildCorsHeaders(reqOrOrigin?: Request | string) {
 
   return {
     'Access-Control-Allow-Origin': origin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-firebase-token',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Credentials': 'true',
     'Access-Control-Max-Age': '600'
@@ -49,23 +49,23 @@ serve(async (req) => {
   try {
     const supabaseAdmin = createClient(Deno.env.get('SUPABASE_URL') ?? '', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '', { auth: { persistSession: false } });
 
-    const authHeader = req.headers.get('authorization') || '';
-    console.log('Auth header present:', !!authHeader);
+    // Read Firebase token from X-Firebase-Token header (sent by fetchWithFirebaseAuth)
+    const firebaseToken = req.headers.get('x-firebase-token') || '';
+    console.log('Firebase token present:', !!firebaseToken);
     
-    if (!authHeader.startsWith('Bearer ')) {
-      console.error('Invalid auth header format');
-      return new Response(JSON.stringify({ error: 'No authorization header' }), { 
+    if (!firebaseToken) {
+      console.error('No Firebase token provided');
+      return new Response(JSON.stringify({ error: 'No Firebase authentication token' }), { 
         status: 401, 
         headers: { ...buildCorsHeaders(req), 'Content-Type': 'application/json' } 
       });
     }
     
-    const idToken = authHeader.replace('Bearer ', '').trim();
-    console.log('Token length:', idToken.length);
+    console.log('Token length:', firebaseToken.length);
     
     let firebaseUid: string;
     try {
-      firebaseUid = verifyFirebaseToken(idToken);
+      firebaseUid = verifyFirebaseToken(firebaseToken);
       console.log('Firebase UID verified:', firebaseUid);
     } catch (tokenErr) {
       console.error('Token verification failed:', tokenErr);
