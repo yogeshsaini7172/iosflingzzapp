@@ -5,10 +5,88 @@ export interface LocationData {
   source: string;
 }
 
-export const getCurrentLocation = (): Promise<LocationData> => {
+
+export const getCurrentLocation = async (): Promise<LocationData> => {
+  // If running inside Capacitor native runtime, prefer Capacitor Geolocation
+  try {
+    // Detect Capacitor/native runtime robustly without importing plugin on web
+    // @ts-ignore
+    const win: any = typeof window !== 'undefined' ? window : {};
+    const isCapacitorPlatform = Boolean(
+      win.Capacitor && (
+        // modern Capacitor exposes getPlatform()
+        (typeof win.Capacitor.getPlatform === 'function' && win.Capacitor.getPlatform() !== 'web') ||
+        // legacy flag
+        win.Capacitor.isNative || win.Capacitor.isNativePlatform
+      )
+    );
+
+    if (isCapacitorPlatform) {
+      try {
+        // Import dynamically using a computed string to avoid bundler static resolution
+        // @ts-ignore
+        const capModName = '@' + 'capacitor/geolocation';
+        // @ts-ignore
+        const cap: any = await import(/* @vite-ignore */ capModName);
+        const { Geolocation } = cap || {};
+
+        if (!Geolocation) {
+          throw new Error('Capacitor Geolocation plugin not found');
+        }
+
+        // Check current permission state
+        let permRes: any = {};
+        try {
+          permRes = await Geolocation.checkPermissions();
+        } catch (permErr) {
+          // Some plugin versions expose requestPermissions only
+          console.debug('Geolocation.checkPermissions not available or failed', permErr);
+        }
+
+        const locationPermState = permRes?.location || permRes?.locationAlways || permRes?.locationWhenInUse;
+
+        // If not granted, request permissions
+        if (!locationPermState || (locationPermState !== 'granted' && locationPermState !== 'prompt')) {
+          try {
+            await Geolocation.requestPermissions();
+          } catch (reqErr) {
+            console.warn('Capacitor permission request failed', reqErr);
+          }
+
+          // Re-check
+          try {
+            permRes = await Geolocation.checkPermissions();
+          } catch (permErr2) {
+            console.debug('Second checkPermissions failed', permErr2);
+          }
+        }
+
+        const finalPerm = permRes?.location || permRes?.locationAlways || permRes?.locationWhenInUse;
+        if (finalPerm === 'denied') {
+          throw new Error('Location permission denied by user (native)');
+        }
+
+        const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 });
+        return {
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+          accuracy: pos.coords.accuracy,
+          source: 'Capacitor Geolocation'
+        };
+      } catch (capErr: any) {
+        console.warn('Capacitor Geolocation flow failed:', capErr?.message || capErr);
+        // If Capacitor fails, fall through to web behavior
+      }
+    }
+  } catch (e) {
+    // Non-fatal - continue to try navigator.geolocation
+    console.debug('Capacitor runtime detection/import failed', e);
+  }
+
+  // Web fallback: navigator.geolocation
   return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject(new Error('Geolocation is not supported by this browser'));
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      reject(new Error('Geolocation is not supported by this platform'));
       return;
     }
 
@@ -18,25 +96,23 @@ export const getCurrentLocation = (): Promise<LocationData> => {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
           accuracy: position.coords.accuracy,
-          source: 'Geolocation API',
+          source: 'Geolocation API'
         });
       },
       (error) => {
         console.warn('Geolocation error:', error.message, 'Code:', error.code);
-        
-        // Always reject for permission denied - don't fall back to IP
+
         if (error.code === 1) { // PERMISSION_DENIED
           reject(new Error('Location permission denied by user'));
           return;
         }
-        
-        // For other errors (timeout, unavailable), also reject to trigger permission request
+
         reject(new Error(`Geolocation failed: ${error.message}`));
       },
       {
         enableHighAccuracy: true,
         timeout: 10000,
-        maximumAge: 300000, // 5 minutes
+        maximumAge: 300000 // 5 minutes
       }
     );
   });

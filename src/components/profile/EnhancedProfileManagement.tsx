@@ -305,167 +305,174 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
 
   // Update form data when profile/preferences load
   useEffect(() => {
-  if (profile) {
-    console.log("📊 Loading profile data into form:", profile);
-    console.log("🔍 Current show_profile value:", profile.show_profile, "Type:", typeof profile.show_profile);
+    // Wrap the entire transform in try/catch to surface silent errors
+    try {
+      if (profile) {
+        console.log("📊 Loading profile data into form:", profile);
+        console.log("🔍 Current show_profile value:", profile.show_profile, "Type:", typeof profile.show_profile);
 
-    // Step 1: Transform profile data
-    const transformedData = {
-      firstName: profile.first_name || '',
-      lastName: profile.last_name || '',
-      bio: profile.bio || '',
-      university: profile.university || '',
-      educationLevel: (profile as any).education_level || '',
-      profession: (profile as any).profession || '',
-      professionDescription: (profile as any).profession_description || '',
-      height: profile.height?.toString() || '',
-      bodyType: transformSingleValueToUI((profile as any).body_type || ''),
-      skinTone: transformSingleValueToUI((profile as any).skin_tone || ''),
-      faceType: transformSingleValueToUI((profile as any).face_type || ''),
-      loveLanguage: transformSingleValueToUI((profile as any).love_language || ''),
-      lifestyle: transformSingleValueToUI((profile as any).lifestyle || ''),
+        // Step 1: Transform profile data
+        const transformedData = {
+          firstName: profile.first_name || '',
+          lastName: profile.last_name || '',
+          bio: profile.bio || '',
+          university: profile.university || '',
+          educationLevel: (profile as any).education_level || '',
+          profession: (profile as any).profession || '',
+          professionDescription: (profile as any).profession_description || '',
+          height: profile.height?.toString() || '',
+          bodyType: transformSingleValueToUI((profile as any).body_type || ''),
+          skinTone: transformSingleValueToUI((profile as any).skin_tone || ''),
+          faceType: transformSingleValueToUI((profile as any).face_type || ''),
+          loveLanguage: transformSingleValueToUI((profile as any).love_language || ''),
+          lifestyle: transformSingleValueToUI((profile as any).lifestyle || ''),
 
-      // Location data
-      location: (profile as any).location ? (() => {
-        try {
-          return JSON.parse((profile as any).location);
-        } catch {
-          return {
-            city: (profile as any).city || '',
-            latitude: (profile as any).latitude || null,
-            longitude: (profile as any).longitude || null,
-            source: 'manual'
-          };
-        }
-      })() : null,
-      matchRadiusKm: (profile as any).match_radius_km || 50,
-      matchByState: (profile as any).match_by_state || false,
-      state: (profile as any).state || '',
+          // Location data
+          location: (profile as any).location ? (() => {
+            try {
+              return JSON.parse((profile as any).location);
+            } catch {
+              return {
+                city: (profile as any).city || '',
+                latitude: (profile as any).latitude || null,
+                longitude: (profile as any).longitude || null,
+                source: 'manual'
+              };
+            }
+          })() : null,
+          matchRadiusKm: (profile as any).match_radius_km || 50,
+          matchByState: (profile as any).match_by_state || false,
+          state: (profile as any).state || '',
 
-      // Normalize arrays into UI key format
-      personalityTraits: transformDatabaseToUI((profile as any).personality_traits || []),
-      values: transformDatabaseToUI(
-        Array.isArray((profile as any).values)
-          ? (profile as any).values
-          : Array.isArray((profile as any).values_array)
-            ? (profile as any).values_array
-            : (profile as any).values
-              ? [(profile as any).values]
-              : []
-      ),
-      mindset: transformDatabaseToUI(
-        Array.isArray((profile as any).mindset)
-          ? (profile as any).mindset
-          : (profile as any).mindset
-            ? [(profile as any).mindset]
-            : []
-      ),
-      relationshipGoals: transformDatabaseToUI(profile.relationship_goals || []),
-      interests: Array.isArray(profile.interests) ? transformDatabaseToUI(profile.interests as any) : [],
-      isVisible: typeof profile.show_profile === 'boolean' ? profile.show_profile : true,
-      profileImages: profile.profile_images || [],
-    };
+          // Normalize arrays into UI key format
+          personalityTraits: transformDatabaseToUI((profile as any).personality_traits || []),
+          values: transformDatabaseToUI(
+            Array.isArray((profile as any).values)
+              ? (profile as any).values
+              : Array.isArray((profile as any).values_array)
+                ? (profile as any).values_array
+                : (profile as any).values
+                  ? [(profile as any).values]
+                  : []
+          ),
+          mindset: transformDatabaseToUI(
+            Array.isArray((profile as any).mindset)
+              ? (profile as any).mindset
+              : (profile as any).mindset
+                ? [(profile as any).mindset]
+                : []
+          ),
+          relationshipGoals: transformDatabaseToUI(profile.relationship_goals || []),
+          interests: Array.isArray(profile.interests) ? transformDatabaseToUI(profile.interests as any) : [],
+          isVisible: typeof profile.show_profile === 'boolean' ? profile.show_profile : true,
+          profileImages: profile.profile_images || [],
+        };
 
-    console.log("🔄 Setting isVisible to:", typeof profile.show_profile === 'boolean' ? profile.show_profile : true);
+        console.log("🔄 Setting isVisible to:", typeof profile.show_profile === 'boolean' ? profile.show_profile : true);
 
-    // Step 2: Debug transformed data
-    console.log("🔄 Transformed data:", transformedData);
+        // Step 2: Debug transformed data
+        console.log("🔄 Transformed data:", transformedData);
 
-    // Step 3: Update formData only if we haven't loaded profile data before or if the visibility changed
-    setFormData(prev => ({
-      ...prev,
-      ...transformedData,
-    }));
+        // Step 3: Update formData only if we haven't loaded profile data before or if the visibility changed
+        setFormData(prev => ({
+          ...prev,
+          ...transformedData,
+        }));
 
-    // Mark that we've loaded profile data
-    setHasLoadedProfileData(true);
+        // Mark that we've loaded profile data
+        setHasLoadedProfileData(true);
 
-    // Debug: Log transformed values
-    console.log("🔄 Transformed profile values:", {
-      bodyType: transformSingleValueToUI((profile as any).body_type || ''),
-      skinTone: transformSingleValueToUI((profile as any).skin_tone || ''),
-      personalityTraits: transformDatabaseToUI((profile as any).personality_traits || []),
-      values: transformDatabaseToUI((profile as any).values || []),
-      mindset: transformDatabaseToUI((profile as any).mindset || []),
-      relationshipGoals: transformDatabaseToUI(profile.relationship_goals || []),
-    });
+        // Debug: Log transformed values
+        console.log("🔄 Transformed profile values:", {
+          bodyType: transformSingleValueToUI((profile as any).body_type || ''),
+          skinTone: transformSingleValueToUI((profile as any).skin_tone || ''),
+          personalityTraits: transformDatabaseToUI((profile as any).personality_traits || []),
+          values: transformDatabaseToUI((profile as any).values || []),
+          mindset: transformDatabaseToUI((profile as any).mindset || []),
+          relationshipGoals: transformDatabaseToUI(profile.relationship_goals || []),
+        });
 
-    // Debug: Log raw database values
-    console.log("🗄️ Raw database values:", {
-      personality_traits: (profile as any).personality_traits,
-      values: (profile as any).values,
-      mindset: (profile as any).mindset,
-      relationship_goals: profile.relationship_goals,
-    });
+        // Debug: Log raw database values
+        console.log("🗄️ Raw database values:", {
+          personality_traits: (profile as any).personality_traits,
+          values: (profile as any).values,
+          mindset: (profile as any).mindset,
+          relationship_goals: profile.relationship_goals,
+        });
 
-    // ❗ At this point `formData` is NOT updated yet because `setFormData` is async
-    // If you want to log the final state, use another useEffect([formData]) instead
-  }
+        // ❗ At this point `formData` is NOT updated yet because `setFormData` is async
+        // If you want to log the final state, use another useEffect([formData]) instead
+      }
 
-  if (preferences) {
-    console.log("📊 Loading preferences data into form:", preferences);
+      if (preferences) {
+        console.log("📊 Loading preferences data into form:", preferences);
 
-  setFormData(prev => ({
-      ...prev,
-      preferredGender: Array.isArray(preferences.preferred_gender)
-        ? transformDatabaseToUI(preferences.preferred_gender.map(g => g.toString()))
-        : ['male', 'female'], // Default to both genders
-      ageRangeMin: preferences.age_range_min || 18,
-      ageRangeMax: preferences.age_range_max || 30,
-      heightRangeMin: preferences.height_range_min || 150,
-      heightRangeMax: preferences.height_range_max || 200,
-      preferredBodyTypes:
-        Array.isArray(preferences.preferred_body_types) && preferences.preferred_body_types.length > 0
-          ? transformDatabaseToUI(preferences.preferred_body_types)
-          : ['slim', 'athletic', 'average'],
-      preferredValues:
-        Array.isArray(preferences.preferred_values) && preferences.preferred_values.length > 0
-          ? transformDatabaseToUI(preferences.preferred_values)
-          : ['family_oriented', 'career_focused'],
-      preferredMindset:
-        Array.isArray(preferences.preferred_mindset) && preferences.preferred_mindset.length > 0
-          ? transformDatabaseToUI(preferences.preferred_mindset)
-          : ['growth_mindset'],
-      preferredPersonalityTraits:
-        Array.isArray(preferences.preferred_personality_traits) && preferences.preferred_personality_traits.length > 0
-          ? transformDatabaseToUI(preferences.preferred_personality_traits)
-          : ['outgoing', 'empathetic'],
-      preferredRelationshipGoal:
-        Array.isArray((preferences as any).preferred_relationship_goals)
-          ? transformDatabaseToUI((preferences as any).preferred_relationship_goals)
-          : Array.isArray((preferences as any).preferred_relationship_goal)
-            ? transformDatabaseToUI((preferences as any).preferred_relationship_goal)
-            : ['serious_relationship'],
-      preferredSkinTone: Array.isArray((preferences as any).preferred_skin_tone)
-        ? transformDatabaseToUI((preferences as any).preferred_skin_tone)
-        : Array.isArray((preferences as any).preferred_skin_types)
-          ? transformDatabaseToUI((preferences as any).preferred_skin_types)
-          : [],
-      preferredFaceType: Array.isArray((preferences as any).preferred_face_types)
-        ? transformDatabaseToUI((preferences as any).preferred_face_types)
-        : Array.isArray((preferences as any).preferred_face_type)
-          ? transformDatabaseToUI((preferences as any).preferred_face_type)
-          : [],
-      preferredLoveLanguage: Array.isArray((preferences as any).preferred_love_languages)
-        ? transformDatabaseToUI((preferences as any).preferred_love_languages)
-        : Array.isArray((preferences as any).preferred_love_language)
-          ? transformDatabaseToUI((preferences as any).preferred_love_language)
-          : [],
-      preferredLifestyle: Array.isArray(preferences.preferred_lifestyle) 
-        ? transformDatabaseToUI(preferences.preferred_lifestyle) 
-        : [],
-      preferredDrinking: Array.isArray((preferences as any).preferred_drinking)
-        ? transformDatabaseToUI((preferences as any).preferred_drinking)
-        : [],
-      preferredSmoking: Array.isArray((preferences as any).preferred_smoking)
-        ? transformDatabaseToUI((preferences as any).preferred_smoking)
-        : [],
-      preferredProfessions: Array.isArray((preferences as any).preferred_professions)
-        ? (preferences as any).preferred_professions
-        : [],
-    }));
-  }
-}, [profile, preferences]);
+        setFormData(prev => ({
+          ...prev,
+          preferredGender: Array.isArray(preferences.preferred_gender)
+            ? transformDatabaseToUI(preferences.preferred_gender.map((g: any) => g.toString()))
+            : ['male', 'female'], // Default to both genders
+          ageRangeMin: preferences.age_range_min || 18,
+          ageRangeMax: preferences.age_range_max || 30,
+          heightRangeMin: preferences.height_range_min || 150,
+          heightRangeMax: preferences.height_range_max || 200,
+          preferredBodyTypes:
+            Array.isArray(preferences.preferred_body_types) && preferences.preferred_body_types.length > 0
+              ? transformDatabaseToUI(preferences.preferred_body_types)
+              : ['slim', 'athletic', 'average'],
+          preferredValues:
+            Array.isArray(preferences.preferred_values) && preferences.preferred_values.length > 0
+              ? transformDatabaseToUI(preferences.preferred_values)
+              : ['family_oriented', 'career_focused'],
+          preferredMindset:
+            Array.isArray(preferences.preferred_mindset) && preferences.preferred_mindset.length > 0
+              ? transformDatabaseToUI(preferences.preferred_mindset)
+              : ['growth_mindset'],
+          preferredPersonalityTraits:
+            Array.isArray(preferences.preferred_personality_traits) && preferences.preferred_personality_traits.length > 0
+              ? transformDatabaseToUI(preferences.preferred_personality_traits)
+              : ['outgoing', 'empathetic'],
+          preferredRelationshipGoal:
+            Array.isArray((preferences as any).preferred_relationship_goals)
+              ? transformDatabaseToUI((preferences as any).preferred_relationship_goals)
+              : Array.isArray((preferences as any).preferred_relationship_goal)
+                ? transformDatabaseToUI((preferences as any).preferred_relationship_goal)
+                : ['serious_relationship'],
+          preferredSkinTone: Array.isArray((preferences as any).preferred_skin_tone)
+            ? transformDatabaseToUI((preferences as any).preferred_skin_tone)
+            : Array.isArray((preferences as any).preferred_skin_types)
+              ? transformDatabaseToUI((preferences as any).preferred_skin_types)
+              : [],
+          preferredFaceType: Array.isArray((preferences as any).preferred_face_types)
+            ? transformDatabaseToUI((preferences as any).preferred_face_types)
+            : Array.isArray((preferences as any).preferred_face_type)
+              ? transformDatabaseToUI((preferences as any).preferred_face_type)
+              : [],
+          preferredLoveLanguage: Array.isArray((preferences as any).preferred_love_languages)
+            ? transformDatabaseToUI((preferences as any).preferred_love_languages)
+            : Array.isArray((preferences as any).preferred_love_language)
+              ? transformDatabaseToUI((preferences as any).preferred_love_language)
+              : [],
+          preferredLifestyle: Array.isArray(preferences.preferred_lifestyle) 
+            ? transformDatabaseToUI(preferences.preferred_lifestyle) 
+            : [],
+          preferredDrinking: Array.isArray((preferences as any).preferred_drinking)
+            ? transformDatabaseToUI((preferences as any).preferred_drinking)
+            : [],
+          preferredSmoking: Array.isArray((preferences as any).preferred_smoking)
+            ? transformDatabaseToUI((preferences as any).preferred_smoking)
+            : [],
+          preferredProfessions: Array.isArray((preferences as any).preferred_professions)
+            ? (preferences as any).preferred_professions
+            : [],
+        }));
+      }
+    } catch (err) {
+      console.error('Error transforming profile/preferences into formData:', err);
+      // Ensure we don't leave the UI stuck on the loader if transform fails
+      setHasLoadedProfileData(true);
+    }
+  }, [profile, preferences]);
 
 // Debug: print final form data after any change
 useEffect(() => {
@@ -583,6 +590,26 @@ useEffect(() => {
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Loading your profile...</p>
         </div>
+      </div>
+    );
+  }
+
+  // Temporary debug UI: if we have stopped the primary loading but the form hasn't been populated,
+  // show raw profile + preferences so we can confirm data arrival. This will help distinguish
+  // "no data" vs "transform error". Remove after debugging.
+  if (!hasLoadedProfileData) {
+    return (
+      <div className="min-h-screen bg-gradient-hero p-6">
+        <h3 className="text-lg font-semibold mb-2">Debug: profile not applied to form yet</h3>
+        <div className="mb-4">
+          <strong>Profile (raw):</strong>
+          <pre className="text-xs bg-muted p-3 rounded mt-2 overflow-auto max-h-40">{JSON.stringify(profile, null, 2)}</pre>
+        </div>
+        <div>
+          <strong>Preferences (raw):</strong>
+          <pre className="text-xs bg-muted p-3 rounded mt-2 overflow-auto max-h-40">{JSON.stringify(preferences, null, 2)}</pre>
+        </div>
+        <div className="mt-4 text-sm text-muted-foreground">If these are populated, the transform should have set formData — check console for errors.</div>
       </div>
     );
   }

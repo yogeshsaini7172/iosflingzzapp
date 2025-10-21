@@ -87,10 +87,7 @@ export const useProfileData = () => {
   const { user } = useAuth();
 
   const getCurrentUserId = () => {
-    if (!user?.uid) {
-      throw new Error('User authentication required');
-    }
-    return user.uid;
+    return user?.uid ?? null;
   };
 
   const callDataFunction = async (action: string, payload?: any) => {
@@ -110,6 +107,14 @@ export const useProfileData = () => {
 
   const fetchProfileData = async () => {
     const userId = getCurrentUserId();
+    if (!userId) {
+      // No authenticated user yet — ensure loading flag is false and exit gracefully
+      console.warn('Attempted to fetch profile data without authenticated user');
+      setIsLoading(false);
+      setProfile(null);
+      setPreferences(null);
+      return;
+    }
     console.log("🔍 Fetching profile data for user ID:", userId);
 
     try {
@@ -153,7 +158,7 @@ export const useProfileData = () => {
         console.log("✅ Profile set:", transformedProfile);
       } else {
         // No profile found, auto-create a default profile for this user
-        const userId = getCurrentUserId();
+        // Note: getCurrentUserId already validated above
         const defaultProfile: Profile = {
           id: userId,
           user_id: userId,
@@ -213,6 +218,10 @@ export const useProfileData = () => {
 
   const updateProfile = async (updates: Partial<Profile>) => {
     const userId = getCurrentUserId();
+    if (!userId) {
+      toast({ title: 'Not authenticated', description: 'Please sign in to update your profile.', variant: 'destructive' });
+      return;
+    }
 
     try {
       // Keep all fields including arrays
@@ -248,6 +257,10 @@ export const useProfileData = () => {
 
   const updatePreferences = async (updates: Partial<PartnerPreferences>) => {
     const userId = getCurrentUserId();
+    if (!userId) {
+      toast({ title: 'Not authenticated', description: 'Please sign in to update preferences.', variant: 'destructive' });
+      return;
+    }
     
     try {
       const { error: fnError } = await callDataFunction('update_preferences', { preferences: updates });
@@ -271,11 +284,19 @@ export const useProfileData = () => {
   };
 
   useEffect(() => {
-    // Always fetch on mount/auth change
+    const uid = getCurrentUserId();
+    if (!uid) {
+      // No authenticated user yet; ensure local state is reset
+      setIsLoading(false);
+      setProfile(null);
+      setPreferences(null);
+      return;
+    }
+
+    // Fetch profile once we have a uid
     fetchProfileData();
 
     // Real-time updates for the current user
-    const uid = getCurrentUserId();
     const channel = supabase
       .channel(`profile-data-realtime-${uid}`)
       .on('postgres_changes', {
@@ -301,6 +322,7 @@ export const useProfileData = () => {
     return () => {
       supabase.removeChannel(channel);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.uid]);
 
   return {

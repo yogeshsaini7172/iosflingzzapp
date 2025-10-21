@@ -37,9 +37,11 @@ const PremiumFooter = () => {
 
   return (
     <footer className="relative mt-32 border-t border-border/50 bg-gradient-to-b from-background to-background/95 overflow-hidden">
-      {/* Premium background effects */}
-      <div className="absolute inset-0 mesh-gradient opacity-30 pointer-events-none" />
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-primary opacity-50" />
+    {/* Premium background effects */}
+    <div className="absolute inset-0 mesh-gradient opacity-30 pointer-events-none" />
+    {/* Removed extra top hairline (duplicate thin rule) to avoid an unwanted extra line above the footer.
+      The main top border is provided by the container's `border-t` below; keeping both created a visible gap.
+    */}
       
       <div className="container relative mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
         {/* Main footer content */}

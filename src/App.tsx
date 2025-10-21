@@ -276,7 +276,6 @@ const AuthenticatedApp = () => {
               <Route path="/qcs-diagnostics" element={<QCSDiagnostics />} />
               <Route path="/qcs-repair" element={<QCSSystemRepair />} />
               <Route path="/qcs-bulk-sync" element={<QCSBulkSync />} />
-              <Route path="/aadhaar-test" element={<AadhaarTest />} />
               {/* Redirect /home to root */}
               <Route path="/home" element={<Navigate to="/" replace />} />
               {/* Keep the catch-all route for other unknown routes */}

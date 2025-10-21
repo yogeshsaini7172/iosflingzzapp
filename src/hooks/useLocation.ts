@@ -58,24 +58,64 @@ export const useLocation = (autoFetch: boolean = false) => {
   };
 
   const checkPermissionStatus = useCallback(async () => {
-    if (!navigator.geolocation) {
-      setState(prev => ({ ...prev, permissionStatus: 'denied' }));
-      return 'denied';
-    }
-
+    // If running in native Capacitor runtime, check plugin permissions first
     try {
-      const permission = await navigator.permissions.query({ name: 'geolocation' });
-      setState(prev => ({ 
-        ...prev, 
-        permissionStatus: permission.state as any,
-        hasPermission: permission.state === 'granted'
-      }));
-      return permission.state;
-    } catch {
+      // @ts-ignore
+      const win: any = typeof window !== 'undefined' ? window : {};
+      const isCapacitorPlatform = Boolean(
+        win.Capacitor && (
+          (typeof win.Capacitor.getPlatform === 'function' && win.Capacitor.getPlatform() !== 'web') ||
+          win.Capacitor.isNative || win.Capacitor.isNativePlatform
+        )
+      );
+
+      if (isCapacitorPlatform) {
+        try {
+          // @ts-ignore
+          const capModName = '@' + 'capacitor/geolocation';
+          // @ts-ignore
+          const cap: any = await import(/* @vite-ignore */ capModName);
+          const { Geolocation } = cap || {};
+          if (Geolocation && typeof Geolocation.checkPermissions === 'function') {
+            const permRes = await Geolocation.checkPermissions();
+            const finalPerm = permRes?.location || permRes?.locationAlways || permRes?.locationWhenInUse;
+            setState(prev => ({
+              ...prev,
+              permissionStatus: finalPerm === 'granted' ? 'granted' : (finalPerm === 'denied' ? 'denied' : 'prompt'),
+              hasPermission: finalPerm === 'granted'
+            }));
+            return finalPerm;
+          }
+        } catch (err) {
+          console.debug('Capacitor permission check failed', err);
+        }
+      }
+
+      if (!navigator.geolocation) {
+        setState(prev => ({ ...prev, permissionStatus: 'denied' }));
+        return 'denied';
+      }
+
+      try {
+        const permission = await navigator.permissions.query({ name: 'geolocation' });
+        setState(prev => ({ 
+          ...prev, 
+          permissionStatus: permission.state as any,
+          hasPermission: permission.state === 'granted'
+        }));
+        return permission.state;
+      } catch {
+        setState(prev => ({ ...prev, permissionStatus: 'unknown' }));
+        return 'unknown';
+      }
+    } catch (outerErr) {
+      console.debug('checkPermissionStatus outer error', outerErr);
       setState(prev => ({ ...prev, permissionStatus: 'unknown' }));
       return 'unknown';
     }
   }, []);
+
+  // ...native permission helpers moved below so they can reference other helpers
 
   const fetchLocationWithPermission = useCallback(async (): Promise<LocationData | null> => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
@@ -270,6 +310,86 @@ export const useLocation = (autoFetch: boolean = false) => {
       return () => clearTimeout(timer);
     }
   }, [autoFetch, state.location, state.isLoading, fetchLocationWithPermission, saveLocationToProfile]);
+
+  // Request native permissions explicitly (Capacitor) from UI
+  const requestNativePermissions = useCallback(async (): Promise<boolean> => {
+    try {
+      // @ts-ignore
+      const win: any = typeof window !== 'undefined' ? window : {};
+      const isCapacitorPlatform = Boolean(
+        win.Capacitor && (
+          (typeof win.Capacitor.getPlatform === 'function' && win.Capacitor.getPlatform() !== 'web') ||
+          win.Capacitor.isNative || win.Capacitor.isNativePlatform
+        )
+      );
+
+      if (!isCapacitorPlatform) {
+        return false;
+      }
+
+      try {
+        // @ts-ignore
+        const capModName = '@' + 'capacitor/geolocation';
+        // @ts-ignore
+        const cap: any = await import(/* @vite-ignore */ capModName);
+        const { Geolocation } = cap || {};
+        if (!Geolocation) throw new Error('Capacitor Geolocation plugin not available');
+
+        // Request permissions
+        if (typeof Geolocation.requestPermissions === 'function') {
+          await Geolocation.requestPermissions();
+        } else if (typeof Geolocation.requestPermission === 'function') {
+          // older or different APIs
+          await Geolocation.requestPermission();
+        }
+
+        // Re-check
+        if (typeof Geolocation.checkPermissions === 'function') {
+          const perm = await Geolocation.checkPermissions();
+          const finalPerm = perm?.location || perm?.locationAlways || perm?.locationWhenInUse;
+          setState(prev => ({ ...prev, permissionStatus: finalPerm === 'granted' ? 'granted' : 'denied', hasPermission: finalPerm === 'granted' }));
+          return finalPerm === 'granted';
+        }
+
+        // If we can't check, assume success
+        setState(prev => ({ ...prev, permissionStatus: 'granted', hasPermission: true }));
+        return true;
+      } catch (err: any) {
+        console.warn('requestNativePermissions failed', err);
+        setState(prev => ({ ...prev, permissionStatus: 'denied', hasPermission: false }));
+        return false;
+      }
+    } catch (err) {
+      console.debug('requestNativePermissions outer error', err);
+      return false;
+    }
+  }, []);
+
+  // Ensure permission and then fetch location (helps auto-prompt on login)
+  const ensurePermissionAndFetchLocation = useCallback(async (saveToProfile: boolean = true) => {
+    try {
+      // Try native request first
+      const nativeRequested = await requestNativePermissions();
+      if (nativeRequested) {
+        const loc = await fetchLocationWithPermission();
+        if (loc && saveToProfile) await saveLocationToProfile(loc);
+        return loc;
+      }
+
+      // Fallback to web flow
+      const perm = await checkPermissionStatus();
+      if (perm === 'granted' || perm === 'prompt') {
+        const loc = await fetchLocationWithPermission();
+        if (loc && saveToProfile) await saveLocationToProfile(loc);
+        return loc;
+      }
+
+      throw new Error('Permission not granted');
+    } catch (err) {
+      console.warn('ensurePermissionAndFetchLocation failed', err);
+      throw err;
+    }
+  }, [requestNativePermissions, fetchLocationWithPermission, saveLocationToProfile, checkPermissionStatus]);
 
   return {
     ...state,

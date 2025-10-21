@@ -27,6 +27,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRequiredAuth } from '@/hooks/useRequiredAuth';
+import HeartLoader from '@/components/ui/HeartLoader';
 
 interface ProfileData {
   user_id: string;
@@ -204,10 +205,7 @@ const EnhancedProfileDisplay: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center space-y-4">
-          <div className="w-16 h-16 border-4 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-white/70">Loading your amazing profile... ✨</p>
-        </div>
+        <HeartLoader message="Loading your profile... ✨" size={64} />
       </div>
     );
   }
