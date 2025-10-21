@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Create Subscription Order</title>
+</head>
+<body>
+  <h1>Test Create Subscription Order</h1>
+  <button onclick="testCreateOrder()">Test Create Order</button>
+  <pre id="result"></pre>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+    // Your Firebase config (get from .env)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRCfH2dMBljvDXZbxY1SfQIvU_QAvgLPA",
+      authDomain: "flingzz-2d7d8.firebaseapp.com",
+      projectId: "flingzz-2d7d8",
+      storageBucket: "flingzz-2d7d8.firebasestorage.app",
+      messagingSenderId: "1076086074308",
+      appId: "1:1076086074308:web:1ce7ab3d16ebdf6d3a4be8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    window.testCreateOrder = async function() {
+      const resultEl = document.getElementById('result');
+      resultEl.textContent = 'Testing...';
+
+      try {
+        // First, sign in (replace with your test credentials)
+        const email = prompt('Enter email:');
+        const password = prompt('Enter password:');
+        
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        const token = await user.getIdToken(true);
+        
+        resultEl.textContent += `\n\n✅ Signed in as: ${user.email}`;
+        resultEl.textContent += `\n✅ Token length: ${token.length}`;
+        resultEl.textContent += `\n\nCalling create-subscription-order...`;
+
+        // Call the function
+        const response = await fetch('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/create-subscription-order', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            plan: 'basic',
+            amount: 49,
+            currency: 'INR',
+            receipt: `test_${Date.now()}`
+          })
+        });
+
+        resultEl.textContent += `\n\nResponse status: ${response.status}`;
+        
+        const data = await response.json();
+        resultEl.textContent += `\n\nResponse:\n${JSON.stringify(data, null, 2)}`;
+
+      } catch (error) {
+        resultEl.textContent += `\n\n❌ Error: ${error.message}`;
+        console.error(error);
+      }
+    };
+  </script>
+</body>
+</html>
