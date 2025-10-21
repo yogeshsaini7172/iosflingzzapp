@@ -1,5 +1,6 @@
 import AuthPage from "@/pages/AuthPage";
 import SplashScreen from "@/components/onboarding/SplashScreen";
+import HeartAnimation from '@/components/ui/HeartAnimation';
 import ProfileSetupFlow from "@/components/profile/ProfileSetupFlow";
 
 import { useState, useEffect } from "react";
@@ -69,7 +70,10 @@ const Index = ({ onProfileComplete }: IndexProps) => {
   if (isLoading || isCheckingProfile) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-xl">Loading...</div>
+        <div className="text-center">
+          <HeartAnimation size={72} />
+          <div className="mt-3 text-xl">Loading...</div>
+        </div>
       </div>
     );
   }

@@ -9,7 +9,6 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { SocketChatProvider } from '@/contexts/SocketChatContext';
 import { ChatNotificationProvider } from '@/contexts/ChatNotificationContext';
 import MobileAuthPage from './MobileAuthPage';
-import HeartLoader from '@/components/ui/HeartLoader';
 import ProfileSetupFlow from '@/components/profile/ProfileSetupFlow';
 // Import pages
 import ProfilePage from '@/pages/ProfilePage';
@@ -99,7 +98,10 @@ const MobileAppContent = () => {
   if (isLoading || checkingProfile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-600 to-pink-600">
-        <HeartLoader message="Loading FLINGZZ..." size={64} />
+        <div className="text-white text-center">
+          <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-lg">Loading FLINGZZ...</p>
+        </div>
       </div>
     );
   }

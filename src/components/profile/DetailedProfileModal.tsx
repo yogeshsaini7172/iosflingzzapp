@@ -1,4 +1,5 @@
 import React from 'react';
+import HeartAnimation from '@/components/ui/HeartAnimation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -175,7 +176,9 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
               </>
             ) : (
               <div className="text-center space-y-4">
-                <div className="text-8xl animate-pulse">👤</div>
+                <div className="mx-auto">
+                  <HeartAnimation size={96} />
+                </div>
                 <p className="text-muted-foreground">No photos available</p>
               </div>
             )}

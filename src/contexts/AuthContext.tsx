@@ -70,7 +70,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.log('🔑 Firebase user authenticated');
         // Only show success message for new logins, not page refreshes
         if (!wasAuthenticated && initialAuthCheck) {
-          toast.success('Successfully signed in!');
+          // Schedule toast after render to avoid "setState while rendering" warnings
+          setTimeout(() => toast.success('Successfully signed in!'), 0);
           
           // Setup location permission request after successful login
           setTimeout(() => {
@@ -81,7 +82,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.log('🔥 No user found - user signed out or no session');
         if (wasAuthenticated) {
           console.log('👋 User logged out, clearing state');
-          toast.success('Successfully signed out');
+          // Schedule toast after render to avoid "setState while rendering" warnings
+          setTimeout(() => toast.success('Successfully signed out'), 0);
         }
       }
 
@@ -238,9 +240,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return { error: result.error };
       } else {
         console.log('🚪 Sign out successful');
-        // Clear landing page state so it shows again on next visit
-        localStorage.removeItem('landing_dismissed');
-        toast.success('Signed out successfully');
+  // Clear landing page state so it shows again on next visit
+  localStorage.removeItem('landing_dismissed');
+  // Schedule toast after render to avoid any setState-in-render issues
+  setTimeout(() => toast.success('Signed out successfully'), 0);
         return { error: null };
       }
     } catch (error) {

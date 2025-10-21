@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Heart, MessageCircle, User, Zap, Settings, Eye, Star, Sparkles, TrendingUp } from 'lucide-react';
+import HeartAnimation from '@/components/ui/HeartAnimation';
 
 interface DashboardProps {
   onNavigate: (view: string) => void;
@@ -94,8 +95,8 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center shadow-lg">
-                <User className="w-6 h-6 text-white" />
+              <div className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg">
+                <HeartAnimation size={40} />
               </div>
               {userProfile.subscriptionTier === 'premium' && (
                 <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 rounded-full flex items-center justify-center">
