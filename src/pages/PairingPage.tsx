@@ -11,91 +11,45 @@ import {
   CarouselPrevious,
   type CarouselApi,
 } from '@/components/ui/carousel';
+import { motion } from 'framer-motion';
+import HeartAnimation from '@/components/ui/HeartAnimation';
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
 } from '@/components/ui/sheet';
-import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
-import DetailedProfileModal from '@/components/profile/DetailedProfileModalNew';
-import { useRequiredAuth } from '@/hooks/useRequiredAuth';
+
 import UnifiedLayout from '@/components/layout/UnifiedLayout';
-import ProfileImageHandler from '@/components/common/ProfileImageHandler';
-import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { useSubscriptionEntitlements } from '@/hooks/useSubscriptionEntitlements';
 import { PairingLimitService } from '@/services/pairingLimits';
+import { supabase } from '@/integrations/supabase/client';
+import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
+import DetailedProfileModal from '@/components/profile/DetailedProfileModalEnhanced';
+import ProfileImageHandler from '@/components/common/ProfileImageHandler';
 
-interface Match {
-  user_id: string;
-  first_name: string;
-  last_name: string;
-  university: string;
-  bio: string;
-  profile_images: string[];
-  age: number;
-  interests: string[];
-  total_qcs: number;
-  compatibility_score?: number;
-  physical_score?: number;
-  mental_score?: number;
-  matched_criteria?: string[];
-  not_matched_criteria?: string[];
-  face_type?: string;
-  personality_type?: string;
-  personality_traits?: string[];
-  body_type?: string;
-  skin_tone?: string;
-  values?: string[];
-  mindset?: string[];
-  relationship_goals?: string[];
-  height?: number;
-  location?: string;
-  lifestyle?: string;
-  love_language?: string;
-  field_of_study?: string;
-  profession?: string;
-  education_level?: string;
-}
+const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => {
+  // Auth & entitlements
+  const { user, isLoading: authLoading, userId } = useAuth();
+  const { entitlements } = useSubscriptionEntitlements();
 
-interface PairingPageProps {
-  onNavigate: (view: string) => void;
-}
-
-const PairingPage = ({ onNavigate }: PairingPageProps) => {
-  const [matches, setMatches] = useState<Match[]>([]);
+  // Local state (kept minimal here - full state exists later in file)
+  const [pairingLimits, setPairingLimits] = useState({ canRequest: true, remainingRequests: 1, usedToday: 0, dailyLimit: 1 });
+  const [matches, setMatches] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasLoadedProfiles, setHasLoadedProfiles] = useState(false);
   const [shouldShowExistingProfiles, setShouldShowExistingProfiles] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [selectedProfile, setSelectedProfile] = useState<Match | null>(null);
-  const [selectedChatId, setSelectedChatId] = useState<string>("");
-  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
-  const [sheetOpen, setSheetOpen] = useState(false);
-
-  const { userId, isLoading: authLoading } = useRequiredAuth();
+  const [selectedProfile, setSelectedProfile] = useState<any | null>(null);
+  const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
+  // Local helpers/state used by various bits in this page
+  type Match = any;
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [myReq, setMyReq] = useState<any>(null);
-
-  const { entitlements, loading: subscriptionLoading, refreshEntitlements } = useSubscriptionEntitlements();
-  const [pairingLimits, setPairingLimits] = useState({
-    canRequest: true,
-    usedToday: 0,
-    dailyLimit: 1,
-    remainingRequests: 1
-  });
-
+  
   const parseJsonSafe = (v: any) => {
     if (!v) return null;
-    try {
-      const s = typeof v === 'string' ? v.replace(/^\"|\"$/g, '') : v;
-      return typeof s === 'string' ? JSON.parse(s) : s;
-    } catch {
-      return null;
-    }
+    try { return JSON.parse(v); } catch (e) { return null; }
   };
+  const toast = { error: (t: any) => console.error(t), warning: (t: any) => console.warn(t), info: (t: any) => console.info(t), success: (t: any) => console.log(t) } as any;
 
   useEffect(() => {
     if (userId) {

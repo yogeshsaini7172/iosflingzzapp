@@ -1,12 +1,10 @@
 import React from 'react';
-import { Heart } from 'lucide-react';
+import HeartAnimation from './HeartAnimation';
 
-const HeartLoader: React.FC<{ className?: string }> = ({ className = '' }) => {
+const HeartLoader: React.FC<{ className?: string, size?: number }> = ({ className = '', size = 64 }) => {
   return (
     <div className={`flex items-center justify-center ${className}`} aria-hidden>
-      <div className="animate-pulse">
-        <Heart className="w-12 h-12 text-pink-500" />
-      </div>
+      <HeartAnimation size={size} />
     </div>
   );
 };
