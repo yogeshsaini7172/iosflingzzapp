@@ -18,6 +18,7 @@ import Index from "./pages/Index";
 import QCSDiagnostics from "./components/QCSDiagnostics";
 import QCSSystemRepair from "./components/QCSSystemRepair";
 import QCSBulkSync from "./components/QCSBulkSync";
+import CommunityDashboard from "./components/admin/CommunityDashboard";
 import { fetchWithFirebaseAuth } from "./lib/fetchWithFirebaseAuth";
 import RebuiltChatSystem from "./components/chat/RebuiltChatSystem";
 import { initializeMobileApp } from "./mobile/capacitor";
@@ -262,6 +263,7 @@ const AuthenticatedApp = () => {
               <Route path="/blind-date" element={<BlindDatePage onNavigate={(view) => navigate(`/${view}`)} />} />
               <Route path="/profile" element={<ProfilePage onNavigate={(view) => navigate(`/${view}`)} />} />
               <Route path="/community" element={<CommunityPage />} />
+              <Route path="/admin/community" element={<CommunityDashboard />} />
               
               {/* --- Chat routes --- */}
               <Route 

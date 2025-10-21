@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "types": [],
+    "allowJs": false,
+    "noEmit": true
+  },
+  "include": [
+    "./**/*.ts",
+    "./globals.d.ts"
+  ]
+}
+
+

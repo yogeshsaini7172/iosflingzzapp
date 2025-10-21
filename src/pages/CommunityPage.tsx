@@ -1,18 +1,20 @@
 import { useState } from "react";
 import UnifiedLayout from "@/components/layout/UnifiedLayout";
 import { Button } from "@/components/ui/button";
-import { Megaphone, Bell, Newspaper, MessageSquare } from "lucide-react";
+import { Megaphone, Bell, Newspaper, MessageSquare, BarChart3 } from "lucide-react";
 import CampaignsPage from "@/components/community/CampaignsPage";
 import UpdatesPage from "@/components/community/UpdatesPage";
 import NewsPage from "@/components/community/NewsPage";
 import ConsultingPage from "@/components/community/ConsultingPage";
+import CommunityDashboard from "@/components/admin/CommunityDashboard";
 
-type CommunityTab = 'campaigns' | 'updates' | 'news' | 'consulting';
+type CommunityTab = 'overview' | 'campaigns' | 'updates' | 'news' | 'consulting';
 
 const CommunityPage = () => {
-  const [activeTab, setActiveTab] = useState<CommunityTab>('campaigns');
+  const [activeTab, setActiveTab] = useState<CommunityTab>('overview');
 
   const tabs = [
+    { id: 'overview' as CommunityTab, label: 'Overview', icon: BarChart3 },
     { id: 'campaigns' as CommunityTab, label: 'Campaigns', icon: Megaphone },
     { id: 'updates' as CommunityTab, label: 'Updates', icon: Bell },
     { id: 'news' as CommunityTab, label: 'News', icon: Newspaper },
@@ -44,6 +46,7 @@ const CommunityPage = () => {
 
         {/* Main Content */}
         <div className="flex-1 overflow-auto">
+          {activeTab === 'overview' && <CommunityDashboard />}
           {activeTab === 'campaigns' && <CampaignsPage />}
           {activeTab === 'updates' && <UpdatesPage />}
           {activeTab === 'news' && <NewsPage />}
