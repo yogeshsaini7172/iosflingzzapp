@@ -624,28 +624,73 @@ const PairingMatches: React.FC<PairingMatchesProps> = ({ userId }) => {
                 </button>
                 {expandedSections.personality && (
                   <div className="px-3 pb-3 text-xs space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Personality Type:</span>
-                      <span className="font-medium">{selectedProfile.personality_type || 'Not specified'}</span>
-                    </div>
-                    {toArray(selectedProfile.personality_traits).length > 0 && (
+                    {/* Personality Type - only if matched */}
+                    {selectedProfile.personality_type && selectedProfile.matched_criteria?.some((c: string) => {
+                      const v = String(selectedProfile.personality_type).toLowerCase().replace(/\s+/g, '_');
+                      const cl = c.toLowerCase();
+                      return cl.includes('personality_type') || cl.includes(v) || v.includes(cl);
+                    }) && (
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Personality Traits:</span>
-                        <span className="font-medium">{toArray(selectedProfile.personality_traits).join(', ')}</span>
+                        <span className="text-muted-foreground">Personality Type:</span>
+                        <span className="font-medium">{selectedProfile.personality_type}</span>
                       </div>
                     )}
-                    {toArray(selectedProfile.values).length > 0 && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Values:</span>
-                        <span className="font-medium">{toArray(selectedProfile.values).join(', ')}</span>
-                      </div>
-                    )}
-                    {toArray(selectedProfile.mindset).length > 0 && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Mindset:</span>
-                        <span className="font-medium">{toArray(selectedProfile.mindset).join(', ')}</span>
-                      </div>
-                    )}
+
+                    {/* Personality Traits - only matched items */}
+                    {(() => {
+                      const traits = toArray(selectedProfile.personality_traits);
+                      const matched = traits.filter((t) =>
+                        selectedProfile.matched_criteria?.some((c: string) => {
+                          const tl = String(t).toLowerCase().replace(/\s+/g, '_');
+                          const cl = c.toLowerCase();
+                          return cl.includes(tl) || tl.includes(cl);
+                        })
+                      );
+                      return matched.length > 0 ? (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Personality Traits:</span>
+                          <span className="font-medium">{matched.join(', ')}</span>
+                        </div>
+                      ) : null;
+                    })()}
+
+                    {/* Values - only matched items */}
+                    {(() => {
+                      const vals = toArray(selectedProfile.values);
+                      const matched = vals.filter((t) =>
+                        selectedProfile.matched_criteria?.some((c: string) => {
+                          const tl = String(t).toLowerCase().replace(/\s+/g, '_');
+                          const cl = c.toLowerCase();
+                          return cl.includes(tl) || tl.includes(cl);
+                        })
+                      );
+                      return matched.length > 0 ? (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Values:</span>
+                          <span className="font-medium">{matched.join(', ')}</span>
+                        </div>
+                      ) : null;
+                    })()}
+
+                    {/* Mindset - only matched items */}
+                    {(() => {
+                      const mset = toArray(selectedProfile.mindset);
+                      const matched = mset.filter((t) =>
+                        selectedProfile.matched_criteria?.some((c: string) => {
+                          const tl = String(t).toLowerCase().replace(/\s+/g, '_');
+                          const cl = c.toLowerCase();
+                          return cl.includes(tl) || tl.includes(cl);
+                        })
+                      );
+                      return matched.length > 0 ? (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Mindset:</span>
+                          <span className="font-medium">{matched.join(', ')}</span>
+                        </div>
+                      ) : null;
+                    })()}
+
+                    {/* Education and Profession stay informational */}
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Education Level:</span>
                       <span className="font-medium">{selectedProfile.education_level || 'Not specified'}</span>

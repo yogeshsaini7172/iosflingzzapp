@@ -526,56 +526,60 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
                   Personality & Lifestyle
                 </h4>
                 <div className="space-y-3 text-sm">
-                  {profile.personality_type && (
+                  {/* Only show if the field/value actually matched */}
+                  {profile.personality_type && isFieldMatched(profile.personality_type) && (
                     <div className="flex justify-between">
                       <span className="text-foreground/70">Personality Type:</span>
                       <span className="font-medium text-foreground">{profile.personality_type}</span>
                     </div>
                   )}
-                  {profile.personality_traits && profile.personality_traits.length > 0 && (
+
+                  {getMatchedItems(profile.personality_traits).length > 0 && (
                     <div className="flex justify-between">
                       <span className="text-foreground/70">Personality Traits:</span>
-                      <span className="font-medium text-foreground">{formatArrayField(profile.personality_traits)}</span>
+                      <span className="font-medium text-foreground">{formatArrayField(getMatchedItems(profile.personality_traits))}</span>
                     </div>
                   )}
-                  {profile.lifestyle && (
+
+                  {profile.lifestyle && isFieldMatched(profile.lifestyle) && (
                     <div className="flex justify-between">
                       <span className="text-foreground/70">Lifestyle:</span>
                       <span className="font-medium text-foreground">{profile.lifestyle}</span>
                     </div>
                   )}
-                  {profile.love_language && (
+
+                  {profile.love_language && isFieldMatched(profile.love_language) && (
                     <div className="flex justify-between">
                       <span className="text-foreground/70">Love Language:</span>
                       <span className="font-medium text-foreground">{profile.love_language}</span>
                     </div>
                   )}
-                  {profile.communication_style && (
+
+                  {profile.communication_style && isFieldMatched(profile.communication_style) && (
                     <div className="flex justify-between">
                       <span className="text-foreground/70">Communication Style:</span>
                       <span className="font-medium text-foreground">{profile.communication_style}</span>
                     </div>
                   )}
-                  {profile.values && profile.values.length > 0 && (
+
+                  {getMatchedItems(profile.values).length > 0 && (
                     <div className="flex justify-between">
                       <span className="text-foreground/70">Values:</span>
-                      <span className="font-medium text-foreground">{formatArrayField(profile.values)}</span>
+                      <span className="font-medium text-foreground">{formatArrayField(getMatchedItems(profile.values))}</span>
                     </div>
                   )}
-                  {profile.mindset && profile.mindset.length > 0 && (
+
+                  {getMatchedItems(profile.mindset).length > 0 && (
                     <div className="flex justify-between">
                       <span className="text-foreground/70">Mindset:</span>
-                      <span className="font-medium text-foreground">{formatArrayField(profile.mindset)}</span>
+                      <span className="font-medium text-foreground">{formatArrayField(getMatchedItems(profile.mindset))}</span>
                     </div>
                   )}
-                  {profile.relationship_goals && (
+
+                  {Array.isArray(profile.relationship_goals) && getMatchedItems(profile.relationship_goals).length > 0 && (
                     <div className="flex justify-between">
                       <span className="text-foreground/70">Relationship Goals:</span>
-                      <span className="font-medium text-foreground">
-                        {Array.isArray(profile.relationship_goals)
-                          ? formatArrayField(profile.relationship_goals)
-                          : profile.relationship_goals}
-                      </span>
+                      <span className="font-medium text-foreground">{formatArrayField(getMatchedItems(profile.relationship_goals))}</span>
                     </div>
                   )}
                 </div>
