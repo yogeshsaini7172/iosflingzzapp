@@ -157,6 +157,21 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
     return String(value);
   };
 
+  // Helper to ensure array fields are always arrays
+  const ensureArray = (value: any): any[] => {
+    if (!value) return [];
+    if (Array.isArray(value)) return value;
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed : [value];
+      } catch {
+        return [value];
+      }
+    }
+    return [];
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-background to-muted/20">
@@ -231,11 +246,11 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
               {/* Core Qualities Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Values */}
-                {profile.values && profile.values.length > 0 && (
+                {ensureArray(profile.values).length > 0 && (
                   <div>
                     <h4 className="font-medium text-foreground mb-2">Values</h4>
                     <div className="flex flex-wrap gap-1">
-                      {profile.values.map((value, index) => (
+                      {ensureArray(profile.values).map((value, index) => (
                         <Badge key={index} variant="secondary" className="text-xs">
                           {value}
                         </Badge>
@@ -245,11 +260,11 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
                 )}
 
                 {/* Mindset */}
-                {profile.mindset && profile.mindset.length > 0 && (
+                {ensureArray(profile.mindset).length > 0 && (
                   <div>
                     <h4 className="font-medium text-foreground mb-2">Mindset</h4>
                     <div className="flex flex-wrap gap-1">
-                      {profile.mindset.map((mindset, index) => (
+                      {ensureArray(profile.mindset).map((mindset, index) => (
                         <Badge key={index} variant="secondary" className="text-xs">
                           {mindset}
                         </Badge>
@@ -320,11 +335,11 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
               </div>
 
               {/* Personality Traits */}
-              {profile.personality_traits && profile.personality_traits.length > 0 && (
+              {ensureArray(profile.personality_traits).length > 0 && (
                 <div className="mt-4">
                   <h4 className="font-medium text-foreground mb-2">Personality Traits</h4>
                   <div className="flex flex-wrap gap-1">
-                    {profile.personality_traits.map((trait, index) => (
+                    {ensureArray(profile.personality_traits).map((trait, index) => (
                       <Badge key={index} variant="secondary" className="text-xs">
                         {trait}
                       </Badge>
@@ -334,11 +349,11 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
               )}
 
               {/* Interests */}
-              {profile.interests && profile.interests.length > 0 && (
+              {ensureArray(profile.interests).length > 0 && (
                 <div className="mt-4">
                   <h4 className="font-medium text-foreground mb-2">Interests</h4>
                   <div className="flex flex-wrap gap-1">
-                    {profile.interests.map((interest, index) => {
+                    {ensureArray(profile.interests).map((interest, index) => {
                       const IconComponent = getInterestIcon(interest);
                       return (
                         <Badge
