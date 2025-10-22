@@ -172,6 +172,26 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
     return [];
   };
 
+  // Helper to filter items based on matched criteria
+  const getMatchedItems = (items: any[], fieldPrefix?: string): any[] => {
+    if (!profile.matched_criteria || profile.matched_criteria.length === 0) {
+      return items; // If no matched_criteria, show all
+    }
+    
+    const itemsArray = ensureArray(items);
+    if (itemsArray.length === 0) return [];
+    
+    // Filter items that appear in matched_criteria
+    return itemsArray.filter(item => {
+      const itemLower = String(item).toLowerCase().replace(/\s+/g, '_');
+      return profile.matched_criteria?.some(criteria => {
+        const criteriaLower = criteria.toLowerCase();
+        // Check if the criteria contains the item or vice versa
+        return criteriaLower.includes(itemLower) || itemLower.includes(criteriaLower);
+      });
+    });
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-background to-muted/20">
@@ -243,30 +263,30 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
                 </div>
               )}
 
-              {/* Core Qualities Grid */}
+              {/* Core Qualities Grid - ONLY MATCHED */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Values */}
-                {ensureArray(profile.values).length > 0 && (
+                {/* Values - Only Matched */}
+                {getMatchedItems(profile.values).length > 0 && (
                   <div>
-                    <h4 className="font-medium text-foreground mb-2">Values</h4>
+                    <h4 className="font-medium text-foreground mb-2">Values (Matched)</h4>
                     <div className="flex flex-wrap gap-1">
-                      {ensureArray(profile.values).map((value, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
-                          {value}
+                      {getMatchedItems(profile.values).map((value, index) => (
+                        <Badge key={index} variant="default" className="text-xs bg-green-600 hover:bg-green-700">
+                          ✓ {value}
                         </Badge>
                       ))}
                     </div>
                   </div>
                 )}
 
-                {/* Mindset */}
-                {ensureArray(profile.mindset).length > 0 && (
+                {/* Mindset - Only Matched */}
+                {getMatchedItems(profile.mindset).length > 0 && (
                   <div>
-                    <h4 className="font-medium text-foreground mb-2">Mindset</h4>
+                    <h4 className="font-medium text-foreground mb-2">Mindset (Matched)</h4>
                     <div className="flex flex-wrap gap-1">
-                      {ensureArray(profile.mindset).map((mindset, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
-                          {mindset}
+                      {getMatchedItems(profile.mindset).map((mindset, index) => (
+                        <Badge key={index} variant="default" className="text-xs bg-green-600 hover:bg-green-700">
+                          ✓ {mindset}
                         </Badge>
                       ))}
                     </div>
@@ -303,12 +323,14 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
                   </div>
                 )}
 
-                {/* Lifestyle */}
-                {profile.lifestyle && (
+                {/* Lifestyle - Only show if matched */}
+                {profile.lifestyle && profile.matched_criteria?.some(c => 
+                  c.toLowerCase().includes(profile.lifestyle?.toLowerCase() || '')
+                ) && (
                   <div>
-                    <h4 className="font-medium text-foreground mb-2">Lifestyle</h4>
-                    <Badge variant="outline" className="text-sm">
-                      {profile.lifestyle}
+                    <h4 className="font-medium text-foreground mb-2">Lifestyle (Matched)</h4>
+                    <Badge variant="default" className="text-sm bg-green-600 hover:bg-green-700">
+                      ✓ {profile.lifestyle}
                     </Badge>
                   </div>
                 )}
@@ -334,35 +356,35 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
                 )}
               </div>
 
-              {/* Personality Traits */}
-              {ensureArray(profile.personality_traits).length > 0 && (
+              {/* Personality Traits - Only Matched */}
+              {getMatchedItems(profile.personality_traits).length > 0 && (
                 <div className="mt-4">
-                  <h4 className="font-medium text-foreground mb-2">Personality Traits</h4>
+                  <h4 className="font-medium text-foreground mb-2">Personality Traits (Matched)</h4>
                   <div className="flex flex-wrap gap-1">
-                    {ensureArray(profile.personality_traits).map((trait, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
-                        {trait}
+                    {getMatchedItems(profile.personality_traits).map((trait, index) => (
+                      <Badge key={index} variant="default" className="text-xs bg-green-600 hover:bg-green-700">
+                        ✓ {trait}
                       </Badge>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Interests */}
-              {ensureArray(profile.interests).length > 0 && (
+              {/* Interests - Only Matched */}
+              {getMatchedItems(profile.interests).length > 0 && (
                 <div className="mt-4">
-                  <h4 className="font-medium text-foreground mb-2">Interests</h4>
+                  <h4 className="font-medium text-foreground mb-2">Interests (Matched)</h4>
                   <div className="flex flex-wrap gap-1">
-                    {ensureArray(profile.interests).map((interest, index) => {
+                    {getMatchedItems(profile.interests).map((interest, index) => {
                       const IconComponent = getInterestIcon(interest);
                       return (
                         <Badge
                           key={index}
-                          variant="outline"
-                          className="py-1 px-2 bg-card/70 border-border/50 text-foreground hover:scale-105 transition-transform"
+                          variant="default"
+                          className="py-1 px-2 bg-green-600 hover:bg-green-700 text-white hover:scale-105 transition-transform"
                         >
                           <IconComponent className="w-3 h-3 mr-1" />
-                          {interest}
+                          ✓ {interest}
                         </Badge>
                       );
                     })}
