@@ -172,10 +172,11 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
     return [];
   };
 
-  // Helper to filter items based on matched criteria
+  // Helper to filter items based on matched criteria - ONLY show matched items
   const getMatchedItems = (items: any[], fieldPrefix?: string): any[] => {
+    // If no matched_criteria exists, show nothing (not everything)
     if (!profile.matched_criteria || profile.matched_criteria.length === 0) {
-      return items; // If no matched_criteria, show all
+      return [];
     }
     
     const itemsArray = ensureArray(items);
@@ -189,6 +190,20 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
         // Check if the criteria contains the item or vice versa
         return criteriaLower.includes(itemLower) || itemLower.includes(criteriaLower);
       });
+    });
+  };
+
+  // Check if a single field value is matched
+  const isFieldMatched = (fieldValue: any, fieldName?: string): boolean => {
+    if (!profile.matched_criteria || profile.matched_criteria.length === 0) {
+      return false;
+    }
+    if (!fieldValue) return false;
+    
+    const valueLower = String(fieldValue).toLowerCase().replace(/\s+/g, '_');
+    return profile.matched_criteria.some(criteria => {
+      const criteriaLower = criteria.toLowerCase();
+      return criteriaLower.includes(valueLower) || valueLower.includes(criteriaLower);
     });
   };
 
@@ -293,40 +308,38 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
                   </div>
                 )}
 
-                {/* Personality Type */}
-                {profile.personality_type && (
+                {/* Personality Type - Only if matched */}
+                {profile.personality_type && isFieldMatched(profile.personality_type) && (
                   <div>
-                    <h4 className="font-medium text-foreground mb-2">Personality Type</h4>
-                    <Badge variant="outline" className="text-sm">
-                      {profile.personality_type}
+                    <h4 className="font-medium text-foreground mb-2">Personality Type (Matched)</h4>
+                    <Badge variant="default" className="text-sm bg-green-600 hover:bg-green-700">
+                      ✓ {profile.personality_type}
                     </Badge>
                   </div>
                 )}
 
-                {/* Love Language */}
-                {profile.love_language && (
+                {/* Love Language - Only if matched */}
+                {profile.love_language && isFieldMatched(profile.love_language) && (
                   <div>
-                    <h4 className="font-medium text-foreground mb-2">Love Language</h4>
-                    <Badge variant="outline" className="text-sm">
-                      {profile.love_language}
+                    <h4 className="font-medium text-foreground mb-2">Love Language (Matched)</h4>
+                    <Badge variant="default" className="text-sm bg-green-600 hover:bg-green-700">
+                      ✓ {profile.love_language}
                     </Badge>
                   </div>
                 )}
 
-                {/* Communication Style */}
-                {profile.communication_style && (
+                {/* Communication Style - Only if matched */}
+                {profile.communication_style && isFieldMatched(profile.communication_style) && (
                   <div>
-                    <h4 className="font-medium text-foreground mb-2">Communication Style</h4>
-                    <Badge variant="outline" className="text-sm">
-                      {profile.communication_style}
+                    <h4 className="font-medium text-foreground mb-2">Communication Style (Matched)</h4>
+                    <Badge variant="default" className="text-sm bg-green-600 hover:bg-green-700">
+                      ✓ {profile.communication_style}
                     </Badge>
                   </div>
                 )}
 
-                {/* Lifestyle - Only show if matched */}
-                {profile.lifestyle && profile.matched_criteria?.some(c => 
-                  c.toLowerCase().includes(profile.lifestyle?.toLowerCase() || '')
-                ) && (
+                {/* Lifestyle - Only if matched */}
+                {profile.lifestyle && isFieldMatched(profile.lifestyle) && (
                   <div>
                     <h4 className="font-medium text-foreground mb-2">Lifestyle (Matched)</h4>
                     <Badge variant="default" className="text-sm bg-green-600 hover:bg-green-700">
