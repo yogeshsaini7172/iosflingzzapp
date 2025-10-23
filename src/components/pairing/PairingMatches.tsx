@@ -37,7 +37,6 @@ interface PairingMatch {
   profession?: string;
   personality_type?: string;
   matched_criteria?: string[];
-  not_matched_criteria?: string[];
 }
 
 interface PairingMatchesProps {
@@ -101,9 +100,7 @@ const PairingMatches: React.FC<PairingMatchesProps> = ({ userId }) => {
               mindset: fromFeed?.mindset,
               education_level: fromFeed?.education_level,
               profession: fromFeed?.profession,
-              personality_type: fromFeed?.personality_type,
-              matched_criteria: c.matched_criteria || [],
-              not_matched_criteria: c.not_matched_criteria || []
+              personality_type: fromFeed?.personality_type
             };
           });
           setMatches(enriched);
