@@ -21,9 +21,7 @@ export async function fetchWithFirebaseAuth(input: RequestInfo | URL, init: Requ
       // Send Firebase token as Bearer token (Edge Functions expect it here)
       headers.set('Authorization', `Bearer ${token}`);
       
-      // Also send explicitly via x-firebase-token to avoid gateways stripping Authorization
-      headers.set('x-firebase-token', token);
-      
+      // Do NOT send x-firebase-token header due to CORS restrictions; Authorization Bearer is sufficient
       // Also add Supabase anon key as apikey header (for Supabase client operations)
       const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjaHZzcWVxaWF2aGFudXJuYmVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY1MjI4OTMsImV4cCI6MjA3MjA5ODg5M30.6EII7grfX9gCUx6haU2wIfoiMDPrFTQn2XMDi6cY5-U';
       headers.set('apikey', supabaseAnonKey);
