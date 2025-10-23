@@ -85,7 +85,7 @@ const ChatRequestsModal = ({ isOpen, onClose, onNavigate }: ChatRequestsModalPro
     
     try {
       setLoading(true);
-      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-request-handler', {
+      const response = await fetchWithFirebaseAuth('/functions/v1/chat-request-handler', {
         method: 'POST',
         body: JSON.stringify({ 
           action: 'get_requests'
@@ -118,7 +118,7 @@ const ChatRequestsModal = ({ isOpen, onClose, onNavigate }: ChatRequestsModalPro
   const handleResponse = async (requestId: string, status: 'accepted' | 'declined') => {
     setResponding(requestId);
     try {
-      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-request-handler', {
+      const response = await fetchWithFirebaseAuth('/functions/v1/chat-request-handler', {
         method: 'POST',
         body: JSON.stringify({
           action: 'respond_request',

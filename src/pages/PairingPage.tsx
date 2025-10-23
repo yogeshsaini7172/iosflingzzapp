@@ -53,33 +53,58 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
   useEffect(() => {
     if (!userId) return;
 
-    // Load sent chat requests from DB and use them as the authoritative source
+    // Load sent chat requests - first try localStorage for instant load, then sync with DB
     (async () => {
-      const tryFetch = async (attempts = 3, backoffMs = 500) => {
-        let lastError: any = null;
-        for (let i = 0; i < attempts; i++) {
-          try {
-            const { data, error } = await supabase
-              .from('chat_requests')
-              .select('id,recipient_id,status,chat_room_id,created_at,updated_at')
-              .eq('sender_id', userId)
-              .order('updated_at', { ascending: false });
-
-            if (!error && Array.isArray(data)) return { data };
-            lastError = error || new Error('Unexpected response');
-          } catch (err) {
-            lastError = err;
+      // STEP 1: Load from localStorage immediately for instant UI update
+      try {
+        const raw = localStorage.getItem(REQUESTED_KEY(userId));
+        const rawStatus = localStorage.getItem(`${REQUESTED_KEY(userId)}:status`);
+        const rawRooms = localStorage.getItem(`${REQUESTED_KEY(userId)}:rooms`);
+        
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            console.log('[PairingPage] 📦 Loaded from localStorage:', parsed);
+            setRequestedRecipients(parsed);
           }
+        }
+        if (rawStatus) {
+          const parsed = JSON.parse(rawStatus);
+          if (parsed && typeof parsed === 'object') setRequestedStatus(parsed);
+        }
+        if (rawRooms) {
+          const parsed = JSON.parse(rawRooms);
+          if (parsed && typeof parsed === 'object') setRequestedChatRooms(parsed);
+        }
+      } catch (err) {
+        console.warn('[PairingPage] Failed to load from localStorage', err);
+      }
 
-          // eslint-disable-next-line no-await-in-loop
-          await new Promise(res => setTimeout(res, backoffMs * (i + 1)));
+      // STEP 2: Sync with database via Edge Function (optional enhancement)
+      try {
+        // Silently try to sync with database
+        const response = await fetchWithFirebaseAuth('/functions/v1/chat-request-handler', {
+          method: 'POST',
+          body: JSON.stringify({ 
+            action: 'get_sent_requests',
+            user_id: userId 
+          })
+        });
+
+        if (!response.ok) {
+          // Silently fall back to localStorage
+          return;
         }
 
-        throw lastError;
-      };
-
-      try {
-        const { data } = await tryFetch(3, 400);
+        const result = await response.json();
+        
+        if (!result.success || !Array.isArray(result.data)) {
+          // Silently fall back to localStorage
+          return;
+        }
+        
+        console.log('[PairingPage] ✅ Database sync successful');
+        const data = result.data;
 
         // reduce to the latest request per recipient (use updated_at order)
         const latestByRecipient: Record<string, any> = {};
@@ -138,38 +163,8 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
 
         return;
       } catch (err) {
-        console.warn('Failed to fetch sent chat requests from server after retries', err);
-      }
-
-      // Fallback to localStorage if server fetch fails
-      try {
-        // eslint-disable-next-line no-console
-        console.warn('[PairingPage] Falling back to localStorage for requested recipients');
-        const raw = localStorage.getItem(REQUESTED_KEY(userId));
-        const rawStatus = localStorage.getItem(`${REQUESTED_KEY(userId)}:status`);
-        const rawRooms = localStorage.getItem(`${REQUESTED_KEY(userId)}:rooms`);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed)) setRequestedRecipients(parsed);
-        }
-        if (rawStatus) {
-          const parsed = JSON.parse(rawStatus);
-          if (parsed && typeof parsed === 'object') setRequestedStatus(parsed);
-        }
-        if (rawRooms) {
-          const parsed = JSON.parse(rawRooms);
-          if (parsed && typeof parsed === 'object') setRequestedChatRooms(parsed);
-        }
-        try {
-          // eslint-disable-next-line no-console
-          console.log('[PairingPage] Loaded requested recipients from localStorage', {
-            recipients: JSON.parse(raw || '[]'),
-            status: JSON.parse(rawStatus || '{}'),
-            rooms: JSON.parse(rawRooms || '{}')
-          });
-        } catch (e) {}
-      } catch (err) {
-        console.warn('Failed to load requested recipients from storage', err);
+        console.warn('[PairingPage] ⚠️ Database sync failed, using localStorage only:', err);
+        // localStorage data is already loaded, so we're good
       }
     })();
   }, [userId]);
@@ -177,9 +172,19 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
   useEffect(() => {
     if (!userId) return;
     try {
-      localStorage.setItem(REQUESTED_KEY(userId), JSON.stringify(requestedRecipients || []));
-      localStorage.setItem(`${REQUESTED_KEY(userId)}:status`, JSON.stringify(requestedStatus || {}));
-      localStorage.setItem(`${REQUESTED_KEY(userId)}:rooms`, JSON.stringify(requestedChatRooms || {}));
+      const recipientsToSave = requestedRecipients || [];
+      const statusToSave = requestedStatus || {};
+      const roomsToSave = requestedChatRooms || {};
+      
+      localStorage.setItem(REQUESTED_KEY(userId), JSON.stringify(recipientsToSave));
+      localStorage.setItem(`${REQUESTED_KEY(userId)}:status`, JSON.stringify(statusToSave));
+      localStorage.setItem(`${REQUESTED_KEY(userId)}:rooms`, JSON.stringify(roomsToSave));
+      
+      console.log('[PairingPage] 💾 Saved to localStorage:', {
+        recipients: recipientsToSave,
+        status: statusToSave,
+        rooms: roomsToSave
+      });
     } catch (err) {
       console.warn('Failed to save requested recipients to storage', err);
     }
@@ -304,7 +309,8 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
               love_language: src?.love_language,
               field_of_study: src?.field_of_study,
               profession: src?.profession,
-              education_level: src?.education_level
+              education_level: src?.education_level,
+              distance_km: m.distance_km || null
             };
           });
 
@@ -366,7 +372,8 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
             love_language: match.candidate_love_language,
             field_of_study: match.candidate_field_of_study,
             profession: match.candidate_profession,
-            education_level: match.candidate_education_level
+            education_level: match.candidate_education_level,
+            distance_km: match.distance_km || null
           };
         } else {
           return match;
@@ -406,6 +413,10 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
       }
 
       const candidates = pairingResults?.top_candidates || [];
+
+      // Debug: Check if distance_km is in the response
+      console.log('[PairingPage] 🔍 Sample candidate data:', candidates[0]);
+      console.log('[PairingPage] 📍 Has distance_km?', candidates[0]?.distance_km);
 
       if (candidates.length === 0) {
         toast({ title: 'No matches', description: pairingResults.message || 'No matches found. Try again later!' });
@@ -451,7 +462,8 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
             love_language: c.candidate_love_language,
             field_of_study: c.candidate_field_of_study,
             profession: c.candidate_profession,
-            education_level: c.candidate_education_level
+            education_level: c.candidate_education_level,
+            distance_km: c.distance_km || null
           };
         });
 
@@ -503,7 +515,7 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
     const score = Number(match.compatibility_score || 0);
     if (score > 80) {
       try {
-        const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-management', {
+        const response = await fetchWithFirebaseAuth('/functions/v1/chat-management', {
           method: 'POST',
           body: JSON.stringify({ action: 'create_room', user1_id: userId, user2_id: match.user_id })
         });
@@ -539,7 +551,7 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
     try {
   setSendingRequests(prev => [...prev, String(match.user_id)]);
 
-      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-request-handler', {
+      const response = await fetchWithFirebaseAuth('/functions/v1/chat-request-handler', {
         method: 'POST',
         body: JSON.stringify({ action: 'send_request', recipient_id: match.user_id, message: 'Hi! I would like to chat.' })
       });
@@ -552,12 +564,53 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
       const result = await response.json();
       if (result.success) {
         // Server may indicate it was already sent; still record so UI reflects state
-        setRequestedRecipients(prev => Array.from(new Set([...prev, match.user_id])));
+        const recipientIdStr = String(match.user_id);
+        
+        setRequestedRecipients(prev => {
+          const updated = Array.from(new Set([...prev, recipientIdStr]));
+          // Immediately save to localStorage
+          try {
+            localStorage.setItem(REQUESTED_KEY(userId), JSON.stringify(updated));
+          } catch (e) {
+            console.warn('Failed to save to localStorage', e);
+          }
+          return updated;
+        });
+        
         // if server returned a status or chat_room_id, prefer those
         const returnedStatus = (result?.data?.status || result?.status) || 'pending';
         const returnedRoom = result?.data?.chat_room_id || result?.chat_room_id || null;
-        setRequestedStatus(prev => ({ ...prev, [match.user_id]: returnedStatus }));
-        if (returnedRoom) setRequestedChatRooms(prev => ({ ...prev, [match.user_id]: returnedRoom }));
+        
+        setRequestedStatus(prev => {
+          const updated = { ...prev, [recipientIdStr]: returnedStatus };
+          // Save to localStorage
+          try {
+            localStorage.setItem(`${REQUESTED_KEY(userId)}:status`, JSON.stringify(updated));
+          } catch (e) {
+            console.warn('Failed to save status to localStorage', e);
+          }
+          return updated;
+        });
+        
+        if (returnedRoom) {
+          setRequestedChatRooms(prev => {
+            const updated = { ...prev, [recipientIdStr]: returnedRoom };
+            // Save to localStorage
+            try {
+              localStorage.setItem(`${REQUESTED_KEY(userId)}:rooms`, JSON.stringify(updated));
+            } catch (e) {
+              console.warn('Failed to save rooms to localStorage', e);
+            }
+            return updated;
+          });
+        }
+        
+        console.log('[PairingPage] ✅ Chat request sent successfully, state updated:', {
+          recipient: recipientIdStr,
+          status: returnedStatus,
+          room: returnedRoom
+        });
+        
         toast({ title: 'Chat Request Sent!', description: result.message || 'Your request has been delivered.' });
       } else {
         throw new Error(result.error || 'Failed to send request');
@@ -942,7 +995,7 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
                     </Carousel>
                     
                     {/* Top Badges */}
-                    <div className="absolute top-3 left-3 right-3 flex items-start justify-between">
+                    <div className="absolute top-3 left-3 right-3 flex items-start justify-between gap-2">
                       <div className={`px-4 py-2 rounded-full text-sm font-bold text-white shadow-elegant backdrop-blur-md ${
                         (match.compatibility_score || 0) >= 80 ? 'bg-success/90' :
                         (match.compatibility_score || 0) >= 60 ? 'bg-primary/90' :
@@ -950,9 +1003,17 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
                       }`}>
                         {match.compatibility_score || 0}%
                       </div>
-                      <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-black/60 backdrop-blur-md">
-                        <Award className="w-4 h-4 text-accent" />
-                        <span className="text-sm font-bold text-white">{match.total_qcs}</span>
+                      <div className="flex items-center gap-2">
+                        {match.distance_km && (
+                          <div className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-gradient-to-r from-blue-500/90 to-purple-500/90 backdrop-blur-md shadow-elegant">
+                            <MapPin className="w-4 h-4 text-white" />
+                            <span className="text-sm font-bold text-white">{match.distance_km}km</span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-black/60 backdrop-blur-md">
+                          <Award className="w-4 h-4 text-accent" />
+                          <span className="text-sm font-bold text-white">{match.total_qcs}</span>
+                        </div>
                       </div>
                     </div>
 
@@ -965,12 +1026,20 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
                         <ShieldCheck className="w-5 h-5 text-success flex-shrink-0" />
                       </div>
                       
-                      {match.university && (
-                        <div className="flex items-center gap-2 text-white/90 mb-3">
-                          <GraduationCap className="w-4 h-4" />
-                          <p className="text-sm font-medium">{match.university}</p>
-                        </div>
-                      )}
+                      <div className="space-y-2 mb-3">
+                        {match.university && (
+                          <div className="flex items-center gap-2 text-white/90">
+                            <GraduationCap className="w-4 h-4" />
+                            <p className="text-sm font-medium">{match.university}</p>
+                          </div>
+                        )}
+                        {match.distance_km && (
+                          <div className="flex items-center gap-2 text-white/90">
+                            <MapPin className="w-4 h-4" />
+                            <p className="text-sm font-medium">{match.distance_km} km away</p>
+                          </div>
+                        )}
+                      </div>
 
                       {/* Score Indicators */}
                       <div className="flex gap-2">

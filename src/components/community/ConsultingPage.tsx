@@ -9,6 +9,7 @@ import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus, Edit2, Save, X, Clock, CheckCircle, MessageSquare } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import UnifiedLayout from "@/components/layout/UnifiedLayout";
 
 const ConsultingPage = () => {
   const { user } = useAuth();
@@ -163,13 +164,14 @@ const ConsultingPage = () => {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold mb-2">Consulting</h2>
-        <p className="text-muted-foreground">
-          Get personalized advice and optimize your dating experience
-        </p>
-      </div>
+    <UnifiedLayout title="Consulting">
+      <div className="p-6 space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold mb-2">Consulting</h2>
+          <p className="text-muted-foreground">
+            Get personalized advice and optimize your dating experience
+          </p>
+        </div>
 
       {/* What You Want Section - Existing Profile Data */}
       <Card>
@@ -468,7 +470,8 @@ const ConsultingPage = () => {
           )}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </UnifiedLayout>
   );
 };
 
