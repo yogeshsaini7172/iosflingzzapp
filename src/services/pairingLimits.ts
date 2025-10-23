@@ -185,46 +185,63 @@ export class PairingLimitService {
     limit: number
   ): Promise<any[]> {
     try {
-      const { data, error } = await supabase
-        .from('enhanced_matches')
-        .select(`
-          *,
-          user1_profile:profiles!enhanced_matches_user1_id_fkey(
-            id,
-            first_name,
-            last_name,
-            profile_images,
-            bio,
-            university,
-            qcs_score
-          ),
-          user2_profile:profiles!enhanced_matches_user2_id_fkey(
-            id,
-            first_name,
-            last_name,
-            profile_images,
-            bio,
-            university,
-            qcs_score
-          )
-        `)
+      // First try the matches table (has compatibility_score)
+      const { data: matchesData, error: matchesError } = await supabase
+        .from('matches')
+        .select('*')
         .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
         .gte('compatibility_score', minQCS)
         .lt('compatibility_score', maxQCS)
         .order('compatibility_score', { ascending: false })
         .limit(limit);
 
-      if (error) throw error;
+      if (matchesError) {
+        console.warn(`Matches table query failed:`, matchesError);
+        // Return empty array to fall back to deterministic pairing
+        return [];
+      }
 
-      // Transform the data to get the other user's profile
-      return (data || []).map(match => {
-        const otherProfile = match.user1_id === userId ? match.user2_profile : match.user1_profile;
+      if (!matchesData || matchesData.length === 0) {
+        return [];
+      }
+
+      // Fetch profile data for all matched users
+      const otherUserIds = matchesData.map(match => 
+        match.user1_id === userId ? match.user2_id : match.user1_id
+      ).filter(Boolean);
+
+      if (otherUserIds.length === 0) {
+        return [];
+      }
+
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, first_name, last_name, profile_images, bio, university, total_qcs, age, interests')
+        .in('user_id', otherUserIds);
+
+      if (profilesError) {
+        console.warn(`Profiles query failed:`, profilesError);
+        return [];
+      }
+
+      // Map profiles to user IDs for easy lookup
+      const profileMap = new Map(
+        (profiles || []).map(p => [p.user_id, p])
+      );
+
+      // Transform matches with profile data
+      return matchesData.map(match => {
+        const otherUserId = match.user1_id === userId ? match.user2_id : match.user1_id;
+        const otherProfile = profileMap.get(otherUserId);
+        
         return {
           ...match,
           matched_user: otherProfile,
-          qcs_score: (match as any).compatibility_score || 0 // Type assertion for now
+          user_profile: otherProfile,
+          qcs_score: match.compatibility_score || 0,
+          compatibility_score: match.compatibility_score || 0
         };
-      });
+      }).filter(m => m.matched_user); // Filter out matches without profile data
     } catch (error) {
       console.error(`Error getting matches for QCS range ${minQCS}-${maxQCS}:`, error);
       return [];

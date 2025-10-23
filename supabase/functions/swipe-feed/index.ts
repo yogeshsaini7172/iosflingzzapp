@@ -58,10 +58,10 @@ serve(async (req) => {
       )
     }
 
-    // Get current user's location preferences
+    // Get current user's location preferences and gender
     const { data: currentUser } = await supabaseClient
       .from('profiles')
-      .select('latitude, longitude, state, match_radius_km, match_by_state')
+      .select('latitude, longitude, state, match_radius_km, match_by_state, gender')
       .eq('user_id', user_id)
       .single();
 
@@ -73,7 +73,8 @@ serve(async (req) => {
 
     console.log(`📍 User location settings: state=${userState}, radius=${matchRadius}km, stateOnly=${matchByState}`);
 
-    // Get user's preferred gender from partner_preferences
+    // Get user's gender and preferred gender from partner_preferences
+    const userGender = currentUser?.gender?.toLowerCase().trim();
     const { data: userPreferences } = await supabaseClient
       .from('partner_preferences')
       .select('preferred_gender')
@@ -180,27 +181,63 @@ serve(async (req) => {
       query = query.lte('height', filters.heightMax)
     }
 
-    // GENDER FILTERING: Use stored preferences or request filters
-    const preferredGenders = userPreferences?.preferred_gender || filters.gender;
-    if (preferredGenders && preferredGenders.length > 0) {
-      // Check if "All" or "Any" is selected - if so, skip gender filter entirely
+    // GENDER FILTERING: Automatic opposite gender matching
+    let targetGenders: string[] = [];
+    
+    // Default: Show opposite gender based on user's gender
+    if (userGender === 'male') {
+      targetGenders = ['female'];
+      console.log('👨 Male user → Showing only Female profiles');
+    } else if (userGender === 'female') {
+      targetGenders = ['male'];
+      console.log('👩 Female user → Showing only Male profiles');
+    } else {
+      // For non-binary or other genders, use preferences
+      const preferredGenders = userPreferences?.preferred_gender || filters.gender;
+      if (preferredGenders && preferredGenders.length > 0) {
+        const hasAllOrAny = preferredGenders.some((g: any) => {
+          const normalized = typeof g === 'string' ? g.toLowerCase().trim() : '';
+          return normalized === 'all' || normalized === 'any';
+        });
+        
+        if (!hasAllOrAny) {
+          targetGenders = preferredGenders
+            .map((g: any) => (typeof g === 'string' ? g.toLowerCase().trim() : ''))
+            .filter((g: string) => g === 'male' || g === 'female');
+        }
+      }
+      console.log('🌈 Non-binary/Other gender → Using preferences:', targetGenders);
+    }
+    
+    // Override with explicit user preferences if they set them
+    const preferredGenders = userPreferences?.preferred_gender;
+    if (preferredGenders && preferredGenders.length > 0 && (userGender === 'male' || userGender === 'female')) {
       const hasAllOrAny = preferredGenders.some((g: any) => {
         const normalized = typeof g === 'string' ? g.toLowerCase().trim() : '';
         return normalized === 'all' || normalized === 'any';
       });
       
       if (!hasAllOrAny) {
-        // Only apply filter if specific genders are selected (not "All"/"Any")
         const normalizedGenders = preferredGenders
           .map((g: any) => (typeof g === 'string' ? g.toLowerCase().trim() : ''))
           .filter((g: string) => g === 'male' || g === 'female');
-        console.log('🚻 Applying gender filter:', normalizedGenders);
+        
         if (normalizedGenders.length > 0) {
-          query = query.in('gender', normalizedGenders)
+          targetGenders = normalizedGenders;
+          console.log('⚙️ Using user preference override:', targetGenders);
         }
       } else {
+        targetGenders = []; // Show all genders
         console.log('🚻 "All"/"Any" selected - showing all genders');
       }
+    }
+    
+    // Apply gender filter
+    if (targetGenders.length > 0) {
+      query = query.in('gender', targetGenders);
+      console.log('✅ Gender filter applied:', targetGenders);
+    } else {
+      console.log('⚠️ No gender filter - showing all genders');
     }
 
     query = query.limit(limit)

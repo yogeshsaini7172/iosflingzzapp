@@ -153,7 +153,7 @@ serve(async (req) => {
       }
 
     } else if (action === 'get_requests') {
-      // Get pending chat requests for user
+      // Get pending chat requests for user (received)
       const targetUserId = bodyUserId || sender_id || effectiveUserId;
       console.log(`🔍 Fetching chat requests for user: ${targetUserId}`);
       
@@ -181,6 +181,28 @@ serve(async (req) => {
       console.log(`✅ Retrieved ${requests?.length || 0} chat requests`);
       
       return new Response(JSON.stringify({ success: true, data: requests || [] }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      });
+    } else if (action === 'get_sent_requests') {
+      // Get chat requests sent by user
+      const targetUserId = bodyUserId || sender_id || effectiveUserId;
+      console.log(`🔍 Fetching sent chat requests for user: ${targetUserId}`);
+      
+      const { data: sentRequests, error: sentError } = await supabaseClient
+        .from('chat_requests')
+        .select('id, recipient_id, status, chat_room_id, created_at, updated_at')
+        .eq('sender_id', targetUserId)
+        .order('updated_at', { ascending: false });
+
+      if (sentError) {
+        console.error('❌ Error fetching sent chat requests:', sentError);
+        throw sentError;
+      }
+
+      console.log(`✅ Retrieved ${sentRequests?.length || 0} sent chat requests`);
+      
+      return new Response(JSON.stringify({ success: true, data: sentRequests || [] }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       });
