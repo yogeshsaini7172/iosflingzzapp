@@ -19,11 +19,6 @@ export function CompatibilityBadge({
   const hasMatch = checkMatch(userValue, partnerValue);
   const matchStatus = hasMatch === true ? 'match' : hasMatch === false ? 'no-match' : 'neutral';
 
-  // ONLY SHOW MATCHES - hide non-matches
-  if (matchStatus !== 'match') {
-    return null;
-  }
-
   // Colors for matched items only
   const colors = {
     bg: 'bg-green-500/10 border-green-500/30',
@@ -31,16 +26,18 @@ export function CompatibilityBadge({
     icon: <Heart className="w-3 h-3" fill="currentColor" />
   };
 
+  // Always return a consistent component structure to avoid hook violations
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
+      animate={{ opacity: matchStatus === 'match' ? 1 : 0, scale: matchStatus === 'match' ? 1 : 0.9 }}
       transition={{ duration: 0.2 }}
       className={`
         relative inline-flex items-center gap-1.5 px-3 py-1.5
         rounded-full border ${colors.bg} ${colors.text}
         text-xs font-medium backdrop-blur-sm
         hover-scale transition-all duration-200
+        ${matchStatus !== 'match' ? 'hidden' : ''}
       `}
     >
       {/* Icon */}
@@ -53,19 +50,21 @@ export function CompatibilityBadge({
         {label}
       </span>
 
-      {/* Match indicator pulse - always show since we only render matches */}
-      <motion.div
-        className="absolute -inset-0.5 rounded-full bg-green-500/20"
-        animate={{
-          scale: [1, 1.1, 1],
-          opacity: [0.5, 0.8, 0.5],
-        }}
-        transition={{
-          duration: 2,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
+      {/* Match indicator pulse - only show for matches */}
+      {matchStatus === 'match' && (
+        <motion.div
+          className="absolute -inset-0.5 rounded-full bg-green-500/20"
+          animate={{
+            scale: [1, 1.1, 1],
+            opacity: [0.5, 0.8, 0.5],
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+      )}
     </motion.div>
   );
 }
@@ -122,18 +121,16 @@ export function CompatibilityGroup({
     checkMatch(item.userValue, item.partnerValue) === true
   );
   
-  // Don't render if no matches
-  if (matchingItems.length === 0) return null;
-
   // Calculate match percentage based on matched items
   const matchPercentage = 100; // Always 100% since we only show matches
 
+  // Always return a consistent component structure to avoid hook violations
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
+      animate={{ opacity: matchingItems.length > 0 ? 1 : 0, y: matchingItems.length > 0 ? 0 : 10 }}
       transition={{ duration: 0.3 }}
-      className={`space-y-3 ${className}`}
+      className={`space-y-3 ${className} ${matchingItems.length === 0 ? 'hidden' : ''}`}
     >
       {/* Title with match percentage */}
       <div className="flex items-center justify-between">

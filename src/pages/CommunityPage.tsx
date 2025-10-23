@@ -7,11 +7,14 @@ import UpdatesPage from "@/components/community/UpdatesPage";
 import NewsPage from "@/components/community/NewsPage";
 import ConsultingPage from "@/components/community/ConsultingPage";
 
+// User-facing community page - NO admin features
 type CommunityTab = 'campaigns' | 'updates' | 'news' | 'consulting';
 
 const CommunityPage = () => {
+  // Default to campaigns tab for users (NOT overview)
   const [activeTab, setActiveTab] = useState<CommunityTab>('campaigns');
 
+  // Only user-facing tabs (NO Overview/Admin Dashboard)
   const tabs = [
     { id: 'campaigns' as CommunityTab, label: 'Campaigns', icon: Megaphone },
     { id: 'updates' as CommunityTab, label: 'Updates', icon: Bell },
@@ -42,7 +45,7 @@ const CommunityPage = () => {
           </div>
         </div>
 
-        {/* Main Content */}
+        {/* Main Content - User views only */}
         <div className="flex-1 overflow-auto">
           {activeTab === 'campaigns' && <CampaignsPage />}
           {activeTab === 'updates' && <UpdatesPage />}

@@ -26,72 +26,75 @@ export function PairCard({ profile, onSwipe, onViewProfile }: PairCardProps) {
   const photoUrl = getPhotoUrl(primaryPhoto);
 
   return (
-    <Card className="group relative overflow-hidden rounded-2xl shadow-elegant hover:shadow-royal transition-all duration-500 border border-border/50 bg-gradient-card hover:scale-[1.02] animate-fade-in">
-      <div className="relative">
-        {/* Photo Section */}
-        <div className="aspect-[3/4] bg-gradient-to-br from-muted/50 to-muted relative overflow-hidden">
-          {photoUrl ? (
-            <img 
-              src={photoUrl} 
-              alt={profile.display_name} 
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-luxury"
-              onError={(e) => {
-                e.currentTarget.src = 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400';
-              }}
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-subtle">
-              <div className="text-center">
-                <div className="w-20 h-20 bg-primary/10 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
-                  <span className="text-3xl">👤</span>
+    <Card className="group shadow-elegant hover:shadow-royal transition-all duration-500 border-0 bg-white dark:bg-gray-900 rounded-2xl hover:scale-[1.02] animate-fade-in max-w-sm mx-auto">
+      {/* Card padding wrapper - Tinder style */}
+      <div className="p-3">
+        {/* Photo Section with rounded corners */}
+        <div className="relative overflow-hidden rounded-2xl">
+          <div className="aspect-[3/4] bg-gradient-to-br from-muted/50 to-muted relative">
+            {photoUrl ? (
+              <img 
+                src={photoUrl} 
+                alt={profile.display_name} 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-luxury"
+                onError={(e) => {
+                  e.currentTarget.src = 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400';
+                }}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-subtle">
+                <div className="text-center">
+                  <div className="w-20 h-20 bg-primary/10 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
+                    <span className="text-3xl">👤</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground font-medium">No photo</p>
                 </div>
-                <p className="text-sm text-muted-foreground font-medium">No photo</p>
-              </div>
-            </div>
-          )}
-          
-          {/* Premium overlay gradients */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-transparent" />
-          
-          {/* Photo count indicator */}
-          {photos.length > 1 && (
-            <Badge className="absolute top-4 right-4 bg-black/70 backdrop-blur-md text-white border-0 shadow-lg px-3 py-1.5 font-medium">
-              <Sparkles className="w-3 h-3 mr-1.5" />
-              {photos.length} photos
-            </Badge>
-          )}
-
-          {/* User info overlay on image */}
-          <div className="absolute bottom-0 left-0 right-0 p-6 space-y-3">
-            <div className="flex items-start justify-between">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-2xl font-display font-bold text-white drop-shadow-lg truncate">
-                    {profile.display_name}, {profile.age}
-                  </h3>
-                  <ShieldCheck className="w-5 h-5 text-success flex-shrink-0 drop-shadow-lg" />
-                </div>
-                <div className="flex items-center gap-2 text-white/90 text-sm font-medium drop-shadow-md">
-                  <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-                  <span className="truncate">{profile.location || "Location not set"}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Bio preview on hover */}
-            {profile.bio && (
-              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <p className="text-sm text-white/95 line-clamp-2 font-medium drop-shadow-md leading-relaxed">
-                  {profile.bio}
-                </p>
               </div>
             )}
+            
+            {/* Subtle gradient overlay - Tinder style */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          
+            {/* Photo count indicator */}
+            {photos.length > 1 && (
+              <Badge className="absolute top-4 right-4 bg-black/70 backdrop-blur-md text-white border-0 shadow-lg px-3 py-1.5 font-medium">
+                <Sparkles className="w-3 h-3 mr-1.5" />
+                {photos.length} photos
+              </Badge>
+            )}
+
+            {/* User info overlay on image - Tinder style */}
+            <div className="absolute bottom-0 left-0 right-0 p-5 space-y-2">
+              <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-3xl font-bold text-white drop-shadow-lg truncate">
+                      {profile.display_name}, {profile.age}
+                    </h3>
+                    <ShieldCheck className="w-5 h-5 text-success flex-shrink-0 drop-shadow-lg" />
+                  </div>
+                  <div className="flex items-center gap-2 text-white/90 text-sm font-medium drop-shadow-md">
+                    <MapPin className="w-4 h-4 flex-shrink-0" />
+                    <span className="truncate">{profile.location || "Location not set"}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bio preview on hover */}
+              {profile.bio && (
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <p className="text-sm text-white/95 line-clamp-2 font-medium drop-shadow-md leading-relaxed">
+                    {profile.bio}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Content Section */}
-        <CardContent className="p-5 space-y-4 bg-card/95 backdrop-blur-sm">
+      {/* Content Section */}
+      <CardContent className="p-5 space-y-4">
           {/* Interests */}
           {profile.interests && profile.interests.length > 0 && (
             <div className="flex flex-wrap gap-2">

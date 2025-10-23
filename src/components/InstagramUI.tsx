@@ -308,13 +308,15 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                             
                             <p className="text-foreground/90 font-professional text-sm mb-3 line-clamp-2">{profile.bio}</p>
                             
-                            <div className="flex gap-2 flex-wrap">
-                              {profile.interests.map((interest, idx) => (
-                                <span key={idx} className="px-3 py-1 bg-card/50 rounded-full text-foreground font-professional text-xs font-medium">
-                                  {interest}
-                                </span>
-                              ))}
-                            </div>
+                            {Array.isArray(profile.interests) && profile.interests.length > 0 && (
+                              <div className="flex gap-2 flex-wrap">
+                                {profile.interests.map((interest, idx) => (
+                                  <span key={idx} className="px-3 py-1 bg-card/50 rounded-full text-foreground font-professional text-xs font-medium">
+                                    {interest}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>

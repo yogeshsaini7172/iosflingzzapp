@@ -287,7 +287,7 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
           )}
 
           {/* Interests */}
-          {profile.interests && profile.interests.length > 0 && (
+          {Array.isArray(profile.interests) && profile.interests.length > 0 && (
             <div>
               <h3 className="font-semibold mb-3 text-center text-foreground">Interests</h3>
               <div className="flex flex-wrap justify-center gap-2">

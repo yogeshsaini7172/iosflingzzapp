@@ -654,6 +654,7 @@ export type Database = {
           id: string
           interests: string[] | null
           is_active: boolean | null
+          is_admin: boolean | null
           is_profile_public: boolean | null
           last_active: string | null
           last_name: string
@@ -745,6 +746,7 @@ export type Database = {
           id?: string
           interests?: string[] | null
           is_active?: boolean | null
+          is_admin?: boolean | null
           is_profile_public?: boolean | null
           last_active?: string | null
           last_name: string
@@ -836,6 +838,7 @@ export type Database = {
           id?: string
           interests?: string[] | null
           is_active?: boolean | null
+          is_admin?: boolean | null
           is_profile_public?: boolean | null
           last_active?: string | null
           last_name?: string

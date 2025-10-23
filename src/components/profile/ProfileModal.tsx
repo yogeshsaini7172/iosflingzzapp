@@ -160,7 +160,7 @@ const ProfileModal = ({ profile, isOpen, onClose, onChat }: ProfileModalProps) =
           )}
 
           {/* Interests */}
-          {profile.interests && profile.interests.length > 0 && (
+          {Array.isArray(profile.interests) && profile.interests.length > 0 && (
             <Card>
               <CardContent className="pt-6">
                 <h4 className="font-semibold mb-3">Interests</h4>

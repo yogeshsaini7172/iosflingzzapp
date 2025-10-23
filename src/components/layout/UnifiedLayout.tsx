@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, User } from "lucide-react";
@@ -37,6 +37,9 @@ const UnifiedLayout = ({ children, title = "FLINGZZ", showHeader = true }: Unifi
   
   // Enable centralized real-time notifications for all chat and matching activities
   useRealtimeNotifications();
+
+  // Removed loading screen - app-level heart loading handles initial load
+  // Profile data loads inline without blocking UI
 
   const handleLogout = async () => {
     try {

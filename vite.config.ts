@@ -18,12 +18,20 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+    dedupe: ['react', 'react-dom'],
   },
   build: {
     target: 'es2015',
     minify: false, // Helps with debugging on mobile
   },
   optimizeDeps: {
-    include: ['firebase/auth', 'firebase/app', '@capacitor-firebase/authentication']
+    include: [
+      'firebase/auth', 
+      'firebase/app', 
+      '@capacitor-firebase/authentication',
+      'react',
+      'react-dom',
+      'framer-motion'
+    ]
   }
 }));

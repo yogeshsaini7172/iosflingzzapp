@@ -272,7 +272,7 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
           )}
 
           {/* Interests */}
-          {profile.interests && profile.interests.length > 0 && (
+          {Array.isArray(profile.interests) && profile.interests.length > 0 && (
             <div>
               <h3 className="font-semibold mb-3 text-center text-foreground">Interests</h3>
               <div className="flex flex-wrap justify-center gap-2">
@@ -436,7 +436,7 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
                   )}
 
                   {/* Personality Traits Match */}
-                  {profile.personality_traits && profile.personality_traits.length > 0 && (
+                  {Array.isArray(profile.personality_traits) && profile.personality_traits.length > 0 && (
                     <CompatibilityGroup
                       title="Traits"
                       icon={<Star className="w-4 h-4" />}

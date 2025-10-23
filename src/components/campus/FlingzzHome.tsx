@@ -44,6 +44,7 @@ import { getCurrentLocation, calculateDistance, type LocationData } from '@/util
 import { CompatibilityGroup, CompatibilityBadge } from '@/components/swipe/CompatibilityBadge';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useProfileData } from '@/hooks/useProfileData';
+import { useNavigate } from 'react-router-dom';
 
 
 interface FlingzzHomeProps {
@@ -51,6 +52,7 @@ interface FlingzzHomeProps {
 }
 
 const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
+  const navigate = useNavigate();
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
