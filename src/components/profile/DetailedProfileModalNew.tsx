@@ -198,7 +198,7 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
             <DialogTitle className="text-2xl font-bold text-gradient-primary">
               {profile.first_name} {profile.last_name}
             </DialogTitle>
-            <Button variant="ghost" size="sm" onClick={onClose}>
+            <Button size="sm" onClick={onClose} className="bg-pink-500 text-white hover:bg-pink-600">
               <X className="h-4 w-4" />
             </Button>
           </div>

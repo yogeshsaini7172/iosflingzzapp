@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Crown, MapPin, Eye } from "lucide-react";
+import { Heart, Crown, MapPin, Eye, X } from "lucide-react";
 import { SubscriptionEnforcementService } from "@/services/subscriptionEnforcement";
 import { useToast } from "@/hooks/use-toast";
 import { useRequiredAuth } from "@/hooks/useRequiredAuth";
@@ -277,13 +277,18 @@ const WhoLikedMeModal = ({ isOpen, onClose, onLike }: WhoLikedMeModalProps) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Heart className="w-5 h-5 text-red-500" />
-            Who Liked You
-            {canSeeLikes && likes.length > 0 && (
-              <Badge variant="secondary">{likes.length}</Badge>
-            )}
-          </DialogTitle>
+          <div className="flex items-center justify-between w-full">
+            <DialogTitle className="flex items-center gap-2">
+              <Heart className="w-5 h-5 text-red-500" />
+              Who Liked You
+              {canSeeLikes && likes.length > 0 && (
+                <Badge variant="secondary">{likes.length}</Badge>
+              )}
+            </DialogTitle>
+            <Button size="sm" onClick={onClose} className="bg-pink-500 text-white hover:bg-pink-600 rounded-full p-2">
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
           <DialogDescription className="sr-only">
             See who liked your profile and like back to create a match.
           </DialogDescription>
