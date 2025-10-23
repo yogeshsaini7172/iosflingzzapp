@@ -31,7 +31,7 @@ const MobileBottomNav = () => {
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-xl border-t border-border z-40 safe-area-bottom overflow-hidden"
+    <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-xl z-40 safe-area-bottom overflow-hidden"
          style={{ height: 'clamp(56px, 13vw, 68px)' }}>
       <div className="flex items-center justify-around h-full max-w-md mx-auto overflow-hidden" style={{ padding: '0 clamp(4px, 2vw, 6px)' }}>
         {navItems.map(({ path, icon: Icon, label }) => {

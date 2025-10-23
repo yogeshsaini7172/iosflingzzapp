@@ -6,7 +6,6 @@ const TwoHearts: React.FC<{ size?: number; message?: string }> = ({ size = 48, m
   return (
     <div className="flex flex-col items-center justify-center">
       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-        <motion.div
         <motion.div 
           custom={0}
           initial={{ scale: 0.9, opacity: 0.8 }}
@@ -29,7 +28,6 @@ const TwoHearts: React.FC<{ size?: number; message?: string }> = ({ size = 48, m
         >
           <Heart className="text-pink-500 drop-shadow-lg" style={{ width: size, height: size }} />
         </motion.div>
-        <motion.div
         <motion.div 
           custom={1}
           initial={{ scale: 0.9, opacity: 0.8 }}

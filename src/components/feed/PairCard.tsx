@@ -162,7 +162,6 @@ export function PairCard({ profile, onSwipe, onViewProfile }: PairCardProps) {
             </button>
           </div>
         </CardContent>
-      </div>
     </Card>
   );
 }
