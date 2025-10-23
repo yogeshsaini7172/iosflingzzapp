@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfileData } from '@/hooks/useProfileData';
-import HeartLoader from '@/components/ui/HeartLoader';
 import { useToast } from "@/hooks/use-toast";
 
 import ChatNotificationBadge from '@/components/ui/chat-notification-badge';
@@ -39,14 +38,8 @@ const UnifiedLayout = ({ children, title = "FLINGZZ", showHeader = true }: Unifi
   // Enable centralized real-time notifications for all chat and matching activities
   useRealtimeNotifications();
 
-  // If profile is loading, show a focused loader to improve UX
-  if (profileLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center">
-        <HeartLoader message="Loading profile..." size={72} />
-      </div>
-    );
-  }
+  // Removed loading screen - app-level heart loading handles initial load
+  // Profile data loads inline without blocking UI
 
   const handleLogout = async () => {
     try {

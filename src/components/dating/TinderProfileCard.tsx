@@ -174,17 +174,19 @@ const TinderProfileCard = ({ profile, onLike, onDislike }) => {
         </div>
 
         {/* Interests */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          {profile.interests.map((interest, index) => (
-            <div
-              key={index}
-              className="flex items-center space-x-1 bg-gray-800 bg-opacity-80 px-3 py-1 rounded-full text-xs"
-            >
-              <span className="text-lg">{interest.icon}</span>
-              <span className="text-gray-300">{interest.text}</span>
-            </div>
-          ))}
-        </div>
+        {Array.isArray(profile.interests) && profile.interests.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-6">
+            {profile.interests.map((interest, index) => (
+              <div
+                key={index}
+                className="flex items-center space-x-1 bg-gray-800 bg-opacity-80 px-3 py-1 rounded-full text-xs"
+              >
+                <span className="text-lg">{interest.icon}</span>
+                <span className="text-gray-300">{interest.text}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

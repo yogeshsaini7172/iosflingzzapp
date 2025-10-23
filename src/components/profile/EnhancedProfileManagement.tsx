@@ -583,36 +583,11 @@ useEffect(() => {
     setFormData(prev => ({ ...prev, [field]: newArray }));
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading your profile...</p>
-        </div>
-      </div>
-    );
-  }
+  // Removed loading screen - app-level heart loading handles this
+  // Profile data will populate as it loads
 
-  // Temporary debug UI: if we have stopped the primary loading but the form hasn't been populated,
-  // show raw profile + preferences so we can confirm data arrival. This will help distinguish
-  // "no data" vs "transform error". Remove after debugging.
-  if (!hasLoadedProfileData) {
-    return (
-      <div className="min-h-screen bg-gradient-hero p-6">
-        <h3 className="text-lg font-semibold mb-2">Debug: profile not applied to form yet</h3>
-        <div className="mb-4">
-          <strong>Profile (raw):</strong>
-          <pre className="text-xs bg-muted p-3 rounded mt-2 overflow-auto max-h-40">{JSON.stringify(profile, null, 2)}</pre>
-        </div>
-        <div>
-          <strong>Preferences (raw):</strong>
-          <pre className="text-xs bg-muted p-3 rounded mt-2 overflow-auto max-h-40">{JSON.stringify(preferences, null, 2)}</pre>
-        </div>
-        <div className="mt-4 text-sm text-muted-foreground">If these are populated, the transform should have set formData — check console for errors.</div>
-      </div>
-    );
-  }
+  // Removed debug loading screen - profile will load inline
+  // Data loads while user can see and interact with the UI
 
   const personalityTraitOptions = [
     "Adventurous", "Analytical", "Creative", "Outgoing", "Introverted", 

@@ -483,6 +483,26 @@ const CommunityDashboard = () => {
 
   return (
     <div className="p-6 h-full">
+      {/* ============================================================
+        * TEMPORARY DEV MODE BANNER
+        * TODO: Remove this banner when admin role system is implemented
+        * See: TEMP_COMMUNITY_ACCESS.md for details
+        * ============================================================ */}
+      <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-950/20 border-2 border-yellow-400 dark:border-yellow-600 rounded-lg">
+        <div className="flex items-start gap-3">
+          <Settings className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+          <div className="flex-1">
+            <h3 className="font-semibold text-yellow-800 dark:text-yellow-200 mb-1">
+              🚧 Development Mode - Temporary Access
+            </h3>
+            <p className="text-sm text-yellow-700 dark:text-yellow-300">
+              Admin controls are under development. Currently, all authenticated users can access this dashboard. 
+              Proper role-based access control will be implemented soon.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-2">Community Management Dashboard</h1>

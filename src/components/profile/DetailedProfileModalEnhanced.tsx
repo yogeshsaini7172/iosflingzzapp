@@ -107,7 +107,7 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
 
-  const images = profile.profile_images && profile.profile_images.length > 0
+  const images = Array.isArray(profile.profile_images) && profile.profile_images.length > 0
     ? profile.profile_images
     : [];
   const totalImages = images.length;
@@ -231,7 +231,7 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
               {/* Core Qualities Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Values */}
-                {profile.values && profile.values.length > 0 && (
+                {Array.isArray(profile.values) && profile.values.length > 0 && (
                   <div>
                     <h4 className="font-medium text-foreground mb-2">Values</h4>
                     <div className="flex flex-wrap gap-1">
@@ -245,7 +245,7 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
                 )}
 
                 {/* Mindset */}
-                {profile.mindset && profile.mindset.length > 0 && (
+                {Array.isArray(profile.mindset) && profile.mindset.length > 0 && (
                   <div>
                     <h4 className="font-medium text-foreground mb-2">Mindset</h4>
                     <div className="flex flex-wrap gap-1">
@@ -320,7 +320,7 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
               </div>
 
               {/* Personality Traits */}
-              {profile.personality_traits && profile.personality_traits.length > 0 && (
+              {Array.isArray(profile.personality_traits) && profile.personality_traits.length > 0 && (
                 <div className="mt-4">
                   <h4 className="font-medium text-foreground mb-2">Personality Traits</h4>
                   <div className="flex flex-wrap gap-1">
@@ -334,7 +334,7 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
               )}
 
               {/* Interests */}
-              {profile.interests && profile.interests.length > 0 && (
+              {Array.isArray(profile.interests) && profile.interests.length > 0 && (
                 <div className="mt-4">
                   <h4 className="font-medium text-foreground mb-2">Interests</h4>
                   <div className="flex flex-wrap gap-1">
