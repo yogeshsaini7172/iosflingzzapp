@@ -10,6 +10,8 @@ import { useState, useEffect } from "react";
 import PairingPage from "./pages/PairingPage";
 import ProfilePage from "./pages/ProfilePage";
 import BlindDatePage from "./pages/BlindDatePage";
+import SubscriptionPage from "./pages/SubscriptionPage";
+import SubscriptionDebug from "./pages/SubscriptionDebug";
 import FlingzzHome from "./components/campus/FlingzzHome";
 import CommunityPage from "./pages/CommunityPage";
 
@@ -191,6 +193,24 @@ const AuthenticatedApp = () => {
   // Public route for Aadhaar test (available without authentication)
   // Place this before auth gating so testers can access the page freely
   const isHashAadhaar = typeof window !== 'undefined' && (window.location.hash === '#/aadhaar-test' || window.location.hash === '#!/aadhaar-test');
+  // Allow subscription page to be reachable without auth for local testing
+  const isHashSubscription = typeof window !== 'undefined' && (window.location.hash === '#/subscription' || window.location.hash === '#!/subscription');
+  if (location.pathname === '/subscription' || isHashSubscription) {
+    return (
+      <TooltipProvider>
+        <SubscriptionPage />
+      </TooltipProvider>
+    );
+  }
+
+  if (location.pathname === '/subscription-debug') {
+    return (
+      <TooltipProvider>
+        <SubscriptionDebug />
+      </TooltipProvider>
+    );
+  }
+
   if (location.pathname === '/aadhaar-test' || isHashAadhaar) {
     return (
       <TooltipProvider>
@@ -269,6 +289,7 @@ const AuthenticatedApp = () => {
                   <CommunityDashboard />
                 </AdminRoute>
               } />
+              <Route path="/subscription" element={<SubscriptionPage />} />
               
               {/* --- Chat routes --- */}
               <Route 

@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Check, Crown, Star, Zap, Gem, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SUBSCRIPTION_PLANS, type PlanId } from "@/config/subscriptionPlans";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
 
 interface SubscriptionPlansProps {
   currentPlan?: PlanId;
@@ -13,6 +14,8 @@ interface SubscriptionPlansProps {
   showCurrentPlan?: boolean;
   onSkip?: () => void;
 }
+
+const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY_ID || '';
 
 const SubscriptionPlans = ({ 
   currentPlan = 'free', 
@@ -22,6 +25,17 @@ const SubscriptionPlans = ({
 }: SubscriptionPlansProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    // Load Razorpay SDK
+    if (typeof window !== 'undefined' && !(window as any).Razorpay) {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, []);
 
   // Create display plans from configuration
   const plans = [
@@ -107,83 +121,131 @@ const SubscriptionPlans = ({
       setIsLoading(true);
       
       if (planId === 'free') {
-        // Handle free plan selection (just update local state for demo)
-        const existingProfile = JSON.parse(localStorage.getItem('demoProfile') || '{}');
-        const updatedProfile = { 
-          ...existingProfile, 
-          plan_id: 'free',
-          subscription_tier: 'free'
-        };
-        localStorage.setItem('demoProfile', JSON.stringify(updatedProfile));
-        
         toast({
           title: "Free plan selected",
           description: "You can upgrade anytime for premium features!"
         });
-        
         onPlanSelect?.(planId);
         return;
       }
 
-      // For paid plans, call the subscription entitlement function
-      try {
-        const { data, error } = await supabase.functions.invoke('subscription-entitlement', {
-          body: { 
-            action: currentPlan === 'free' ? 'upgrade' : 
-                   SUBSCRIPTION_PLANS[planId].price_monthly_inr > SUBSCRIPTION_PLANS[currentPlan as PlanId].price_monthly_inr ? 'upgrade' : 'downgrade',
-            plan_id: planId 
-          }
-        });
-
-        if (error) throw error;
-
-        if (data.success) {
-          // Update demo profile for consistency
-          const existingProfile = JSON.parse(localStorage.getItem('demoProfile') || '{}');
-          const updatedProfile = { 
-            ...existingProfile, 
-            plan_id: planId,
-            subscription_tier: planId
-          };
-          localStorage.setItem('demoProfile', JSON.stringify(updatedProfile));
-
-          toast({
-            title: `${SUBSCRIPTION_PLANS[planId].display_name} plan activated! 🎉`,
-            description: data.message || "Enjoy your premium features!"
-          });
-
-          onPlanSelect?.(planId);
-        } else {
-          throw new Error(data.error || 'Failed to update subscription');
-        }
-      } catch (apiError: any) {
-        // Fallback to demo mode if API fails
-        console.log('API failed, using demo mode:', apiError.message);
-        
-        const existingProfile = JSON.parse(localStorage.getItem('demoProfile') || '{}');
-        const updatedProfile = { 
-          ...existingProfile, 
-          plan_id: planId,
-          subscription_tier: planId
-        };
-        localStorage.setItem('demoProfile', JSON.stringify(updatedProfile));
-
+      if (!user) {
         toast({
-          title: `${SUBSCRIPTION_PLANS[planId].display_name} plan activated (Demo)! 🎉`,
-          description: "Demo mode - payment integration coming soon!"
+          title: "Authentication required",
+          description: "Please sign in to subscribe to a plan",
+          variant: "destructive"
         });
-
-        onPlanSelect?.(planId);
+        return;
       }
+
+      if (!RAZORPAY_KEY) {
+        toast({
+          title: "Payment not configured",
+          description: "Payment gateway is not configured. Contact support.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Create order via edge function
+      const plan = SUBSCRIPTION_PLANS[planId];
+      const amount = plan.price_monthly_inr;
+      
+      const createOrderResponse = await fetchWithFirebaseAuth(
+        'https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/create-subscription-order',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount,
+            currency: 'INR',
+            receipt: `sub_${Date.now()}`,
+            plan: planId
+          })
+        }
+      );
+
+      if (!createOrderResponse.ok) {
+        const errorText = await createOrderResponse.text();
+        throw new Error(`Failed to create order: ${errorText}`);
+      }
+
+      const orderData = await createOrderResponse.json();
+      console.log('Order created:', orderData);
+
+      // Open Razorpay checkout
+      const options = {
+        key: RAZORPAY_KEY,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        order_id: orderData.orderId,
+        name: 'GradSync',
+        description: `${plan.display_name} Subscription`,
+        prefill: {
+          email: user.email || ''
+        },
+        theme: {
+          color: '#6366f1'
+        },
+        handler: async (response: any) => {
+          try {
+            // Verify payment
+            const verifyResponse = await fetch(
+              'https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/verify-subscription-payment',
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_signature: response.razorpay_signature,
+                  subscriptionId: orderData.subscriptionId
+                })
+              }
+            );
+
+            const verifyData = await verifyResponse.json();
+
+            if (verifyResponse.ok && verifyData.success) {
+              toast({
+                title: "Payment successful! 🎉",
+                description: `${plan.display_name} plan activated`
+              });
+              onPlanSelect?.(planId);
+            } else {
+              throw new Error(verifyData.error || 'Payment verification failed');
+            }
+          } catch (err: any) {
+            console.error('Payment verification error:', err);
+            toast({
+              title: "Payment verification failed",
+              description: err.message || "Please contact support",
+              variant: "destructive"
+            });
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setIsLoading(false);
+            toast({
+              title: "Payment cancelled",
+              description: "You can try again anytime"
+            });
+          }
+        }
+      };
+
+      const razorpay = new (window as any).Razorpay(options);
+      razorpay.open();
+      setIsLoading(false); // Reset loading when modal opens
 
     } catch (error: any) {
       console.error('Error selecting plan:', error);
       toast({
         title: "Error",
-        description: "Failed to select plan",
+        description: error.message || "Failed to initiate payment",
         variant: "destructive"
       });
-    } finally {
       setIsLoading(false);
     }
   };

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Brain, Star, MapPin, Sparkles, Users, MessageCircle, Zap, Crown, Eye, ShieldCheck, TrendingUp, Target, Award, GraduationCap, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Heart, Brain, Star, MapPin, Sparkles, Users, MessageCircle, Zap, Crown, Eye, ShieldCheck, TrendingUp, Target, Award, GraduationCap, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import {
   Carousel,
   CarouselContent,
@@ -26,6 +26,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
 import DetailedProfileModal from '@/components/profile/DetailedProfileModalEnhanced';
 import ProfileImageHandler from '@/components/common/ProfileImageHandler';
+import { useToast } from '@/hooks/use-toast';
+import { useRealtime } from '@/hooks/useRealtime';
 
 const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => {
   // Auth & entitlements
@@ -40,6 +42,148 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
   const [shouldShowExistingProfiles, setShouldShowExistingProfiles] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<any | null>(null);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
+  const [requestedRecipients, setRequestedRecipients] = useState<string[]>([]);
+  const [sendingRequests, setSendingRequests] = useState<string[]>([]);
+  const [requestedStatus, setRequestedStatus] = useState<Record<string, string>>({});
+  const [requestedChatRooms, setRequestedChatRooms] = useState<Record<string, string>>({});
+
+  // Persist requested recipients so UI state survives refresh
+  const REQUESTED_KEY = (uid: string) => `chat_requested_recipients_${uid}`;
+
+  useEffect(() => {
+    if (!userId) return;
+
+    // Load sent chat requests from DB and use them as the authoritative source
+    (async () => {
+      const tryFetch = async (attempts = 3, backoffMs = 500) => {
+        let lastError: any = null;
+        for (let i = 0; i < attempts; i++) {
+          try {
+            const { data, error } = await supabase
+              .from('chat_requests')
+              .select('id,recipient_id,status,chat_room_id,created_at,updated_at')
+              .eq('sender_id', userId)
+              .order('updated_at', { ascending: false });
+
+            if (!error && Array.isArray(data)) return { data };
+            lastError = error || new Error('Unexpected response');
+          } catch (err) {
+            lastError = err;
+          }
+
+          // eslint-disable-next-line no-await-in-loop
+          await new Promise(res => setTimeout(res, backoffMs * (i + 1)));
+        }
+
+        throw lastError;
+      };
+
+      try {
+        const { data } = await tryFetch(3, 400);
+
+        // reduce to the latest request per recipient (use updated_at order)
+        const latestByRecipient: Record<string, any> = {};
+        for (const rawRow of data) {
+          const row: any = rawRow; // cast to any to account for migration-affected shape
+          const rid = row.recipient_id;
+          if (!rid) continue;
+          if (!latestByRecipient[rid]) latestByRecipient[rid] = row;
+        }
+
+        const recips = Object.keys(latestByRecipient).map(r => String(r));
+        const statusMap: Record<string, string> = {};
+        const roomMap: Record<string, string> = {};
+
+        for (const rid of recips) {
+          const row = latestByRecipient[rid];
+          const key = String(rid);
+          statusMap[key] = row.status;
+          if (row.status === 'accepted') {
+            if (row.chat_room_id) {
+              roomMap[key] = row.chat_room_id;
+            } else {
+              try {
+                const roomsQuery = await supabase
+                  .from('chat_rooms')
+                  .select('id')
+                  .or(`and(user1_id.eq.${userId},user2_id.eq.${rid}),and(user1_id.eq.${rid},user2_id.eq.${userId})`)
+                  .limit(1);
+
+                if (roomsQuery.data && roomsQuery.data.length > 0) {
+                  roomMap[key] = roomsQuery.data[0].id;
+                }
+              } catch (e) {
+                // ignore room lookup failures
+              }
+            }
+          }
+        }
+
+        try {
+          // eslint-disable-next-line no-console
+          console.log('[PairingPage] Hydrating requested recipients from DB', { recips, statusMap, roomMap });
+        } catch (e) {}
+
+        setRequestedRecipients(() => Array.from(new Set([...recips])));
+        setRequestedStatus(() => ({ ...statusMap }));
+        setRequestedChatRooms(() => ({ ...roomMap }));
+
+        try {
+          localStorage.setItem(REQUESTED_KEY(userId), JSON.stringify(recips));
+          localStorage.setItem(`${REQUESTED_KEY(userId)}:status`, JSON.stringify(statusMap));
+          localStorage.setItem(`${REQUESTED_KEY(userId)}:rooms`, JSON.stringify(roomMap));
+        } catch (e) {
+          // ignore storage errors
+        }
+
+        return;
+      } catch (err) {
+        console.warn('Failed to fetch sent chat requests from server after retries', err);
+      }
+
+      // Fallback to localStorage if server fetch fails
+      try {
+        // eslint-disable-next-line no-console
+        console.warn('[PairingPage] Falling back to localStorage for requested recipients');
+        const raw = localStorage.getItem(REQUESTED_KEY(userId));
+        const rawStatus = localStorage.getItem(`${REQUESTED_KEY(userId)}:status`);
+        const rawRooms = localStorage.getItem(`${REQUESTED_KEY(userId)}:rooms`);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) setRequestedRecipients(parsed);
+        }
+        if (rawStatus) {
+          const parsed = JSON.parse(rawStatus);
+          if (parsed && typeof parsed === 'object') setRequestedStatus(parsed);
+        }
+        if (rawRooms) {
+          const parsed = JSON.parse(rawRooms);
+          if (parsed && typeof parsed === 'object') setRequestedChatRooms(parsed);
+        }
+        try {
+          // eslint-disable-next-line no-console
+          console.log('[PairingPage] Loaded requested recipients from localStorage', {
+            recipients: JSON.parse(raw || '[]'),
+            status: JSON.parse(rawStatus || '{}'),
+            rooms: JSON.parse(rawRooms || '{}')
+          });
+        } catch (e) {}
+      } catch (err) {
+        console.warn('Failed to load requested recipients from storage', err);
+      }
+    })();
+  }, [userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+    try {
+      localStorage.setItem(REQUESTED_KEY(userId), JSON.stringify(requestedRecipients || []));
+      localStorage.setItem(`${REQUESTED_KEY(userId)}:status`, JSON.stringify(requestedStatus || {}));
+      localStorage.setItem(`${REQUESTED_KEY(userId)}:rooms`, JSON.stringify(requestedChatRooms || {}));
+    } catch (err) {
+      console.warn('Failed to save requested recipients to storage', err);
+    }
+  }, [userId, requestedRecipients, requestedStatus, requestedChatRooms]);
   // Local helpers/state used by various bits in this page
   type Match = any;
   const [currentUser, setCurrentUser] = useState<any | null>(null);
@@ -49,7 +193,7 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
     if (!v) return null;
     try { return JSON.parse(v); } catch (e) { return null; }
   };
-  const toast = { error: (t: any) => console.error(t), warning: (t: any) => console.warn(t), info: (t: any) => console.info(t), success: (t: any) => console.log(t) } as any;
+  const { toast } = useToast();
 
   useEffect(() => {
     if (userId) {
@@ -122,6 +266,55 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
   const loadMatchesForDisplay = async (userId: string): Promise<boolean> => {
     setIsLoading(true);
     try {
+      // First try QCS-distributed matches (2 from 100-80, 3 from 80-60, 2 from 60-40)
+      try {
+        const distributed = await PairingLimitService.getQCSDistributedMatches(userId);
+        if (distributed && Array.isArray(distributed) && distributed.length > 0) {
+          // Map distributed matches to the page's match shape
+          const formatted = distributed.map((m: any) => {
+            const src = m.matched_user || m.user_profile || m.user || m;
+            const displayName = (src?.first_name || src?.name || '') as string;
+            const [first, ...rest] = (displayName || '').split(' ');
+            return {
+              user_id: src?.id || src?.user_id || m.user_id,
+              first_name: first || 'User',
+              last_name: rest.join(' '),
+              university: src?.university || 'University',
+              bio: src?.bio || '',
+              profile_images: src?.profile_images || src?.profile_images || [],
+              age: src?.age || 0,
+              interests: src?.interests || [],
+              total_qcs: src?.qcs_score || m.qcs_score || 0,
+              compatibility_score: Math.round(Number(m.compatibility_score || m.qcs_score || 0)),
+              physical_score: Math.round(Number(m.physical_score || 0)),
+              mental_score: Math.round(Number(m.mental_score || 0)),
+              matched_criteria: m.matched_criteria || [],
+              not_matched_criteria: m.not_matched_criteria || [],
+              face_type: src?.face_type,
+              personality_type: src?.personality_type,
+              personality_traits: src?.personality_traits || [],
+              body_type: src?.body_type,
+              skin_tone: src?.skin_tone,
+              values: src?.values,
+              mindset: src?.mindset,
+              relationship_goals: src?.relationship_goals || [],
+              height: src?.height,
+              location: src?.location,
+              lifestyle: src?.lifestyle,
+              love_language: src?.love_language,
+              field_of_study: src?.field_of_study,
+              profession: src?.profession,
+              education_level: src?.education_level
+            };
+          });
+
+          setMatches(formatted);
+          setIsLoading(false);
+          return formatted.length > 0;
+        }
+      } catch (err) {
+        console.warn('QCS-distributed fetch failed, falling back to deterministic pairing', err);
+      }
       const { data: pairingResults, error } = await supabase.functions.invoke('deterministic-pairing', {
         body: { user_id: userId }
       });
@@ -197,16 +390,16 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
       });
 
       if (error) {
-        toast.error(`Pairing error: ${error.message || 'Unknown error'}`);
+        toast({ title: 'Pairing error', description: error.message || 'Unknown error', variant: 'destructive' });
         setMatches([]);
         return;
       }
 
       if (!pairingResults.success) {
         if (pairingResults.error?.includes('profile not found')) {
-          toast.error('Please complete your profile setup first to use pairing.');
+          toast({ title: 'Complete profile', description: 'Please complete your profile setup first to use pairing.', variant: 'destructive' });
         } else {
-          toast.error(pairingResults.error || 'Pairing unavailable right now');
+          toast({ title: 'Pairing unavailable', description: pairingResults.error || 'Pairing unavailable right now', variant: 'destructive' });
         }
         setMatches([]);
         return;
@@ -215,7 +408,7 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
       const candidates = pairingResults?.top_candidates || [];
 
       if (candidates.length === 0) {
-        toast.info(pairingResults.message || 'No matches found. Try again later!');
+        toast({ title: 'No matches', description: pairingResults.message || 'No matches found. Try again later!' });
         setMatches([]);
         return;
       }
@@ -265,9 +458,9 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
       setMatches(formattedMatches);
       setHasLoadedProfiles(true);
       setShouldShowExistingProfiles(true);
-      toast.success(`Found ${formattedMatches.length} compatible matches!`);
+  toast({ title: 'Pairing Complete', description: `Found ${formattedMatches.length} compatible matches!` });
     } catch (error) {
-      toast.error('Failed to load matches');
+      toast({ title: 'Error', description: 'Failed to load matches', variant: 'destructive' });
       setMatches([]);
     } finally {
       setIsLoading(false);
@@ -276,10 +469,7 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
 
   const handleRefresh = async () => {
     if (!pairingLimits.canRequest) {
-      toast.error(
-        `Daily pairing limit reached! You've used ${pairingLimits.usedToday}/${pairingLimits.dailyLimit} requests today.`,
-        { duration: 4000 }
-      );
+        toast({ title: 'Limit reached', description: `Daily pairing limit reached! You've used ${pairingLimits.usedToday}/${pairingLimits.dailyLimit} requests today.`, variant: 'destructive' });
       return;
     }
 
@@ -293,19 +483,147 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
         setPairingLimits(newLimits);
         
         if (newLimits.remainingRequests > 0) {
-          toast.warning(`${newLimits.remainingRequests} pairing requests remaining today`);
+          toast({ title: 'Pairing requests', description: `${newLimits.remainingRequests} pairing requests remaining today` });
         }
       }
 
       await loadMatches(userId);
     } catch (error) {
-      toast.error('Failed to load matches');
+      toast({ title: 'Error', description: 'Failed to load matches', variant: 'destructive' });
     }
   };
 
-  const handleChatClick = (match: Match) => {
-    setSelectedChatId(match.user_id);
+  const handleChatClick = async (match: Match) => {
+    if (!userId) {
+      toast({ title: 'Not signed in', description: 'Please sign in to start a chat', variant: 'destructive' });
+      return;
+    }
+
+    // If compatibility is high, create or open a chat room immediately
+    const score = Number(match.compatibility_score || 0);
+    if (score > 80) {
+      try {
+        const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-management', {
+          method: 'POST',
+          body: JSON.stringify({ action: 'create_room', user1_id: userId, user2_id: match.user_id })
+        });
+
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          throw new Error(err.error || 'Failed to create chat room');
+        }
+
+        const result = await response.json();
+        const room = result?.data;
+        if (result.success && room?.id) {
+          toast({ title: 'Chat Ready', description: 'Opening chat...' });
+          setSelectedChatId(room.id);
+          if (onNavigate) onNavigate(`chat/${room.id}`);
+          return;
+        }
+
+        throw new Error('Chat room not returned');
+      } catch (error: any) {
+        console.error('Failed to create chat room:', error);
+        toast({ title: 'Error', description: error.message || 'Failed to open chat', variant: 'destructive' });
+        return;
+      }
+    }
+
+    // Otherwise, send a chat request
+    if (requestedRecipients.includes(String(match.user_id))) {
+      toast({ title: 'Already requested', description: 'Chat request already sent', variant: 'default' });
+      return;
+    }
+
+    try {
+  setSendingRequests(prev => [...prev, String(match.user_id)]);
+
+      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-request-handler', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'send_request', recipient_id: match.user_id, message: 'Hi! I would like to chat.' })
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to send chat request');
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        // Server may indicate it was already sent; still record so UI reflects state
+        setRequestedRecipients(prev => Array.from(new Set([...prev, match.user_id])));
+        // if server returned a status or chat_room_id, prefer those
+        const returnedStatus = (result?.data?.status || result?.status) || 'pending';
+        const returnedRoom = result?.data?.chat_room_id || result?.chat_room_id || null;
+        setRequestedStatus(prev => ({ ...prev, [match.user_id]: returnedStatus }));
+        if (returnedRoom) setRequestedChatRooms(prev => ({ ...prev, [match.user_id]: returnedRoom }));
+        toast({ title: 'Chat Request Sent!', description: result.message || 'Your request has been delivered.' });
+      } else {
+        throw new Error(result.error || 'Failed to send request');
+      }
+    } catch (error: any) {
+      console.error('Chat request failed:', error);
+      toast({ title: 'Error', description: error.message || 'Failed to send chat request', variant: 'destructive' });
+    } finally {
+      setSendingRequests(prev => prev.filter(id => id !== String(match.user_id)));
+    }
   };
+
+  // Realtime listener: watch updates to chat_requests where current user is the sender
+  useRealtime({
+    table: 'chat_requests',
+    event: 'UPDATE',
+    filter: userId ? `sender_id=eq.${userId}` : 'sender_id=eq.00000000-0000-0000-0000-000000000000',
+    onUpdate: (payload) => {
+      try {
+        const updated = payload.new;
+        const recipient = updated.recipient_id;
+        if (!recipient) return;
+
+        if (updated.status === 'accepted') {
+          setRequestedStatus(prev => ({ ...prev, [recipient]: 'accepted' }));
+          setRequestedRecipients(prev => Array.from(new Set([...prev, recipient])));
+          if (updated.chat_room_id) {
+            setRequestedChatRooms(prev => ({ ...prev, [recipient]: updated.chat_room_id }));
+            // navigate to chat room if possible
+            toast({ title: 'Request accepted', description: 'Opening chat...', });
+            if (onNavigate) onNavigate(`chat/${updated.chat_room_id}`);
+          } else {
+            toast({ title: 'Request accepted', description: 'Your chat request was accepted.' });
+          }
+        } else if (updated.status === 'declined') {
+          setRequestedStatus(prev => ({ ...prev, [recipient]: 'declined' }));
+          toast({ title: 'Request declined', description: 'Your chat request was declined', variant: 'destructive' });
+        }
+      } catch (err) {
+        console.error('Realtime chat_request update handler error', err);
+      }
+    }
+  });
+
+  // Also listen for newly created chat_requests (INSERT) so that when the edge
+  // function creates the row we reflect it immediately (useful for other tabs)
+  useRealtime({
+    table: 'chat_requests',
+    event: 'INSERT',
+    filter: userId ? `sender_id=eq.${userId}` : 'sender_id=eq.00000000-0000-0000-0000-000000000000',
+    onUpdate: (payload) => {
+      try {
+        const inserted: any = payload.new;
+        const recipient = inserted.recipient_id;
+        if (!recipient) return;
+
+        setRequestedRecipients(prev => Array.from(new Set([...prev, recipient])));
+        setRequestedStatus(prev => ({ ...prev, [recipient]: inserted.status }));
+        if (inserted.chat_room_id) {
+          setRequestedChatRooms(prev => ({ ...prev, [recipient]: inserted.chat_room_id }));
+        }
+      } catch (err) {
+        console.error('Realtime chat_request insert handler error', err);
+      }
+    }
+  });
 
   const getCompatibilityColor = (score: number) => {
     if (score >= 80) return 'from-success to-success/80';
@@ -318,10 +636,8 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
       <UnifiedLayout title="Smart Pairing">
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
-            <div className="w-16 h-16 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center mx-auto mb-3 animate-pulse">
-              <Heart className="w-8 h-8 text-white" />
-            </div>
-            <p className="text-base font-medium text-muted-foreground">Loading matches...</p>
+            <HeartAnimation size={64} />
+            <p className="text-base font-medium text-muted-foreground mt-3">Loading matches...</p>
           </div>
         </div>
       </UnifiedLayout>
@@ -683,19 +999,61 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
                         View
                       </motion.button>
 
-                      <motion.button
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
-                        onClick={() => handleChatClick(match)}
-                        className={`px-4 py-3 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2 text-sm ${
-                          (match.compatibility_score || 0) > 80
-                            ? 'bg-gradient-to-r from-success to-success/90 shadow-medium hover:shadow-glow'
-                            : 'bg-gradient-primary shadow-medium hover:shadow-glow'
-                        }`}
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                        {(match.compatibility_score || 0) > 80 ? 'Chat' : 'Request'}
-                      </motion.button>
+                      {(() => {
+                        const isHigh = (match.compatibility_score || 0) > 80;
+                        const isRequested = requestedRecipients.includes(String(match.user_id));
+                        const isSending = sendingRequests.includes(String(match.user_id));
+
+                        const baseClass = `px-4 py-3 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2 text-sm`;
+
+                        if (isHigh) {
+                          return (
+                            <motion.button
+                              whileHover={{ scale: 1.03 }}
+                              whileTap={{ scale: 0.97 }}
+                              onClick={() => handleChatClick(match)}
+                              className={`${baseClass} bg-gradient-to-r from-success to-success/90 shadow-medium hover:shadow-glow`}
+                            >
+                              <MessageCircle className="w-4 h-4" />
+                              Chat
+                            </motion.button>
+                          );
+                        }
+
+                        return (
+                          <>
+                            {requestedStatus[String(match.user_id)] === 'accepted' ? (
+                              <motion.button
+                                whileHover={{ scale: 1.03 }}
+                                whileTap={{ scale: 0.97 }}
+                                onClick={() => {
+                                  const roomId = requestedChatRooms[String(match.user_id)];
+                                  if (roomId) {
+                                    if (onNavigate) onNavigate(`chat/${roomId}`);
+                                  } else {
+                                    toast({ title: 'Accepted', description: 'Chat accepted by user' });
+                                  }
+                                }}
+                                className={`${baseClass} bg-success/80 shadow-medium`}
+                              >
+                                <Check className="w-4 h-4" />
+                                Accepted
+                              </motion.button>
+                            ) : (
+                              <motion.button
+                                whileHover={{ scale: isRequested || isSending ? 1 : 1.03 }}
+                                whileTap={{ scale: isRequested || isSending ? 1 : 0.97 }}
+                                onClick={() => handleChatClick(match)}
+                                disabled={isRequested || isSending}
+                                className={`${baseClass} ${isRequested ? 'bg-muted/60 cursor-not-allowed' : 'bg-gradient-primary shadow-medium hover:shadow-glow'}`}
+                              >
+                                <MessageCircle className="w-4 h-4" />
+                                {isSending ? 'Sending...' : isRequested ? 'Requested' : 'Request'}
+                              </motion.button>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 </motion.div>
@@ -768,7 +1126,7 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
             }}
             isOpen={!!selectedProfile}
             onClose={() => setSelectedProfile(null)}
-            onChatRequest={(userId) => {
+            onChatRequest={(userId, canChat) => {
               const m = matches.find(m => m.user_id === userId) || selectedProfile;
               if (m) handleChatClick(m);
             }}

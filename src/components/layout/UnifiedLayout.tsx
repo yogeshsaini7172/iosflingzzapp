@@ -25,7 +25,7 @@ interface UnifiedLayoutProps {
 
 const UnifiedLayout = ({ children, title = "FLINGZZ", showHeader = true }: UnifiedLayoutProps) => {
   const { signOut } = useAuth();
-  const { profile, isLoading: profileLoading } = useProfileData();
+  const { profile } = useProfileData();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [showWhoLikedMe, setShowWhoLikedMe] = useState(false);
