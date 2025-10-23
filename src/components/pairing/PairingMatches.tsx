@@ -36,6 +36,7 @@ interface PairingMatch {
   education_level?: string;
   profession?: string;
   personality_type?: string;
+  matched_criteria?: string[];
 }
 
 interface PairingMatchesProps {
