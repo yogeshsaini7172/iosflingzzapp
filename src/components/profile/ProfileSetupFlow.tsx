@@ -406,52 +406,13 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         description: "Account created! Calculating your QCS score..." 
       });
 
-      // Process subscription if a plan was selected
-      if (profileData.selectedPlan) {
+      // Process subscription if a plan was selected and payment was completed
+      if (profileData.selectedPlan && paymentCompleted) {
+        console.log('✅ Subscription payment completed, profile will be created with active subscription');
         toast({
-          title: "Processing subscription...",
-          description: "Setting up your premium account"
+          title: "Premium Activated! 🎉",
+          description: "Your subscription is active!"
         });
-
-        try {
-          // Update profile with selected subscription plan
-          const plan = SUBSCRIPTION_PLANS[profileData.selectedPlan as PlanId];
-          if (plan) {
-            // Update the profile with subscription tier
-            const { error: updateError } = await supabase
-              .from('profiles')
-              .update({
-                subscription_tier: profileData.selectedPlan,
-                subscription_plan: profileData.selectedPlan,
-                is_subscribed: true,
-                subscription_started_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              })
-              .eq('id', userId);
-
-            if (updateError) {
-              console.error('Failed to update subscription tier:', updateError);
-              toast({
-                title: "Subscription Update Failed",
-                description: "Your profile was created but subscription needs setup. Please visit subscription page.",
-                variant: "destructive"
-              });
-            } else {
-              console.log('✅ Subscription tier updated successfully');
-              toast({
-                title: "Premium Activated! 🎉",
-                description: `Your ${plan.display_name} plan is now active!`
-              });
-            }
-          }
-        } catch (subError) {
-          console.error('Subscription processing error:', subError);
-          toast({
-            title: "Subscription Error",
-            description: "Please complete payment in subscription settings",
-            variant: "destructive"
-          });
-        }
       }
 
       // Save profile data to local storage for quick access
