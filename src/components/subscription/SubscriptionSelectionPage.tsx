@@ -3,7 +3,7 @@ import GenZBackground from '@/components/ui/genZ-background';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Crown, Star, Zap } from 'lucide-react';
+import { Check, Crown, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface SubscriptionSelectionPageProps {
@@ -15,23 +15,6 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
   const { toast } = useToast();
 
   const plans = [
-    {
-      id: 'free',
-      name: 'Free',
-      price: '$0',
-      period: '/month',
-      description: 'Get started with basic features',
-      icon: <Star className="w-6 h-6" />,
-      features: [
-        '20 swipes per day',
-        '1 pairing request per day',
-        'Basic profile visibility',
-        'Standard matching algorithm'
-      ],
-      buttonText: 'Continue Free',
-      popular: false,
-      color: 'border-gray-200'
-    },
     {
       id: 'basic',
       name: 'Basic',
@@ -48,7 +31,7 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
         'Read receipts'
       ],
       buttonText: 'Start Basic Plan',
-      popular: true,
+      popular: false,
       color: 'border-primary/50 bg-primary/10'
     },
     {
@@ -61,7 +44,7 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
       features: [
         'Everything in Basic',
         'Unlimited pairing requests',
-        'Unlimited blind dates',
+        'Priority consulting access',
         'Profile boost (3x visibility)',
         'Super likes',
         'Advanced filters',
@@ -69,7 +52,7 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
         'Premium support'
       ],
       buttonText: 'Go Premium',
-      popular: false,
+      popular: true,
       color: 'border-secondary/50 bg-secondary/10'
     },
     {
@@ -98,29 +81,20 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
   const handlePlanSelect = (planId: string) => {
     setSelectedPlan(planId);
     
-    if (planId === 'free') {
-      // Immediate selection for free plan
-      toast({
-        title: "Welcome to FLINGZZ! 🎉",
-        description: "You can upgrade anytime from your profile settings."
-      });
-      onComplete('free');
-    } else {
-      // For paid plans, just select for now (no payment processing)
-      toast({
-        title: `${plans.find(p => p.id === planId)?.name} Plan Selected`,
-        description: "Payment processing will be available soon!"
-      });
-      onComplete(planId);
-    }
+    // All plans require payment now (no free tier)
+    toast({
+      title: `${plans.find(p => p.id === planId)?.name} Plan Selected`,
+      description: "Proceed to complete your profile setup!"
+    });
+    onComplete(planId);
   };
 
   const handleSkip = () => {
     toast({
-      title: "Welcome to FLINGZZ! 🎉",
-      description: "You're starting with the free plan. You can upgrade anytime!"
+      title: "Plan Selection Required",
+      description: "Please select a subscription plan to continue.",
+      variant: "destructive"
     });
-    onComplete('free');
   };
 
   return (
@@ -134,13 +108,6 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
           <p className="text-base sm:text-lg text-muted-foreground mb-4 sm:mb-6 px-4">
             Select the perfect plan to enhance your dating experience
           </p>
-          <Button 
-            variant="ghost" 
-            onClick={handleSkip}
-            className="text-muted-foreground hover:text-foreground text-sm sm:text-base"
-          >
-            I'll skip this time →
-          </Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">

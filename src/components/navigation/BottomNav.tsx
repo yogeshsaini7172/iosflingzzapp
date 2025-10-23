@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Users, Sparkles, User } from "lucide-react";
+import { Home, Users, MessageSquare, User } from "lucide-react";
 
 const BottomNav = () => {
   const location = useLocation();
@@ -13,8 +13,7 @@ const BottomNav = () => {
   const items = [
     { path: "/", icon: Home, label: "Home" },
     { path: "/pairing", icon: Users, label: "Pairing" },
-    { path: "/blind-date", icon: Sparkles, label: "Blind Date" },
-    { path: "/aadhaar-test", icon: Sparkles, label: "Aadhaar" },
+    { path: "/consulting", icon: MessageSquare, label: "Consulting" },
     { path: "/profile", icon: User, label: "Profile" },
   ];
 

@@ -115,7 +115,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
       features: [
         "Everything in Premium",
         "Exclusive Elite Profiles",
-        "1 Blind Date Credit Daily",
+        "Priority Consulting Access",
         "VIP Support",
       ],
       color: "border-accent/30",

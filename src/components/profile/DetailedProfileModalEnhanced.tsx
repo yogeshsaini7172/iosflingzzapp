@@ -280,8 +280,6 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
 
               {/* Core Qualities Grid - ONLY MATCHED */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Values */}
-                {Array.isArray(profile.values) && profile.values.length > 0 && (
                 {/* Values - Only Matched */}
                 {getMatchedItems(profile.values).length > 0 && (
                   <div>
@@ -296,8 +294,6 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
                   </div>
                 )}
 
-                {/* Mindset */}
-                {Array.isArray(profile.mindset) && profile.mindset.length > 0 && (
                 {/* Mindset - Only Matched */}
                 {getMatchedItems(profile.mindset).length > 0 && (
                   <div>
@@ -373,8 +369,6 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
                 )}
               </div>
 
-              {/* Personality Traits */}
-              {Array.isArray(profile.personality_traits) && profile.personality_traits.length > 0 && (
               {/* Personality Traits - Only Matched */}
               {getMatchedItems(profile.personality_traits).length > 0 && (
                 <div className="mt-4">
@@ -389,8 +383,6 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
                 </div>
               )}
 
-              {/* Interests */}
-              {Array.isArray(profile.interests) && profile.interests.length > 0 && (
               {/* Interests - Only Matched */}
               {getMatchedItems(profile.interests).length > 0 && (
                 <div className="mt-4">

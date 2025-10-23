@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRealtime } from "@/hooks/useRealtime";
 
 interface MatchesListProps {
-  onNavigate: (view: 'home' | 'profile' | 'swipe' | 'blind-date' | 'matches' | 'chat') => void;
+  onNavigate: (view: 'home' | 'profile' | 'swipe' | 'consulting' | 'matches' | 'chat') => void;
 }
 
 interface Match {

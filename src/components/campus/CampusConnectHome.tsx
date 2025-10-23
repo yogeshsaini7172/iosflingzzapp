@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Heart, 
   Users, 
-  Sparkles, 
+  MessageCircle, 
   Shield, 
   MapPin, 
   GraduationCap,
@@ -109,14 +109,14 @@ const CampusConnectHome = ({
 
           <Card 
             className="shadow-card hover:shadow-medium transition-all duration-300 cursor-pointer hover:-translate-y-1 border-0"
-            onClick={() => onNavigate('blind-date')}
+            onClick={() => onNavigate('consulting')}
           >
             <CardContent className="p-6 text-center">
               <div className="w-12 h-12 bg-gradient-secondary rounded-full flex items-center justify-center mx-auto mb-3">
-                <Sparkles className="w-6 h-6 text-white" />
+                <MessageCircle className="w-6 h-6 text-white" />
               </div>
-              <h3 className="font-semibold mb-1">Blind Date</h3>
-              <p className="text-sm text-muted-foreground font-prompt">Mystery connections</p>
+              <h3 className="font-semibold mb-1">Consulting</h3>
+              <p className="text-sm text-muted-foreground font-prompt">Get advice</p>
             </CardContent>
           </Card>
         </div>

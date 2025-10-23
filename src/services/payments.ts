@@ -51,7 +51,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     interval: 'month',
     features: [
       'Everything in Starter',
-      'Blind date feature',
+      'Priority consulting access',
       'Advanced compatibility',
       'Profile boost',
       'Unlimited rewinds'

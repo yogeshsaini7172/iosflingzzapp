@@ -10,11 +10,13 @@ import WhoYouWantStep from "./steps/WhoYouWantStep";
 import UploadPhotosStep from "./steps/UploadPhotosStep";
 import LocationStep from "./steps/LocationStep";
 import AadhaarVerificationStep from "./steps/AadhaarVerificationStep";
+import SubscriptionStep from "./steps/SubscriptionStep";
 import ProgressIndicator from "./steps/ProgressIndicator";
 import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { calculateAge, validateMinimumAge, MINIMUM_AGE } from "@/utils/ageValidation";
+import { SUBSCRIPTION_PLANS, type PlanId } from "@/config/subscriptionPlans";
 
 interface ProfileSetupFlowProps {
   onComplete: () => void;
@@ -24,6 +26,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<'idle' | 'pending' | 'verified' | 'failed'>('idle');
+  const [paymentCompleted, setPaymentCompleted] = useState(false);
   const { toast } = useToast();
   const { user, userId } = useAuth();
   const { uploadMultipleImages, uploading } = useImageUpload();
@@ -89,17 +92,21 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
     
     // ID Verification
     collegeIdFile: null as File | null,
-    govtIdFile: null as File | null
+    govtIdFile: null as File | null,
+    
+    // Subscription
+    selectedPlan: "" as string
   });
 
-  const totalSteps = 6;
+  const totalSteps = 7;
   const stepTitles = [
     "Basic Details",
     "What You Are", 
     "Who You Want",
     "Upload Photos",
     "Location",
-    "ID Verification"
+    "ID Verification",
+    "Choose Your Plan"
   ];
 
   const handleNext = () => {
@@ -399,10 +406,59 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         description: "Account created! Calculating your QCS score..." 
       });
 
+      // Process subscription if a plan was selected
+      if (profileData.selectedPlan) {
+        toast({
+          title: "Processing subscription...",
+          description: "Setting up your premium account"
+        });
+
+        try {
+          // Update profile with selected subscription plan
+          const plan = SUBSCRIPTION_PLANS[profileData.selectedPlan as PlanId];
+          if (plan) {
+            // Update the profile with subscription tier
+            const { error: updateError } = await supabase
+              .from('profiles')
+              .update({
+                subscription_tier: profileData.selectedPlan,
+                subscription_plan: profileData.selectedPlan,
+                is_subscribed: true,
+                subscription_started_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', userId);
+
+            if (updateError) {
+              console.error('Failed to update subscription tier:', updateError);
+              toast({
+                title: "Subscription Update Failed",
+                description: "Your profile was created but subscription needs setup. Please visit subscription page.",
+                variant: "destructive"
+              });
+            } else {
+              console.log('✅ Subscription tier updated successfully');
+              toast({
+                title: "Premium Activated! 🎉",
+                description: `Your ${plan.display_name} plan is now active!`
+              });
+            }
+          }
+        } catch (subError) {
+          console.error('Subscription processing error:', subError);
+          toast({
+            title: "Subscription Error",
+            description: "Please complete payment in subscription settings",
+            variant: "destructive"
+          });
+        }
+      }
+
       // Save profile data to local storage for quick access
       localStorage.setItem('user_profile', JSON.stringify({
         ...completeProfile,
-        profile_complete: true
+        profile_complete: true,
+        subscription_plan: profileData.selectedPlan || 'free'
       }));
 
       // Mark profile as complete locally and go to app
@@ -441,6 +497,8 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         return true;
       case 6: // ID Verification - only proceed after verified
         return verificationStatus === 'verified' || profileData.collegeIdFile || profileData.govtIdFile;
+      case 7: // Subscription - must select a plan AND complete payment
+        return !!profileData.selectedPlan && paymentCompleted;
       default:
         return true;
     }
@@ -490,6 +548,19 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
               onChange={setProfileData}
               onVerificationStatusChange={(s) => setVerificationStatus(s)}
             />
+        );
+      case 7:
+        return (
+          <SubscriptionStep
+            onPlanSelect={(planId) => {
+              setProfileData({ ...profileData, selectedPlan: planId });
+              setPaymentCompleted(true);
+              toast({
+                title: "Payment Successful! 🎉",
+                description: "Click 'Next' to complete your profile setup"
+              });
+            }}
+          />
         );
       default:
         return null;

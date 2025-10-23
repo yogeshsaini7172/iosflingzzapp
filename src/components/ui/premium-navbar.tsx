@@ -10,7 +10,7 @@ import {
   Heart,
   MessageCircle,
   User,
-  Calendar,
+  MessageSquare,
   Zap,
   Menu,
   Settings,
@@ -26,7 +26,7 @@ const PremiumNavbar = () => {
     { to: '/swipe', label: 'Swipe', icon: Zap },
     { to: '/pairing', label: 'Pairing', icon: Users },
     { to: '/chat', label: 'Chat', icon: MessageCircle },
-    { to: '/blind-date', label: 'Blind Date', icon: Calendar },
+    { to: '/consulting', label: 'Consulting', icon: MessageSquare },
     { to: '/profile', label: 'Profile', icon: User },
   ];
 
