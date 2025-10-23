@@ -24,8 +24,6 @@ import { supabase } from '@/integrations/supabase/client';
 
 // Import management components
 import CampaignManager from './CampaignManager';
-import UpdatesManager from './UpdatesManager';
-import NewsManager from './NewsManager';
 import ConsultingManager from './ConsultingManager';
 
 interface DashboardMetrics {

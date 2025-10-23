@@ -123,24 +123,6 @@ export async function fetchWithFirebaseAuth(input: RequestInfo | URL, init: Requ
     return await fetch(input, { ...init, headers, credentials: 'omit', mode: 'cors' });
   } catch (error) {
     console.error(`❌ Fetch failed for ${url}:`, error);
-    try {
-      return await fetch(directUrl, { 
-        ...init, 
-        headers,
-        credentials: 'same-origin'
-      });
-    } catch (error) {
-      console.error(`❌ Failed to fetch Edge Function '${functionName}':`, error);
-      console.error(`📍 URL: ${directUrl}`);
-      console.error(`💡 Tip: Make sure the Edge Function is deployed using: supabase functions deploy ${functionName}`);
-      throw new Error(`Edge Function '${functionName}' is not available. Please deploy it or check your network connection.`);
-    }
-  }
-  
-  try {
-    return await fetch(input, { ...init, headers, credentials: 'same-origin' });
-  } catch (error) {
-    console.error('❌ Fetch failed:', error);
     throw error;
   }
 }

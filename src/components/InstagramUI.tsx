@@ -27,7 +27,7 @@ import { useProfilesFeed } from "@/hooks/useProfilesFeed";
 import { usePairing } from "@/hooks/usePairing";
 // Debug component removed during cleanup
 // import UserSelector from "@/components/debug/UserSelector";
-import SwipeCards from "@/components/swipe/SwipeCards";
+import SwipeManager from "@/components/swipe/SwipeManager";
 import PairingMatches from "@/components/pairing/PairingMatches";
 import EnhancedProfileDisplay from "@/components/profile/EnhancedProfileDisplay";
 import { useToast } from "@/hooks/use-toast";
@@ -425,7 +425,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
       case "swipe":
         return (
           <div className="flex-1 overflow-y-auto min-h-screen bg-background">
-            <SwipeCards />
+            <SwipeManager />
           </div>
         );
 

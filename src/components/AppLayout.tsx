@@ -157,9 +157,8 @@ const AppLayout = ({ children, currentView, onViewChange }: AppLayoutProps) => {
                   currentView === item.id
                     ? "bg-gradient-primary text-white shadow-royal"
                     : "hover:bg-muted/50"
-                } ${item.disabled ? "opacity-50 cursor-not-allowed" : ""}`}
-                onClick={() => !item.disabled && onViewChange(item.id)}
-                disabled={item.disabled}
+                }`}
+                onClick={() => onViewChange(item.id)}
               >
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center space-x-3">

@@ -10,6 +10,7 @@ import {
   Users,
   Heart,
   MessageCircle,
+  MessageSquare,
   User,
   Calendar,
   Zap,
