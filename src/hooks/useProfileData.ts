@@ -179,8 +179,8 @@ export const useProfileData = () => {
           verification_status: 'pending',
           total_qcs: 0,
         };
-        // Save to backend
-        await callDataFunction('update_profile', { profile: defaultProfile });
+        // Save to backend using create_profile action (not update_profile)
+        await callDataFunction('create_profile', { profile: defaultProfile });
         setProfile(defaultProfile);
         console.log("🆕 Created default profile for user:", userId);
       }

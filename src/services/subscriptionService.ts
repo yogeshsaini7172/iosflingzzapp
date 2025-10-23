@@ -23,7 +23,7 @@ export async function createSubscriptionOrder(planId: string) {
       throw new Error('Invalid plan or amount');
     }
 
-    const response = await fetchWithFirebaseAuth('/functions/v1/create-subscription-order', {
+    const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/create-subscription-order', {
       method: 'POST',
       body: JSON.stringify({
         plan: planId,
@@ -62,7 +62,7 @@ export async function verifySubscriptionPayment(
   subscriptionId: string
 ) {
   try {
-    const response = await fetchWithFirebaseAuth('/functions/v1/verify-subscription-payment', {
+    const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/verify-subscription-payment', {
       method: 'POST',
       body: JSON.stringify({
         razorpay_payment_id: razorpayPaymentId,
