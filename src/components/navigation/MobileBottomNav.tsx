@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Users, Sparkles, User } from "lucide-react";
+import { Home, Users, MessageSquare, User } from "lucide-react";
 import { hapticLight } from "@/utils/hapticFeedback";
 
 const MobileBottomNav = () => {
@@ -21,7 +21,7 @@ const MobileBottomNav = () => {
   const navItems = [
     { path: "/", icon: Home, label: "Home" },
     { path: "/pairing", icon: Users, label: "Pairing" },
-    { path: "/blind-date", icon: Sparkles, label: "Blind Date" },
+    { path: "/consulting", icon: MessageSquare, label: "Consulting" },
     { path: "/profile", icon: User, label: "Profile" },
   ];
 
@@ -37,7 +37,7 @@ const MobileBottomNav = () => {
         {navItems.map(({ path, icon: Icon, label }) => {
           const isActive = active(path);
           // Slightly smaller icons and reduced active scaling to avoid overflow on small screens (APK)
-          const isCenter = label.toLowerCase() === 'blind date' || label.toLowerCase() === 'pairing' || label.toLowerCase() === 'home';
+          const isCenter = label.toLowerCase() === 'consulting' || label.toLowerCase() === 'pairing' || label.toLowerCase() === 'home';
           return (
             <Link
               key={path}

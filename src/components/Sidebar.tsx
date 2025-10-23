@@ -1,5 +1,5 @@
 import React from "react";
-import { Home, Heart, Zap, Users, User } from "lucide-react";
+import { Home, Heart, Zap, MessageSquare, User } from "lucide-react";
 import flingzzLogo from "@/assets/logo.png";
 
 const Sidebar: React.FC = () => {
@@ -7,7 +7,7 @@ const Sidebar: React.FC = () => {
     { label: "Home", icon: <Home size={20} />, active: true },
     { label: "Swipe", icon: <Heart size={20} /> },
     { label: "Pairing", icon: <Zap size={20} /> },
-    { label: "Blind Date", icon: <Users size={20} /> },
+    { label: "Consulting", icon: <MessageSquare size={20} /> },
     { label: "Profile", icon: <User size={20} /> },
   ];
 

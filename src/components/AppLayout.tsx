@@ -4,7 +4,7 @@ import {
   User,
   MessageCircle,
   Search,
-  Calendar,
+  MessageSquare,
   Settings,
   LogOut,
   Sparkles,
@@ -22,7 +22,7 @@ type View =
   | "matches"
   | "chat"
   | "profile"
-  | "blind-date";
+  | "consulting";
 
 interface User {
   id: string;
@@ -90,11 +90,10 @@ const AppLayout = ({ children, currentView, onViewChange }: AppLayoutProps) => {
       description: "Conversations",
     },
     {
-      id: "blind-date" as View,
-      label: "Blind Dates",
-      icon: <Calendar className="h-5 w-5" />,
-      description: "Coming Soon",
-      disabled: true,
+      id: "consulting" as View,
+      label: "Consulting",
+      icon: <MessageSquare className="h-5 w-5" />,
+      description: "Get Advice",
     },
   ];
 

@@ -13,8 +13,8 @@ import ProfileSetupFlow from '@/components/profile/ProfileSetupFlow';
 // Import pages
 import ProfilePage from '@/pages/ProfilePage';
 import PairingPage from '@/pages/PairingPage';
-import BlindDatePage from '@/pages/BlindDatePage';
 import CommunityPage from '@/pages/CommunityPage';
+import ConsultingPage from '@/pages/ConsultingPage';
 
 import Dashboard from '@/pages/Dashboard';
 import FlingzzHome from '@/components/campus/FlingzzHome';
@@ -146,8 +146,8 @@ const MobileAppContent = () => {
         
         {/* Core Features */}
         <Route path="/pairing" element={<PairingPage onNavigate={handleNavigate} />} />
-        <Route path="/blind-date" element={<BlindDatePage onNavigate={handleNavigate} />} />
-  <Route path="/community" element={<CommunityPage />} />
+        <Route path="/consulting" element={<ConsultingPage />} />
+        <Route path="/community" element={<CommunityPage />} />
         <Route path="/profile" element={<ProfilePage onNavigate={handleNavigate} />} />
         
         {/* Chat System */}

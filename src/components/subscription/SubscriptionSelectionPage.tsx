@@ -44,7 +44,7 @@ const SubscriptionSelectionPage = ({ onComplete }: SubscriptionSelectionPageProp
       features: [
         'Everything in Basic',
         'Unlimited pairing requests',
-        'Unlimited blind dates',
+        'Priority consulting access',
         'Profile boost (3x visibility)',
         'Super likes',
         'Advanced filters',

@@ -9,11 +9,11 @@ import { ChatNotificationProvider } from "./contexts/ChatNotificationContext";
 import { useState, useEffect } from "react";
 import PairingPage from "./pages/PairingPage";
 import ProfilePage from "./pages/ProfilePage";
-import BlindDatePage from "./pages/BlindDatePage";
 import SubscriptionPage from "./pages/SubscriptionPage";
 import SubscriptionDebug from "./pages/SubscriptionDebug";
 import FlingzzHome from "./components/campus/FlingzzHome";
 import CommunityPage from "./pages/CommunityPage";
+import ConsultingPage from "./pages/ConsultingPage";
 
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
@@ -281,9 +281,9 @@ const AuthenticatedApp = () => {
             <Routes>
               <Route path="/" element={<FlingzzHome onNavigate={(view) => navigate(`/${view}`)} />} />
               <Route path="/pairing" element={<PairingPage onNavigate={(view) => navigate(`/${view}`)} />} />
-              <Route path="/blind-date" element={<BlindDatePage onNavigate={(view) => navigate(`/${view}`)} />} />
-              <Route path="/profile" element={<ProfilePage onNavigate={(view) => navigate(`/${view}`)} />} />
+              <Route path="/consulting" element={<ConsultingPage />} />
               <Route path="/community" element={<CommunityPage />} />
+              <Route path="/profile" element={<ProfilePage onNavigate={(view) => navigate(`/${view}`)} />} />
               <Route path="/admin/community" element={
                 <AdminRoute>
                   <CommunityDashboard />

@@ -30,7 +30,7 @@ interface Event {
 }
 
 interface ExploreScreenProps {
-  onNavigate: (view: 'home' | 'profile' | 'swipe' | 'blind-date' | 'matches') => void;
+  onNavigate: (view: 'home' | 'profile' | 'swipe' | 'consulting' | 'matches') => void;
 }
 
 const mockStudents: Student[] = [

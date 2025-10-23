@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Heart, Shield, Sparkles, Users, CheckCircle2, Target, Zap, Award } from "lucide-react";
+import { Heart, Shield, MessageCircle, Users, CheckCircle2, Target, Zap, Award } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface WebLandingPageProps {
@@ -186,12 +186,12 @@ export const WebLandingPage = ({ onEnterApp }: WebLandingPageProps) => {
 
             <div className="p-8 rounded-2xl bg-card/50 backdrop-blur-sm border border-border space-y-4 hover:shadow-elegant transition-all">
               <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
-                <Sparkles className="w-7 h-7 text-primary" />
+                <MessageCircle className="w-7 h-7 text-primary" />
               </div>
-              <h3 className="font-semibold text-xl text-foreground">Blind Date Mode</h3>
+              <h3 className="font-semibold text-xl text-foreground">Consulting</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Experience the thrill of mystery with our unique Blind Date feature. 
-                Connect based on compatibility scores before revealing profiles.
+                Get personalized advice and optimize your dating experience with our consulting service. 
+                Professional guidance to help you make the most of your connections.
               </p>
             </div>
 

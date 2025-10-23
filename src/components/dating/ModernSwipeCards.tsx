@@ -8,7 +8,7 @@ import { Heart, X, Star, MessageCircle, MapPin, GraduationCap, ArrowLeft, Eye, E
 import { useToast } from "@/hooks/use-toast";
 
 interface ModernSwipeCardsProps {
-  onNavigate: (view: 'home' | 'profile' | 'swipe' | 'blind-date' | 'matches') => void;
+  onNavigate: (view: 'home' | 'profile' | 'swipe' | 'consulting' | 'matches') => void;
 }
 
 // Enhanced mock profiles with prompts
