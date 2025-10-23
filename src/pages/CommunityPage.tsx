@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { ArrowLeft, Megaphone, MessageSquare, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import UnifiedLayout from "@/components/layout/UnifiedLayout";
 import { Button } from "@/components/ui/button";
-import { Megaphone, MessageSquare } from "lucide-react";
 import CampaignsPage from "@/components/community/CampaignsPage";
 import ConsultingPage from "@/components/community/ConsultingPage";
 
@@ -18,8 +19,28 @@ const CommunityPage = () => {
     { id: 'consulting' as CommunityTab, label: 'Consulting', icon: MessageSquare },
   ];
 
+  const navigate = useNavigate();
+
   return (
     <UnifiedLayout title="Community">
+      <div className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-4">
+            <button
+              aria-label="Go back"
+              onClick={() => navigate(-1)}
+              className="inline-flex items-center justify-center rounded-full p-2 hover:bg-muted/20"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+
+            <div>
+              <h2 className="text-2xl font-bold">Community</h2>
+              <p className="text-sm text-muted-foreground">Connect with campaigns and consulting</p>
+            </div>
+          </div>
+        </div>
+
       <div className="flex h-[calc(100vh-64px)]">
         {/* Sidebar */}
         <div className="w-64 border-r border-border/20 bg-card/30 backdrop-blur-sm p-4">
@@ -46,6 +67,7 @@ const CommunityPage = () => {
           {activeTab === 'campaigns' && <CampaignsPage />}
           {activeTab === 'consulting' && <ConsultingPage />}
         </div>
+      </div>
       </div>
     </UnifiedLayout>
   );

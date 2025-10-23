@@ -79,6 +79,13 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { profile: userProfile } = useProfileData();
+  const [communityJoined, setCommunityJoined] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('flingzz_community_joined') === 'true';
+    } catch (e) {
+      return false;
+    }
+  });
 
   // Set up realtime listeners
   const userId = user?.uid;
@@ -429,10 +436,19 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
             Get exclusive updates, offers, campaigns by FLINGZZ & professional consulting
           </p>
           <Button 
-            onClick={() => onNavigate('community')}
+            onClick={() => {
+              try {
+                localStorage.setItem('flingzz_community_joined', 'true');
+              } catch (e) {
+                // ignore
+              }
+              setCommunityJoined(true);
+              onNavigate('community');
+            }}
             className="w-full max-w-xs bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white"
+            aria-pressed={communityJoined}
           >
-            Join Now
+            {communityJoined ? 'Explore Community' : 'Join Now'}
           </Button>
         </div>
       </div>
