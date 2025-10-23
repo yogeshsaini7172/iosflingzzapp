@@ -30,24 +30,20 @@ interface DashboardMetrics {
   totalCampaigns: number;
   activeCampaigns: number;
   draftCampaigns: number;
-  totalUpdates: number;
-  publishedUpdates: number;
-  totalNews: number;
-  publishedNews: number;
   pendingConsulting: number;
   totalUsers: number;
   engagementRate: number;
 }
 
 interface ActivityItem {
-  type: 'campaign' | 'update' | 'news';
+  type: 'campaign';
   title: string;
   timestamp: string;
   status: string;
   id: string;
 }
 
-type DashboardTab = 'overview' | 'campaigns' | 'updates' | 'news' | 'consulting';
+type DashboardTab = 'overview' | 'campaigns' | 'consulting';
 
 const CommunityDashboard = () => {
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
@@ -71,22 +67,6 @@ const CommunityDashboard = () => {
       const activeCampaigns = campaigns?.filter((c: any) => c.status === 'active').length || 0;
       const draftCampaigns = campaigns?.filter((c: any) => c.status === 'draft').length || 0;
 
-      // Fetch updates data
-      const { data: updates } = await supabase
-        .from('updates' as any)
-        .select('id, status') as any;
-      
-      const totalUpdates = updates?.length || 0;
-      const publishedUpdates = updates?.filter((u: any) => u.status === 'published').length || 0;
-
-      // Fetch news data
-      const { data: news } = await supabase
-        .from('news' as any)
-        .select('id, status') as any;
-      
-      const totalNews = news?.length || 0;
-      const publishedNews = news?.filter((n: any) => n.status === 'published').length || 0;
-
       // Fetch consulting requests count
       const { data: consultingRequests } = await supabase
         .from('consulting_requests')
@@ -98,21 +78,15 @@ const CommunityDashboard = () => {
         .from('profiles')
         .select('*', { count: 'exact', head: true });
 
-      // Calculate engagement rate (published content vs total content)
-      const totalContent = totalCampaigns + totalUpdates + totalNews;
-      const publishedContent = activeCampaigns + publishedUpdates + publishedNews;
-      const engagementRate = totalContent > 0 
-        ? Math.round((publishedContent / totalContent) * 100) 
+      // Calculate engagement rate (active campaigns vs total campaigns)
+      const engagementRate = totalCampaigns > 0 
+        ? Math.round((activeCampaigns / totalCampaigns) * 100) 
         : 0;
 
       const metricsData: DashboardMetrics = {
         totalCampaigns,
         activeCampaigns,
         draftCampaigns,
-        totalUpdates,
-        publishedUpdates,
-        totalNews,
-        publishedNews,
         pendingConsulting: consultingRequests?.length || 0,
         totalUsers: totalUsers || 0,
         engagementRate
@@ -142,7 +116,7 @@ const CommunityDashboard = () => {
         .from('campaigns' as any)
         .select('id, title, created_at, status')
         .order('created_at', { ascending: false })
-        .limit(5) as any;
+        .limit(10) as any;
 
       if (recentCampaigns) {
         activities.push(...recentCampaigns.map((c: any) => ({
@@ -151,40 +125,6 @@ const CommunityDashboard = () => {
           timestamp: c.created_at,
           status: c.status,
           id: c.id
-        })));
-      }
-
-      // Fetch recent updates
-      const { data: recentUpdates } = await supabase
-        .from('updates' as any)
-        .select('id, title, created_at, status')
-        .order('created_at', { ascending: false })
-        .limit(5) as any;
-
-      if (recentUpdates) {
-        activities.push(...recentUpdates.map((u: any) => ({
-          type: 'update' as const,
-          title: u.title,
-          timestamp: u.created_at,
-          status: u.status,
-          id: u.id
-        })));
-      }
-
-      // Fetch recent news
-      const { data: recentNews } = await supabase
-        .from('news' as any)
-        .select('id, title, created_at, status')
-        .order('created_at', { ascending: false })
-        .limit(5) as any;
-
-      if (recentNews) {
-        activities.push(...recentNews.map((n: any) => ({
-          type: 'news' as const,
-          title: n.title,
-          timestamp: n.created_at,
-          status: n.status,
-          id: n.id
         })));
       }
 
@@ -230,12 +170,7 @@ const CommunityDashboard = () => {
   // Helper function to get activity label
   const getActivityLabel = (item: ActivityItem) => {
     const statusLabel = item.status === 'published' || item.status === 'active' ? 'published' : 'created';
-    switch (item.type) {
-      case 'campaign': return `Campaign ${statusLabel}`;
-      case 'update': return `Update ${statusLabel}`;
-      case 'news': return `News article ${statusLabel}`;
-      default: return 'Activity';
-    }
+    return `Campaign ${statusLabel}`;
   };
 
   const tabs = [
@@ -250,18 +185,6 @@ const CommunityDashboard = () => {
       label: 'Campaigns', 
       icon: Megaphone,
       description: 'Manage marketing campaigns'
-    },
-    { 
-      id: 'updates' as DashboardTab, 
-      label: 'Updates', 
-      icon: Bell,
-      description: 'App updates and announcements'
-    },
-    { 
-      id: 'news' as DashboardTab, 
-      label: 'News', 
-      icon: Newspaper,
-      description: 'News articles and press releases'
     },
     { 
       id: 'consulting' as DashboardTab, 
@@ -297,7 +220,7 @@ const CommunityDashboard = () => {
       </div>
 
       {/* Key Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Campaigns</CardTitle>
@@ -307,32 +230,6 @@ const CommunityDashboard = () => {
             <div className="text-2xl font-bold">{metrics?.totalCampaigns || 0}</div>
             <p className="text-xs text-muted-foreground">
               {metrics?.activeCampaigns || 0} active • {metrics?.draftCampaigns || 0} draft
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Updates</CardTitle>
-            <Bell className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics?.totalUpdates || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              {metrics?.publishedUpdates || 0} published
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">News Articles</CardTitle>
-            <Newspaper className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics?.totalNews || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              {metrics?.publishedNews || 0} published
             </p>
           </CardContent>
         </Card>
@@ -425,22 +322,6 @@ const CommunityDashboard = () => {
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Create Campaign
-              </Button>
-              <Button 
-                className="w-full justify-start" 
-                variant="outline"
-                onClick={() => setActiveTab('updates')}
-              >
-                <Bell className="w-4 h-4 mr-2" />
-                Publish Update
-              </Button>
-              <Button 
-                className="w-full justify-start" 
-                variant="outline"
-                onClick={() => setActiveTab('news')}
-              >
-                <Newspaper className="w-4 h-4 mr-2" />
-                Write News Article
               </Button>
               <Button 
                 className="w-full justify-start" 
@@ -543,22 +424,6 @@ const CommunityDashboard = () => {
           <div>
             <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
               <CampaignManager />
-            </Suspense>
-          </div>
-        )}
-
-        {activeTab === 'updates' && (
-          <div>
-            <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
-              <UpdatesManager />
-            </Suspense>
-          </div>
-        )}
-
-        {activeTab === 'news' && (
-          <div>
-            <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>}>
-              <NewsManager />
             </Suspense>
           </div>
         )}

@@ -185,18 +185,16 @@ export class PairingLimitService {
     limit: number
   ): Promise<any[]> {
     try {
-      // First try the matches table (has compatibility_score)
+      // First try the enhanced_matches table (has compatibility data in separate compatibility_scores table)
       const { data: matchesData, error: matchesError } = await supabase
-        .from('matches')
+        .from('enhanced_matches')
         .select('*')
         .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
-        .gte('compatibility_score', minQCS)
-        .lt('compatibility_score', maxQCS)
-        .order('compatibility_score', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(limit);
 
       if (matchesError) {
-        console.warn(`Matches table query failed:`, matchesError);
+        console.warn(`Enhanced matches table query failed:`, matchesError);
         // Return empty array to fall back to deterministic pairing
         return [];
       }
@@ -216,7 +214,7 @@ export class PairingLimitService {
 
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('user_id, first_name, last_name, profile_images, bio, university, total_qcs, age, interests')
+        .select('user_id, first_name, last_name, profile_images, bio, university, total_qcs, date_of_birth, interests')
         .in('user_id', otherUserIds);
 
       if (profilesError) {
@@ -238,8 +236,8 @@ export class PairingLimitService {
           ...match,
           matched_user: otherProfile,
           user_profile: otherProfile,
-          qcs_score: match.compatibility_score || 0,
-          compatibility_score: match.compatibility_score || 0
+          qcs_score: otherProfile?.total_qcs || 0,
+          compatibility_score: otherProfile?.total_qcs || 0
         };
       }).filter(m => m.matched_user); // Filter out matches without profile data
     } catch (error) {
