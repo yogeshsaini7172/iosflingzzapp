@@ -22,6 +22,7 @@ import QCSSystemRepair from "./components/QCSSystemRepair";
 import QCSBulkSync from "./components/QCSBulkSync";
 import CommunityDashboard from "./components/admin/CommunityDashboard";
 import AdminRoute from "./components/admin/AdminRoute";
+import AdminEmailPasswordRoute from "./components/admin/AdminEmailPasswordRoute";
 import { fetchWithFirebaseAuth } from "./lib/fetchWithFirebaseAuth";
 import RebuiltChatSystem from "./components/chat/RebuiltChatSystem";
 import { initializeMobileApp } from "./mobile/capacitor";
@@ -284,10 +285,16 @@ const AuthenticatedApp = () => {
               <Route path="/consulting" element={<ConsultingPage />} />
               <Route path="/community" element={<CommunityPage />} />
               <Route path="/profile" element={<ProfilePage onNavigate={(view) => navigate(`/${view}`)} />} />
-              <Route path="/admin/community" element={
+              {/* Old admin route removed - use /admin1712/community instead */}
+              {/* <Route path="/admin/community" element={
                 <AdminRoute>
                   <CommunityDashboard />
                 </AdminRoute>
+              } /> */}
+              <Route path="/admin1712/community" element={
+                <AdminEmailPasswordRoute>
+                  <CommunityDashboard />
+                </AdminEmailPasswordRoute>
               } />
               <Route path="/subscription" element={<SubscriptionPage />} />
               
