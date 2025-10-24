@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Loader2, ExternalLink } from "lucide-react";
+import Loader from '@/components/ui/Loader';
 import { getCampaignsByStatus, type Campaign } from "@/services/campaigns";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
@@ -40,7 +41,7 @@ const CampaignsPage = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <Loader size={48} />
       </div>
     );
   }

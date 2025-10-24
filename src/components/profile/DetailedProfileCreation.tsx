@@ -21,6 +21,7 @@ import {
   EyeOff,
   Sparkles
 } from "lucide-react";
+import Loader from "@/components/ui/Loader";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
@@ -903,11 +904,11 @@ const DetailedProfileCreation = ({ onBack, onComplete }: DetailedProfileCreation
               disabled={isLoading}
             >
               {isLoading ? (
-                <>
-                  <Sparkles className="w-4 h-4 mr-2 animate-spin" />
-                  Creating Profile...
-                </>
-              ) : (
+                  <>
+                    <Loader size={16} className="inline-block mr-2" />
+                    Creating Profile...
+                  </>
+                ) : (
                 <>
                   Complete Profile
                   <Sparkles className="w-4 h-4 ml-2" />

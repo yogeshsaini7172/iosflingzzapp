@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, ArrowRight, Upload, Plus, X, Loader2 } from "lucide-react";
+import Loader from "@/components/ui/Loader";
 import ProgressIndicator from "../onboarding/ProgressIndicator";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -514,7 +515,7 @@ const EnhancedProfileCreation = ({ onComplete, onBack }: EnhancedProfileCreation
           >
             {isSubmitting ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader size={16} className="inline-block" />
                 Creating Profile...
               </>
             ) : (

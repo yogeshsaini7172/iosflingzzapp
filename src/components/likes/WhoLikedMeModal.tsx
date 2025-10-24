@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Heart, Crown, MapPin, Eye, X } from "lucide-react";
+import Loader from '@/components/ui/Loader';
 import { SubscriptionEnforcementService } from "@/services/subscriptionEnforcement";
 import { useToast } from "@/hooks/use-toast";
 import { useRequiredAuth } from "@/hooks/useRequiredAuth";
@@ -297,7 +298,7 @@ const WhoLikedMeModal = ({ isOpen, onClose, onLike }: WhoLikedMeModalProps) => {
         <div className="flex-1 overflow-y-auto">
           {loading ? (
             <div className="flex justify-center items-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <Loader size={64} />
             </div>
           ) : !canSeeLikes ? (
             renderUpgradePrompt()

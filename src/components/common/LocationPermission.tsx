@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
   MapPin, 
-  Loader2, 
   AlertCircle, 
   CheckCircle, 
   Navigation, 
@@ -11,6 +10,7 @@ import {
   Edit3
 } from 'lucide-react';
 import { useLocation, LocationData } from '@/hooks/useLocation';
+import Loader from '@/components/ui/Loader';
 import { isLocationPermissionNeeded, requestLocationWithUserGesture } from '@/services/locationService';
 
 interface LocationPermissionProps {
@@ -98,7 +98,7 @@ const LocationPermission: React.FC<LocationPermissionProps> = ({
   };
 
   const getLocationIcon = () => {
-    if (isLoading) return <Loader2 className="w-5 h-5 animate-spin" />;
+    if (isLoading) return <Loader size={20} />;
     if (location) return <CheckCircle className="w-5 h-5 text-green-500" />;
     if (error) return <AlertCircle className="w-5 h-5 text-red-500" />;
     return <MapPin className="w-5 h-5" />;

@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Crown, Zap, Sparkles, Loader2 } from "lucide-react";
+import { Check, Crown, Zap, Sparkles } from "lucide-react";
+import Loader from '@/components/ui/Loader';
 import { SUBSCRIPTION_PLANS, type PlanId } from "@/config/subscriptionPlans";
 import { useToast } from "@/hooks/use-toast";
 import { initiateSubscriptionPayment } from "@/services/subscriptionService";
@@ -197,7 +198,7 @@ const SubscriptionStep = ({ onPlanSelect }: SubscriptionStepProps) => {
                 >
                   {processingPayment && paymentPlanId === plan.id ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <Loader size={16} className="inline-block mr-2" />
                       Processing...
                     </>
                   ) : isSelected ? (
@@ -214,8 +215,8 @@ const SubscriptionStep = ({ onPlanSelect }: SubscriptionStepProps) => {
 
       {processingPayment && (
         <div className="text-center p-4 bg-primary/10 border border-primary/30 rounded-lg">
-          <div className="flex items-center justify-center gap-2 text-white">
-            <Loader2 className="w-5 h-5 animate-spin" />
+            <div className="flex items-center justify-center gap-2 text-white">
+            <Loader size={20} />
             <span className="font-medium">Processing your payment...</span>
           </div>
           <p className="text-sm text-white/70 mt-2">

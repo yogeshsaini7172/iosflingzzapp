@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Play, CheckCircle, XCircle, Users, TrendingUp } from 'lucide-react';
+import Loader from '@/components/ui/Loader';
 
 interface SyncResult {
   total_profiles: number;
@@ -78,7 +79,7 @@ const QCSBulkSync = () => {
       case 'failed':
         return <XCircle className="h-4 w-4 text-red-500" />;
       default:
-        return <Loader2 className="h-4 w-4 animate-spin" />;
+        return <Loader size={16} />;
     }
   };
 
@@ -102,7 +103,7 @@ const QCSBulkSync = () => {
               className="flex items-center gap-2"
             >
               {syncing ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader size={16} />
               ) : (
                 <Play className="h-4 w-4" />
               )}

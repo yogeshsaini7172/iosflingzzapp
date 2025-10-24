@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
+import Loader from "@/components/ui/Loader";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -237,16 +238,16 @@ const AadhaarVerificationStep = ({
                   size="lg"
                 >
                   {isLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Initializing...
-                    </>
-                  ) : !sdkLoaded ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Loading SDK...
-                    </>
-                  ) : (
+                      <>
+                        <Loader size={16} className="inline-block mr-2" />
+                        Initializing...
+                      </>
+                    ) : !sdkLoaded ? (
+                      <>
+                        <Loader size={16} className="inline-block mr-2" />
+                        Loading SDK...
+                      </>
+                    ) : (
                     <>
                       <Shield className="w-4 h-4 mr-2" />
                       Start Aadhaar Verification

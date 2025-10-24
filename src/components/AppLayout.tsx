@@ -9,6 +9,7 @@ import {
   LogOut,
   Sparkles,
 } from "lucide-react";
+import Loader from '@/components/ui/Loader';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -100,7 +101,9 @@ const AppLayout = ({ children, currentView, onViewChange }: AppLayoutProps) => {
   if (!currentUser) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-elegant">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="text-center">
+          <Loader size={48} />
+        </div>
       </div>
     );
   }

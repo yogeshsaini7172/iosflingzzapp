@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2 } from 'lucide-react';
+import Loader from '@/components/ui/Loader';
 
 /**
  * AdminRoute - Protected route for admin features
@@ -84,7 +84,7 @@ const AdminRoute = ({ children }: AdminRouteProps) => {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+          <Loader size={32} />
           <p className="text-muted-foreground">Verifying access...</p>
         </div>
       </div>

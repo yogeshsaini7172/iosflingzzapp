@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/carousel';
 import { motion } from 'framer-motion';
 import HeartAnimation from '@/components/ui/HeartAnimation';
+import Loader from '@/components/ui/Loader';
 import {
   Sheet,
   SheetContent,
@@ -877,11 +878,11 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
                   className="px-8 py-4 rounded-xl bg-gradient-primary text-white font-bold shadow-elegant hover:shadow-glow transition-elegant disabled:opacity-50 disabled:cursor-not-allowed text-base w-full max-w-xs"
                 >
                   <div className="flex items-center justify-center gap-3">
-                    <Sparkles className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
-                    <span>
-                      {!pairingLimits.canRequest ? 'Daily Limit Reached' : isLoading ? 'Finding Matches...' : 'Find My Matches'}
-                    </span>
-                  </div>
+                      {isLoading ? <Loader size={20} className="inline-block" /> : <Sparkles className="w-5 h-5" />}
+                      <span>
+                        {!pairingLimits.canRequest ? 'Daily Limit Reached' : isLoading ? 'Finding Matches...' : 'Find My Matches'}
+                      </span>
+                    </div>
                 </motion.button>
 
                 {/* Progress Indicator */}

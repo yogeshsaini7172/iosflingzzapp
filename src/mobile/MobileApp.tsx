@@ -29,6 +29,7 @@ import MobileBottomNav from '@/components/navigation/MobileBottomNav';
 // import MobileFeatureDebug from '@/components/debug/MobileFeatureDebug';
 // import APKFeatureVerification from '@/components/debug/APKFeatureVerification';
 import { initializeMobileApp } from '../mobile/capacitor';
+import Loader from '@/components/ui/Loader';
 import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
 
 const queryClient = new QueryClient({
@@ -99,8 +100,7 @@ const MobileAppContent = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-600 to-pink-600">
         <div className="text-white text-center">
-          <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-lg">Loading FLINGZZ...</p>
+          <Loader size={96} text="Loading FLINGZZ..." />
         </div>
       </div>
     );

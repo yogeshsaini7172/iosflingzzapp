@@ -13,6 +13,7 @@ import WhoLikedMeModal from '@/components/likes/WhoLikedMeModal';
 import ChatRequestsModal from '@/components/notifications/ChatRequestsModal';
 import LikeNotificationHandler from '@/components/swipe/LikeNotificationHandler';
 import MobileBottomNav from '@/components/navigation/MobileBottomNav';
+import Loader from '@/components/ui/Loader';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications';
 
@@ -31,6 +32,12 @@ const UnifiedLayout = ({ children, title = "FLINGZZ", showHeader = true }: Unifi
   const [showWhoLikedMe, setShowWhoLikedMe] = useState(false);
   const [showChatRequests, setShowChatRequests] = useState(false);
   const [refreshLikes, setRefreshLikes] = useState(0);
+  const [hydrated, setHydrated] = useState(false);
+
+  // prevent flash of previous UI until React hydrates and runs client-side logic
+  React.useEffect(() => {
+    setHydrated(true);
+  }, []);
 
   // Enable global notifications for all users - this ensures realtime notifications work everywhere
   useNotifications();
@@ -59,6 +66,14 @@ const UnifiedLayout = ({ children, title = "FLINGZZ", showHeader = true }: Unifi
   };
 
   // Removed empty fetchLikes function
+
+  if (!hydrated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader size={96} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
@@ -118,8 +133,8 @@ const UnifiedLayout = ({ children, title = "FLINGZZ", showHeader = true }: Unifi
         </div>
       )}
 
-      {/* Main Content */}
-      <main className="pb-20">
+      {/* Main Content - pad bottom to match mobile bottom nav exactly to avoid extra gap */}
+      <main style={{ paddingBottom: 'clamp(56px, 13vw, 68px)' }}>
         {children}
       </main>
 

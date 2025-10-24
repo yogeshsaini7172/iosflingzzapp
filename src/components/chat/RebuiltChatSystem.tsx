@@ -4,6 +4,7 @@ import { useChatWithWebSocket, ChatRoom } from "@/hooks/useChatWithWebSocket";
 import ChatRoomList from "./ChatRoomList";
 import ChatConversation from "./ChatConversation";
 import ChatRequestsModal from "@/components/notifications/ChatRequestsModal";
+import Loader from '@/components/ui/Loader';
 
 interface RebuiltChatSystemProps {
   onNavigate: (view: string) => void;
@@ -35,7 +36,7 @@ const RebuiltChatSystem = ({ onNavigate, selectedChatId }: RebuiltChatSystemProp
     return (
       <div className="min-h-screen bg-gradient-soft flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <Loader size={32} />
           <p className="text-muted-foreground">Setting up your chat...</p>
         </div>
       </div>

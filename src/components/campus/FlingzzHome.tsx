@@ -32,6 +32,7 @@ import {
   Activity
 } from "lucide-react";
 import { fetchProfilesFeed } from '@/services/profile';
+import Loader from '@/components/ui/Loader';
 import { useToast } from '@/hooks/use-toast';
 import ChatNotificationBadge from '@/components/ui/chat-notification-badge';
 import HeartNotificationBadge from '@/components/ui/heart-notification-badge';
@@ -394,8 +395,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
       <UnifiedLayout title="FLINGZZ" showHeader={false}>
         <div className="min-h-screen flex items-center justify-center">
           <div className="flex flex-col items-center space-y-4">
-            <img src="logo.png" alt="FLINGZZ Logo" className="w-14 h-14 rounded-2xl shadow-glow animate-bounce" />
-            <p className="text-lg font-medium">Finding matches...</p>
+            <Loader size={96} text="Finding matches..." />
           </div>
         </div>
       </UnifiedLayout>
@@ -1016,7 +1016,7 @@ const FlingzzHome = ({ onNavigate }: FlingzzHomeProps) => {
                     </div>
                     {compatibilityLoading ? (
                       <div className="flex items-center justify-center py-4">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                        <Loader size={28} />
                         <span className="ml-2 text-sm text-muted-foreground">Calculating compatibility...</span>
                       </div>
                     ) : compatibility ? (

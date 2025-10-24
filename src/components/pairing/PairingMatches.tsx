@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Heart, MessageCircle, MoreVertical, Shield, Brain, Zap, Users, ChevronRight, Star, MapPin, GraduationCap, Sparkles, Ghost, UserMinus, Clock, ArrowLeft, Eye, User } from 'lucide-react';
+import Loader from '@/components/ui/Loader';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { usePairing } from '@/hooks/usePairing';
 import { useToast } from '@/hooks/use-toast';
@@ -276,7 +277,7 @@ const PairingMatches: React.FC<PairingMatchesProps> = ({ userId }) => {
           </CardHeader>
           <CardContent>
             <div className="text-center py-8">
-              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+              <Loader size={48} />
               <p className="text-muted-foreground">Analyzing profiles and calculating compatibility scores...</p>
             </div>
           </CardContent>

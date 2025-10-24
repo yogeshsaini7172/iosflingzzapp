@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import Loader from '@/components/ui/Loader';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -591,7 +592,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
               >
                 {isLoading ? (
                   <div className="flex items-center space-x-2 sm:space-x-3">
-                    <div className="animate-spin rounded-full h-5 w-5 sm:h-6 sm:w-6 border-2 border-white/30 border-t-white"></div>
+                    <Loader size={20} />
                     <span className="text-base sm:text-lg">Creating Profile...</span>
                   </div>
                 ) : currentStep === totalSteps ? (

@@ -7,12 +7,15 @@ function showLoadingScreen() {
   const root = document.getElementById("root");
   if (root) {
     root.innerHTML = `
-      <div style="display: flex; align-items: center; justify-content: center; height: 100vh; background: #000;">
-        <div style="text-align: center;">
-          <div style="width: 64px; height: 64px; margin: 0 auto 16px; animation: pulse 2s ease-in-out infinite;">
-            <img src="/logo.png" alt="Loading" style="width: 100%; height: 100%; border-radius: 12px;" />
+      <div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#000;">
+        <div style="text-align:center;color:#999;">
+          <div style="width:64px;height:64px;margin:0 auto 12px;" class="animate-pulse">
+            <!-- Inline heart SVG to match in-app heart loader -->
+            <svg viewBox="0 0 24 24" width="100%" height="100%" fill="currentColor" style="color:var(--primary);filter:drop-shadow(0 0 12px rgba(255,0,120,0.5));">
+              <path d="M12 21s-7-4.35-9-7.02C1.26 10.9 3.18 6 6.9 6 8.8 6 10 7.2 12 9c2-1.8 3.2-3 5.1-3 3.72 0 5.64 4.9 3.9 7.98C19 16.65 12 21 12 21z"></path>
+            </svg>
           </div>
-          <p style="color: #999; font-size: 14px;">Loading FLINGZZ...</p>
+          <div style="font-size:14px;margin-top:6px;color:var(--muted-foreground, #999);">Loading FLINGZZ...</div>
         </div>
       </div>
     `;

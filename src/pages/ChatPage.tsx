@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SendHorizonal } from 'lucide-react';
+import Loader from '@/components/ui/Loader';
 
 const ChatPage = () => {
   const { roomId } = useParams<{ roomId: string }>();
@@ -24,7 +25,7 @@ const ChatPage = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <Loader size={96} />
       </div>
     );
   }

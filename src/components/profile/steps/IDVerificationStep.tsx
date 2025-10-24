@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Shield, Upload, FileCheck, AlertCircle, CheckCircle } from "lucide-react";
+import Loader from "@/components/ui/Loader";
 import { useToast } from "@/hooks/use-toast";
 
 interface IDVerificationStepProps {
@@ -285,7 +286,7 @@ const handleSubmitVerification = async () => {
              >
               {isUploading ? (
                 <div className="flex items-center space-x-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <Loader size={12} className="inline-block" />
                   <span>Verifying Documents...</span>
                 </div>
               ) : (
