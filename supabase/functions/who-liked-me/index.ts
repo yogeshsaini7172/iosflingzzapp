@@ -93,21 +93,12 @@ serve(async (req) => {
     
     logStep("Profile retrieved", { planId, userId: user.id });
 
-    // Check if plan allows seeing who liked you
-    if (!plan.can_see_who_liked_you) {
-      return new Response(JSON.stringify({
-        success: false,
-        error: 'Upgrade to see who liked you',
-        plan_info: {
-          id: planId,
-          can_see_who_liked_you: false,
-          upgrade_required: true
-        }
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 403,
-      });
-    }
+    // NOTE: Previously we enforced plan-based gating here and returned 403
+    // for plans that couldn't see who liked the user. This app change makes
+    // "Who liked me" accessible to all users client-side, so skip the
+    // server-side gating and continue to return likers. Keep plan_info
+    // to allow the client to show upgrade prompts if desired.
+    logStep("Plan gating skipped on server", { planId, canSee: plan.can_see_who_liked_you });
 
     // Get users who liked this user (swiped right on them)
     const { data: likerSwipes, error: swipesError } = await supabaseClient
