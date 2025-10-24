@@ -27,6 +27,8 @@ import { supabase } from '@/integrations/supabase/client';
 // Import management components
 import CampaignManager from './CampaignManager';
 import ConsultingManager from './ConsultingManager';
+import UpdatesManager from './UpdatesManager';
+import NewsManager from './NewsManager';
 
 interface DashboardMetrics {
   totalCampaigns: number;
@@ -45,7 +47,7 @@ interface ActivityItem {
   id: string;
 }
 
-type DashboardTab = 'overview' | 'campaigns' | 'consulting';
+type DashboardTab = 'overview' | 'campaigns' | 'updates' | 'news' | 'consulting';
 
 const CommunityDashboard = () => {
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
@@ -202,6 +204,18 @@ const CommunityDashboard = () => {
       label: 'Campaigns', 
       icon: Megaphone,
       description: 'Manage marketing campaigns'
+    },
+    { 
+      id: 'updates' as DashboardTab, 
+      label: 'Updates', 
+      icon: Bell,
+      description: 'App updates and announcements'
+    },
+    { 
+      id: 'news' as DashboardTab, 
+      label: 'News', 
+      icon: Newspaper,
+      description: 'News articles and press releases'
     },
     { 
       id: 'consulting' as DashboardTab, 
@@ -436,6 +450,22 @@ const CommunityDashboard = () => {
           <div>
             <Suspense fallback={<div className="flex items-center justify-center h-64"><Loader size={32} /></div>}>
               <CampaignManager />
+            </Suspense>
+          </div>
+        )}
+
+        {activeTab === 'updates' && (
+          <div>
+            <Suspense fallback={<div className="flex items-center justify-center h-64"><Loader size={32} /></div>}>
+              <UpdatesManager />
+            </Suspense>
+          </div>
+        )}
+
+        {activeTab === 'news' && (
+          <div>
+            <Suspense fallback={<div className="flex items-center justify-center h-64"><Loader size={32} /></div>}>
+              <NewsManager />
             </Suspense>
           </div>
         )}
