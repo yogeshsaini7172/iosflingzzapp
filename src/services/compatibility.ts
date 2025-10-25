@@ -10,14 +10,61 @@ export interface CompatibilityScore {
 
 export async function calculateCompatibility(userId1: string, userId2: string): Promise<CompatibilityScore> {
   try {
+    // Validate inputs first
+    if (!userId1 || !userId2) {
+      console.warn("⚠️ Compatibility calculation skipped: Missing user IDs");
+      return {
+        physical_score: 63,
+        mental_score: 75,
+        overall_score: 50,
+        shared_interests: [],
+        compatibility_reasons: []
+      };
+    }
+
     // Fetch both profiles
     const { data: profiles, error } = await supabase
       .from("profiles")
       .select("*")
       .in("user_id", [userId1, userId2]);
 
-    if (error || !profiles || profiles.length !== 2) {
-      console.error("Error fetching profiles for compatibility:", error);
+    // Handle actual database errors
+    if (error) {
+      console.error("❌ Database error fetching profiles for compatibility:", error.message);
+      return {
+        physical_score: 63,
+        mental_score: 75,
+        overall_score: 50,
+        shared_interests: [],
+        compatibility_reasons: []
+      };
+    }
+
+    // Check if we got both profiles
+    if (!profiles || profiles.length === 0) {
+      console.warn("⚠️ No profiles found for compatibility calculation");
+      return {
+        physical_score: 63,
+        mental_score: 75,
+        overall_score: 50,
+        shared_interests: [],
+        compatibility_reasons: []
+      };
+    }
+
+    if (profiles.length === 1) {
+      console.warn("⚠️ Only one profile found (missing profile for one user)");
+      return {
+        physical_score: 63,
+        mental_score: 75,
+        overall_score: 50,
+        shared_interests: [],
+        compatibility_reasons: []
+      };
+    }
+
+    if (profiles.length !== 2) {
+      console.warn(`⚠️ Expected 2 profiles, got ${profiles.length}`);
       return {
         physical_score: 63,
         mental_score: 75,

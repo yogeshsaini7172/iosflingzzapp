@@ -193,22 +193,22 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
         {/* Profile Content */}
         <div className="p-6 space-y-6 bg-card/95 backdrop-blur-sm">
           {/* Basic Info */}
-          <div className="text-center space-y-2">
-            <div className="flex items-center justify-center space-x-2">
-              <h2 className="text-3xl font-bold text-foreground">{profile.first_name} {profile.last_name}</h2>
-              <span className="text-2xl font-semibold text-foreground/80">{profile.age || 'N/A'}</span>
+          <div className="text-center space-y-3">
+            <div className="flex items-baseline justify-center space-x-3">
+              <h2 className="text-4xl font-extrabold text-foreground tracking-tight">{profile.first_name} {profile.last_name}</h2>
+              <span className="text-3xl font-bold text-foreground/70">{profile.age || 'N/A'}</span>
             </div>
 
-            <div className="flex items-center justify-center space-x-4 text-sm text-foreground/70">
-              <div className="flex items-center space-x-1">
-                <GraduationCap className="w-4 h-4" />
-                <span>{profile.university}</span>
+            <div className="flex items-center justify-center space-x-4 text-base text-foreground/70">
+              <div className="flex items-center space-x-2">
+                <GraduationCap className="w-5 h-5 text-primary" />
+                <span className="font-medium">{profile.university}</span>
               </div>
             </div>
 
             {/* Compatibility Scores */}
             <div className="flex justify-center space-x-3 mt-4">
-              <Badge className={`text-lg py-2 px-4 ${
+              <Badge className={`text-xl font-bold py-3 px-5 shadow-md ${
                 (profile.compatibility_score || 0) >= 90
                   ? 'bg-green-100 text-green-700 border-green-200'
                   : (profile.compatibility_score || 0) >= 80
@@ -219,21 +219,21 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
               </Badge>
 
               {profile.total_qcs && (
-                <Badge variant="outline" className="py-2 px-4">
-                  <Brain className="w-4 h-4 mr-1" />
+                <Badge variant="outline" className="py-3 px-5 text-base font-semibold shadow-md">
+                  <Brain className="w-5 h-5 mr-2" />
                   QCS: {profile.total_qcs}
                 </Badge>
               )}
             </div>
 
             {/* Physical and Mental Scores */}
-            <div className="flex justify-center space-x-4 mt-2">
-              <Badge variant="secondary" className="text-sm">
-                <Dumbbell className="w-3 h-3 mr-1" />
+            <div className="flex justify-center space-x-4 mt-3">
+              <Badge variant="secondary" className="text-base font-medium py-2 px-4">
+                <Dumbbell className="w-4 h-4 mr-2" />
                 Physical: {profile.physical_score || 0}%
               </Badge>
-              <Badge variant="secondary" className="text-sm">
-                <Brain className="w-3 h-3 mr-1" />
+              <Badge variant="secondary" className="text-base font-medium py-2 px-4">
+                <Brain className="w-4 h-4 mr-2" />
                 Mental: {profile.mental_score || 0}%
               </Badge>
             </div>
@@ -241,9 +241,9 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
 
           {/* Bio */}
           {profile.bio && (
-            <Card className="bg-card/90 border border-border/50">
-              <CardContent className="p-4">
-                <p className="text-center text-foreground/85 leading-relaxed">
+            <Card className="bg-card/90 border-2 border-border/50 shadow-sm">
+              <CardContent className="p-5">
+                <p className="text-center text-base text-foreground/90 leading-relaxed font-normal italic">
                   "{profile.bio}"
                 </p>
               </CardContent>
@@ -252,14 +252,16 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
 
           {/* Matched Criteria */}
           {(profile.matched_criteria?.length > 0 || profile.not_matched_criteria?.length > 0) && (
-            <div className="space-y-3">
-              <h3 className="font-semibold text-center text-foreground">Compatibility Details</h3>
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold text-center text-foreground">Compatibility Details</h3>
               {profile.matched_criteria?.length > 0 && (
-                <div>
-                  <p className="text-sm text-green-600 font-medium mb-2">✓ Matched Criteria:</p>
+                <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-4">
+                  <p className="text-base text-green-700 dark:text-green-400 font-semibold mb-3 flex items-center">
+                    <span className="text-lg mr-2">✓</span> Matched Criteria
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {profile.matched_criteria.map((criteria, idx) => (
-                      <Badge key={idx} variant="secondary" className="text-xs bg-green-100 text-green-700">
+                      <Badge key={idx} variant="secondary" className="text-sm font-medium bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 py-1 px-3">
                         {criteria.replace(/_/g, ' ')}
                       </Badge>
                     ))}
@@ -267,16 +269,18 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
                 </div>
               )}
               {profile.not_matched_criteria?.length > 0 && (
-                <div>
-                  <p className="text-sm text-red-600 font-medium mb-2">✗ Not Matched Criteria:</p>
+                <div className="bg-red-50 dark:bg-red-950/20 rounded-lg p-4">
+                  <p className="text-base text-red-700 dark:text-red-400 font-semibold mb-3 flex items-center">
+                    <span className="text-lg mr-2">✗</span> Not Matched Criteria
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {profile.not_matched_criteria.slice(0, 5).map((criteria, idx) => (
-                      <Badge key={idx} variant="outline" className="text-xs text-red-600 border-red-200">
+                      <Badge key={idx} variant="outline" className="text-sm font-medium text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 py-1 px-3">
                         {criteria.replace(/_/g, ' ')}
                       </Badge>
                     ))}
                     {profile.not_matched_criteria.length > 5 && (
-                      <Badge variant="outline" className="text-xs text-muted-foreground">
+                      <Badge variant="outline" className="text-sm font-medium text-muted-foreground py-1 px-3">
                         +{profile.not_matched_criteria.length - 5} more
                       </Badge>
                     )}
@@ -289,17 +293,17 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
           {/* Interests */}
           {Array.isArray(profile.interests) && profile.interests.length > 0 && (
             <div>
-              <h3 className="font-semibold mb-3 text-center text-foreground">Interests</h3>
-              <div className="flex flex-wrap justify-center gap-2">
+              <h3 className="text-xl font-bold mb-4 text-center text-foreground">Interests & Hobbies</h3>
+              <div className="flex flex-wrap justify-center gap-3">
                 {profile.interests.map((interest, index) => {
                   const IconComponent = getInterestIcon(interest);
                   return (
                     <Badge
                       key={index}
                       variant="outline"
-                      className="py-2 px-3 bg-card/70 border-border/50 text-foreground hover:scale-105 transition-transform"
+                      className="py-2.5 px-4 text-base font-medium bg-card/70 border-2 border-border/50 text-foreground hover:scale-105 hover:shadow-md transition-all"
                     >
-                      <IconComponent className="w-4 h-4 mr-2" />
+                      <IconComponent className="w-5 h-5 mr-2" />
                       {interest}
                     </Badge>
                   );
@@ -309,28 +313,36 @@ const DetailedProfileModal: React.FC<DetailedProfileModalProps> = ({
           )}
 
           {/* Action Buttons */}
-          <div className="flex space-x-3 pt-4">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={onClose}
-            >
-              Close
-            </Button>
+          {onSwipe && (
+            <div className="pt-4">
+              <div className="flex space-x-3">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="flex-1 backdrop-blur-xl bg-white/40 dark:bg-gray-900/40 border-2 border-white/60 dark:border-gray-700/60 hover:border-red-300 dark:hover:border-red-500 text-red-600 dark:text-red-400 font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
+                  onClick={async () => {
+                    await onSwipe("left");
+                    onClose();
+                  }}
+                >
+                  <X className="w-5 h-5 mr-2" strokeWidth={2.5} />
+                  Pass
+                </Button>
 
-            {onChatRequest && (
-              <Button
-                onClick={() => {
-                  onChatRequest(profile.user_id, profile.can_chat || false);
-                  onClose();
-                }}
-                className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
-              >
-                <MessageCircle className="w-4 h-4 mr-2" />
-                {profile.can_chat ? "Chat Now" : "Chat Request"}
-              </Button>
-            )}
-          </div>
+                <Button
+                  size="lg"
+                  className="flex-1 backdrop-blur-xl bg-gradient-to-br from-red-500/90 via-pink-500/90 to-rose-500/90 hover:from-red-600/95 hover:via-pink-600/95 hover:to-rose-600/95 border-2 border-red-400/50 hover:border-red-300/70 text-white font-bold shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95"
+                  onClick={async () => {
+                    await onSwipe("right");
+                    onClose();
+                  }}
+                >
+                  <Heart className="w-5 h-5 mr-2 fill-white" strokeWidth={2} />
+                  Like
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
