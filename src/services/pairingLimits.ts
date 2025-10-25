@@ -145,26 +145,26 @@ export class PairingLimitService {
   /**
    * Get QCS-distributed matches (7 total as specified)
    */
-  static async getQCSDistributedMatches(userId: string): Promise<any[]> {
+  static async getQCSDistributedMatches(userId: string, maxDistanceKm?: number): Promise<any[]> {
     try {
       const matches: any[] = [];
 
       // Get 2 matches from 100-80 QCS range
-      const highQCS = await this.getMatchesByQCSRange(userId, 80, 100, 2);
+      const highQCS = await this.getMatchesByQCSRange(userId, 80, 100, 2, maxDistanceKm);
       matches.push(...highQCS);
 
       // Get 3 matches from 80-60 QCS range  
-      const mediumQCS = await this.getMatchesByQCSRange(userId, 60, 80, 3);
+      const mediumQCS = await this.getMatchesByQCSRange(userId, 60, 80, 3, maxDistanceKm);
       matches.push(...mediumQCS);
 
       // Get 2 matches from 60-40 QCS range
-      const lowQCS = await this.getMatchesByQCSRange(userId, 40, 60, 2);
+      const lowQCS = await this.getMatchesByQCSRange(userId, 40, 60, 2, maxDistanceKm);
       matches.push(...lowQCS);
 
       // Get remaining matches from below 40 QCS (up to 7 total)
       const remainingSlots = 7 - matches.length;
       if (remainingSlots > 0) {
-        const veryLowQCS = await this.getMatchesByQCSRange(userId, 0, 40, remainingSlots);
+        const veryLowQCS = await this.getMatchesByQCSRange(userId, 0, 40, remainingSlots, maxDistanceKm);
         matches.push(...veryLowQCS);
       }
 
@@ -182,7 +182,8 @@ export class PairingLimitService {
     userId: string, 
     minQCS: number, 
     maxQCS: number, 
-    limit: number
+    limit: number,
+    maxDistanceKm?: number
   ): Promise<any[]> {
     try {
       // First try the enhanced_matches table (has compatibility data in separate compatibility_scores table)

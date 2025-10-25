@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Brain, Star, MapPin, Sparkles, Users, MessageCircle, Zap, Crown, Eye, ShieldCheck, TrendingUp, Target, Award, GraduationCap, ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import { Heart, Brain, Star, MapPin, Sparkles, Users, MessageCircle, Zap, Crown, Eye, ShieldCheck, TrendingUp, Target, Award, GraduationCap, ChevronLeft, ChevronRight, Check, SlidersHorizontal } from 'lucide-react';
 import {
   Carousel,
   CarouselContent,
@@ -26,6 +27,7 @@ import { PairingLimitService } from '@/services/pairingLimits';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
 import DetailedProfileModal from '@/components/profile/DetailedProfileModalEnhanced';
+import CompatibilityModal from '@/components/profile/CompatibilityModal';
 import ProfileImageHandler from '@/components/common/ProfileImageHandler';
 import { useToast } from '@/hooks/use-toast';
 import { useRealtime } from '@/hooks/useRealtime';
@@ -47,6 +49,7 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
   const [sendingRequests, setSendingRequests] = useState<string[]>([]);
   const [requestedStatus, setRequestedStatus] = useState<Record<string, string>>({});
   const [requestedChatRooms, setRequestedChatRooms] = useState<Record<string, string>>({});
+  const [radiusKm, setRadiusKm] = useState<number>(50);
 
   // Persist requested recipients so UI state survives refresh
   const REQUESTED_KEY = (uid: string) => `chat_requested_recipients_${uid}`;
@@ -251,7 +254,7 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
           }, 10000);
         });
         
-        const loadPromise = loadMatchesForDisplay(userId);
+        const loadPromise = loadMatchesForDisplay(userId, radiusKm);
         const hasMatches = await Promise.race([loadPromise, timeoutPromise]);
         
         if (hasMatches) {
@@ -269,12 +272,12 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
     }
   };
 
-  const loadMatchesForDisplay = async (userId: string): Promise<boolean> => {
+  const loadMatchesForDisplay = async (userId: string, maxDistanceKm?: number): Promise<boolean> => {
     setIsLoading(true);
     try {
       // First try QCS-distributed matches (2 from 100-80, 3 from 80-60, 2 from 60-40)
       try {
-        const distributed = await PairingLimitService.getQCSDistributedMatches(userId);
+        const distributed = await PairingLimitService.getQCSDistributedMatches(userId, maxDistanceKm);
         if (distributed && Array.isArray(distributed) && distributed.length > 0) {
           // Map distributed matches to the page's match shape
           const formatted = distributed.map((m: any) => {
@@ -323,7 +326,10 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
         console.warn('QCS-distributed fetch failed, falling back to deterministic pairing', err);
       }
       const { data: pairingResults, error } = await supabase.functions.invoke('deterministic-pairing', {
-        body: { user_id: userId }
+        body: { 
+          user_id: userId,
+          max_distance_km: maxDistanceKm || 50
+        }
       });
 
       if (error || !pairingResults.success) {
@@ -390,11 +396,14 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
     }
   };
 
-  const loadMatches = async (userId: string) => {
+  const loadMatches = async (userId: string, maxDistanceKm?: number) => {
     setIsLoading(true);
     try {
       const { data: pairingResults, error } = await supabase.functions.invoke('deterministic-pairing', {
-        body: { user_id: userId }
+        body: { 
+          user_id: userId,
+          max_distance_km: maxDistanceKm || 50
+        }
       });
 
       if (error) {
@@ -500,9 +509,56 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
         }
       }
 
-      await loadMatches(userId);
+      await loadMatches(userId, radiusKm);
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to load matches', variant: 'destructive' });
+    }
+  };
+
+  // Reload matches when radius changes
+  const handleRadiusChange = async (newRadius: number) => {
+    setRadiusKm(newRadius);
+    
+    // Check if user has remaining pairing requests before loading new matches
+    if (!pairingLimits.canRequest) {
+      toast({ 
+        title: 'Daily Limit Reached', 
+        description: `You've used all ${pairingLimits.dailyLimit} pairing requests today. Upgrade to Premium for unlimited requests!`,
+        variant: 'destructive',
+        duration: 4000
+      });
+      return;
+    }
+    
+    // Debounce to avoid too many requests
+    if (hasLoadedProfiles && userId) {
+      // Increment usage counter for radius filter change
+      const success = PairingLimitService.incrementDailyUsage(userId);
+      
+      if (!success) {
+        toast({ 
+          title: 'Limit Reached', 
+          description: 'Daily pairing limit reached',
+          variant: 'destructive' 
+        });
+        return;
+      }
+      
+      // Update limits after incrementing
+      const newLimits = PairingLimitService.canMakePairingRequest(userId, entitlements?.plan.id || 'free');
+      setPairingLimits(newLimits);
+      
+      setIsLoading(true);
+      try {
+        await loadMatches(userId, newRadius);
+        toast({ 
+          title: 'Filter Updated', 
+          description: `Now showing profiles within ${newRadius} km (${newLimits.remainingRequests} requests remaining)`,
+          duration: 3000
+        });
+      } catch (error) {
+        toast({ title: 'Error', description: 'Failed to update filter', variant: 'destructive' });
+      }
     }
   };
 
@@ -948,12 +1004,65 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
 
           {/* Premium Match Cards - Responsive Grid */}
           {!isLoading && matches.length > 0 && (hasLoadedProfiles || shouldShowExistingProfiles) && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-[3vh]"
-            >
-              {matches.map((match, index) => (
+            <>
+              {/* Radius Filter Control */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-card rounded-2xl p-6 shadow-elegant border border-border"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-lg">
+                      <SlidersHorizontal className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold">Distance Filter</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {pairingLimits.canRequest 
+                          ? `Showing profiles within ${radiusKm} km` 
+                          : 'Daily limit reached - Upgrade for more'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-primary">{radiusKm} km</p>
+                    <p className="text-xs text-muted-foreground">
+                      {matches.filter(m => !m.distance_km || m.distance_km <= radiusKm).length} matches
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Slider
+                    value={[radiusKm]}
+                    onValueChange={(value) => setRadiusKm(value[0])}
+                    onValueCommit={(value) => handleRadiusChange(value[0])}
+                    min={0}
+                    max={50}
+                    step={1}
+                    className="w-full"
+                    disabled={isLoading || !pairingLimits.canRequest}
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>0 km</span>
+                    <span>25 km</span>
+                    <span>50 km</span>
+                  </div>
+                  {!pairingLimits.canRequest && (
+                    <div className="text-xs text-amber-600 dark:text-amber-400 font-semibold text-center pt-2">
+                      🔒 Upgrade to Premium for unlimited distance filtering
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-[3vh]"
+              >
+                {matches.map((match, index) => (
                 <motion.div
                   key={match.user_id}
                   initial={{ y: 20, opacity: 0 }}
@@ -1127,8 +1236,9 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
                     </div>
                   </div>
                 </motion.div>
-              ))}
-            </motion.div>
+                ))}
+              </motion.div>
+            </>
           )}
 
           {/* Empty Results State */}
@@ -1161,16 +1271,13 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
 
         {/* Profile Modal */}
         {selectedProfile && (
-          <DetailedProfileModal
+          <CompatibilityModal
             profile={{
               user_id: selectedProfile.user_id,
               first_name: selectedProfile.first_name,
-              last_name: selectedProfile.last_name,
-              university: selectedProfile.university,
-              profile_images: selectedProfile.profile_images,
-              bio: selectedProfile.bio,
               age: selectedProfile.age,
-              can_chat: selectedProfile.compatibility_score ? selectedProfile.compatibility_score > 80 : false,
+              gender: selectedProfile.gender,
+              profile_images: selectedProfile.profile_images,
               compatibility_score: selectedProfile.compatibility_score,
               physical_score: selectedProfile.physical_score,
               mental_score: selectedProfile.mental_score,
@@ -1178,27 +1285,14 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
               matched_criteria: selectedProfile.matched_criteria,
               not_matched_criteria: selectedProfile.not_matched_criteria,
               interests: selectedProfile.interests,
-              face_type: selectedProfile.face_type,
-              personality_type: selectedProfile.personality_type,
-              personality_traits: selectedProfile.personality_traits,
-              body_type: selectedProfile.body_type,
-              skin_tone: selectedProfile.skin_tone,
               values: selectedProfile.values,
-              mindset: selectedProfile.mindset,
-              relationship_goals: selectedProfile.relationship_goals,
-              height: selectedProfile.height,
-              location: selectedProfile.location,
-              lifestyle: selectedProfile.lifestyle,
-              love_language: selectedProfile.love_language,
-              field_of_study: selectedProfile.field_of_study,
-              profession: selectedProfile.profession,
-              education_level: selectedProfile.education_level
+              personality_type: selectedProfile.personality_type,
+              lifestyle: selectedProfile.lifestyle
             }}
             isOpen={!!selectedProfile}
             onClose={() => setSelectedProfile(null)}
-            onChatRequest={(userId, canChat) => {
-              const m = matches.find(m => m.user_id === userId) || selectedProfile;
-              if (m) handleChatClick(m);
+            onRequestChat={() => {
+              handleChatClick(selectedProfile);
             }}
           />
         )}

@@ -198,23 +198,23 @@ const SwipeUpDetailCard: React.FC<SwipeUpDetailCardProps> = ({
         <div className="h-1/5 bg-white px-6 py-4 flex flex-col justify-center">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">
                 {profile.first_name}, {profile.age}
               </h2>
               <div className="text-right">
-                <div className="text-lg font-bold text-pink-600">3333</div>
-                <div className="text-xs text-gray-500">QCS</div>
+                <div className="text-xl font-extrabold text-pink-600">3333</div>
+                <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">QCS</div>
               </div>
             </div>
             
             <div className="flex items-center space-x-2 text-gray-600">
-              <MapPin className="w-4 h-4" />
-              <span className="text-sm">{profile.university}</span>
+              <MapPin className="w-5 h-5 text-primary" />
+              <span className="text-base font-medium">{profile.university}</span>
             </div>
             
             {profile.interests.length > 0 && (
               <div className="flex items-center space-x-2">
-                <Badge className="bg-pink-100 text-pink-700 px-2 py-1 rounded-full text-xs">
+                <Badge className="bg-pink-100 text-pink-700 px-3 py-1.5 rounded-full text-sm font-semibold">
                   {profile.interests[0]}
                 </Badge>
               </div>
@@ -259,37 +259,37 @@ const SwipeUpDetailCard: React.FC<SwipeUpDetailCardProps> = ({
         <div className="px-6 pb-6 text-white overflow-y-auto max-h-80">
           {/* About Section */}
           <div className="mb-6">
-            <h3 className="text-xl font-semibold mb-3 text-gradient-primary">About</h3>
-            <p className="text-white/80 text-sm leading-relaxed">
+            <h3 className="text-2xl font-bold mb-4 text-white">About</h3>
+            <p className="text-white/90 text-base leading-relaxed font-normal">
               {profile.bio || "Hi! When a user passes on a match, the conversation would close for both users and neither can message anymore 😊"}
             </p>
-            <p className="text-white/80 text-sm leading-relaxed mt-2">
+            <p className="text-white/90 text-base leading-relaxed font-normal mt-3">
               Finally hereafter losing all the hopes of finding the right all. I love Netflix, horses and books!
             </p>
           </div>
 
           {/* More Info Section */}
           <div className="mb-6">
-            <h3 className="text-xl font-semibold mb-3">More info</h3>
-            <div className="grid grid-cols-2 gap-2">
-              <Badge className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600 flex items-center space-x-2 px-3 py-2">
-                <User className="w-4 h-4" />
+            <h3 className="text-2xl font-bold mb-4 text-white">More Info</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <Badge className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600 flex items-center space-x-2 px-4 py-3 text-base font-medium">
+                <User className="w-5 h-5" />
                 <span>{profile.gender === 'female' ? 'Women' : 'Men'}</span>
               </Badge>
-              <Badge className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600 flex items-center space-x-2 px-3 py-2">
-                <GraduationCap className="w-4 h-4" />
+              <Badge className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600 flex items-center space-x-2 px-4 py-3 text-base font-medium">
+                <GraduationCap className="w-5 h-5" />
                 <span>{profile.major || 'Student'}</span>
               </Badge>
-              <Badge className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600 flex items-center space-x-2 px-3 py-2">
-                <span>🎭</span>
+              <Badge className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600 flex items-center space-x-2 px-4 py-3 text-base font-medium">
+                <span className="text-lg">🎭</span>
                 <span>{profile.personality_type || 'Creative'}</span>
               </Badge>
-              <Badge className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600 flex items-center space-x-2 px-3 py-2">
-                <span>❤️</span>
+              <Badge className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600 flex items-center space-x-2 px-4 py-3 text-base font-medium">
+                <span className="text-lg">❤️</span>
                 <span>I like it!</span>
               </Badge>
               {profile.interests.slice(0, 2).map((interest, index) => (
-                <Badge key={index} className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600 px-3 py-2">
+                <Badge key={index} className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600 px-4 py-3 text-base font-medium">
                   {interest}
                 </Badge>
               ))}
@@ -298,10 +298,10 @@ const SwipeUpDetailCard: React.FC<SwipeUpDetailCardProps> = ({
 
           {/* Archive Section */}
           <div className="mb-6">
-            <h3 className="text-xl font-semibold mb-3">Archive</h3>
-            <div className="grid grid-cols-2 gap-2">
+            <h3 className="text-2xl font-bold mb-4 text-white">Photos</h3>
+            <div className="grid grid-cols-2 gap-3">
               {profile.profile_images.slice(1, 3).map((image, index) => (
-                <div key={index} className="aspect-square rounded-lg overflow-hidden">
+                <div key={index} className="aspect-square rounded-lg overflow-hidden shadow-md">
                   <img 
                     src={image} 
                     alt={`Archive ${index + 1}`}
