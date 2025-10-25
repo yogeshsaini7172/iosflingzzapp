@@ -18,8 +18,7 @@ import {
   Plus,
   Settings,
   Filter,
-  Search,
-  LogOut
+  Search
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,8 +26,6 @@ import { supabase } from '@/integrations/supabase/client';
 // Import management components
 import CampaignManager from './CampaignManager';
 import ConsultingManager from './ConsultingManager';
-import UpdatesManager from './UpdatesManager';
-import NewsManager from './NewsManager';
 
 interface DashboardMetrics {
   totalCampaigns: number;
@@ -47,7 +44,7 @@ interface ActivityItem {
   id: string;
 }
 
-type DashboardTab = 'overview' | 'campaigns' | 'updates' | 'news' | 'consulting';
+type DashboardTab = 'overview' | 'campaigns' | 'consulting';
 
 const CommunityDashboard = () => {
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
@@ -56,21 +53,6 @@ const CommunityDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
-
-  // Check if this is admin1712 portal
-  const isAdmin1712Portal = typeof window !== 'undefined' && window.location.pathname.includes('admin1712');
-
-  // Logout handler for admin1712 portal
-  const handleLogout = () => {
-    localStorage.removeItem('admin_session');
-    sessionStorage.removeItem('admin_authenticated');
-    toast({
-      title: "Logged Out",
-      description: "You have been successfully logged out"
-    });
-    // Reload page to show login screen
-    window.location.reload();
-  };
 
   // Fetch dashboard metrics
   const fetchMetrics = async () => {
@@ -204,18 +186,6 @@ const CommunityDashboard = () => {
       label: 'Campaigns', 
       icon: Megaphone,
       description: 'Manage marketing campaigns'
-    },
-    { 
-      id: 'updates' as DashboardTab, 
-      label: 'Updates', 
-      icon: Bell,
-      description: 'App updates and announcements'
-    },
-    { 
-      id: 'news' as DashboardTab, 
-      label: 'News', 
-      icon: Newspaper,
-      description: 'News articles and press releases'
     },
     { 
       id: 'consulting' as DashboardTab, 
@@ -393,27 +363,32 @@ const CommunityDashboard = () => {
 
   return (
     <div className="p-6 h-full">
-      {/* Header */}
-      <div className="mb-6 flex justify-between items-start">
-        <div>
-          <h1 className="text-2xl font-bold mb-2">Community Management Dashboard</h1>
-          <p className="text-sm text-muted-foreground">
-            Manage campaigns, updates, news, and user consulting requests
-          </p>
+      {/* ============================================================
+        * TEMPORARY DEV MODE BANNER
+        * TODO: Remove this banner when admin role system is implemented
+        * See: TEMP_COMMUNITY_ACCESS.md for details
+        * ============================================================ */}
+      <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-950/20 border-2 border-yellow-400 dark:border-yellow-600 rounded-lg">
+        <div className="flex items-start gap-3">
+          <Settings className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+          <div className="flex-1">
+            <h3 className="font-semibold text-yellow-800 dark:text-yellow-200 mb-1">
+              🚧 Development Mode - Temporary Access
+            </h3>
+            <p className="text-sm text-yellow-700 dark:text-yellow-300">
+              Admin controls are under development. Currently, all authenticated users can access this dashboard. 
+              Proper role-based access control will be implemented soon.
+            </p>
+          </div>
         </div>
-        
-        {/* Logout button for admin1712 portal */}
-        {isAdmin1712Portal && (
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={handleLogout}
-            className="flex items-center gap-2"
-          >
-            <LogOut className="w-4 h-4" />
-            Logout
-          </Button>
-        )}
+      </div>
+
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold mb-2">Community Management Dashboard</h1>
+        <p className="text-sm text-muted-foreground">
+          Manage campaigns, updates, news, and user consulting requests
+        </p>
       </div>
 
       {/* Navigation Tabs */}
@@ -450,22 +425,6 @@ const CommunityDashboard = () => {
           <div>
             <Suspense fallback={<div className="flex items-center justify-center h-64"><Loader size={32} /></div>}>
               <CampaignManager />
-            </Suspense>
-          </div>
-        )}
-
-        {activeTab === 'updates' && (
-          <div>
-            <Suspense fallback={<div className="flex items-center justify-center h-64"><Loader size={32} /></div>}>
-              <UpdatesManager />
-            </Suspense>
-          </div>
-        )}
-
-        {activeTab === 'news' && (
-          <div>
-            <Suspense fallback={<div className="flex items-center justify-center h-64"><Loader size={32} /></div>}>
-              <NewsManager />
             </Suspense>
           </div>
         )}
