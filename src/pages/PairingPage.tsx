@@ -519,15 +519,42 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
   const handleRadiusChange = async (newRadius: number) => {
     setRadiusKm(newRadius);
     
+    // Check if user has remaining pairing requests before loading new matches
+    if (!pairingLimits.canRequest) {
+      toast({ 
+        title: 'Daily Limit Reached', 
+        description: `You've used all ${pairingLimits.dailyLimit} pairing requests today. Upgrade to Premium for unlimited requests!`,
+        variant: 'destructive',
+        duration: 4000
+      });
+      return;
+    }
+    
     // Debounce to avoid too many requests
     if (hasLoadedProfiles && userId) {
+      // Increment usage counter for radius filter change
+      const success = PairingLimitService.incrementDailyUsage(userId);
+      
+      if (!success) {
+        toast({ 
+          title: 'Limit Reached', 
+          description: 'Daily pairing limit reached',
+          variant: 'destructive' 
+        });
+        return;
+      }
+      
+      // Update limits after incrementing
+      const newLimits = PairingLimitService.canMakePairingRequest(userId, entitlements?.plan.id || 'free');
+      setPairingLimits(newLimits);
+      
       setIsLoading(true);
       try {
         await loadMatches(userId, newRadius);
         toast({ 
           title: 'Filter Updated', 
-          description: `Now showing profiles within ${newRadius} km`,
-          duration: 2000
+          description: `Now showing profiles within ${newRadius} km (${newLimits.remainingRequests} requests remaining)`,
+          duration: 3000
         });
       } catch (error) {
         toast({ title: 'Error', description: 'Failed to update filter', variant: 'destructive' });
@@ -991,7 +1018,11 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
                     </div>
                     <div>
                       <h3 className="text-lg font-bold">Distance Filter</h3>
-                      <p className="text-sm text-muted-foreground">Showing profiles within {radiusKm} km</p>
+                      <p className="text-sm text-muted-foreground">
+                        {pairingLimits.canRequest 
+                          ? `Showing profiles within ${radiusKm} km` 
+                          : 'Daily limit reached - Upgrade for more'}
+                      </p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -1011,13 +1042,18 @@ const PairingPage = ({ onNavigate }: { onNavigate: (view: string) => void }) => 
                     max={50}
                     step={1}
                     className="w-full"
-                    disabled={isLoading}
+                    disabled={isLoading || !pairingLimits.canRequest}
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>0 km</span>
                     <span>25 km</span>
                     <span>50 km</span>
                   </div>
+                  {!pairingLimits.canRequest && (
+                    <div className="text-xs text-amber-600 dark:text-amber-400 font-semibold text-center pt-2">
+                      🔒 Upgrade to Premium for unlimited distance filtering
+                    </div>
+                  )}
                 </div>
               </motion.div>
 
