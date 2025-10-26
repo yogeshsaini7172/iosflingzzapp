@@ -10,9 +10,11 @@ interface ProfileData {
   bodyType?: string;
   skinTone?: string;
   faceType?: string;
-  personalityType?: string;
-  values?: string;
-  mindset?: string;
+  drinkingHabits?: string;
+  smokingHabits?: string;
+  personalityType?: string[];
+  values?: string[];
+  mindset?: string[];
   loveLanguage?: string;
   lifestyle?: string;
   relationshipGoals?: string[];
@@ -31,7 +33,11 @@ const WhatYouAreStep = ({ data, onChange }: WhatYouAreStepProps) => {
   const updateField = <K extends keyof ProfileData>(field: K, value: ProfileData[K]) => {
     onChange((prev: ProfileData) => ({ ...prev, [field]: value }));
   };
-
+const mindsetOptions = [
+  "Growth Mindset", "Positive Thinking", "Pragmatic", "Optimistic", 
+  "Realistic", "Ambitious", "Balanced", "Mindful", "Flexible", 
+  "Open-minded", "Passionate", "Spiritual"
+];
   const personalityTypes = [
     "Adventurous", "Analytical", "Creative", "Outgoing", "Introverted", 
     "Empathetic", "Ambitious", "Laid-back", "Intellectual", "Spontaneous"
@@ -54,17 +60,56 @@ const WhatYouAreStep = ({ data, onChange }: WhatYouAreStepProps) => {
     "Writing", "Volunteering", "Fashion", "Food", "History", "Science", "Politics"
   ];
 
-  const toggleArrayItem = (field: 'relationshipGoals' | 'interests', item: string, maxItems: number = 10) => {
-    const currentArray = data[field] || [];
-    const newArray = currentArray.includes(item)
-      ? currentArray.filter((i: string) => i !== item)
-      : currentArray.length < maxItems
-      ? [...currentArray, item]
-      : currentArray;
-    
-    updateField(field, newArray);
-  };
+// handle multi-select toggle
+const toggleArrayItem = (field: 'personalityType' | 'values' | 'mindset' | 'relationshipGoals' | 'interests', item: string, maxItems: number = 10) => {
+  const currentArray = data[field] || [];
+  const newArray = currentArray.includes(item)
+    ? currentArray.filter((i: string) => i !== item)
+    : currentArray.length < maxItems
+    ? [...currentArray, item]
+    : currentArray;
+  
+  updateField(field, newArray);
+};
 
+// render tag-based multi-select
+const renderMultiSelectTags = (
+  field: 'personalityType' | 'values' | 'mindset',
+  options: string[],
+  maxItems: number,
+  label: string
+) => {
+  const currentArray = data[field] || [];
+  
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <Label className="text-base font-medium">{label}</Label>
+        <span className="text-sm text-muted-foreground">
+          {currentArray.length}/{maxItems}
+        </span>
+      </div>
+      <div className="flex flex-wrap gap-3">
+        {options.map((option) => {
+          const isSelected = currentArray.includes(option);
+          return (
+            <Button
+              key={option}
+              variant={isSelected ? "default" : "outline"}
+              size="sm"
+              onClick={() => toggleArrayItem(field, option, maxItems)}
+              className="rounded-2xl text-sm h-12 px-4 min-w-0 transition-colors"
+              disabled={!isSelected && (currentArray.length >= maxItems)}
+            >
+              {option}
+              {isSelected && <X className="w-3 h-3 ml-2" />}
+            </Button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="text-center mb-8">
@@ -163,6 +208,7 @@ const WhatYouAreStep = ({ data, onChange }: WhatYouAreStepProps) => {
         </div>
       </div>
 
+      {/* Appearance */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div className="space-y-3">
           <Label className="text-base font-medium">Skin Tone</Label>
@@ -171,83 +217,94 @@ const WhatYouAreStep = ({ data, onChange }: WhatYouAreStepProps) => {
               <SelectValue placeholder="Select skin tone" />
             </SelectTrigger>
             <SelectContent className="rounded-2xl">
-              <SelectItem value="very_fair">Very Fair</SelectItem>
+              <SelectItem value="porcelain">Porcelain</SelectItem>
               <SelectItem value="fair">Fair</SelectItem>
+              <SelectItem value="light">Light</SelectItem>
+              <SelectItem value="light_medium">Light Medium</SelectItem>
               <SelectItem value="medium">Medium</SelectItem>
+              <SelectItem value="tan">Tan</SelectItem>
               <SelectItem value="olive">Olive</SelectItem>
               <SelectItem value="brown">Brown</SelectItem>
-              <SelectItem value="dark">Dark</SelectItem>
+              <SelectItem value="dark_brown">Dark Brown</SelectItem>
+              <SelectItem value="deep">Deep</SelectItem>
+              <SelectItem value="ebony">Ebony</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-3">
-          <Label className="text-base font-medium">Face Type</Label>
+          <Label className="text-base font-medium">Face Shape</Label>
           <Select value={data.faceType} onValueChange={(value) => updateField('faceType', value)}>
             <SelectTrigger className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors">
-              <SelectValue placeholder="Select face type" />
+              <SelectValue placeholder="Select face shape" />
             </SelectTrigger>
             <SelectContent className="rounded-2xl">
-              <SelectItem value="round">Round</SelectItem>
               <SelectItem value="oval">Oval</SelectItem>
+              <SelectItem value="round">Round</SelectItem>
               <SelectItem value="square">Square</SelectItem>
-              <SelectItem value="heart_shaped">Heart-shaped</SelectItem>
+              <SelectItem value="rectangle">Rectangle</SelectItem>
+              <SelectItem value="heart">Heart</SelectItem>
               <SelectItem value="diamond">Diamond</SelectItem>
-              <SelectItem value="long">Long</SelectItem>
+              <SelectItem value="triangle">Triangle</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Habits */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="space-y-3">
+          <Label className="text-base font-medium">Drinking Habits</Label>
+          <Select value={data.drinkingHabits} onValueChange={(value) => updateField('drinkingHabits', value)}>
+            <SelectTrigger className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors">
+              <SelectValue placeholder="Do you drink?" />
+            </SelectTrigger>
+            <SelectContent className="rounded-2xl z-50 bg-background">
+              <SelectItem value="never">Never</SelectItem>
+              <SelectItem value="socially">Socially</SelectItem>
+              <SelectItem value="regularly">Regularly</SelectItem>
+              <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-3">
+          <Label className="text-base font-medium">Smoking Habits</Label>
+          <Select value={data.smokingHabits} onValueChange={(value) => updateField('smokingHabits', value)}>
+            <SelectTrigger className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors">
+              <SelectValue placeholder="Do you smoke?" />
+            </SelectTrigger>
+            <SelectContent className="rounded-2xl z-50 bg-background">
+              <SelectItem value="never">Never</SelectItem>
+              <SelectItem value="socially">Socially</SelectItem>
+              <SelectItem value="regularly">Regularly</SelectItem>
               <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
-      {/* Personality - Full Width on Mobile */}
-      <div className="space-y-3">
-        <Label className="text-base font-medium">Personality Type</Label>
-        <Select value={data.personalityType} onValueChange={(value) => updateField('personalityType', value)}>
-          <SelectTrigger className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors">
-            <SelectValue placeholder="Select personality type" />
-          </SelectTrigger>
-          <SelectContent className="rounded-2xl">
-            {personalityTypes.map((type) => (
-              <SelectItem key={type} value={type.toLowerCase().replace(' ', '_')}>
-                {type}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {/* personality multi-select */}
+      {renderMultiSelectTags(
+        'personalityType',
+        personalityTypes,
+        5,
+        'Personality Type (select up to 5)'
+      )}
 
-      <div className="space-y-3">
-        <Label className="text-base font-medium">Values</Label>
-        <Select value={data.values} onValueChange={(value) => updateField('values', value)}>
-          <SelectTrigger className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors">
-            <SelectValue placeholder="Select your values" />
-          </SelectTrigger>
-          <SelectContent className="rounded-2xl">
-            {valueOptions.map((value) => (
-              <SelectItem key={value} value={value.toLowerCase().replace(' ', '_').replace('-', '_')}>
-                {value}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {/* values multi-select */}
+      {renderMultiSelectTags(
+        'values',
+        valueOptions,
+        5,
+        'Values (select up to 5)'
+      )}
 
-      <div className="space-y-3">
-        <Label className="text-base font-medium">Mindset</Label>
-        <Select value={data.mindset} onValueChange={(value) => updateField('mindset', value)}>
-          <SelectTrigger className="rounded-2xl h-14 text-base px-4 bg-background/50 border-2 border-border/50 focus:border-primary transition-colors">
-            <SelectValue placeholder="Select your mindset" />
-          </SelectTrigger>
-          <SelectContent className="rounded-2xl">
-            <SelectItem value="growth">Growth Mindset</SelectItem>
-            <SelectItem value="positive">Positive Thinking</SelectItem>
-            <SelectItem value="pragmatic">Pragmatic</SelectItem>
-            <SelectItem value="optimistic">Optimistic</SelectItem>
-            <SelectItem value="realistic">Realistic</SelectItem>
-            <SelectItem value="ambitious">Ambitious</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      {/* mindset multi-select */}
+      {renderMultiSelectTags(
+        'mindset',
+        mindsetOptions,
+        3,
+        'Mindset (select up to 3)'
+      )}
 
       {/* Love Language */}
       <div className="space-y-3">

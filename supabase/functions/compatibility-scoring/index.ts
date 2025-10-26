@@ -13,11 +13,20 @@ interface CompatibilityRequest {
 
 interface UserProfile {
   id: string;
-  qualities: any;
-  requirements: any;
+  qualities: {
+    physical?: Record<string, any>;
+    mental?: Record<string, any>;
+  };
+  requirements: {
+    physical?: Record<string, any> | any[];
+    mental?: Record<string, any> | any[];
+  };
   age?: number;
   interests?: string[];
   relationship_goals?: string[];
+  personality_traits?: string[];
+  values_array?: string[];
+  mindset_array?: string[];
 }
 
 const PHYSICAL_WEIGHTS = {
@@ -33,118 +42,156 @@ const MENTAL_WEIGHTS = {
   interests: 0.3,
 };
 
-function matchScore(req: any, qual: any): number {
-  if (req === null || req === undefined) {
-    return 1.0; // no requirement = always okay
-  }
+// Optimized: Memoized match scoring function
+const matchScoreCache = new Map<string, number>();
 
+function getCacheKey(req: any, qual: any): string {
+  return `${JSON.stringify(req)}_${JSON.stringify(qual)}`;
+}
+
+function matchScore(req: any, qual: any): number {
+  // Check cache first
+  const cacheKey = getCacheKey(req, qual);
+  if (matchScoreCache.has(cacheKey)) {
+    return matchScoreCache.get(cacheKey)!;
+  }
+  
+  let score: number;
+  // No requirement = always acceptable
+  if (req === null || req === undefined) {
+    score = 1.0;
+  }
   // List requirement
-  if (Array.isArray(req)) {
-    // Check if "Any" or "All" is in the requirement list - if so, accept everything
+  else if (Array.isArray(req)) {
+    // Check if "Any" or "All" is in the requirement list
     const hasAllOrAny = req.some(r => {
       const normalized = typeof r === 'string' ? r.toLowerCase().trim() : '';
       return normalized === 'any' || normalized === 'all';
     });
     
     if (hasAllOrAny) {
-      return 1.0; // "Any"/"All" means no filter - perfect match
+      score = 1.0; // "Any"/"All" means no filter
+    } else if (!qual) {
+      score = 0.0;
+    } else if (Array.isArray(qual)) {
+      score = req.some(r => qual.includes(r)) ? 1.0 : 0.0;
+    } else {
+      score = req.includes(qual) ? 1.0 : 0.0;
     }
-    
-    if (!qual) return 0.0;
-    if (Array.isArray(qual)) {
-      return req.some(r => qual.includes(r)) ? 1.0 : 0.0;
-    }
-    return req.includes(qual) ? 1.0 : 0.0;
   }
-
   // Numeric range
-  if (typeof req === 'object' && req.min !== undefined && req.max !== undefined) {
-    if (qual === null || qual === undefined) return 0.0;
-    if (typeof qual === 'number' && qual >= req.min && qual <= req.max) {
-      return 1.0;
+  else if (typeof req === 'object' && req.min !== undefined && req.max !== undefined) {
+    if (qual === null || qual === undefined) {
+      score = 0.0;
+    } else if (typeof qual === 'number' && qual >= req.min && qual <= req.max) {
+      score = 1.0;
+    } else {
+      score = 0.0;
     }
-    return 0.0;
   }
-
   // Equality
-  return qual === req ? 1.0 : 0.0;
+  else {
+    score = qual === req ? 1.0 : 0.0;
+  }
+  
+  // Cache the result
+  matchScoreCache.set(cacheKey, score);
+  return score;
 }
 
+// Optimized: Physical compatibility scoring
 function calculatePhysicalScore(userA: UserProfile, userB: UserProfile): number {
   const reqs = userA.requirements?.physical || {};
   const quals = userB.qualities?.physical || {};
 
-  // Legacy list style
+  // Legacy array format
   if (Array.isArray(reqs)) {
-    const haveValues: any[] = [];
-    Object.values(quals).forEach(v => {
-      if (Array.isArray(v)) {
-        haveValues.push(...v);
+    if (reqs.length === 0) return 1.0;
+    
+    const qualValues = new Set<any>();
+    for (const val of Object.values(quals)) {
+      if (Array.isArray(val)) {
+        val.forEach(v => qualValues.add(v));
       } else {
-        haveValues.push(v);
+        qualValues.add(val);
       }
-    });
-    const matched = reqs.filter(r => haveValues.includes(r)).length;
-    return reqs.length > 0 ? matched / reqs.length : 0.0;
+    }
+    
+    const matched = reqs.filter(r => qualValues.has(r)).length;
+    return matched / reqs.length;
   }
 
-  // Dict style (weighted)
+  // Object format (weighted) - User A's requirements vs User B's qualities
+  if (typeof reqs !== 'object') return 0.0;
+  
   let score = 0.0;
-  Object.entries(PHYSICAL_WEIGHTS).forEach(([trait, weight]) => {
-    const req = typeof reqs === 'object' ? reqs[trait] : null;
+  for (const [trait, weight] of Object.entries(PHYSICAL_WEIGHTS)) {
+    const req = reqs[trait];
     const qual = quals[trait];
     score += matchScore(req, qual) * weight;
-  });
+  }
   return score;
 }
 
+// Optimized: Mental compatibility scoring  
 function calculateMentalScore(userA: UserProfile, userB: UserProfile): number {
   const reqs = userA.requirements?.mental || {};
   const quals = userB.qualities?.mental || {};
 
-  // Legacy list style
+  // Legacy array format
   if (Array.isArray(reqs)) {
-    const haveValues: any[] = [];
-    Object.values(quals).forEach(v => {
-      if (Array.isArray(v)) {
-        haveValues.push(...v);
+    if (reqs.length === 0) return 1.0;
+    
+    const qualValues = new Set<any>();
+    for (const val of Object.values(quals)) {
+      if (Array.isArray(val)) {
+        val.forEach(v => qualValues.add(v));
       } else {
-        haveValues.push(v);
+        qualValues.add(val);
       }
-    });
-    const matched = reqs.filter(r => haveValues.includes(r)).length;
-    return reqs.length > 0 ? matched / reqs.length : 0.0;
+    }
+    
+    const matched = reqs.filter(r => qualValues.has(r)).length;
+    return matched / reqs.length;
   }
 
-  // Dict style (weighted)
+  // Object format (weighted) - User A's requirements vs User B's qualities
+  if (typeof reqs !== 'object') return 0.0;
+  
   let score = 0.0;
-  Object.entries(MENTAL_WEIGHTS).forEach(([trait, weight]) => {
-    const req = typeof reqs === 'object' ? reqs[trait] : null;
+  for (const [trait, weight] of Object.entries(MENTAL_WEIGHTS)) {
+    const req = reqs[trait];
     const qual = quals[trait];
     score += matchScore(req, qual) * weight;
-  });
+  }
   return score;
 }
 
+// Optimized: Bidirectional compatibility calculation
+// User A's requirements match User B's qualities AND vice versa
 function compatibilityScore(userA: UserProfile, userB: UserProfile) {
-  const physicalA = calculatePhysicalScore(userA, userB);
-  const mentalA = calculateMentalScore(userA, userB);
+  // Calculate how well B matches A's requirements
+  const physicalA = calculatePhysicalScore(userA, userB); // A's reqs vs B's quals
+  const mentalA = calculateMentalScore(userA, userB);     // A's reqs vs B's quals
 
-  const physicalB = calculatePhysicalScore(userB, userA);
-  const mentalB = calculateMentalScore(userB, userA);
+  // Calculate how well A matches B's requirements  
+  const physicalB = calculatePhysicalScore(userB, userA); // B's reqs vs A's quals
+  const mentalB = calculateMentalScore(userB, userA);     // B's reqs vs A's quals
 
+  // Combined scores (50% physical, 50% mental for each direction)
   const scoreA = 0.5 * physicalA + 0.5 * mentalA;
   const scoreB = 0.5 * physicalB + 0.5 * mentalB;
 
+  // Final bidirectional score (average of both directions)
   const finalScore = Math.round(((scoreA + scoreB) / 2) * 100 * 100) / 100;
 
-  console.log(`Compatibility score | userA=${userA.id} userB=${userB.id} score=${finalScore}`);
+  console.log(`✅ Compatibility | A=${userA.id} B=${userB.id} | Final=${finalScore} | A→B=${Math.round(scoreA*100)} B→A=${Math.round(scoreB*100)}`);
 
   return {
     score: finalScore,
     breakdown: {
-      user_a_view: { physical: physicalA, mental: mentalA },
-      user_b_view: { physical: physicalB, mental: mentalB },
+      user_a_view: { physical: Math.round(physicalA * 100), mental: Math.round(mentalA * 100) },
+      user_b_view: { physical: Math.round(physicalB * 100), mental: Math.round(mentalB * 100) },
     }
   };
 }
@@ -168,6 +215,27 @@ serve(async (req) => {
     if (!user) throw new Error('User not authenticated');
 
     const { user1_id, user2_id }: CompatibilityRequest = await req.json();
+
+    // Optimized: Check cache first
+    const { data: cachedScore } = await supabaseClient
+      .from('compatibility_scores')
+      .select('compatibility_score, calculated_at')
+      .or(`and(user1_id.eq.${user1_id},user2_id.eq.${user2_id}),and(user1_id.eq.${user2_id},user2_id.eq.${user1_id})`)
+      .single();
+    
+    // Return cached score if recent (< 24 hours old)
+    if (cachedScore && new Date(cachedScore.calculated_at).getTime() > Date.now() - 86400000) {
+      return new Response(JSON.stringify({
+        success: true,
+        data: {
+          score: cachedScore.compatibility_score,
+          cached: true
+        }
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      });
+    }
 
     // Fetch both user profiles
     const { data: users, error } = await supabaseClient

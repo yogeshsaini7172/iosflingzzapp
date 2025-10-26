@@ -9,7 +9,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-firebase-token',
 };
 
 // Verify Firebase ID token
@@ -81,31 +81,32 @@ serve(async (req: Request) => {
       { auth: { persistSession: false } }
     );
 
-    // Verify Firebase token
-    const authHeader = req.headers.get('authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return new Response(
-        JSON.stringify({ error: 'No valid authorization header' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+    // Verify Firebase token (prefer X-Firebase-Token header, fallback to Authorization)
+    const xFirebaseToken = req.headers.get('x-firebase-token') || req.headers.get('X-Firebase-Token');
+    let idToken = xFirebaseToken && xFirebaseToken.trim();
+
+    if (!idToken) {
+      const authHeader = req.headers.get('authorization');
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        idToken = authHeader.replace('Bearer ', '').trim();
+      }
     }
 
-    const idToken = authHeader.replace('Bearer ', '').trim()
     if (!idToken) {
       return new Response(
         JSON.stringify({ error: 'No token provided' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      );
     }
 
-    let firebaseUid
+    let firebaseUid;
     try {
-      firebaseUid = await verifyFirebaseToken(idToken)
+      firebaseUid = await verifyFirebaseToken(idToken);
     } catch (error) {
       return new Response(
         JSON.stringify({ error: 'Invalid token' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      );
     }
 
     const { action, profile: profileData, preferences: preferencesData, filters, limit }: DataRequest = await req.json();
@@ -535,6 +536,8 @@ serve(async (req: Request) => {
           preferred_professions: preferencesData.preferred_professions ?? [],
           preferred_interests: preferencesData.preferred_interests ?? [],
           preferred_communication_style: preferencesData.preferred_communication_style ?? [],
+          preferred_drinking: preferencesData.preferred_drinking ?? [],
+          preferred_smoking: preferencesData.preferred_smoking ?? [],
           min_shared_interests: preferencesData.min_shared_interests ?? 2,
           personality_compatibility: preferencesData.personality_compatibility ?? 'moderate',
           lifestyle_compatibility: preferencesData.lifestyle_compatibility ?? 'important',

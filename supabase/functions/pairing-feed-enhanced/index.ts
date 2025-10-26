@@ -24,6 +24,19 @@ const logStep = (step: string, details?: any) => {
   console.log(`[PAIRING-FEED-ENHANCED] ${step}${detailsStr}`);
 };
 
+// Haversine formula to calculate distance between two coordinates (in km)
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Earth's radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
 function calculateAge(dateOfBirth: string): number {
   const today = new Date();
   const birthDate = new Date(dateOfBirth);
@@ -77,7 +90,14 @@ serve(async (req) => {
     const planId = profile.plan_id || 'free';
     const plan = SUBSCRIPTION_PLANS[planId as keyof typeof SUBSCRIPTION_PLANS] || SUBSCRIPTION_PLANS.free;
     
-    logStep("Profile retrieved", { planId, userId: user.id });
+    // Get user's location preferences
+    const userLat = profile.latitude;
+    const userLon = profile.longitude;
+    const userState = profile.state;
+    const matchRadius = profile.match_radius_km || 50;
+    const matchByState = profile.match_by_state || false;
+    
+    logStep("Profile retrieved", { planId, userId: user.id, matchRadius, matchByState, userState });
 
     // Get user's partner preferences for gender filtering
     const { data: userPreferences } = await supabaseClient
@@ -86,32 +106,33 @@ serve(async (req) => {
       .eq('user_id', user.id)
       .maybeSingle();
 
-    // Get users that have been swiped on
-    const { data: swipedUsers } = await supabaseClient
-      .from('enhanced_swipes')
-      .select('target_user_id')
-      .eq('user_id', user.id);
-
-    const swipedUserIds = swipedUsers?.map(s => s.target_user_id) || [];
+    // Optimized: Get exclusions in parallel with single query using UNION
+    const excludedUserIds = new Set<string>([user.id]);
     
-    // Get blocked/ghosted users
-    const { data: blockedUsers } = await supabaseClient
-      .from('user_interactions')
-      .select('target_user_id')
-      .eq('user_id', user.id)
-      .in('interaction_type', ['block', 'ghost']);
+    // Parallel fetch of exclusions
+    const [swipedResult, blockedResult] = await Promise.all([
+      supabaseClient
+        .from('enhanced_swipes')
+        .select('target_user_id')
+        .eq('user_id', user.id),
+      supabaseClient
+        .from('user_interactions')
+        .select('target_user_id')
+        .eq('user_id', user.id)
+        .in('interaction_type', ['block', 'ghost'])
+    ]);
 
-    const blockedUserIds = blockedUsers?.map(b => b.target_user_id) || [];
+    swipedResult.data?.forEach(s => excludedUserIds.add(s.target_user_id));
+    blockedResult.data?.forEach(b => excludedUserIds.add(b.target_user_id));
     
-    // Combine exclusion list
-    const excludedUserIds = [...swipedUserIds, ...blockedUserIds, user.id];
+    const excludedArray = Array.from(excludedUserIds);
     
     logStep("Exclusions calculated", { 
-      swipedCount: swipedUserIds.length, 
-      blockedCount: blockedUserIds.length 
+      swipedCount: swipedResult.data?.length || 0, 
+      blockedCount: blockedResult.data?.length || 0 
     });
 
-    // Build query for potential matches
+    // Optimized: Build query with better performance
     let query = supabaseClient
       .from('profiles')
       .select(`
@@ -126,11 +147,15 @@ serve(async (req) => {
         relationship_goals,
         total_qcs,
         gender,
-        priority_score
+        priority_score,
+        latitude,
+        longitude,
+        state
       `)
       .eq('is_active', true)
-      .not('user_id', 'in', `(${excludedUserIds.join(',')})`)
+      .not('user_id', 'in', `(${excludedArray.join(',')})`)
       .order('priority_score', { ascending: false })
+      .order('total_qcs', { ascending: false })
       .order('last_active', { ascending: false });
 
     // GENDER FILTERING: Apply user's preferred gender filter
@@ -144,6 +169,12 @@ serve(async (req) => {
       }
     }
 
+    // STATE-BASED FILTERING: If user enabled state-only matching
+    if (matchByState && userState) {
+      logStep("Applying state filter", { state: userState });
+      query = query.eq('state', userState);
+    }
+
     query = query.limit(limit);
 
     const { data: candidates, error: candidatesError } = await query;
@@ -155,12 +186,38 @@ serve(async (req) => {
 
     logStep("Candidates retrieved", { count: candidates?.length || 0 });
 
-    // Format candidates with age calculation
-    const formattedCandidates = (candidates || []).map(candidate => ({
-      ...candidate,
-      age: calculateAge(candidate.date_of_birth),
-      profile_images: candidate.profile_images || []
-    }));
+    // DISTANCE FILTERING: Filter by radius if not using state-based matching and user has location
+    let filteredCandidates = candidates || [];
+    if (!matchByState && userLat && userLon) {
+      filteredCandidates = filteredCandidates.filter(candidate => {
+        if (!candidate.latitude || !candidate.longitude) return false;
+        const distance = calculateDistance(userLat, userLon, candidate.latitude, candidate.longitude);
+        return distance <= matchRadius;
+      });
+      logStep("Distance filter applied", { 
+        before: candidates?.length || 0, 
+        after: filteredCandidates.length,
+        radius: matchRadius 
+      });
+    }
+
+    // Format candidates with age calculation and distance
+    const formattedCandidates = filteredCandidates.map(candidate => {
+      const age = calculateAge(candidate.date_of_birth);
+      let distance = null;
+      
+      // Calculate distance for display
+      if (userLat && userLon && candidate.latitude && candidate.longitude) {
+        distance = Math.round(calculateDistance(userLat, userLon, candidate.latitude, candidate.longitude));
+      }
+
+      return {
+        ...candidate,
+        age,
+        distance,
+        profile_images: candidate.profile_images || []
+      };
+    });
 
     // Calculate unlocked vs locked profiles
     const baseUnlocked = plan.profiles_shown_count;

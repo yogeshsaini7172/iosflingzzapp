@@ -115,13 +115,29 @@ export class PairingLimitService {
    */
   private static getPlanLimits(planId: string) {
     switch (planId) {
+      case 'free':
+        return { daily_pairing_limit: 1 };
+      
       case 'basic_69':
+      case '69_basic':      // Legacy format
+      case 'basic_69_pro':  // Legacy format
+      case '69_pro':        // Legacy format
         return { daily_pairing_limit: 5 };
+      
       case 'standard_129':
+      case '129_pro':       // Legacy format
+      case 'standard_129_pro': // Legacy format
+      case '129_standard':  // Legacy format
         return { daily_pairing_limit: 10 };
+      
       case 'premium_243':
+      case '243_premium':   // Legacy format
+      case 'premium_243_pro': // Legacy format
+      case '243_pro':       // Legacy format
         return { daily_pairing_limit: 20 };
-      default: // free plan
+      
+      default: // fallback to free plan for unknown plans
+        console.warn(`Unknown plan ID: ${planId}, defaulting to free plan limits`);
         return { daily_pairing_limit: 1 };
     }
   }
@@ -129,26 +145,26 @@ export class PairingLimitService {
   /**
    * Get QCS-distributed matches (7 total as specified)
    */
-  static async getQCSDistributedMatches(userId: string): Promise<any[]> {
+  static async getQCSDistributedMatches(userId: string, maxDistanceKm?: number): Promise<any[]> {
     try {
       const matches: any[] = [];
 
       // Get 2 matches from 100-80 QCS range
-      const highQCS = await this.getMatchesByQCSRange(userId, 80, 100, 2);
+      const highQCS = await this.getMatchesByQCSRange(userId, 80, 100, 2, maxDistanceKm);
       matches.push(...highQCS);
 
       // Get 3 matches from 80-60 QCS range  
-      const mediumQCS = await this.getMatchesByQCSRange(userId, 60, 80, 3);
+      const mediumQCS = await this.getMatchesByQCSRange(userId, 60, 80, 3, maxDistanceKm);
       matches.push(...mediumQCS);
 
       // Get 2 matches from 60-40 QCS range
-      const lowQCS = await this.getMatchesByQCSRange(userId, 40, 60, 2);
+      const lowQCS = await this.getMatchesByQCSRange(userId, 40, 60, 2, maxDistanceKm);
       matches.push(...lowQCS);
 
       // Get remaining matches from below 40 QCS (up to 7 total)
       const remainingSlots = 7 - matches.length;
       if (remainingSlots > 0) {
-        const veryLowQCS = await this.getMatchesByQCSRange(userId, 0, 40, remainingSlots);
+        const veryLowQCS = await this.getMatchesByQCSRange(userId, 0, 40, remainingSlots, maxDistanceKm);
         matches.push(...veryLowQCS);
       }
 
@@ -166,49 +182,65 @@ export class PairingLimitService {
     userId: string, 
     minQCS: number, 
     maxQCS: number, 
-    limit: number
+    limit: number,
+    maxDistanceKm?: number
   ): Promise<any[]> {
     try {
-      const { data, error } = await supabase
+      // First try the enhanced_matches table (has compatibility data in separate compatibility_scores table)
+      const { data: matchesData, error: matchesError } = await supabase
         .from('enhanced_matches')
-        .select(`
-          *,
-          user1_profile:profiles!enhanced_matches_user1_id_fkey(
-            id,
-            first_name,
-            last_name,
-            profile_images,
-            bio,
-            university,
-            qcs_score
-          ),
-          user2_profile:profiles!enhanced_matches_user2_id_fkey(
-            id,
-            first_name,
-            last_name,
-            profile_images,
-            bio,
-            university,
-            qcs_score
-          )
-        `)
+        .select('*')
         .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
-        .gte('compatibility_score', minQCS)
-        .lt('compatibility_score', maxQCS)
-        .order('compatibility_score', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(limit);
 
-      if (error) throw error;
+      if (matchesError) {
+        console.warn(`Enhanced matches table query failed:`, matchesError);
+        // Return empty array to fall back to deterministic pairing
+        return [];
+      }
 
-      // Transform the data to get the other user's profile
-      return (data || []).map(match => {
-        const otherProfile = match.user1_id === userId ? match.user2_profile : match.user1_profile;
+      if (!matchesData || matchesData.length === 0) {
+        return [];
+      }
+
+      // Fetch profile data for all matched users
+      const otherUserIds = matchesData.map(match => 
+        match.user1_id === userId ? match.user2_id : match.user1_id
+      ).filter(Boolean);
+
+      if (otherUserIds.length === 0) {
+        return [];
+      }
+
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, first_name, last_name, profile_images, bio, university, total_qcs, date_of_birth, interests')
+        .in('user_id', otherUserIds);
+
+      if (profilesError) {
+        console.warn(`Profiles query failed:`, profilesError);
+        return [];
+      }
+
+      // Map profiles to user IDs for easy lookup
+      const profileMap = new Map(
+        (profiles || []).map(p => [p.user_id, p])
+      );
+
+      // Transform matches with profile data
+      return matchesData.map(match => {
+        const otherUserId = match.user1_id === userId ? match.user2_id : match.user1_id;
+        const otherProfile = profileMap.get(otherUserId);
+        
         return {
           ...match,
           matched_user: otherProfile,
-          qcs_score: match.compatibility_score
+          user_profile: otherProfile,
+          qcs_score: otherProfile?.total_qcs || 0,
+          compatibility_score: otherProfile?.total_qcs || 0
         };
-      });
+      }).filter(m => m.matched_user); // Filter out matches without profile data
     } catch (error) {
       console.error(`Error getting matches for QCS range ${minQCS}-${maxQCS}:`, error);
       return [];

@@ -27,7 +27,7 @@ import { useProfilesFeed } from "@/hooks/useProfilesFeed";
 import { usePairing } from "@/hooks/usePairing";
 // Debug component removed during cleanup
 // import UserSelector from "@/components/debug/UserSelector";
-import SwipeCards from "@/components/swipe/SwipeCards";
+import SwipeManager from "@/components/swipe/SwipeManager";
 import PairingMatches from "@/components/pairing/PairingMatches";
 import EnhancedProfileDisplay from "@/components/profile/EnhancedProfileDisplay";
 import { useToast } from "@/hooks/use-toast";
@@ -115,7 +115,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
       features: [
         "Everything in Premium",
         "Exclusive Elite Profiles",
-        "1 Blind Date Credit Daily",
+        "Priority Consulting Access",
         "VIP Support",
       ],
       color: "border-accent/30",
@@ -308,13 +308,15 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
                             
                             <p className="text-foreground/90 font-professional text-sm mb-3 line-clamp-2">{profile.bio}</p>
                             
-                            <div className="flex gap-2 flex-wrap">
-                              {profile.interests.map((interest, idx) => (
-                                <span key={idx} className="px-3 py-1 bg-card/50 rounded-full text-foreground font-professional text-xs font-medium">
-                                  {interest}
-                                </span>
-                              ))}
-                            </div>
+                            {Array.isArray(profile.interests) && profile.interests.length > 0 && (
+                              <div className="flex gap-2 flex-wrap">
+                                {profile.interests.map((interest, idx) => (
+                                  <span key={idx} className="px-3 py-1 bg-card/50 rounded-full text-foreground font-professional text-xs font-medium">
+                                    {interest}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -423,7 +425,7 @@ const InstagramUI = ({ onNavigate }: InstagramUIProps) => {
       case "swipe":
         return (
           <div className="flex-1 overflow-y-auto min-h-screen bg-background">
-            <SwipeCards />
+            <SwipeManager />
           </div>
         );
 

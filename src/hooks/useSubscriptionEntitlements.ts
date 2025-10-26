@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { SUBSCRIPTION_PLANS, type PlanId, type PlanFeatures } from "@/config/subscriptionPlans";
 
 interface SubscriptionEntitlements {
@@ -42,70 +43,191 @@ export function useSubscriptionEntitlements() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Helper function to normalize plan IDs
+  const normalizePlanId = (planId: string): PlanId => {
+    // Handle legacy plan ID formats
+    switch (planId) {
+      // Legacy 129 formats
+      case '129_pro':
+      case 'standard_129_pro':
+      case '129_standard':
+        return 'standard_129';
+      
+      // Legacy 69 formats  
+      case '69_basic':
+      case 'basic_69_pro':
+      case '69_pro':
+        return 'basic_69';
+      
+      // Legacy 243 formats
+      case '243_premium':
+      case 'premium_243_pro':
+      case '243_pro':
+        return 'premium_243';
+      
+      // Return as-is if already in correct format
+      default:
+        return planId as PlanId;
+    }
+  };
+
+  // Helper function to check subscription from database directly
+  const checkDatabaseSubscription = async (firebaseUid: string): Promise<SubscriptionEntitlements | null> => {
+    try {
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('firebase_uid', firebaseUid)
+        .single();
+
+      if (profileError || !profile) {
+        console.log('No profile found in database for Firebase UID:', firebaseUid);
+        return null;
+      }
+
+      const rawPlanId = profile.plan_id || 'free';
+      const planId = normalizePlanId(rawPlanId);
+      const plan = SUBSCRIPTION_PLANS[planId] || SUBSCRIPTION_PLANS.free;
+      
+      console.log('🔍 Database subscription check:', { 
+        firebaseUid, 
+        rawPlanId,
+        normalizedPlanId: planId,
+        planDisplay: plan.display_name,
+        profileData: profile 
+      });
+
+      return {
+        plan: {
+          id: planId,
+          display_name: plan.display_name,
+          price: plan.price_monthly_inr,
+          expires_at: profile.plan_expires_at
+        },
+        limits: {
+          daily_swipes: {
+            limit: plan.features.unlimited_swipes ? null : plan.features.daily_swipes_limit,
+            used: profile.daily_swipes_used || 0,
+            unlimited: plan.features.unlimited_swipes
+          },
+          profiles_shown: {
+            count: plan.features.profiles_shown_count,
+            extra_pairings_left: profile.extra_pairings_left || 0
+          },
+          boosts: {
+            monthly_limit: plan.features.boosts_per_month,
+            remaining: profile.boosts_remaining || 0
+          },
+          superlikes: {
+            monthly_limit: plan.features.superlikes_per_month,
+            remaining: profile.superlikes_remaining || 0,
+            unlimited: plan.features.superlikes_per_month === null
+          }
+        },
+        features: {
+          can_see_who_liked_you: plan.features.can_see_who_liked_you,
+          can_request_extra_pairings: plan.features.can_request_extra_pairings,
+          priority_matching: plan.features.priority_matching,
+          ai_compatibility_insights: plan.features.ai_compatibility_insights
+        }
+      };
+    } catch (error) {
+      console.error('Error checking database subscription:', error);
+      return null;
+    }
+  };
+
   const checkEntitlements = async () => {
     try {
       setLoading(true);
       setError(null);
 
+      // First, try to get Firebase UID for database check
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user?.id) {
+        console.log('🔍 Checking database subscription for Firebase UID:', user.id);
+        const dbEntitlements = await checkDatabaseSubscription(user.id);
+        
+        if (dbEntitlements) {
+          console.log('✅ Database subscription found:', dbEntitlements);
+          setEntitlements(dbEntitlements);
+          return;
+        }
+      }
+
+      // If database check fails, try the API
+      console.log('🌐 Trying API subscription check...');
       const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/subscription-entitlement', {
         method: 'POST',
         body: JSON.stringify({ action: 'check' })
       });
 
-      if (!response.ok) throw new Error('Failed to check entitlements');
-      const data = await response.json();
-
-      if (data.success) {
-        setEntitlements(data.data);
-      } else {
-        throw new Error(data.error || 'Failed to fetch entitlements');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          console.log('✅ API subscription found:', data.data);
+          setEntitlements(data.data);
+          return;
+        }
       }
+
+      // If both API and database fail, create default free plan entitlements
+      console.log('⚠️ No subscription found, defaulting to free plan');
+      throw new Error('No subscription found');
     } catch (err: any) {
       console.error('Error checking entitlements:', err);
       
-      // Fallback to demo/local data
+      // Fallback to demo/local data or default free plan
       const demoProfile = localStorage.getItem('demoProfile');
+      let planId: PlanId = 'free';
+      let profileData = {};
+      
       if (demoProfile) {
-        const profile = JSON.parse(demoProfile);
-        const planId = (profile.plan_id || profile.subscription_tier || 'free') as PlanId;
-        const plan = SUBSCRIPTION_PLANS[planId] || SUBSCRIPTION_PLANS.free;
-        
-        setEntitlements({
-          plan: {
-            id: planId,
-            display_name: plan.display_name,
-            price: plan.price_monthly_inr
-          },
-          limits: {
-            daily_swipes: {
-              limit: plan.features.unlimited_swipes ? null : plan.features.daily_swipes_limit,
-              used: profile.daily_swipes_used || 0,
-              unlimited: plan.features.unlimited_swipes
-            },
-            profiles_shown: {
-              count: plan.features.profiles_shown_count,
-              extra_pairings_left: profile.extra_pairings_left || 0
-            },
-            boosts: {
-              monthly_limit: plan.features.boosts_per_month,
-              remaining: profile.boosts_remaining || 0
-            },
-            superlikes: {
-              monthly_limit: plan.features.superlikes_per_month,
-              remaining: profile.superlikes_remaining || 0,
-              unlimited: plan.features.superlikes_per_month === null
-            }
-          },
-          features: {
-            can_see_who_liked_you: plan.features.can_see_who_liked_you,
-            can_request_extra_pairings: plan.features.can_request_extra_pairings,
-            priority_matching: plan.features.priority_matching,
-            ai_compatibility_insights: plan.features.ai_compatibility_insights
-          }
-        });
-      } else {
-        setError(err.message || 'Failed to load subscription data');
+        try {
+          const profile = JSON.parse(demoProfile);
+          planId = (profile.plan_id || profile.subscription_tier || 'free') as PlanId;
+          profileData = profile;
+        } catch (parseErr) {
+          console.error('Error parsing demo profile:', parseErr);
+        }
       }
+      
+      const plan = SUBSCRIPTION_PLANS[planId] || SUBSCRIPTION_PLANS.free;
+      
+      setEntitlements({
+        plan: {
+          id: planId,
+          display_name: plan.display_name,
+          price: plan.price_monthly_inr
+        },
+        limits: {
+          daily_swipes: {
+            limit: plan.features.unlimited_swipes ? null : plan.features.daily_swipes_limit,
+            used: (profileData as any).daily_swipes_used || 0,
+            unlimited: plan.features.unlimited_swipes
+          },
+          profiles_shown: {
+            count: plan.features.profiles_shown_count,
+            extra_pairings_left: (profileData as any).extra_pairings_left || 0
+          },
+          boosts: {
+            monthly_limit: plan.features.boosts_per_month,
+            remaining: (profileData as any).boosts_remaining || 0
+          },
+          superlikes: {
+            monthly_limit: plan.features.superlikes_per_month,
+            remaining: (profileData as any).superlikes_remaining || 0,
+            unlimited: plan.features.superlikes_per_month === null
+          }
+        },
+        features: {
+          can_see_who_liked_you: plan.features.can_see_who_liked_you,
+          can_request_extra_pairings: plan.features.can_request_extra_pairings,
+          priority_matching: plan.features.priority_matching,
+          ai_compatibility_insights: plan.features.ai_compatibility_insights
+        }
+      });
     } finally {
       setLoading(false);
     }
@@ -191,6 +313,12 @@ export function useSubscriptionEntitlements() {
     return Boolean(entitlements.features[feature as keyof typeof entitlements.features]);
   };
 
+  // Manual refresh function for when subscription is updated externally
+  const refreshEntitlements = async () => {
+    console.log('🔄 Manually refreshing subscription entitlements...');
+    await checkEntitlements();
+  };
+
   useEffect(() => {
     checkEntitlements();
   }, []);
@@ -200,6 +328,7 @@ export function useSubscriptionEntitlements() {
     loading,
     error,
     checkEntitlements,
+    refreshEntitlements,
     upgradePlan,
     downgradePlan,
     requestExtraPairings,

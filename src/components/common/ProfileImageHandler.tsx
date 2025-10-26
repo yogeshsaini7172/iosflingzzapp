@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import HeartAnimation from '@/components/ui/HeartAnimation';
 
 interface ProfileImageHandlerProps {
   src?: string;
@@ -45,8 +46,8 @@ const ProfileImageHandler = ({
   return (
     <div className={`relative ${className}`}>
       {isLoading && (
-        <div className="absolute inset-0 bg-muted animate-pulse rounded-lg flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <div className="absolute inset-0 bg-muted rounded-lg flex items-center justify-center">
+          <HeartAnimation size={48} className="opacity-90" />
         </div>
       )}
       <img 

@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Heart, X, RefreshCw, Settings, MoreHorizontal } from "lucide-react";
+import Loader from '@/components/ui/Loader';
 import { useToast } from "@/hooks/use-toast";
 import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
 import DetailedProfileModal from "@/components/profile/DetailedProfileModal";
@@ -163,7 +164,7 @@ const EnhancedSwipeInterface: React.FC<EnhancedSwipeInterfaceProps> = ({ onNavig
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-black to-gray-900">
         <div className="text-center">
-          <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-6 text-pink-500" />
+          <Loader size={48} />
           <p className="text-white/70 text-lg">Authenticating...</p>
         </div>
       </div>
@@ -187,8 +188,7 @@ const EnhancedSwipeInterface: React.FC<EnhancedSwipeInterfaceProps> = ({ onNavig
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-black to-gray-900">
         <div className="text-center">
-          <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-6 text-pink-500" />
-          <p className="text-white/70 text-lg">Finding your perfect matches...</p>
+          <Loader size={64} text={"Finding your perfect matches..."} />
         </div>
       </div>
     );

@@ -6,8 +6,8 @@ export const SUBSCRIPTION_PLANS = {
     display_name: "Free",
     features: {
       daily_swipes_limit: 20,
-      daily_pairing_limit: 1, // Free users get 1 pairing request per day
-      profiles_shown_count: 1,
+      daily_pairing_limit: 2,
+      profiles_shown_count: 5,
       can_request_extra_pairings: false,
       extra_pairings_on_purchase: 0,
       can_see_who_liked_you: false,
@@ -110,8 +110,8 @@ export function isUnlimited(planId: string, feature: 'daily_swipes_limit' | 'sup
 // Get all available plan IDs
 export const PLAN_IDS = Object.keys(SUBSCRIPTION_PLANS) as PlanId[];
 
-// Plan hierarchy for upgrades/downgrades
-export const PLAN_HIERARCHY = ['free', 'basic_49', 'plus_89', 'pro_129'] as const;
+// Plan hierarchy for upgrades/downgrades  
+export const PLAN_HIERARCHY = ['free', 'basic_69', 'standard_129', 'premium_243'] as const;
 
 export function canUpgradeTo(currentPlan: string, targetPlan: string): boolean {
   const currentIndex = PLAN_HIERARCHY.indexOf(currentPlan as any);

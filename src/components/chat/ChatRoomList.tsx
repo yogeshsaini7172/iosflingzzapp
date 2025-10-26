@@ -4,6 +4,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, MessageSquare, Wifi, WifiOff } from "lucide-react";
+import Loader from '@/components/ui/Loader';
 import { ChatRoom } from "@/hooks/useChatWithWebSocket";
 import { useRequiredAuth } from "@/hooks/useRequiredAuth";
 import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
@@ -98,8 +99,7 @@ const ChatRoomList = ({
     return (
       <div className="min-h-screen bg-gradient-soft flex items-center justify-center">
         <div className="text-center">
-          <MessageSquare className="w-8 h-8 mx-auto mb-4 text-muted-foreground animate-pulse" />
-          <p className="text-muted-foreground">Loading your chats...</p>
+          <Loader size={48} className="mx-auto mb-4 text-muted-foreground" text="Loading your chats..." />
         </div>
       </div>
     );

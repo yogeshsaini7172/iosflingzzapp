@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Phone, Loader2, Shield, KeyRound } from "lucide-react";
+import Loader from '@/components/ui/Loader';
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
@@ -151,13 +152,13 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
             {!showOTPInput ? (
               <div className="space-y-6">
                 {/* Google OAuth */}
-                <Button
-                  onClick={handleGoogleAuth}
-                  disabled={isLoading}
-                  className="w-full rounded-xl h-12 font-medium"
-                  variant="coral"
-                >
-                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : (
+                  <Button
+                onClick={handleGoogleAuth}
+                disabled={isLoading}
+                className="w-full rounded-xl h-12 font-medium"
+                variant="premium"
+              >
+                  {isLoading ? <Loader size={16} className="inline-block mr-2" /> : (
                     <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24">
                       <path
                         fill="currentColor"
@@ -210,7 +211,7 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
                     variant="outline"
                     className="w-full rounded-xl h-12 font-medium"
                   >
-                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                    {isLoading ? <Loader size={16} className="inline-block mr-2" /> : null}
                     Send OTP
                   </Button>
                 </div>
@@ -255,13 +256,13 @@ const AuthScreen = ({ onBack, onComplete }: AuthScreenProps) => {
                   >
                     Back
                   </Button>
-                  <Button
-                    onClick={handleOTPVerification}
-                    disabled={isLoading || otp.length !== 6}
-                    className="h-12 rounded-xl"
-                    variant="coral"
-                  >
-                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                <Button
+                  onClick={handleOTPVerification}
+                  disabled={isLoading || otp.length !== 6}
+                  className="h-12 rounded-xl"
+                  variant="premium"
+                >
+                    {isLoading ? <Loader size={16} className="inline-block mr-2" /> : null}
                     Verify
                   </Button>
                 </div>

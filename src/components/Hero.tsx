@@ -3,75 +3,109 @@ import heroImage from "@/assets/hero-image.jpg";
 
 const Hero = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center bg-gradient-hero overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0 bg-gradient-hero opacity-90"></div>
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute inset-0 bg-white/5" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='7' cy='7' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }}></div>
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 px-4">
+      {/* Premium animated mesh gradient background */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-1/4 -left-48 w-[500px] h-[500px] bg-gradient-primary opacity-25 rounded-full blur-3xl animate-float" />
+        <div className="absolute bottom-1/4 -right-48 w-[500px] h-[500px] bg-gradient-secondary opacity-25 rounded-full blur-3xl floating" style={{ animationDelay: '1.5s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-gradient-royal opacity-15 rounded-full blur-3xl animate-pulse-glow" />
+        
+        {/* Additional ambient orbs */}
+        <div className="absolute top-1/3 left-1/3 w-64 h-64 bg-accent-glow/20 rounded-full blur-3xl floating" style={{ animationDelay: '3s' }} />
+        <div className="absolute bottom-1/3 right-1/3 w-64 h-64 bg-secondary-glow/20 rounded-full blur-3xl floating" style={{ animationDelay: '2s' }} />
       </div>
-      
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="flex flex-col lg:grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left Content */}
-          <div className="order-2 lg:order-1 text-center lg:text-left text-white bg-white/10 backdrop-blur-sm p-6 rounded-3xl lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
-            <h1 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
-              Build Your
-              <br />
-              <span className="bg-gradient-to-r from-white to-secondary bg-clip-text text-transparent">
-                Digital Future
-              </span>
-            </h1>
 
-            <p className="text-xl lg:text-2xl mb-8 text-white/90 max-w-lg mx-auto lg:mx-0">
-              Transform your business with our cutting-edge web solutions. Modern design meets powerful functionality.
-            </p>
+      {/* Premium glass container with enhanced effects */}
+      <div className="relative glass-premium rounded-[2rem] p-8 md:p-16 lg:p-20 max-w-6xl mx-auto text-center shadow-premium backdrop-blur-2xl border border-primary/30 animate-elegant-entrance overflow-hidden">
+        {/* Animated border glow */}
+        <div className="absolute inset-0 rounded-[2rem] opacity-50 animate-pulse-glow pointer-events-none">
+          <div className="absolute inset-0 rounded-[2rem] border border-primary-glow/50" />
+        </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Button variant="hero" size="lg" className="text-lg px-8 py-4">
-                Get Started
-              </Button>
-              <Button variant="ghost-white" size="lg" className="text-lg px-8 py-4">
-                Learn More
-              </Button>
+        {/* Shimmer effect */}
+        <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none">
+          <div className="shimmer" />
+        </div>
+
+        <div className="relative z-10">
+          {/* Floating premium badge */}
+          <div className="inline-flex items-center gap-3 px-8 py-3 rounded-full glass-effect border border-primary/40 mb-10 animate-bounce-in shadow-elegant hover:shadow-glow transition-elegant hover:scale-105 cursor-default">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-primary blur-md opacity-50 animate-pulse" />
+              <div className="relative w-2.5 h-2.5 bg-gradient-primary rounded-full" />
             </div>
-
-            <div className="mt-12 flex items-center gap-8 justify-center lg:justify-start text-white/80">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-white">500+</div>
-                <div className="text-sm">Projects</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-white">50+</div>
-                <div className="text-sm">Clients</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-white">99%</div>
-                <div className="text-sm">Success Rate</div>
-              </div>
-            </div>
+            <span className="text-sm md:text-base font-bold gradient-text tracking-wide">Premium Dating Experience</span>
           </div>
 
-          {/* Right Content - Hero Image */}
-          <div className="order-1 lg:order-2 relative">
-            <div className="relative z-10">
-              <img
-                src={heroImage}
-                alt="Modern web development and digital solutions"
-                className="w-full max-w-lg mx-auto rounded-3xl shadow-glow"
-              />
+          {/* Main heading with sophisticated gradient text */}
+          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-8 tracking-tight leading-[1.1]">
+            <span className="block bg-gradient-elegant bg-clip-text text-transparent mb-2 animate-fade-in">
+              Find Your
+            </span>
+            <span className="block bg-gradient-primary bg-clip-text text-transparent animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              Perfect Match
+            </span>
+          </h1>
+
+          {/* Premium description with better spacing */}
+          <p className="text-lg md:text-xl lg:text-2xl text-foreground/80 max-w-3xl mx-auto mb-14 leading-relaxed font-clean animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            Experience luxury dating powered by AI. Connect with verified university students in an exclusive, premium environment.
+          </p>
+
+          {/* Enhanced CTA Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-12 animate-fade-in" style={{ animationDelay: '0.6s' }}>
+            <Button 
+              size="lg" 
+              variant="premium"
+              className="group relative overflow-hidden px-10 py-7 text-lg font-bold rounded-2xl shadow-elegant hover:shadow-glow hover:scale-105"
+            >
+              <span className="relative z-10 flex items-center gap-2">
+                Start Your Journey
+                <span className="group-hover:translate-x-1 transition-elegant">→</span>
+              </span>
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline"
+              className="px-10 py-7 text-lg font-bold rounded-2xl border-2 border-primary/50 hover:bg-primary/10 hover:border-primary transition-elegant hover:shadow-medium hover:scale-105"
+            >
+              Learn More
+            </Button>
+          </div>
+
+          {/* Premium trust indicators with enhanced styling */}
+          <div className="flex flex-wrap items-center justify-center gap-6 md:gap-10 text-muted-foreground/90 animate-fade-in" style={{ animationDelay: '0.8s' }}>
+            <div className="flex items-center gap-3 px-4 py-2 rounded-xl glass-effect hover:scale-105 transition-elegant cursor-default">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-primary blur-sm opacity-50" />
+                <div className="relative w-3 h-3 bg-gradient-primary rounded-full shadow-elegant" />
+              </div>
+              <span className="text-sm md:text-base font-semibold">10K+ Verified Users</span>
+            </div>
+            <div className="flex items-center gap-3 px-4 py-2 rounded-xl glass-effect hover:scale-105 transition-elegant cursor-default">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-secondary blur-sm opacity-50" />
+                <div className="relative w-3 h-3 bg-gradient-secondary rounded-full shadow-elegant" />
+              </div>
+              <span className="text-sm md:text-base font-semibold">500+ Universities</span>
+            </div>
+            <div className="flex items-center gap-3 px-4 py-2 rounded-xl glass-effect hover:scale-105 transition-elegant cursor-default">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-gold blur-sm opacity-50" />
+                <div className="relative w-3 h-3 bg-gradient-gold rounded-full shadow-elegant" />
+              </div>
+              <span className="text-sm md:text-base font-semibold">100% Private & Secure</span>
             </div>
           </div>
         </div>
+
+        {/* Corner accents */}
+        <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-primary opacity-20 blur-3xl rounded-br-full pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-secondary opacity-20 blur-3xl rounded-tl-full pointer-events-none" />
       </div>
-      
-      {/* Bottom Wave */}
-      <div className="absolute bottom-0 left-0 right-0">
-        <svg viewBox="0 0 1440 120" className="w-full h-auto text-background">
-          <path fill="currentColor" d="M0,64L48,69.3C96,75,192,85,288,80C384,75,480,53,576,48C672,43,768,53,864,64C960,75,1056,85,1152,80C1248,75,1344,53,1392,42.7L1440,32L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z"></path>
-        </svg>
-      </div>
+
+      {/* Enhanced bottom fade */}
+      <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-background via-background/50 to-transparent pointer-events-none" />
     </section>
   );
 };

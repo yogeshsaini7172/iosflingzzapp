@@ -23,6 +23,7 @@ import {
   Coffee,
   LogOut
 } from 'lucide-react';
+import Loader from '@/components/ui/Loader';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -205,7 +206,7 @@ const EnhancedProfileDisplay: React.FC = () => {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center space-y-4">
-          <div className="w-16 h-16 border-4 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <Loader size={48} />
           <p className="text-white/70">Loading your amazing profile... ✨</p>
         </div>
       </div>

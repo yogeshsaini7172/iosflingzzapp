@@ -13,7 +13,8 @@ import ProfileSetupFlow from '@/components/profile/ProfileSetupFlow';
 // Import pages
 import ProfilePage from '@/pages/ProfilePage';
 import PairingPage from '@/pages/PairingPage';
-import BlindDatePage from '@/pages/BlindDatePage';
+import CommunityPage from '@/pages/CommunityPage';
+import ConsultingPage from '@/pages/ConsultingPage';
 
 import Dashboard from '@/pages/Dashboard';
 import FlingzzHome from '@/components/campus/FlingzzHome';
@@ -21,12 +22,14 @@ import QCSDiagnostics from '@/components/QCSDiagnostics';
 import QCSSystemRepair from '@/components/QCSSystemRepair';
 import QCSBulkSync from '@/components/QCSBulkSync';
 import RebuiltChatSystem from '@/components/chat/RebuiltChatSystem';
+import AadhaarTest from '@/components/AadhaarTest';
 import NotFound from '@/pages/NotFound';
 import MobileBottomNav from '@/components/navigation/MobileBottomNav';
 // Debug components removed during cleanup
 // import MobileFeatureDebug from '@/components/debug/MobileFeatureDebug';
 // import APKFeatureVerification from '@/components/debug/APKFeatureVerification';
 import { initializeMobileApp } from '../mobile/capacitor';
+import Loader from '@/components/ui/Loader';
 import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
 
 const queryClient = new QueryClient({
@@ -97,8 +100,7 @@ const MobileAppContent = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-600 to-pink-600">
         <div className="text-white text-center">
-          <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-lg">Loading FLINGZZ...</p>
+          <Loader size={96} text="Loading FLINGZZ..." />
         </div>
       </div>
     );
@@ -144,7 +146,8 @@ const MobileAppContent = () => {
         
         {/* Core Features */}
         <Route path="/pairing" element={<PairingPage onNavigate={handleNavigate} />} />
-        <Route path="/blind-date" element={<BlindDatePage onNavigate={handleNavigate} />} />
+        <Route path="/consulting" element={<ConsultingPage />} />
+        <Route path="/community" element={<CommunityPage />} />
         <Route path="/profile" element={<ProfilePage onNavigate={handleNavigate} />} />
         
         {/* Chat System */}
@@ -156,6 +159,7 @@ const MobileAppContent = () => {
         <Route path="/qcs-diagnostics" element={<QCSDiagnostics />} />
         <Route path="/qcs-repair" element={<QCSSystemRepair />} />
         <Route path="/qcs-bulk-sync" element={<QCSBulkSync />} />
+  <Route path="/aadhaar-test" element={<AadhaarTest />} />
         
         {/* Debug/Verification Tools - Removed during cleanup */}
         {/*         {/* Debug/Verification Tools - Removed during cleanup */}

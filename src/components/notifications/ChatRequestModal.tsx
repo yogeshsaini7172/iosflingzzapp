@@ -37,7 +37,7 @@ const ChatRequestModal = ({ isOpen, onClose, profile }: ChatRequestModalProps) =
 
     setSending(true);
     try {
-      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-request-handler', {
+      const response = await fetchWithFirebaseAuth('/functions/v1/chat-request-handler', {
         method: 'POST',
         body: JSON.stringify({
           action: 'send_request',

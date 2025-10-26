@@ -9,20 +9,28 @@ import { ChatNotificationProvider } from "./contexts/ChatNotificationContext";
 import { useState, useEffect } from "react";
 import PairingPage from "./pages/PairingPage";
 import ProfilePage from "./pages/ProfilePage";
-import BlindDatePage from "./pages/BlindDatePage";
+import SubscriptionPage from "./pages/SubscriptionPage";
+import SubscriptionDebug from "./pages/SubscriptionDebug";
 import FlingzzHome from "./components/campus/FlingzzHome";
 import CommunityPage from "./pages/CommunityPage";
+import ConsultingPage from "./pages/ConsultingPage";
 
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 import QCSDiagnostics from "./components/QCSDiagnostics";
 import QCSSystemRepair from "./components/QCSSystemRepair";
 import QCSBulkSync from "./components/QCSBulkSync";
+import CommunityDashboard from "./components/admin/CommunityDashboard";
+import AdminRoute from "./components/admin/AdminRoute";
+import AdminEmailPasswordRoute from "./components/admin/AdminEmailPasswordRoute";
 import { fetchWithFirebaseAuth } from "./lib/fetchWithFirebaseAuth";
 import RebuiltChatSystem from "./components/chat/RebuiltChatSystem";
 import { initializeMobileApp } from "./mobile/capacitor";
 import LoadingScreen from "./components/ui/loading-screen";
 import { WebLandingPage } from "./components/landing/WebLandingPage";
+import AadhaarTest from './components/AadhaarTest';
+import PublicAadhaarTest from './pages/PublicAadhaarTest';
+import { useAutoLocationUpdate } from "./hooks/useAutoLocationUpdate";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -54,6 +62,9 @@ const AuthenticatedApp = () => {
   useEffect(() => {
     initializeMobileApp();
   }, []);
+
+  // Automatically fetch and update location when app opens
+  useAutoLocationUpdate();
 
   // Function to check if user has completed profile
   const checkUserProfile = async (userId: string) => {
@@ -180,6 +191,35 @@ const AuthenticatedApp = () => {
     );
   }
 
+  // Public route for Aadhaar test (available without authentication)
+  // Place this before auth gating so testers can access the page freely
+  const isHashAadhaar = typeof window !== 'undefined' && (window.location.hash === '#/aadhaar-test' || window.location.hash === '#!/aadhaar-test');
+  // Allow subscription page to be reachable without auth for local testing
+  const isHashSubscription = typeof window !== 'undefined' && (window.location.hash === '#/subscription' || window.location.hash === '#!/subscription');
+  if (location.pathname === '/subscription' || isHashSubscription) {
+    return (
+      <TooltipProvider>
+        <SubscriptionPage />
+      </TooltipProvider>
+    );
+  }
+
+  if (location.pathname === '/subscription-debug') {
+    return (
+      <TooltipProvider>
+        <SubscriptionDebug />
+      </TooltipProvider>
+    );
+  }
+
+  if (location.pathname === '/aadhaar-test' || isHashAadhaar) {
+    return (
+      <TooltipProvider>
+        <PublicAadhaarTest />
+      </TooltipProvider>
+    );
+  }
+
   // Show landing page only for non-authenticated users who haven't dismissed it
   if (showLandingPage && !isAuthenticated && !user) {
     return (
@@ -242,9 +282,21 @@ const AuthenticatedApp = () => {
             <Routes>
               <Route path="/" element={<FlingzzHome onNavigate={(view) => navigate(`/${view}`)} />} />
               <Route path="/pairing" element={<PairingPage onNavigate={(view) => navigate(`/${view}`)} />} />
-              <Route path="/blind-date" element={<BlindDatePage onNavigate={(view) => navigate(`/${view}`)} />} />
-              <Route path="/profile" element={<ProfilePage onNavigate={(view) => navigate(`/${view}`)} />} />
+              <Route path="/consulting" element={<ConsultingPage />} />
               <Route path="/community" element={<CommunityPage />} />
+              <Route path="/profile" element={<ProfilePage onNavigate={(view) => navigate(`/${view}`)} />} />
+              {/* Old admin route removed - use /admin1712/community instead */}
+              {/* <Route path="/admin/community" element={
+                <AdminRoute>
+                  <CommunityDashboard />
+                </AdminRoute>
+              } /> */}
+              <Route path="/admin1712/community" element={
+                <AdminEmailPasswordRoute>
+                  <CommunityDashboard />
+                </AdminEmailPasswordRoute>
+              } />
+              <Route path="/subscription" element={<SubscriptionPage />} />
               
               {/* --- Chat routes --- */}
               <Route 

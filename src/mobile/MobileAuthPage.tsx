@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Phone, ArrowLeft } from 'lucide-react';
+import Loader from '@/components/ui/Loader';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useMobileAuth } from './MobileAuthContext';
 
@@ -12,6 +13,7 @@ const MobileAuthPage = () => {
   const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [authStep, setAuthStep] = useState<'select' | 'phone' | 'otp'>('select');
+  const [hydrated, setHydrated] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState<any>(null);
   
   const { signInWithGoogle, signInWithPhone, verifyOTP } = useMobileAuth();
@@ -57,6 +59,19 @@ const MobileAuthPage = () => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    // Wait for client hydration to avoid static logo flash
+    setHydrated(true);
+  }, []);
+
+  if (!hydrated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader size={72} />
+      </div>
+    );
+  }
 
   if (authStep === 'otp') {
     return (

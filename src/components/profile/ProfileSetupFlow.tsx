@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import Loader from '@/components/ui/Loader';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -9,12 +10,14 @@ import WhatYouAreStep from "./steps/WhatYouAreStep";
 import WhoYouWantStep from "./steps/WhoYouWantStep";
 import UploadPhotosStep from "./steps/UploadPhotosStep";
 import LocationStep from "./steps/LocationStep";
-import IDVerificationStep from "./steps/IDVerificationStep";
+import AadhaarVerificationStep from "./steps/AadhaarVerificationStep";
+import SubscriptionStep from "./steps/SubscriptionStep";
 import ProgressIndicator from "./steps/ProgressIndicator";
 import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { calculateAge, validateMinimumAge, MINIMUM_AGE } from "@/utils/ageValidation";
+import { SUBSCRIPTION_PLANS, type PlanId } from "@/config/subscriptionPlans";
 
 interface ProfileSetupFlowProps {
   onComplete: () => void;
@@ -24,6 +27,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<'idle' | 'pending' | 'verified' | 'failed'>('idle');
+  const [paymentCompleted, setPaymentCompleted] = useState(false);
   const { toast } = useToast();
   const { user, userId } = useAuth();
   const { uploadMultipleImages, uploading } = useImageUpload();
@@ -47,9 +51,11 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
     bodyType: "",
     skinTone: "",
     faceType: "",
-    personalityType: "",
-    values: "",
-    mindset: "",
+    drinkingHabits: "",
+    smokingHabits: "",
+    personalityType: [] as string[],
+    values: [] as string[],
+    mindset: [] as string[],
     loveLanguage: "",
     lifestyle: "",
     relationshipGoals: [] as string[],
@@ -78,23 +84,30 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
     
     // Location
     location: null as any,
+    matchRadiusKm: 50,
+    matchByState: false,
+    state: "",
     
     // Settings
     isProfilePublic: true,
     
     // ID Verification
     collegeIdFile: null as File | null,
-    govtIdFile: null as File | null
+    govtIdFile: null as File | null,
+    
+    // Subscription
+    selectedPlan: "" as string
   });
 
-  const totalSteps = 6;
+  const totalSteps = 7;
   const stepTitles = [
     "Basic Details",
     "What You Are", 
     "Who You Want",
     "Upload Photos",
     "Location",
-    "ID Verification"
+    "ID Verification",
+    "Choose Your Plan"
   ];
 
   const handleNext = () => {
@@ -174,11 +187,14 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         body_type: profileData.bodyType,
         skin_tone: profileData.skinTone,
         face_type: profileData.faceType,
-        personality_type: profileData.personalityType,
-        personality_traits: profileData.personalityType ? [profileData.personalityType] : [],
-        values: profileData.values,
-        values_array: profileData.values ? [profileData.values] : [],
-        mindset: profileData.mindset,
+        drinking_habits: profileData.drinkingHabits,
+        smoking_habits: profileData.smokingHabits,
+        personality_type: profileData.personalityType[0] || null,
+        personality_traits: profileData.personalityType,
+        values: profileData.values[0] || null,
+        values_array: profileData.values,
+        mindset: profileData.mindset[0] || null,
+        mindset_array: profileData.mindset,
         love_language: profileData.loveLanguage,
         lifestyle: profileData.lifestyle,
         relationship_goals: profileData.relationshipGoals,
@@ -209,7 +225,10 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         }) : null,
         latitude: profileData.location?.latitude || null,
         longitude: profileData.location?.longitude || null,
-        city: profileData.location?.city || null
+        city: profileData.location?.city || null,
+        state: profileData.state || profileData.location?.region || null,
+        match_radius_km: profileData.matchRadiusKm || 50,
+        match_by_state: profileData.matchByState || false
       };
 
       // Store partner preferences (optional, kept in localStorage for demo)
@@ -222,8 +241,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         height_range_max: profileData.heightRangeMax,
         preferred_body_types: profileData.preferredBodyTypes,
         preferred_skin_tone: profileData.preferredSkinTone || [],
-        preferred_skin_types: profileData.preferredSkinTone || [], // For backward compatibility
-        preferred_face_type: profileData.preferredFaceType,
+        preferred_face_type: profileData.preferredFaceType || [],
         preferred_values: profileData.preferredValues,
         preferred_mindset: profileData.preferredMindset,
         preferred_personality_traits: profileData.preferredPersonality,
@@ -279,6 +297,8 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
           bodyType: completeProfile.body_type,
           skinTone: completeProfile.skin_tone,
           faceType: completeProfile.face_type,
+          drinkingHabits: completeProfile.drinking_habits,
+          smokingHabits: completeProfile.smoking_habits,
           personalityType: completeProfile.personality_type,
           values: completeProfile.values,
           mindset: completeProfile.mindset,
@@ -387,10 +407,20 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         description: "Account created! Calculating your QCS score..." 
       });
 
+      // Process subscription if a plan was selected and payment was completed
+      if (profileData.selectedPlan && paymentCompleted) {
+        console.log('✅ Subscription payment completed, profile will be created with active subscription');
+        toast({
+          title: "Premium Activated! 🎉",
+          description: "Your subscription is active!"
+        });
+      }
+
       // Save profile data to local storage for quick access
       localStorage.setItem('user_profile', JSON.stringify({
         ...completeProfile,
-        profile_complete: true
+        profile_complete: true,
+        subscription_plan: profileData.selectedPlan || 'free'
       }));
 
       // Mark profile as complete locally and go to app
@@ -417,7 +447,10 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         return profileData.firstName && profileData.lastName && profileData.dateOfBirth && 
                profileData.gender && isAgeValid && hasProfession;
       case 2: // What You Are
-        return profileData.personalityType && profileData.values && profileData.bio;
+      return profileData.personalityType.length > 0 && 
+      profileData.values.length > 0 && 
+      profileData.mindset.length > 0 && 
+      profileData.bio;
       case 3: // Who You Want
         return profileData.preferredGender.length > 0 && profileData.preferredRelationshipGoals.length > 0;
       case 4: // Upload Photos
@@ -426,6 +459,8 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         return true;
       case 6: // ID Verification - only proceed after verified
         return verificationStatus === 'verified' || profileData.collegeIdFile || profileData.govtIdFile;
+      case 7: // Subscription - must select a plan AND complete payment
+        return !!profileData.selectedPlan && paymentCompleted;
       default:
         return true;
     }
@@ -470,11 +505,24 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
         );
       case 6:
         return (
-            <IDVerificationStep
+            <AadhaarVerificationStep
               data={profileData}
               onChange={setProfileData}
               onVerificationStatusChange={(s) => setVerificationStatus(s)}
             />
+        );
+      case 7:
+        return (
+          <SubscriptionStep
+            onPlanSelect={(planId) => {
+              setProfileData({ ...profileData, selectedPlan: planId });
+              setPaymentCompleted(true);
+              toast({
+                title: "Payment Successful! 🎉",
+                description: "Click 'Next' to complete your profile setup"
+              });
+            }}
+          />
         );
       default:
         return null;
@@ -544,7 +592,7 @@ const ProfileSetupFlow = ({ onComplete }: ProfileSetupFlowProps) => {
               >
                 {isLoading ? (
                   <div className="flex items-center space-x-2 sm:space-x-3">
-                    <div className="animate-spin rounded-full h-5 w-5 sm:h-6 sm:w-6 border-2 border-white/30 border-t-white"></div>
+                    <Loader size={20} />
                     <span className="text-base sm:text-lg">Creating Profile...</span>
                   </div>
                 ) : currentStep === totalSteps ? (

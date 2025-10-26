@@ -84,12 +84,12 @@ const WhoYouWantStep = ({ data, onChange }: WhoYouWantStepProps) => {
         <p className="text-muted-foreground">What are you looking for in a partner?</p>
       </div>
 
-      {/* Physical Preferences - MOVED TO TOP FOR VISIBILITY */}
+      {/* Physical Preferences */}
       <Card className="border-primary/30 bg-gradient-to-r from-primary/5 to-secondary/5">
         <CardHeader className="pb-4">
           <CardTitle className="text-xl flex items-center gap-2 text-primary">
             <Heart className="w-6 h-6 text-primary animate-pulse" />
-            Physical Preferences ✨ NEW!
+            Physical Preferences
           </CardTitle>
           <p className="text-sm text-muted-foreground">Select your preferred physical attributes</p>
         </CardHeader>
@@ -98,7 +98,7 @@ const WhoYouWantStep = ({ data, onChange }: WhoYouWantStepProps) => {
           <div className="space-y-3">
             <Label className="text-base font-semibold">Preferred Skin Tone</Label>
             <div className="flex flex-wrap gap-2">
-              {["Fair", "Light", "Medium", "Olive", "Tan", "Dark", "Any"].map((tone) => {
+              {["Porcelain", "Fair", "Light", "Light Medium", "Medium", "Tan", "Olive", "Brown", "Dark Brown", "Deep", "Ebony", "Any"].map((tone) => {
                 const isSelected = data.preferredSkinTone?.includes(tone);
                 return (
                   <Button
@@ -116,11 +116,11 @@ const WhoYouWantStep = ({ data, onChange }: WhoYouWantStepProps) => {
             </div>
           </div>
 
-          {/* Preferred Face Type */}
+          {/* Preferred Face Shape */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold">Preferred Face Type</Label>
+            <Label className="text-base font-semibold">Preferred Face Shape</Label>
             <div className="flex flex-wrap gap-2">
-              {["Oval", "Round", "Square", "Heart", "Diamond", "Long", "Any"].map((type) => {
+              {["Oval", "Round", "Square", "Rectangle", "Heart", "Diamond", "Triangle", "Any"].map((type) => {
                 const isSelected = data.preferredFaceType?.includes(type);
                 return (
                   <Button

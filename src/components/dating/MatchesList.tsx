@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { MessageCircle, Heart, Calendar, Send, MoreVertical, MapPin } from "lucide-react";
+import Loader from '@/components/ui/Loader';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRequiredAuth } from "@/hooks/useRequiredAuth";
 import { useMatchNotifications } from "@/hooks/useMatchNotifications";
@@ -13,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRealtime } from "@/hooks/useRealtime";
 
 interface MatchesListProps {
-  onNavigate: (view: 'home' | 'profile' | 'swipe' | 'blind-date' | 'matches' | 'chat') => void;
+  onNavigate: (view: 'home' | 'profile' | 'swipe' | 'consulting' | 'matches' | 'chat') => void;
 }
 
 interface Match {
@@ -120,8 +121,7 @@ const MatchesList = ({ onNavigate }: MatchesListProps) => {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center space-y-4">
-          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-foreground font-medium">Loading matches...</p>
+          <Loader size={72} text="Loading matches..." />
         </div>
       </div>
     );

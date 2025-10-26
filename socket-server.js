@@ -28,6 +28,13 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 const app = express();
 const server = createServer(app);
 
+// Parse JSON bodies
+app.use(express.json());
+
+// Global Surepass mode selection (unconditional): prefer FORCE then SUREPASS_ENV then default to production
+const SUREPASS_MODE = (process.env.SUREPASS_FORCE_ENV || process.env.SUREPASS_ENV || 'production').toLowerCase();
+console.log('🔒 Surepass mode:', SUREPASS_MODE);
+
 // Health check endpoint for deployment platforms
 app.get('/health', (req, res) => {
   res.status(200).json({ 
@@ -35,6 +42,137 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
   });
+});
+
+// Server-side proxy for Aadhaar validation to avoid exposing the Surepass token
+app.post('/api/validate-aadhaar', async (req, res) => {
+  try {
+    const id_number = req.body?.id_number;
+    if (!id_number) return res.status(400).json({ error: 'Missing id_number in body' });
+
+    // Optional simple protection: if API_SECRET is set, require x-api-secret header
+    const apiSecret = process.env.API_SECRET;
+    if (apiSecret) {
+      const incoming = req.headers['x-api-secret'];
+      if (!incoming || incoming !== apiSecret) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+    }
+
+    // Use env var first; fall back to a hardcoded token if not provided.
+    // NOTE: Hardcoding secrets in source is insecure for production. Prefer env vars or a secret manager.
+    const surepassToken = process.env.SUREPASS_TOKEN;
+    if (!surepassToken) {
+      console.error('Missing SUREPASS_TOKEN environment variable');
+      return res.status(500).json({ error: 'Missing server SUREPASS_TOKEN environment variable' });
+    }
+
+    const SP_URL_BASE = SUREPASS_MODE === 'sandbox' ? 'https://sandbox.surepass.io' : 'https://kyc-api.surepass.io';
+    const SP_URL = `${SP_URL_BASE}/api/v1/aadhaar-validation/aadhaar-validation`;
+
+    // Use global fetch available in modern Node.js — if not available, user should install node-fetch
+    const spRes = await fetch(SP_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${surepassToken}`,
+      },
+      body: JSON.stringify({ id_number }),
+    });
+
+    const json = await spRes.json().catch(() => null);
+    // Mirror status and body
+    return res.status(spRes.status).json(json ?? { error: 'No response from Surepass' });
+  } catch (err) {
+    console.error('Error in /api/validate-aadhaar:', err);
+    return res.status(500).json({ error: err?.message ?? String(err) });
+  }
+});
+
+// Server-side flow: validate then produce a redirect URL to Surepass hosted UI
+app.post('/api/validate-aadhaar-redirect', async (req, res) => {
+  try {
+    const id_number = req.body?.id_number;
+    if (!id_number) return res.status(400).json({ error: 'Missing id_number in body' });
+
+    const apiSecret = process.env.API_SECRET;
+    if (apiSecret) {
+      const incoming = req.headers['x-api-secret'];
+      if (!incoming || incoming !== apiSecret) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+    }
+
+    const surepassToken = process.env.SUREPASS_TOKEN || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2MDY5Njc2NSwianRpIjoiNTU2YTg1YTYtY2M5NC00NTYyLTkxMjQtMGJkMjZkOGY2M2Y2IiwidHlwZSI6ImFjY2VzcyIsImlkZW50aXR5IjoiZGV2LmF0b21uZXR3b3JraW5nQHN1cmVwYXNzLmlvIiwibmJmIjoxNzYwNjk2NzY1LCJleHAiOjE3NjMyODg3NjUsImVtYWlsIjoiYXRvbW5ldHdvcmtpbmdAc3VyZXBhc3MuaW8iLCJ0ZW5hbnRfaWQiOiJtYWluIiwidXNlcl9jbGFpbXMiOnsic2NvcGVzIjpbInVzZXIiXX19.Wot2R5Yshf_YyCpwVhJcZZMDnBQ9LiUBxYE2ODkxzdA';
+
+    const SP_BASE = SUREPASS_MODE === 'sandbox' ? 'https://sandbox.surepass.io' : 'https://kyc-api.surepass.io';
+    const SP_API = `${SP_BASE}/api/v1/aadhaar-validation/aadhaar-validation`;
+
+    const spRes = await fetch(SP_API, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${surepassToken}`,
+      },
+      body: JSON.stringify({ id_number }),
+    });
+
+    const json = await spRes.json().catch(() => null);
+
+    if (!spRes.ok) {
+      return res.status(spRes.status).json(json ?? { error: 'Surepass error' });
+    }
+
+    // Expect data.client_id in response (per Surepass sample)
+    const clientId = json?.data?.client_id;
+    if (!clientId) {
+      // No client id — return data so client can inspect
+      return res.status(200).json({ success: true, data: json?.data ?? null, redirect_url: null });
+    }
+
+    // Build hosted UI redirect URL using client_id
+    const hostedBase = SUREPASS_MODE === 'sandbox' ? 'https://sandbox.surepass.io/verify' : 'https://kyc.surepass.io/verify';
+    const redirectUrl = `${hostedBase}?client_id=${encodeURIComponent(clientId)}`;
+
+    // Instruct browser to follow the redirect (302) — this prevents exposing tokens to client and lets browser land on Surepass UI
+    return res.redirect(302, redirectUrl);
+  } catch (err) {
+    console.error('Error in /api/validate-aadhaar-redirect:', err);
+    return res.status(500).json({ error: err?.message ?? String(err) });
+  }
+});
+
+// Diagnostic endpoint: safely check the embedded/env Surepass token against sandbox and production
+app.get('/api/surepass-token-check', async (req, res) => {
+  try {
+    const token = process.env.SUREPASS_TOKEN || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2MDY5Njc2NSwianRpIjoiNTU2YTg1YTYtY2M5NC00NTYyLTkxMjQtMGJkMjZkOGY2M2Y2IiwidHlwZSI6ImFjY2VzcyIsImlkZW50aXR5IjoiZGV2LmF0b21uZXR3b3JraW5nQHN1cmVwYXNzLmlvIiwibmJmIjoxNzYwNjk2NzY1LCJleHAiOjE3NjMyODg3NjUsImVtYWlsIjoiYXRvbW5ldHdvcmtpbmdAc3VyZXBhc3MuaW8iLCJ0ZW5hbnRfaWQiOiJtYWluIiwidXNlcl9jbGFpbXMiOnsic2NvcGVzIjpbInVzZXIiXX19.Wot2R5Yshf_YyCpwVhJcZZMDnBQ9LiUBxYE2ODkxzdA';
+
+    // Only check the currently selected SUREPASS_MODE environment
+    const endpoints = [
+      { env: SUREPASS_MODE, url: SUREPASS_MODE === 'sandbox' ? 'https://sandbox.surepass.io/api/v1/aadhaar-validation/aadhaar-validation' : 'https://kyc-api.surepass.io/api/v1/aadhaar-validation/aadhaar-validation' }
+    ];
+
+    const results = [];
+    for (const ep of endpoints) {
+      try {
+        const r = await fetch(ep.url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ id_number: '000000000000' })
+        });
+        const json = await r.json().catch(() => null);
+        // Return only minimal fields and avoid echoing token
+        results.push({ env: ep.env, status: r.status, success: json?.success ?? null, message_code: json?.message_code ?? null, message: json?.message ?? null });
+      } catch (err) {
+        results.push({ env: ep.env, status: null, error: err?.message ?? String(err) });
+      }
+    }
+
+    return res.status(200).json({ checked: results });
+  } catch (err) {
+    console.error('Error in /api/surepass-token-check:', err);
+    return res.status(500).json({ error: 'internal_error' });
+  }
 });
 
 // Basic route

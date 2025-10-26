@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-firebase-token',
 };
 
 // Helper function to normalize strings for comparison with synonyms handling
@@ -162,6 +162,38 @@ if (prefFace?.length > 0 && candidateAttributes?.face_type) {
     notMatched.push("relationship_goals");
   }
   
+  // 5. Lifestyle preferences (drinking habits) - 5 points for compatibility
+  // "any" means match with all candidates regardless of their drinking habits
+  if (userPreferences?.preferred_drinking?.length > 0 && candidateAttributes?.drinking_habits) {
+    const hasAny = userPreferences.preferred_drinking.some((pref: string) => 
+      pref.toLowerCase().trim() === 'any'
+    );
+    if (hasAny || arrayContainsMatch(userPreferences.preferred_drinking, candidateAttributes.drinking_habits)) {
+      mentalScore += 5;
+      matched.push("drinking_habits");
+    } else {
+      notMatched.push("drinking_habits");
+    }
+  } else {
+    notMatched.push("drinking_habits");
+  }
+  
+  // 6. Lifestyle preferences (smoking habits) - 5 points for compatibility
+  // "any" means match with all candidates regardless of their smoking habits
+  if (userPreferences?.preferred_smoking?.length > 0 && candidateAttributes?.smoking_habits) {
+    const hasAny = userPreferences.preferred_smoking.some((pref: string) => 
+      pref.toLowerCase().trim() === 'any'
+    );
+    if (hasAny || arrayContainsMatch(userPreferences.preferred_smoking, candidateAttributes.smoking_habits)) {
+      mentalScore += 5;
+      matched.push("smoking_habits");
+    } else {
+      notMatched.push("smoking_habits");
+    }
+  } else {
+    notMatched.push("smoking_habits");
+  }
+  
   // Note: Skipping interests bonus for now as we don't have preferred_interests field in partner_preferences
   
   const totalScore = physicalScore + mentalScore;
@@ -173,6 +205,19 @@ if (prefFace?.length > 0 && candidateAttributes?.face_type) {
     matched,
     notMatched
   };
+}
+
+// Haversine formula to calculate distance between two coordinates (in km)
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Earth's radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
 }
 
 // Compute compatibility using exact user algorithm - no baselines, no random data
@@ -207,8 +252,8 @@ function computeCompatibilityWithPreferences(
     
     // Convert to percentages (user's formula)
     const physicalMax = 40; // 4 categories × 10 points each
-    const mentalMax = 40;   // 4 categories × 10 points each
-    const totalMax = 80;    // physicalMax + mentalMax (excluding interests for now)
+    const mentalMax = 50;   // 4 categories × 10 points + 2 lifestyle × 5 points
+    const totalMax = 90;    // physicalMax + mentalMax (excluding interests for now)
     
     const physicalPercentage = Math.round((physicalScore / physicalMax) * 100);
     const mentalPercentage = Math.round((mentalScore / mentalMax) * 100);
@@ -309,6 +354,15 @@ serve(async (req) => {
 
     console.log(`USER1 QCS: ${user1QCS}, Range: [${qcsRangeMin}, ${qcsRangeMax}]`);
 
+    // Get user's location settings
+    const userLat = user1Profile.latitude;
+    const userLon = user1Profile.longitude;
+    const userState = user1Profile.state;
+    const matchRadius = user1Profile.match_radius_km || 50;
+    const matchByState = user1Profile.match_by_state || false;
+
+    console.log(`📍 Location settings: state=${userState}, radius=${matchRadius}km, stateOnly=${matchByState}`);
+
     // Query candidates within QCS range, excluding USER1, with GENDER FILTERING
     let candidatesQuery = supabaseClient
       .from('profiles')
@@ -318,7 +372,8 @@ serve(async (req) => {
         university, bio, profile_images, height, body_type,
         skin_tone, face_type, values, mindset, personality_type,
         personality_traits, relationship_goals, lifestyle,
-        love_language, field_of_study, profession, education_level
+        love_language, field_of_study, profession, education_level,
+        latitude, longitude, city, state
       `)
       .gte('total_qcs', qcsRangeMin)
       .lte('total_qcs', qcsRangeMax)
@@ -327,24 +382,73 @@ serve(async (req) => {
       .not('first_name', 'is', null)
       .not('last_name', 'is', null);
 
-    // GENDER FILTERING: Apply user's preferred gender filter
-    if (user1Preferences?.preferred_gender?.length > 0) {
-      const normalizedGenders = user1Preferences.preferred_gender
+    // GENDER FILTERING: Automatic opposite gender matching
+    const userGender = user1Profile.gender?.toLowerCase().trim();
+    
+    // Default: Show opposite gender based on user's gender
+    let targetGenders: string[] = [];
+    
+    if (userGender === 'male') {
+      targetGenders = ['female'];
+      console.log('👨 Male user → Showing only Female profiles');
+    } else if (userGender === 'female') {
+      targetGenders = ['male'];
+      console.log('👩 Female user → Showing only Male profiles');
+    } else {
+      // For non-binary or other genders, use preferences if available
+      if (user1Preferences?.preferred_gender?.length > 0) {
+        targetGenders = user1Preferences.preferred_gender
+          .map((g: string) => (typeof g === 'string' ? g.toLowerCase().trim() : ''))
+          .filter((g: string) => g === 'male' || g === 'female');
+      }
+      console.log('🌈 Non-binary/Other gender → Using preferences:', targetGenders);
+    }
+    
+    // Override with user preferences if they explicitly set them (optional enhancement)
+    if (user1Preferences?.preferred_gender?.length > 0 && (userGender === 'male' || userGender === 'female')) {
+      const preferredGenders = user1Preferences.preferred_gender
         .map((g: string) => (typeof g === 'string' ? g.toLowerCase().trim() : ''))
         .filter((g: string) => g === 'male' || g === 'female');
-      console.log('Applying gender filter:', normalizedGenders);
-      if (normalizedGenders.length > 0) {
-        candidatesQuery = candidatesQuery.in('gender', normalizedGenders);
+      
+      if (preferredGenders.length > 0) {
+        targetGenders = preferredGenders;
+        console.log('⚙️ Using user preference override:', targetGenders);
       }
     }
+    
+    // Apply gender filter
+    if (targetGenders.length > 0) {
+      candidatesQuery = candidatesQuery.in('gender', targetGenders);
+      console.log('✅ Gender filter applied:', targetGenders);
+    } else {
+      console.warn('⚠️ No gender filter applied - showing all genders');
+    }
 
-    const { data: candidates, error: candidatesError } = await candidatesQuery.limit(50);
+    // STATE FILTERING: If user prefers state-based matching
+    if (matchByState && userState) {
+      console.log(`🗺️ Applying state filter: ${userState}`);
+      candidatesQuery = candidatesQuery.eq('state', userState);
+    }
+
+    const { data: candidates, error: candidatesError } = await candidatesQuery.limit(100);
 
     if (candidatesError) throw candidatesError;
 
     console.log(`Found ${candidates?.length || 0} candidates in QCS range`);
 
-    if (!candidates || candidates.length === 0) {
+    // DISTANCE FILTERING: Filter by radius if not using state-based matching and user has location
+    let filteredCandidates = candidates || [];
+    if (!matchByState && userLat && userLon) {
+      const beforeCount = filteredCandidates.length;
+      filteredCandidates = filteredCandidates.filter(candidate => {
+        if (!candidate.latitude || !candidate.longitude) return false;
+        const distance = calculateDistance(userLat, userLon, candidate.latitude, candidate.longitude);
+        return distance <= matchRadius;
+      });
+      console.log(`📍 Distance filter: ${beforeCount} → ${filteredCandidates.length} (within ${matchRadius}km)`);
+    }
+
+    if (!filteredCandidates || filteredCandidates.length === 0) {
       return new Response(JSON.stringify({
         success: true,
         user1: {
@@ -371,7 +475,7 @@ serve(async (req) => {
 
     // Calculate deterministic compatibility for each candidate using exact user algorithm
     const results = [];
-    for (const candidate of candidates) {
+    for (const candidate of filteredCandidates) {
       const { deterministic_score, physical_score, mental_score, parsing_issue, debug } = computeCompatibilityWithPreferences(
         user1Profile, 
         candidate, 
@@ -386,6 +490,12 @@ serve(async (req) => {
         ? Math.floor((new Date().getTime() - new Date(candidate.date_of_birth).getTime()) / (1000 * 60 * 60 * 24 * 365.25))
         : null;
 
+      // Calculate distance if both users have location
+      let distance = null;
+      if (userLat && userLon && candidate.latitude && candidate.longitude) {
+        distance = Math.round(calculateDistance(userLat, userLon, candidate.latitude, candidate.longitude));
+      }
+
       results.push({
         candidate_id: candidate.user_id,
         candidate_name: `${candidate.first_name} ${candidate.last_name}`.trim(),
@@ -394,6 +504,10 @@ serve(async (req) => {
         candidate_bio: candidate.bio,
         candidate_images: candidate.profile_images,
         candidate_qcs: candidate.total_qcs || 0,
+        // Location info
+        candidate_location: candidate.city,
+        candidate_state: candidate.state,
+        distance_km: distance,
         // Include all profile fields for detailed view
         candidate_face_type: candidate.face_type,
         candidate_personality_type: candidate.personality_type,

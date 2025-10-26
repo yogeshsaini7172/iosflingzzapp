@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Heart, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
+import HeartAnimation from '@/components/ui/HeartAnimation';
 
 interface SplashScreenProps {
   onContinue: () => void;
@@ -23,7 +24,7 @@ const SplashScreen = ({ onContinue }: SplashScreenProps) => {
         <div className="space-y-6">
           <div className="flex justify-center">
             <div className="relative">
-              <Heart className="w-16 h-16 text-primary animate-pulse-glow" fill="currentColor" />
+              <HeartAnimation size={64} />
               <Sparkles className="w-6 h-6 text-secondary absolute -top-2 -right-2 animate-float" />
             </div>
           </div>

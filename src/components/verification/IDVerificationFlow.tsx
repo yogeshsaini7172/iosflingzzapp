@@ -15,6 +15,7 @@ import {
   Eye,
   Lock
 } from "lucide-react";
+import Loader from '@/components/ui/Loader';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -186,7 +187,7 @@ const IDVerificationFlow = ({ onBack, onComplete, onSkip }: IDVerificationFlowPr
 
             <Button
               onClick={() => setCurrentStep(2)}
-              variant="coral"
+              variant="premium"
               className="w-full rounded-xl h-12 font-semibold"
             >
               Start Verification Process
@@ -327,7 +328,7 @@ const IDVerificationFlow = ({ onBack, onComplete, onSkip }: IDVerificationFlowPr
                 
                 <Button
                   onClick={() => setCurrentStep(3)}
-                  variant="coral"
+                  variant="premium"
                   className="w-full rounded-xl h-12 font-semibold mt-4"
                 >
                   Continue to Review
@@ -338,7 +339,7 @@ const IDVerificationFlow = ({ onBack, onComplete, onSkip }: IDVerificationFlowPr
 
             {isLoading && (
               <div className="text-center space-y-2">
-                <Loader2 className="w-6 h-6 animate-spin mx-auto text-primary" />
+                <Loader size={24} />
                 <p className="text-sm text-muted-foreground font-prompt">
                   Uploading document...
                 </p>
@@ -418,13 +419,13 @@ const IDVerificationFlow = ({ onBack, onComplete, onSkip }: IDVerificationFlowPr
 
             <Button
               onClick={handleSubmitVerification}
-              variant="coral"
+              variant="premium"
               className="w-full rounded-xl h-12 font-semibold"
               disabled={isLoading}
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  <Loader size={20} className="inline-block mr-2" />
                   Submitting for Verification...
                 </>
               ) : (

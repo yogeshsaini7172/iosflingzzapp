@@ -1,0 +1,28 @@
+// Top-level build file
+
+buildscript {
+    // ✅ FIX: Use a Kotlin version compatible with modern AGP
+    ext.kotlin_version = '1.9.22'
+
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {// ✅ FIX: Upgrade AGP to a modern, compatible version
+        classpath 'com.android.tools.build:gradle:8.4.2'
+        classpath 'com.google.gms:google-services:4.4.4' // Updated to a recent, stable version
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+// Apply repositories to all modules
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+tasks.register('clean', Delete) {
+    delete rootProject.layout.buildDirectory
+}

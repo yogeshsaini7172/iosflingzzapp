@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import LocationPermission from '@/components/common/LocationPermission';
 import LocationDisplay from '@/components/common/LocationDisplay';
+import { PremiumTabSlider } from '@/components/ui/premium-tab-slider';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, 
   Camera, 
@@ -235,6 +237,9 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
 
     // Location
     location: null as any,
+    matchRadiusKm: 50,
+    matchByState: false,
+    state: '',
 
     // Personality & Values (arrays)
     personalityTraits: [] as string[],
@@ -260,6 +265,8 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
     preferredFaceType: [] as string[],
     preferredLoveLanguage: [] as string[],
     preferredLifestyle: [] as string[],
+    preferredDrinking: [] as string[],
+    preferredSmoking: [] as string[],
     preferredProfessions: [] as string[],
 
     // Settings - Don't default to true, wait for actual database value
@@ -298,213 +305,174 @@ const EnhancedProfileManagement = ({ onNavigate }: EnhancedProfileManagementProp
 
   // Update form data when profile/preferences load
   useEffect(() => {
-  if (profile) {
-    console.log("📊 Loading profile data into form:", profile);
-    console.log("🔍 Current show_profile value:", profile.show_profile, "Type:", typeof profile.show_profile);
+    // Wrap the entire transform in try/catch to surface silent errors
+    try {
+      if (profile) {
+        console.log("📊 Loading profile data into form:", profile);
+        console.log("🔍 Current show_profile value:", profile.show_profile, "Type:", typeof profile.show_profile);
 
-    // Step 1: Transform profile data
-    const transformedData = {
-      firstName: profile.first_name || '',
-      lastName: profile.last_name || '',
-      bio: profile.bio || '',
-      university: profile.university || '',
-      educationLevel: (profile as any).education_level || '',
-      profession: (profile as any).profession || '',
-      professionDescription: (profile as any).profession_description || '',
-      height: profile.height?.toString() || '',
-      bodyType: transformSingleValueToUI((profile as any).body_type || ''),
-      skinTone: transformSingleValueToUI((profile as any).skin_tone || ''),
-      faceType: transformSingleValueToUI((profile as any).face_type || ''),
-      loveLanguage: transformSingleValueToUI((profile as any).love_language || ''),
-      lifestyle: transformSingleValueToUI((profile as any).lifestyle || ''),
+        // Step 1: Transform profile data
+        const transformedData = {
+          firstName: profile.first_name || '',
+          lastName: profile.last_name || '',
+          bio: profile.bio || '',
+          university: profile.university || '',
+          educationLevel: (profile as any).education_level || '',
+          profession: (profile as any).profession || '',
+          professionDescription: (profile as any).profession_description || '',
+          height: profile.height?.toString() || '',
+          bodyType: transformSingleValueToUI((profile as any).body_type || ''),
+          skinTone: transformSingleValueToUI((profile as any).skin_tone || ''),
+          faceType: transformSingleValueToUI((profile as any).face_type || ''),
+          loveLanguage: transformSingleValueToUI((profile as any).love_language || ''),
+          lifestyle: transformSingleValueToUI((profile as any).lifestyle || ''),
 
-      // Location data
-      location: (profile as any).location ? (() => {
-        try {
-          return JSON.parse((profile as any).location);
-        } catch {
-          return {
-            city: (profile as any).city || '',
-            latitude: (profile as any).latitude || null,
-            longitude: (profile as any).longitude || null,
-            source: 'manual'
-          };
-        }
-      })() : null,
+          // Location data
+          location: (profile as any).location ? (() => {
+            try {
+              return JSON.parse((profile as any).location);
+            } catch {
+              return {
+                city: (profile as any).city || '',
+                latitude: (profile as any).latitude || null,
+                longitude: (profile as any).longitude || null,
+                source: 'manual'
+              };
+            }
+          })() : null,
+          matchRadiusKm: (profile as any).match_radius_km || 50,
+          matchByState: (profile as any).match_by_state || false,
+          state: (profile as any).state || '',
 
-      // Normalize arrays into UI key format
-      personalityTraits: transformDatabaseToUI((profile as any).personality_traits || []),
-      values: transformDatabaseToUI(
-        Array.isArray((profile as any).values)
-          ? (profile as any).values
-          : Array.isArray((profile as any).values_array)
-            ? (profile as any).values_array
-            : (profile as any).values
-              ? [(profile as any).values]
-              : []
-      ),
-      mindset: transformDatabaseToUI(
-        Array.isArray((profile as any).mindset)
-          ? (profile as any).mindset
-          : (profile as any).mindset
-            ? [(profile as any).mindset]
-            : []
-      ),
-      relationshipGoals: transformDatabaseToUI(profile.relationship_goals || []),
-      interests: Array.isArray(profile.interests) ? transformDatabaseToUI(profile.interests as any) : [],
-      isVisible: typeof profile.show_profile === 'boolean' ? profile.show_profile : true,
-      profileImages: profile.profile_images || [],
-    };
+          // Normalize arrays into UI key format
+          personalityTraits: transformDatabaseToUI((profile as any).personality_traits || []),
+          values: transformDatabaseToUI(
+            Array.isArray((profile as any).values)
+              ? (profile as any).values
+              : Array.isArray((profile as any).values_array)
+                ? (profile as any).values_array
+                : (profile as any).values
+                  ? [(profile as any).values]
+                  : []
+          ),
+          mindset: transformDatabaseToUI(
+            Array.isArray((profile as any).mindset)
+              ? (profile as any).mindset
+              : (profile as any).mindset
+                ? [(profile as any).mindset]
+                : []
+          ),
+          relationshipGoals: transformDatabaseToUI(profile.relationship_goals || []),
+          interests: Array.isArray(profile.interests) ? transformDatabaseToUI(profile.interests as any) : [],
+          isVisible: typeof profile.show_profile === 'boolean' ? profile.show_profile : true,
+          profileImages: profile.profile_images || [],
+        };
 
-    console.log("🔄 Setting isVisible to:", typeof profile.show_profile === 'boolean' ? profile.show_profile : true);
+        console.log("🔄 Setting isVisible to:", typeof profile.show_profile === 'boolean' ? profile.show_profile : true);
 
-    // Step 2: Debug transformed data
-    console.log("🔄 Transformed data:", transformedData);
+        // Step 2: Debug transformed data
+        console.log("🔄 Transformed data:", transformedData);
 
-    // Step 3: Update formData only if we haven't loaded profile data before or if the visibility changed
-    setFormData(prev => ({
-      ...prev,
-      ...transformedData,
-    }));
+        // Step 3: Update formData only if we haven't loaded profile data before or if the visibility changed
+        setFormData(prev => ({
+          ...prev,
+          ...transformedData,
+        }));
 
-    // Mark that we've loaded profile data
-    setHasLoadedProfileData(true);
+        // Mark that we've loaded profile data
+        setHasLoadedProfileData(true);
 
-    // Debug: Log transformed values
-    console.log("🔄 Transformed profile values:", {
-      bodyType: transformSingleValueToUI((profile as any).body_type || ''),
-      skinTone: transformSingleValueToUI((profile as any).skin_tone || ''),
-      personalityTraits: transformDatabaseToUI((profile as any).personality_traits || []),
-      values: transformDatabaseToUI((profile as any).values || []),
-      mindset: transformDatabaseToUI((profile as any).mindset || []),
-      relationshipGoals: transformDatabaseToUI(profile.relationship_goals || []),
-    });
+        // Debug: Log transformed values
+        console.log("🔄 Transformed profile values:", {
+          bodyType: transformSingleValueToUI((profile as any).body_type || ''),
+          skinTone: transformSingleValueToUI((profile as any).skin_tone || ''),
+          personalityTraits: transformDatabaseToUI((profile as any).personality_traits || []),
+          values: transformDatabaseToUI((profile as any).values || []),
+          mindset: transformDatabaseToUI((profile as any).mindset || []),
+          relationshipGoals: transformDatabaseToUI(profile.relationship_goals || []),
+        });
 
-    // Debug: Log raw database values
-    console.log("🗄️ Raw database values:", {
-      personality_traits: (profile as any).personality_traits,
-      values: (profile as any).values,
-      mindset: (profile as any).mindset,
-      relationship_goals: profile.relationship_goals,
-    });
+        // Debug: Log raw database values
+        console.log("🗄️ Raw database values:", {
+          personality_traits: (profile as any).personality_traits,
+          values: (profile as any).values,
+          mindset: (profile as any).mindset,
+          relationship_goals: profile.relationship_goals,
+        });
 
-    // ❗ At this point `formData` is NOT updated yet because `setFormData` is async
-    // If you want to log the final state, use another useEffect([formData]) instead
-  }
+        // ❗ At this point `formData` is NOT updated yet because `setFormData` is async
+        // If you want to log the final state, use another useEffect([formData]) instead
+      }
 
-  if (preferences) {
-    console.log("📊 Loading preferences data into form:", preferences);
+      if (preferences) {
+        console.log("📊 Loading preferences data into form:", preferences);
 
-  setFormData(prev => ({
-      ...prev,
-      preferredGender: Array.isArray(preferences.preferred_gender)
-        ? transformDatabaseToUI(preferences.preferred_gender.map(g => g.toString()))
-        : ['male', 'female'], // Default to both genders
-      ageRangeMin: preferences.age_range_min || 18,
-      ageRangeMax: preferences.age_range_max || 30,
-      heightRangeMin: preferences.height_range_min || 150,
-      heightRangeMax: preferences.height_range_max || 200,
-      preferredBodyTypes:
-        Array.isArray(preferences.preferred_body_types) && preferences.preferred_body_types.length > 0
-          ? transformDatabaseToUI(preferences.preferred_body_types)
-          : ['slim', 'athletic', 'average'],
-      preferredValues:
-        Array.isArray(preferences.preferred_values) && preferences.preferred_values.length > 0
-          ? transformDatabaseToUI(preferences.preferred_values)
-          : ['family_oriented', 'career_focused'],
-      preferredMindset:
-        Array.isArray(preferences.preferred_mindset) && preferences.preferred_mindset.length > 0
-          ? transformDatabaseToUI(preferences.preferred_mindset)
-          : ['growth_mindset'],
-      preferredPersonalityTraits:
-        Array.isArray(preferences.preferred_personality_traits) && preferences.preferred_personality_traits.length > 0
-          ? transformDatabaseToUI(preferences.preferred_personality_traits)
-          : ['outgoing', 'empathetic'],
-      preferredRelationshipGoal:
-        Array.isArray((preferences as any).preferred_relationship_goals)
-          ? transformDatabaseToUI((preferences as any).preferred_relationship_goals)
-          : Array.isArray((preferences as any).preferred_relationship_goal)
-            ? transformDatabaseToUI((preferences as any).preferred_relationship_goal)
-            : ['serious_relationship'],
-      preferredSkinTone: Array.isArray((preferences as any).preferred_skin_tone)
-        ? transformDatabaseToUI((preferences as any).preferred_skin_tone)
-        : Array.isArray((preferences as any).preferred_skin_types)
-          ? transformDatabaseToUI((preferences as any).preferred_skin_types)
-          : [],
-      preferredFaceType: Array.isArray((preferences as any).preferred_face_types)
-        ? transformDatabaseToUI((preferences as any).preferred_face_types)
-        : Array.isArray((preferences as any).preferred_face_type)
-          ? transformDatabaseToUI((preferences as any).preferred_face_type)
-          : [],
-      preferredLoveLanguage: Array.isArray((preferences as any).preferred_love_languages)
-        ? transformDatabaseToUI((preferences as any).preferred_love_languages)
-        : Array.isArray((preferences as any).preferred_love_language)
-          ? transformDatabaseToUI((preferences as any).preferred_love_language)
-          : [],
-      preferredLifestyle: Array.isArray(preferences.preferred_lifestyle) 
-        ? transformDatabaseToUI(preferences.preferred_lifestyle) 
-        : [],
-      preferredProfessions: Array.isArray((preferences as any).preferred_professions)
-        ? (preferences as any).preferred_professions
-        : [],
-    }));
-  }
-
-  if (preferences) {
-    console.log("📊 Loading preferences data into form:", preferences);
-
-  setFormData(prev => ({
-      ...prev,
-      preferredGender: Array.isArray(preferences.preferred_gender)
-        ? transformDatabaseToUI(preferences.preferred_gender.map(g => g.toString()))
-        : ['male', 'female'], // Default to both genders
-      ageRangeMin: preferences.age_range_min || 18,
-      ageRangeMax: preferences.age_range_max || 30,
-      heightRangeMin: preferences.height_range_min || 150,
-      heightRangeMax: preferences.height_range_max || 200,
-      preferredBodyTypes:
-        Array.isArray(preferences.preferred_body_types) && preferences.preferred_body_types.length > 0
-          ? transformDatabaseToUI(preferences.preferred_body_types)
-          : ['slim', 'athletic', 'average'],
-      preferredValues:
-        Array.isArray(preferences.preferred_values) && preferences.preferred_values.length > 0
-          ? transformDatabaseToUI(preferences.preferred_values)
-          : ['family_oriented', 'career_focused'],
-      preferredMindset:
-        Array.isArray(preferences.preferred_mindset) && preferences.preferred_mindset.length > 0
-          ? transformDatabaseToUI(preferences.preferred_mindset)
-          : ['growth_mindset'],
-      preferredPersonalityTraits:
-        Array.isArray(preferences.preferred_personality_traits) && preferences.preferred_personality_traits.length > 0
-          ? transformDatabaseToUI(preferences.preferred_personality_traits)
-          : ['outgoing', 'empathetic'],
-      preferredRelationshipGoal:
-        Array.isArray((preferences as any).preferred_relationship_goals)
-          ? transformDatabaseToUI((preferences as any).preferred_relationship_goals)
-          : Array.isArray((preferences as any).preferred_relationship_goal)
-            ? transformDatabaseToUI((preferences as any).preferred_relationship_goal)
-            : ['serious_relationship'],
-      preferredSkinTone: Array.isArray((preferences as any).preferred_skin_tone)
-        ? transformDatabaseToUI((preferences as any).preferred_skin_tone)
-        : Array.isArray((preferences as any).preferred_skin_types)
-          ? transformDatabaseToUI((preferences as any).preferred_skin_types)
-          : [],
-      preferredFaceType: Array.isArray((preferences as any).preferred_face_types)
-        ? transformDatabaseToUI((preferences as any).preferred_face_types)
-        : Array.isArray((preferences as any).preferred_face_type)
-          ? transformDatabaseToUI((preferences as any).preferred_face_type)
-          : [],
-      preferredLoveLanguage: Array.isArray((preferences as any).preferred_love_languages)
-        ? transformDatabaseToUI((preferences as any).preferred_love_languages)
-        : Array.isArray((preferences as any).preferred_love_language)
-          ? transformDatabaseToUI((preferences as any).preferred_love_language)
-          : [],
-      preferredLifestyle: Array.isArray(preferences.preferred_lifestyle) 
-        ? transformDatabaseToUI(preferences.preferred_lifestyle) 
-        : [],
-    }));
-  }
-}, [profile, preferences]);
+        setFormData(prev => ({
+          ...prev,
+          preferredGender: Array.isArray(preferences.preferred_gender)
+            ? transformDatabaseToUI(preferences.preferred_gender.map((g: any) => g.toString()))
+            : ['male', 'female'], // Default to both genders
+          ageRangeMin: preferences.age_range_min || 18,
+          ageRangeMax: preferences.age_range_max || 30,
+          heightRangeMin: preferences.height_range_min || 150,
+          heightRangeMax: preferences.height_range_max || 200,
+          preferredBodyTypes:
+            Array.isArray(preferences.preferred_body_types) && preferences.preferred_body_types.length > 0
+              ? transformDatabaseToUI(preferences.preferred_body_types)
+              : ['slim', 'athletic', 'average'],
+          preferredValues:
+            Array.isArray(preferences.preferred_values) && preferences.preferred_values.length > 0
+              ? transformDatabaseToUI(preferences.preferred_values)
+              : ['family_oriented', 'career_focused'],
+          preferredMindset:
+            Array.isArray(preferences.preferred_mindset) && preferences.preferred_mindset.length > 0
+              ? transformDatabaseToUI(preferences.preferred_mindset)
+              : ['growth_mindset'],
+          preferredPersonalityTraits:
+            Array.isArray(preferences.preferred_personality_traits) && preferences.preferred_personality_traits.length > 0
+              ? transformDatabaseToUI(preferences.preferred_personality_traits)
+              : ['outgoing', 'empathetic'],
+          preferredRelationshipGoal:
+            Array.isArray((preferences as any).preferred_relationship_goals)
+              ? transformDatabaseToUI((preferences as any).preferred_relationship_goals)
+              : Array.isArray((preferences as any).preferred_relationship_goal)
+                ? transformDatabaseToUI((preferences as any).preferred_relationship_goal)
+                : ['serious_relationship'],
+          preferredSkinTone: Array.isArray((preferences as any).preferred_skin_tone)
+            ? transformDatabaseToUI((preferences as any).preferred_skin_tone)
+            : Array.isArray((preferences as any).preferred_skin_types)
+              ? transformDatabaseToUI((preferences as any).preferred_skin_types)
+              : [],
+          preferredFaceType: Array.isArray((preferences as any).preferred_face_types)
+            ? transformDatabaseToUI((preferences as any).preferred_face_types)
+            : Array.isArray((preferences as any).preferred_face_type)
+              ? transformDatabaseToUI((preferences as any).preferred_face_type)
+              : [],
+          preferredLoveLanguage: Array.isArray((preferences as any).preferred_love_languages)
+            ? transformDatabaseToUI((preferences as any).preferred_love_languages)
+            : Array.isArray((preferences as any).preferred_love_language)
+              ? transformDatabaseToUI((preferences as any).preferred_love_language)
+              : [],
+          preferredLifestyle: Array.isArray(preferences.preferred_lifestyle) 
+            ? transformDatabaseToUI(preferences.preferred_lifestyle) 
+            : [],
+          preferredDrinking: Array.isArray((preferences as any).preferred_drinking)
+            ? transformDatabaseToUI((preferences as any).preferred_drinking)
+            : [],
+          preferredSmoking: Array.isArray((preferences as any).preferred_smoking)
+            ? transformDatabaseToUI((preferences as any).preferred_smoking)
+            : [],
+          preferredProfessions: Array.isArray((preferences as any).preferred_professions)
+            ? (preferences as any).preferred_professions
+            : [],
+        }));
+      }
+    } catch (err) {
+      console.error('Error transforming profile/preferences into formData:', err);
+      // Ensure we don't leave the UI stuck on the loader if transform fails
+      setHasLoadedProfileData(true);
+    }
+  }, [profile, preferences]);
 
 // Debug: print final form data after any change
 useEffect(() => {
@@ -560,8 +528,11 @@ useEffect(() => {
         location: formData.location ? JSON.stringify(formData.location) : null,
         latitude: formData.location?.latitude || null,
         longitude: formData.location?.longitude || null,
-        city: formData.location?.city || null
-      });
+        city: formData.location?.city || null,
+        state: formData.state || formData.location?.region || null,
+        match_radius_km: formData.matchRadiusKm || 50,
+        match_by_state: formData.matchByState || false
+      } as any);
 
       // Update preferences with validation
       const preferencesToUpdate = {
@@ -579,6 +550,8 @@ useEffect(() => {
         preferred_face_types: formData.preferredFaceType,
         preferred_love_languages: formData.preferredLoveLanguage,
         preferred_lifestyle: formData.preferredLifestyle,
+        preferred_drinking: formData.preferredDrinking,
+        preferred_smoking: formData.preferredSmoking,
         preferred_professions: formData.preferredProfessions
       };
 
@@ -610,16 +583,11 @@ useEffect(() => {
     setFormData(prev => ({ ...prev, [field]: newArray }));
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading your profile...</p>
-        </div>
-      </div>
-    );
-  }
+  // Removed loading screen - app-level heart loading handles this
+  // Profile data will populate as it loads
+
+  // Removed debug loading screen - profile will load inline
+  // Data loads while user can see and interact with the UI
 
   const personalityTraitOptions = [
     "Adventurous", "Analytical", "Creative", "Outgoing", "Introverted", 
@@ -723,15 +691,18 @@ useEffect(() => {
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label>University</Label>
-        <Input
-          value={formData.university}
-          onChange={(e) => setFormData(prev => ({...prev, university: e.target.value}))}
-          placeholder="Enter your university"
-          className="border-primary/20 focus:border-primary"
-        />
-      </div>
+      {/* Show University only for Students */}
+      {(!formData.profession || formData.profession.toLowerCase() === 'student') && (
+        <div className="space-y-2">
+          <Label>University</Label>
+          <Input
+            value={formData.university}
+            onChange={(e) => setFormData(prev => ({...prev, university: e.target.value}))}
+            placeholder="Enter your university"
+            className="border-primary/20 focus:border-primary"
+          />
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
@@ -749,7 +720,7 @@ useEffect(() => {
         </div>
         
         <div className="space-y-2">
-          <Label>Profession (Optional)</Label>
+          <Label>Profession</Label>
           <Input
             value={formData.profession}
             onChange={(e) => setFormData(prev => ({...prev, profession: e.target.value}))}
@@ -759,16 +730,19 @@ useEffect(() => {
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label>About Your Profession (Optional)</Label>
-        <Textarea
-          value={formData.professionDescription}
-          onChange={(e) => setFormData(prev => ({...prev, professionDescription: e.target.value}))}
-          placeholder="Describe your profession, what you do, or your career goals..."
-          className="border-primary/20 focus:border-primary min-h-[80px]"
-          rows={3}
-        />
-      </div>
+      {/* Show About Your Work only for non-students */}
+      {formData.profession && formData.profession.toLowerCase() !== 'student' && (
+        <div className="space-y-2">
+          <Label>About Your Work</Label>
+          <Textarea
+            value={formData.professionDescription}
+            onChange={(e) => setFormData(prev => ({...prev, professionDescription: e.target.value}))}
+            placeholder="Describe your work, what you do, your role, or your career..."
+            className="border-primary/20 focus:border-primary min-h-[80px]"
+            rows={3}
+          />
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label>Email</Label>
@@ -781,44 +755,122 @@ useEffect(() => {
     </div>
   );
 
-  const renderLocationSection = () => (
-    <div className="space-y-6">
-      <div className="text-center mb-6">
-        <h3 className="text-lg font-semibold mb-2">Location Settings</h3>
-        <p className="text-muted-foreground text-sm">Manage your location preferences for better matching</p>
-      </div>
-
-      <LocationPermission
-        onLocationUpdate={(location) => {
-          setFormData(prev => ({
-            ...prev,
-            location: {
-              latitude: location.latitude,
-              longitude: location.longitude,
-              city: location.city,
-              region: location.region,
-              country: location.country,
-              address: location.address,
-              source: location.source
-            }
-          }));
-        }}
-        showCard={false}
-        autoFetch={true}
-        className="space-y-4"
-      />
-
-      {formData.location && (
-        <div className="mt-4">
-          <LocationDisplay
-            location={JSON.stringify(formData.location)}
-            showSource={true}
-            className="text-sm"
-          />
+  const renderLocationSection = () => {
+    const radius = formData.matchRadiusKm || 50;
+    
+    return (
+      <div className="space-y-6">
+        <div className="text-center mb-6">
+          <h3 className="text-lg font-semibold mb-2">Location Settings</h3>
+          <p className="text-muted-foreground text-sm">Manage your location preferences for better matching</p>
         </div>
-      )}
-    </div>
-  );
+
+        <LocationPermission
+          onLocationUpdate={(location) => {
+            setFormData(prev => ({
+              ...prev,
+              location: {
+                latitude: location.latitude,
+                longitude: location.longitude,
+                city: location.city,
+                region: location.region,
+                country: location.country,
+                address: location.address,
+                source: location.source
+              },
+              state: location.region || prev.state
+            }));
+          }}
+          showCard={false}
+          autoFetch={true}
+          className="space-y-4"
+        />
+
+        {formData.location && (
+          <div className="mt-4">
+            <LocationDisplay
+              location={JSON.stringify(formData.location)}
+              showSource={true}
+              className="text-sm"
+            />
+          </div>
+        )}
+
+        {/* Matching Preferences Card */}
+        {formData.location && (
+          <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="w-5 h-5 text-primary" />
+                Matching Preferences
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* State-wise matching toggle */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <MapPin className="w-5 h-5 text-primary" />
+                    <div>
+                      <Label htmlFor="state-match-edit" className="font-medium">
+                        Match by State Only
+                      </Label>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {formData.state ? `Show only profiles from ${formData.state}` : 'Set your state to enable'}
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    id="state-match-edit"
+                    checked={formData.matchByState || false}
+                    onCheckedChange={(checked) => 
+                      setFormData(prev => ({ ...prev, matchByState: checked }))
+                    }
+                    disabled={!formData.state}
+                  />
+                </div>
+              </div>
+
+              {/* Radius slider - disabled when state-wise matching is enabled */}
+              {!formData.matchByState && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Move className="w-5 h-5 text-primary" />
+                      <Label className="font-medium">Match Radius</Label>
+                    </div>
+                    <Badge variant="secondary" className="text-sm">
+                      {radius} km
+                    </Badge>
+                  </div>
+                  <Slider
+                    value={[radius]}
+                    onValueChange={(value) => 
+                      setFormData(prev => ({ ...prev, matchRadiusKm: value[0] }))
+                    }
+                    min={10}
+                    max={500}
+                    step={10}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>10 km</span>
+                    <span>500 km</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground text-center">
+                    {radius < 50 && "🏘️ Nearby area"}
+                    {radius >= 50 && radius < 150 && "🌆 Same city & surroundings"}
+                    {radius >= 150 && radius < 300 && "🗺️ Regional matches"}
+                    {radius >= 300 && "🌍 Nationwide matches"}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  };
 
   const renderWhatYouAre = () => (
     <div className="space-y-6">
@@ -1370,6 +1422,54 @@ useEffect(() => {
           </div>
 
           <div className="space-y-3">
+            <Label>Preferred Drinking Habits</Label>
+            <div className="flex flex-wrap gap-2">
+              {['Never', 'Socially', 'Regularly', 'Any'].map((habit) => {
+                const habitKey = habit.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                const isSelected = formData.preferredDrinking.includes(habitKey);
+                return (
+                  <Badge
+                    key={habit}
+                    variant={isSelected ? "default" : "outline"}
+                    className={`cursor-pointer ${
+                      isSelected 
+                        ? 'bg-gradient-primary text-white hover:opacity-90' 
+                        : 'border-primary/20 hover:border-primary'
+                    }`}
+                    onClick={() => toggleArrayItem('preferredDrinking', habitKey)}
+                  >
+                    {habit}
+                  </Badge>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <Label>Preferred Smoking Habits</Label>
+            <div className="flex flex-wrap gap-2">
+              {['Never', 'Socially', 'Regularly', 'Any'].map((habit) => {
+                const habitKey = habit.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                const isSelected = formData.preferredSmoking.includes(habitKey);
+                return (
+                  <Badge
+                    key={habit}
+                    variant={isSelected ? "default" : "outline"}
+                    className={`cursor-pointer ${
+                      isSelected 
+                        ? 'bg-gradient-primary text-white hover:opacity-90' 
+                        : 'border-primary/20 hover:border-primary'
+                    }`}
+                    onClick={() => toggleArrayItem('preferredSmoking', habitKey)}
+                  >
+                    {habit}
+                  </Badge>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-3">
             <Label>Preferred Professions (Optional)</Label>
             <div className="flex flex-wrap gap-2">
               {PROFESSIONS.map((profession) => {
@@ -1693,26 +1793,42 @@ useEffect(() => {
     </div>
   );
 
-  const tabs = [
-    { id: 'basic', label: 'Basic Info', icon: User },
-    { id: 'location', label: 'Location', icon: MapPin },
-    { id: 'what-you-are', label: 'What You Are', icon: User },
-    { id: 'who-you-want', label: 'Who You Want', icon: Heart },
+  // Main navigation tabs
+  const mainTabs = [
+    { id: 'basic', label: 'Basic', icon: User },
     { id: 'photos', label: 'Photos', icon: Camera },
     { id: 'privacy', label: 'Privacy', icon: Shield }
   ];
 
+  // Slider tabs for the three-section slider
+  const sliderTabs = [
+    { id: 'location', label: 'Location', icon: <MapPin size={20} /> },
+    { id: 'what-you-are', label: 'You Are', icon: <User size={20} /> },
+    { id: 'who-you-want', label: 'You Want', icon: <Heart size={20} /> }
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted pb-20">
-      {/* Header - Consistent with other sections */}
-      <div className="bg-card/80 backdrop-blur-md border-b border-border/50 px-4 py-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="sm" onClick={() => onNavigate('home')} className="text-foreground hover:text-foreground hover:bg-muted p-2">
+    <div className="min-h-screen bg-background pb-20">
+      {/* Premium Background Effects */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-20 left-10 w-96 h-96 bg-primary/10 rounded-full blur-[120px] animate-float" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/10 rounded-full blur-[120px] animate-float delay-200" />
+      </div>
+
+      {/* Header - Premium Style */}
+      <div className="glass-premium border-b border-white/10 px-4 py-3 safe-area-top relative z-10">
+        <div className="flex items-center justify-between max-w-2xl mx-auto">
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="glass" 
+              size="icon-sm" 
+              onClick={() => onNavigate('home')} 
+              className="hover-lift"
+            >
               <ArrowLeft className="w-4 h-4" />
             </Button>
-            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/40 bg-gradient-primary flex items-center justify-center">
-              {formData.profileImages && formData.profileImages.length > 0 && formData.profileImages[0] ? (
+            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/40 shadow-glow">
+              {formData.profileImages?.[0] ? (
                 <img
                   src={formData.profileImages[0]}
                   alt="Profile"
@@ -1720,137 +1836,136 @@ useEffect(() => {
                   onError={e => { (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.user_id || 'default'}`; }}
                 />
               ) : (
-                <span className="text-primary-foreground font-bold text-sm">DS</span>
+                <div className="w-full h-full bg-gradient-primary flex items-center justify-center">
+                  <User className="w-5 h-5 text-white" />
+                </div>
               )}
             </div>
-            <h1 className="text-base font-display font-bold text-foreground">Profile</h1>
+            <h1 className="text-lg font-bold gradient-text">Profile</h1>
           </div>
-          <div className="flex items-center gap-2">
-            <Button className="bg-gradient-primary text-primary-foreground text-sm px-4 py-2" onClick={handleSaveChanges}>
-              Save
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <div className="container mx-auto px-4 py-6 max-w-2xl pb-24">
-        {/* Profile Summary Card */}
-        <Card className="mb-6 shadow-glow border-border/50 overflow-hidden bg-card/80 backdrop-blur-sm">
-          <div className="bg-gradient-primary p-6 text-primary-foreground">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white/20">
-                {formData.profileImages[0] ? (
-                  <img
-                    src={formData.profileImages[0] || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.user_id || 'default'}`}
-                    alt="Profile"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=profile-${profile?.user_id || 'default'}`;
-                    }}
-                  />
-                 ) : (
-                   <div className="w-full h-full bg-white/20 flex items-center justify-center">
-                     <User className="w-8 h-8 text-white/60" />
-                   </div>
-                 )}
-               </div>
-               <div>
-                 <h2 className="text-xl font-bold">{formData.firstName} {formData.lastName}</h2>
-                 <div className="flex items-center gap-2 text-white/90">
-                   <Calendar className="w-4 h-4" />
-                   <span className="text-sm">{profile?.university || 'University'}</span>
-                 </div>
-               </div>
-             </div>
-           </div>
-         </Card>
-
-         {/* Tabs - Fixed Mobile Layout */}
-         <Card className="mb-6 shadow-glow border-border/50 bg-card/80 backdrop-blur-sm">
-           <div className="flex gap-1 p-2 overflow-x-auto scrollbar-hide">
-             {tabs.map(({ id, label, icon: Icon }) => (
-               <Button
-                 key={id}
-                 variant={activeTab === id ? "default" : "ghost"}
-                 onClick={() => setActiveTab(id as any)}
-                 className={`shrink-0 px-3 py-2 text-xs font-medium transition-all ${
-                   activeTab === id 
-                     ? 'bg-primary text-primary-foreground shadow-sm' 
-                     : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                 }`}
-                 size="sm"
-               >
-                 <Icon className="w-3 h-3 mr-1" />
-                 {id === 'what-you-are' ? 'You Are' : id === 'who-you-want' ? 'You Want' : label.split(' ')[0]}
-               </Button>
-             ))}
-           </div>
-         </Card>
-
-        {/* Tab Content */}
-        <Card className="shadow-glow border-border/50 bg-card/80 backdrop-blur-sm">
-          <CardContent className="p-6">
-            {activeTab === 'basic' && renderBasicInfo()}
-            {activeTab === 'location' && renderLocationSection()}
-            {activeTab === 'what-you-are' && renderWhatYouAre()}
-            {activeTab === 'who-you-want' && renderWhoYouWant()}
-            {activeTab === 'photos' && renderPhotos()}
-            {activeTab === 'privacy' && renderPrivacy()}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Bottom Navigation */}
-      <div className="hidden">
-        <div className="flex justify-center space-x-8 max-w-md mx-auto">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onNavigate('home')}
-            className="flex flex-col items-center space-y-1 text-muted-foreground hover:text-foreground"
-          >
-            <div className="p-2">
-              <User className="w-5 h-5" />
-            </div>
-            <span className="text-xs">Home</span>
-          </Button>
-          
-          <Button
-            variant="ghost"
+          <Button 
+            variant="premium" 
             size="sm" 
-            onClick={() => onNavigate('swipe')}
-            className="flex flex-col items-center space-y-1 text-muted-foreground hover:text-foreground"
+            onClick={handleSaveChanges}
+            className="shadow-glow"
           >
-            <div className="p-2">
-              <Heart className="w-5 h-5" />
-            </div>
-            <span className="text-xs">Swipe</span>
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onNavigate('matches')}
-            className="flex flex-col items-center space-y-1 text-muted-foreground hover:text-foreground"
-          >
-            <div className="p-2">
-              <Users className="w-5 h-5" />
-            </div>
-            <span className="text-xs">Matches</span>
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            className="flex flex-col items-center space-y-1 text-primary"
-          >
-            <div className="p-2 bg-gradient-primary rounded-lg">
-              <User className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xs">Profile</span>
+            <Sparkles className="w-4 h-4 mr-1" />
+            Save
           </Button>
         </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-6 max-w-2xl pb-24 relative z-10">
+        {/* Premium Profile Header Card */}
+        <Card className="premium-card mb-6 overflow-hidden group animate-fade-in">
+          <div className="relative">
+            {/* Gradient Background */}
+            <div className="absolute inset-0 bg-gradient-hero opacity-90" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+            
+            {/* Content */}
+            <div className="relative p-6">
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-white/30 shadow-elegant hover-lift transition-all duration-300">
+                    {formData.profileImages?.[0] ? (
+                      <img
+                        src={formData.profileImages[0]}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=profile-${profile?.user_id || 'default'}`;
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-white/20 flex items-center justify-center">
+                        <User className="w-10 h-10 text-white/60" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-primary rounded-full flex items-center justify-center border-2 border-background shadow-elegant">
+                    <Sparkles className="w-3 h-3 text-white" />
+                  </div>
+                </div>
+                
+                <div className="flex-1">
+                  <h2 className="text-2xl font-bold text-white mb-1">
+                    {formData.firstName} {formData.lastName}
+                  </h2>
+                  <div className="flex items-center gap-2 text-white/90">
+                    <GraduationCap className="w-4 h-4" />
+                    <span className="text-sm font-medium">{profile?.university || 'University'}</span>
+                  </div>
+                  {formData.profession && (
+                    <div className="flex items-center gap-2 text-white/80 mt-1">
+                      <Sparkles className="w-3 h-3" />
+                      <span className="text-xs">{formData.profession}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Main Navigation Tabs */}
+        <Card className="premium-card mb-4 animate-fade-in delay-100">
+          <div className="flex gap-2 p-2">
+            {mainTabs.map(({ id, label, icon: Icon }) => (
+              <Button
+                key={id}
+                variant={activeTab === id ? "premium" : "glass"}
+                onClick={() => setActiveTab(id as any)}
+                className={`flex-1 px-4 py-3 text-sm font-semibold transition-all hover-lift ${
+                  activeTab === id 
+                    ? 'shadow-glow' 
+                    : 'hover:shadow-soft'
+                }`}
+                size="sm"
+              >
+                <Icon className="w-4 h-4 mr-2" />
+                {label}
+              </Button>
+            ))}
+          </div>
+        </Card>
+
+        {/* Premium Slider Navigation - Always visible, highlights active */}
+        <div className="mb-6">
+          <div className="text-center mb-3">
+            <h3 className="text-sm font-semibold text-muted-foreground">Profile Sections</h3>
+          </div>
+          <PremiumTabSlider 
+            tabs={sliderTabs}
+            activeTab={activeTab} 
+            onTabChange={(tab) => setActiveTab(tab as any)}
+          />
+        </div>
+
+        {/* Premium Content Card with animation */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ 
+              duration: 0.4,
+              ease: [0.4, 0, 0.2, 1]
+            }}
+          >
+            <Card className="premium-card overflow-hidden">
+              <CardContent className="p-6">
+                {activeTab === 'basic' && renderBasicInfo()}
+                {activeTab === 'location' && renderLocationSection()}
+                {activeTab === 'what-you-are' && renderWhatYouAre()}
+                {activeTab === 'who-you-want' && renderWhoYouWant()}
+                {activeTab === 'photos' && renderPhotos()}
+                {activeTab === 'privacy' && renderPrivacy()}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );

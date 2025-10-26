@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageCircle, Check, X, Clock, Heart } from "lucide-react";
+import Loader from '@/components/ui/Loader';
 import { useRequiredAuth } from "@/hooks/useRequiredAuth";
 import { useRealtime } from "@/hooks/useRealtime";
 import { toast } from "@/hooks/use-toast";
@@ -85,7 +86,7 @@ const ChatRequestsModal = ({ isOpen, onClose, onNavigate }: ChatRequestsModalPro
     
     try {
       setLoading(true);
-      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-request-handler', {
+      const response = await fetchWithFirebaseAuth('/functions/v1/chat-request-handler', {
         method: 'POST',
         body: JSON.stringify({ 
           action: 'get_requests'
@@ -118,7 +119,7 @@ const ChatRequestsModal = ({ isOpen, onClose, onNavigate }: ChatRequestsModalPro
   const handleResponse = async (requestId: string, status: 'accepted' | 'declined') => {
     setResponding(requestId);
     try {
-      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/chat-request-handler', {
+      const response = await fetchWithFirebaseAuth('/functions/v1/chat-request-handler', {
         method: 'POST',
         body: JSON.stringify({
           action: 'respond_request',
@@ -180,8 +181,7 @@ const ChatRequestsModal = ({ isOpen, onClose, onNavigate }: ChatRequestsModalPro
         <ScrollArea className="max-h-96">
           {loading ? (
             <div className="p-8 text-center text-muted-foreground">
-              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              Loading requests...
+              <Loader size={56} text="Loading requests..." />
             </div>
           ) : requests.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
@@ -252,7 +252,7 @@ const ChatRequestsModal = ({ isOpen, onClose, onNavigate }: ChatRequestsModalPro
                               className="h-8 px-3"
                             >
                               {responding === request.id ? (
-                                <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin mr-1" />
+                                <Loader size={18} />
                               ) : (
                                 <Check className="w-3 h-3 mr-1" />
                               )}

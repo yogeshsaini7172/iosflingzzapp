@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Heart, X, Crown, Zap } from 'lucide-react';
+import Loader from '@/components/ui/Loader';
 
 interface SwipeManagerProps {
   onUpgrade?: () => void;
@@ -184,7 +185,7 @@ const SwipeManager = ({ onUpgrade }: SwipeManagerProps) => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Loader size={32} />
       </div>
     );
   }
@@ -229,37 +230,40 @@ const SwipeManager = ({ onUpgrade }: SwipeManagerProps) => {
         )}
       </div>
 
-      {/* Profile Card */}
-      <Card className="overflow-hidden shadow-lg">
-        <div className="relative">
-          {/* Profile Image */}
-          <div className="aspect-[3/4] bg-gradient-subtle">
-            {currentCandidate.profile_images?.[0] ? (
-              <img
-                src={currentCandidate.profile_images[0]}
-                alt={currentCandidate.first_name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-muted">
-                <div className="text-center">
-                  <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-2">
-                    <span className="text-2xl font-bold text-primary">
-                      {currentCandidate.first_name[0]}
-                    </span>
+      {/* Tinder-Style Profile Card */}
+      <Card className="shadow-lg border-0 bg-white dark:bg-gray-900 rounded-2xl max-w-sm mx-auto">
+        {/* Card padding wrapper */}
+        <div className="p-3">
+          {/* Profile Image Container with rounded corners */}
+          <div className="relative overflow-hidden rounded-2xl">
+            <div className="aspect-[3/4] bg-gradient-subtle">
+              {currentCandidate.profile_images?.[0] ? (
+                <img
+                  src={currentCandidate.profile_images[0]}
+                  alt={currentCandidate.first_name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-muted">
+                  <div className="text-center">
+                    <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-2">
+                      <span className="text-2xl font-bold text-primary">
+                        {currentCandidate.first_name[0]}
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">No photo</p>
                   </div>
-                  <p className="text-sm text-muted-foreground">No photo</p>
                 </div>
-              </div>
-            )}
+              )}
+              
+              {/* Verification Badge */}
+              {currentCandidate.verification_status === 'verified' && (
+                <Badge className="absolute top-4 right-4 bg-success/90 backdrop-blur-sm">
+                  ✓ Verified
+                </Badge>
+              )}
+            </div>
           </div>
-
-          {/* Verification Badge */}
-          {currentCandidate.verification_status === 'verified' && (
-            <Badge className="absolute top-3 right-3 bg-success">
-              ✓ Verified
-            </Badge>
-          )}
         </div>
 
         <CardContent className="p-4">

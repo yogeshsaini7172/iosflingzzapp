@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, Shield, CheckCircle, AlertCircle } from 'lucide-react';
+import Loader from '@/components/ui/Loader';
 import { supabase } from '@/integrations/supabase/client';
 
 interface IDVerificationUploadProps {
@@ -294,11 +295,11 @@ const IDVerificationUpload: React.FC<IDVerificationUploadProps> = ({
           size="lg"
         >
           {isVerifying ? (
-            <>
-              <div className="animate-spin rounded-full w-4 h-4 border-b-2 border-white mr-2"></div>
-              Verifying...
-            </>
-          ) : (
+              <>
+                <Loader size={12} className="inline-block mr-2" />
+                Verifying...
+              </>
+            ) : (
             <>
               <Shield className="w-4 h-4 mr-2" />
               Verify Identity

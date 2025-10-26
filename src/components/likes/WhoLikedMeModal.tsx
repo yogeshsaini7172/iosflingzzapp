@@ -4,7 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Crown, MapPin, Eye } from "lucide-react";
+import { Heart, Crown, MapPin, Eye, X } from "lucide-react";
+import Loader from '@/components/ui/Loader';
 import { SubscriptionEnforcementService } from "@/services/subscriptionEnforcement";
 import { useToast } from "@/hooks/use-toast";
 import { useRequiredAuth } from "@/hooks/useRequiredAuth";
@@ -48,7 +49,7 @@ interface UserLike {
 const WhoLikedMeModal = ({ isOpen, onClose, onLike }: WhoLikedMeModalProps) => {
   const [likes, setLikes] = useState<UserLike[]>([]);
   const [loading, setLoading] = useState(true);
-  const [canSeeLikes, setCanSeeLikes] = useState(false);
+  const [canSeeLikes, setCanSeeLikes] = useState(true);
   const [selectedProfile, setSelectedProfile] = useState<UserLike | null>(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const { toast } = useToast();
@@ -84,13 +85,10 @@ const WhoLikedMeModal = ({ isOpen, onClose, onLike }: WhoLikedMeModalProps) => {
       setLoading(true);
       console.log('Fetching likes for user:', userId);
       
-      // Check permission first
-      const canSee = await SubscriptionEnforcementService.checkActionPermission('see_who_liked');
-      setCanSeeLikes(canSee);
-      
-      if (canSee) {
-        console.log('Fetching who liked me data...');
-        const result = await SubscriptionEnforcementService.getWhoLikedMe();
+      // Previously this used subscription gating. We now allow all users to see who liked them.
+      setCanSeeLikes(true);
+      console.log('Fetching who liked me data...');
+      const result = await SubscriptionEnforcementService.getWhoLikedMe();
         
         if (result.success && result.data) {
           const allUsers = result.data.users || [];
@@ -164,7 +162,7 @@ const WhoLikedMeModal = ({ isOpen, onClose, onLike }: WhoLikedMeModalProps) => {
           console.error("Failed to fetch likes:", result.error);
           setLikes([]);
         }
-      }
+      
     } catch (error) {
       console.error("Error fetching likes:", error);
       setLikes([]);
@@ -280,13 +278,18 @@ const WhoLikedMeModal = ({ isOpen, onClose, onLike }: WhoLikedMeModalProps) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Heart className="w-5 h-5 text-red-500" />
-            Who Liked You
-            {canSeeLikes && likes.length > 0 && (
-              <Badge variant="secondary">{likes.length}</Badge>
-            )}
-          </DialogTitle>
+          <div className="flex items-center justify-between w-full">
+            <DialogTitle className="flex items-center gap-2">
+              <Heart className="w-5 h-5 text-red-500" />
+              Who Liked You
+              {canSeeLikes && likes.length > 0 && (
+                <Badge variant="secondary">{likes.length}</Badge>
+              )}
+            </DialogTitle>
+            <Button size="sm" onClick={onClose} className="bg-pink-500 text-white hover:bg-pink-600 rounded-full p-2">
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
           <DialogDescription className="sr-only">
             See who liked your profile and like back to create a match.
           </DialogDescription>
@@ -295,7 +298,7 @@ const WhoLikedMeModal = ({ isOpen, onClose, onLike }: WhoLikedMeModalProps) => {
         <div className="flex-1 overflow-y-auto">
           {loading ? (
             <div className="flex justify-center items-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <Loader size={64} />
             </div>
           ) : !canSeeLikes ? (
             renderUpgradePrompt()

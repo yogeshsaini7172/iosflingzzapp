@@ -13,6 +13,7 @@ import {
   Shield,
   ArrowLeft
 } from "lucide-react";
+import Loader from "@/components/ui/Loader";
 import { useToast } from "@/hooks/use-toast";
 
 interface SubscriptionPageProps {
@@ -203,7 +204,7 @@ const SubscriptionPage = ({ onNavigate }: SubscriptionPageProps) => {
                   >
                     {isLoading ? (
                       <div className="flex items-center space-x-2">
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <Loader size={12} className="inline-block" />
                         <span>Activating...</span>
                       </div>
                     ) : (

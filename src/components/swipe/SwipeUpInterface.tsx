@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { RefreshCw, ArrowLeft } from "lucide-react";
+import Loader from '@/components/ui/Loader';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
@@ -195,7 +196,7 @@ const SwipeUpInterface: React.FC<SwipeUpInterfaceProps> = ({ onNavigate }) => {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-black via-purple-900 to-pink-900">
         <div className="text-center">
-          <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-6 text-pink-400" />
+          <Loader size={48} />
           <p className="text-white/70 text-lg">Authenticating...</p>
         </div>
       </div>
@@ -207,13 +208,7 @@ const SwipeUpInterface: React.FC<SwipeUpInterfaceProps> = ({ onNavigate }) => {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-black via-purple-900 to-pink-900">
         <div className="text-center space-y-4">
-          <div className="w-20 h-20 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-white/70 text-lg">Finding premium matches...</p>
-          <div className="flex justify-center space-x-2">
-            <div className="w-3 h-3 bg-pink-500 rounded-full animate-bounce"></div>
-            <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce delay-100"></div>
-            <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce delay-200"></div>
-          </div>
+          <Loader size={64} text={"Finding premium matches..."} />
         </div>
       </div>
     );

@@ -6,8 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ArrowRight, Upload, Plus, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Upload, Plus, X, Loader2 } from "lucide-react";
+import Loader from "@/components/ui/Loader";
 import ProgressIndicator from "../onboarding/ProgressIndicator";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { fetchWithFirebaseAuth } from "@/lib/fetchWithFirebaseAuth";
 
 interface EnhancedProfileCreationProps {
   onComplete: () => void;
@@ -15,7 +19,10 @@ interface EnhancedProfileCreationProps {
 }
 
 const EnhancedProfileCreation = ({ onComplete, onBack }: EnhancedProfileCreationProps) => {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -57,11 +64,101 @@ const EnhancedProfileCreation = ({ onComplete, onBack }: EnhancedProfileCreation
     "Fashion", "Food", "Nature", "Pets", "Writing", "Volunteering"
   ];
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     } else {
+      await handleSubmit();
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!user?.uid) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to create a profile",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate required fields
+    if (!formData.firstName || !formData.lastName || !formData.dateOfBirth || !formData.gender) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Prepare bio from prompts
+      const bio = formData.selectedPrompts
+        .map(prompt => `${prompt} ${formData.prompts[prompt] || ''}`)
+        .join('\n\n');
+
+      const profileData = {
+        userId: user.uid,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        dateOfBirth: formData.dateOfBirth,
+        gender: formData.gender,
+        university: formData.university,
+        fieldOfStudy: formData.major,
+        yearOfStudy: formData.yearOfStudy ? parseInt(formData.yearOfStudy) : undefined,
+        bio: bio,
+        profileImages: formData.photos,
+        interests: formData.selectedInterests,
+        relationshipGoals: [formData.preferences.lookingFor],
+        isProfilePublic: true,
+        email: user.email || '',
+        preferences: {
+          preferredGender: formData.preferences.gender === 'all' 
+            ? ['male', 'female', 'non_binary'] 
+            : [formData.preferences.gender],
+          ageRangeMin: 18,
+          ageRangeMax: 30,
+        },
+      };
+
+      console.log('Submitting profile data:', profileData);
+
+      const response = await fetchWithFirebaseAuth(
+        'https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/profile-completion',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(profileData),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error || 'Failed to create profile');
+      }
+
+      const result = await response.json();
+      console.log('Profile created successfully:', result);
+
+      toast({
+        title: "Profile Created! 🎉",
+        description: "Your profile has been created successfully",
+      });
+
       onComplete();
+    } catch (error) {
+      console.error('Profile creation error:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create profile",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -413,10 +510,20 @@ const EnhancedProfileCreation = ({ onComplete, onBack }: EnhancedProfileCreation
           </Button>
           <Button
             onClick={handleNext}
+            disabled={isSubmitting}
             className="bg-gradient-primary flex items-center gap-2"
           >
-            {currentStep === totalSteps ? "Complete Profile" : "Next"}
-            <ArrowRight className="w-4 h-4" />
+            {isSubmitting ? (
+              <>
+                <Loader size={16} className="inline-block" />
+                Creating Profile...
+              </>
+            ) : (
+              <>
+                {currentStep === totalSteps ? "Complete Profile" : "Next"}
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
           </Button>
         </div>
       </div>

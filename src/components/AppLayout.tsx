@@ -4,11 +4,12 @@ import {
   User,
   MessageCircle,
   Search,
-  Calendar,
+  MessageSquare,
   Settings,
   LogOut,
   Sparkles,
 } from "lucide-react";
+import Loader from '@/components/ui/Loader';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +23,7 @@ type View =
   | "matches"
   | "chat"
   | "profile"
-  | "blind-date";
+  | "consulting";
 
 interface User {
   id: string;
@@ -90,18 +91,19 @@ const AppLayout = ({ children, currentView, onViewChange }: AppLayoutProps) => {
       description: "Conversations",
     },
     {
-      id: "blind-date" as View,
-      label: "Blind Dates",
-      icon: <Calendar className="h-5 w-5" />,
-      description: "Coming Soon",
-      disabled: true,
+      id: "consulting" as View,
+      label: "Consulting",
+      icon: <MessageSquare className="h-5 w-5" />,
+      description: "Get Advice",
     },
   ];
 
   if (!currentUser) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-elegant">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="text-center">
+          <Loader size={48} />
+        </div>
       </div>
     );
   }
@@ -158,9 +160,8 @@ const AppLayout = ({ children, currentView, onViewChange }: AppLayoutProps) => {
                   currentView === item.id
                     ? "bg-gradient-primary text-white shadow-royal"
                     : "hover:bg-muted/50"
-                } ${item.disabled ? "opacity-50 cursor-not-allowed" : ""}`}
-                onClick={() => !item.disabled && onViewChange(item.id)}
-                disabled={item.disabled}
+                }`}
+                onClick={() => onViewChange(item.id)}
               >
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center space-x-3">

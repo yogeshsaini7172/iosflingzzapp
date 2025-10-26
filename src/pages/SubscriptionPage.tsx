@@ -1,234 +1,167 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Check, Crown, Zap, Heart, ArrowLeft, Sparkles, Star } from 'lucide-react';
-import { toast } from 'sonner';
-import UnifiedLayout from '@/components/layout/UnifiedLayout';
+import React, { useEffect, useState } from 'react';
+import HeartAnimation from '@/components/ui/HeartAnimation';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from '@/hooks/use-toast';
+import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
+import { SUBSCRIPTION_PLANS, type PlanId } from '@/config/subscriptionPlans';
 
-interface SubscriptionPageProps {
-  onNavigate: (view: string) => void;
-}
+type UiPlan = { id: string; name: string; amount: number; description?: string };
 
-const SubscriptionPage = ({ onNavigate }: SubscriptionPageProps) => {
-  const [selectedPlan, setSelectedPlan] = useState<string>('premium');
-  const [isLoading, setIsLoading] = useState(false);
+// Build UI plans from the single source of truth
+const PLANS: UiPlan[] = Object.values(SUBSCRIPTION_PLANS).map((p) => ({ id: p.id, name: p.display_name, amount: p.price_monthly_inr, description: p.display_name }));
 
-  const plans = [
-    {
-      id: 'free',
-      name: 'Free',
-      price: 0,
-      interval: 'forever',
-      description: 'Basic features to get started',
-      features: [
-        '20 daily swipes',
-        'Basic matching',
-        'Limited chat requests',
-        'Standard profile visibility'
-      ],
-      color: 'border-border',
-      popular: false,
-      icon: Heart
-    },
-    {
-      id: 'premium',
-      name: 'Premium',
-      price: 19.99,
-      interval: 'month',
-      description: 'Enhanced matching experience',
-      features: [
-        'Unlimited swipes',
-        'Advanced AI matching',
-        'Priority profile visibility',
-        'See who liked you',
-        'Unlimited chat requests',
-        'Premium badges',
-        'Advanced filters'
-      ],
-      color: 'border-primary',
-      popular: true,
-      icon: Zap
-    },
-    {
-      id: 'elite',
-      name: 'Elite',
-      price: 39.99,
-      interval: 'month',
-      description: 'Ultimate dating experience',
-      features: [
-        'Everything in Premium',
-        'VIP profile boost',
-        'Exclusive match suggestions',
-        'Personal compatibility coach',
-        'Read receipts',
-        'Priority customer support',
-        'Elite member badge'
-      ],
-      color: 'border-amber-500',
-      popular: false,
-      icon: Crown
+// Use Vite env variables (must be prefixed with VITE_ in .env files)
+const rawFunctionsBase = (import.meta.env.VITE_SUPABASE_FUNCTIONS_URL as string) || (import.meta.env.VITE_SUPABASE_URL as string) || 'https://<project>.supabase.co';
+// Ensure we call the Edge Functions path; if user supplied the project root, append /functions/v1
+const FUNCTIONS_BASE = rawFunctionsBase.includes('/functions') ? rawFunctionsBase : rawFunctionsBase.replace(/\/$/, '') + '/functions/v1';
+const RAZORPAY_KEY = (import.meta.env.VITE_RAZORPAY_KEY_ID as string) || (import.meta.env.VITE_RAZORPAY_KEY as string) || undefined;
+
+const SubscriptionPage: React.FC = () => {
+  const { user } = useAuth();
+  const [loadingPlan, setLoadingPlan] = useState('');
+  const [paymentError, setPaymentError] = useState('');
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [successDetails, setSuccessDetails] = useState<{ plan: string; amount: number; paymentId: string } | null>(null);
+
+  useEffect(() => {
+    // Load Razorpay SDK if not present
+    if (typeof window !== 'undefined' && !(window as unknown as { Razorpay?: unknown }).Razorpay) {
+      const s = document.createElement('script');
+      s.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      s.async = true;
+      document.body.appendChild(s);
     }
-  ];
+  }, []);
 
-  const handleSubscribe = async (planId: string) => {
-    setIsLoading(true);
+  const handlePayment = async (plan: UiPlan) => {
+    setPaymentError('');
+    setPaymentSuccess(false);
+    setLoadingPlan(plan.name);
+
+    if (!user) {
+      setPaymentError('Please sign in to purchase a plan.');
+      setLoadingPlan('');
+      return;
+    }
+    if (!RAZORPAY_KEY) {
+      setPaymentError('Payment configuration missing on client. Please set VITE_RAZORPAY_KEY_ID in your .env file and restart the dev server.');
+      setLoadingPlan('');
+      return;
+    }
+
     try {
-      // Simulate subscription process
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      if (planId === 'free') {
-        toast.success('You\'re already on the free plan!');
-      } else {
-        toast.success(`Successfully subscribed to ${plans.find(p => p.id === planId)?.name} plan!`);
+      const url = `${FUNCTIONS_BASE}/create-subscription-order`;
+      const createResp = await fetchWithFirebaseAuth(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: plan.amount, currency: 'INR', receipt: `receipt_${plan.id}_${Date.now()}`, plan: plan.id })
+      });
+
+      if (!createResp.ok) {
+        const err = await createResp.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to create order');
       }
-    } catch (error) {
-      toast.error('Subscription failed. Please try again.');
-    } finally {
-      setIsLoading(false);
+
+      const createData: { orderId: string; amount: number; currency: string; subscriptionId: string } = await createResp.json();
+
+      type RazorpayHandlerResponse = { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string };
+      type RazorpayOptions = {
+        key: string | undefined;
+        amount: number;
+        currency: string;
+        name: string;
+        description: string;
+        order_id: string;
+        prefill?: { email?: string };
+        theme?: { color?: string };
+        handler: (response: RazorpayHandlerResponse) => Promise<void> | void;
+      };
+
+      const options: RazorpayOptions = {
+        key: RAZORPAY_KEY,
+        amount: createData.amount,
+        currency: createData.currency,
+        name: 'Flingzz Subscription',
+        description: `Payment for ${plan.name} plan`,
+        order_id: createData.orderId,
+        prefill: { email: user.email },
+        theme: { color: '#6366f1' },
+        handler: async (response: RazorpayHandlerResponse) => {
+          try {
+            const verifyUrl = `${FUNCTIONS_BASE}/verify-subscription-payment`;
+            const verifyResp = await fetchWithFirebaseAuth(verifyUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ razorpay_payment_id: response.razorpay_payment_id, razorpay_order_id: response.razorpay_order_id, razorpay_signature: response.razorpay_signature, subscriptionId: createData.subscriptionId })
+            });
+
+            const verifyData = await verifyResp.json();
+            if (verifyResp.ok && verifyData.success) {
+              setPaymentSuccess(true);
+              setSuccessDetails({ plan: plan.name, amount: plan.amount, paymentId: response.razorpay_payment_id });
+              toast({ title: 'Payment successful', description: 'Subscription activated.' });
+            } else {
+              const err = verifyData.error || 'Payment verification failed';
+              setPaymentError(err);
+              toast({ title: 'Payment error', description: err, variant: 'destructive' });
+            }
+          } catch (err: unknown) {
+            const msg = err && typeof err === 'object' && 'message' in err ? (err as { message?: string }).message : String(err);
+            setPaymentError(msg || 'Verification request failed');
+            toast({ title: 'Payment error', description: msg || 'Verification request failed', variant: 'destructive' });
+          } finally {
+            setLoadingPlan('');
+          }
+        }
+      };
+
+  // Access Razorpay from window with a typed constructor
+  type RazorpayConstructor = new (opts: RazorpayOptions) => { open: () => void };
+  const RazorpayCtor = (window as unknown as { Razorpay?: RazorpayConstructor }).Razorpay;
+  if (!RazorpayCtor) throw new Error('Razorpay checkout SDK not loaded');
+  const rzp = new RazorpayCtor(options);
+      rzp.open();
+    } catch (err: unknown) {
+      console.error('Payment flow error', err);
+      const message = err && typeof err === 'object' && 'message' in err ? (err as { message?: string }).message : String(err);
+      setPaymentError(message || 'An unknown error occurred');
+      setLoadingPlan('');
     }
   };
 
   return (
-    <UnifiedLayout title="Subscription Plans">
-      <div className="container mx-auto px-4 py-6">
-        {/* Header */}
-        <div className="mb-8">
-          <Button
-            variant="ghost"
-            onClick={() => onNavigate('profile')}
-            className="mb-4 hover:bg-muted/80"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Profile
-          </Button>
-          
-          <div className="text-center">
-            <h1 className="text-4xl font-elegant font-bold text-gradient-primary mb-4">
-              Choose Your Plan
-            </h1>
-            <p className="text-lg text-muted-foreground mb-2">
-              Unlock premium features and find your perfect match faster
-            </p>
-            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <Sparkles className="w-4 h-4 text-amber-500" />
-              <span>30-day money-back guarantee</span>
-            </div>
-          </div>
-        </div>
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-4">Choose a plan</h2>
 
-        {/* Plans Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {plans.map((plan) => {
-            const IconComponent = plan.icon;
-            return (
-              <Card 
-                key={plan.id} 
-                className={`relative transition-all duration-200 hover:shadow-xl ${
-                  selectedPlan === plan.id ? 'ring-2 ring-primary' : ''
-                } ${plan.color} ${
-                  plan.popular ? 'scale-105 shadow-lg' : ''
-                }`}
-                onClick={() => setSelectedPlan(plan.id)}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <Badge className="bg-gradient-primary text-white px-6 py-1">
-                      <Crown className="w-3 h-3 mr-1" />
-                      Most Popular
-                    </Badge>
-                  </div>
-                )}
-                
-                <CardHeader className="text-center pb-2">
-                  <div className="flex items-center justify-center mb-4">
-                    <IconComponent className={`w-8 h-8 ${
-                      plan.id === 'free' ? 'text-muted-foreground' :
-                      plan.id === 'premium' ? 'text-primary' :
-                      'text-amber-500'
-                    }`} />
-                  </div>
-                  
-                  <CardTitle className="text-2xl font-bold mb-2">{plan.name}</CardTitle>
-                  <div className="mb-2">
-                    <span className="text-4xl font-bold">
-                      ${plan.price}
-                    </span>
-                    {plan.price > 0 && (
-                      <span className="text-muted-foreground">/{plan.interval}</span>
-                    )}
-                  </div>
-                  <p className="text-sm text-muted-foreground">{plan.description}</p>
-                </CardHeader>
-                
-                <CardContent className="pt-2">
-                  <div className="space-y-3 mb-6">
-                    {plan.features.map((feature, index) => (
-                      <div key={index} className="flex items-start gap-3">
-                        <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <Button
-                    className={`w-full ${
-                      plan.popular 
-                        ? 'bg-gradient-primary hover:opacity-90' 
-                        : plan.id === 'elite'
-                          ? 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700'
-                          : ''
-                    }`}
-                    variant={plan.id === 'free' ? 'outline' : 'default'}
-                    onClick={() => handleSubscribe(plan.id)}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                    ) : null}
-                    {plan.id === 'free' ? 'Current Plan' : `Subscribe to ${plan.name}`}
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })}
+      {paymentSuccess && successDetails && (
+        <div className="bg-success/90 text-white p-4 rounded mb-4">
+          <div>Payment successful!</div>
+          <div>Plan: {successDetails.plan}</div>
+          <div>Amount: ₹{successDetails.amount}</div>
         </div>
+      )}
 
-        {/* Features Comparison */}
-        <div className="mt-16 text-center">
-          <h2 className="text-2xl font-bold mb-8">Why upgrade to Premium?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Heart className="w-8 h-8 text-primary" />
-              </div>
-              <h3 className="font-semibold mb-2">Better Matches</h3>
-              <p className="text-muted-foreground text-sm">
-                AI-powered compatibility scoring finds your perfect match
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Zap className="w-8 h-8 text-primary" />
-              </div>
-              <h3 className="font-semibold mb-2">Unlimited Access</h3>
-              <p className="text-muted-foreground text-sm">
-                No limits on swipes, likes, or conversations
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Crown className="w-8 h-8 text-primary" />
-              </div>
-              <h3 className="font-semibold mb-2">Premium Features</h3>
-              <p className="text-muted-foreground text-sm">
-                Exclusive features and priority support
-              </p>
-            </div>
+      {paymentError && (
+        <div className="bg-red-600 text-white p-4 rounded mb-4">{paymentError}</div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {PLANS.map((plan) => (
+          <div key={plan.name} className="bg-card p-6 rounded shadow">
+            <h3 className="font-semibold text-lg">{plan.name}</h3>
+            <p className="text-muted-foreground">{plan.description}</p>
+            <div className="my-3 text-2xl">₹{plan.amount}</div>
+            <button
+              disabled={loadingPlan === plan.name}
+              onClick={() => handlePayment(plan)}
+              className="w-full py-2 bg-gradient-primary text-white rounded"
+            >
+              {loadingPlan === plan.name ? 'Processing...' : `Choose ${plan.name}`}
+            </button>
           </div>
-        </div>
+        ))}
       </div>
-    </UnifiedLayout>
+    </div>
   );
 };
 

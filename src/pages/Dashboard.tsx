@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Heart, MessageCircle, User, Zap, Settings, Eye, Star, Sparkles, TrendingUp } from 'lucide-react';
+import HeartAnimation from '@/components/ui/HeartAnimation';
 
 interface DashboardProps {
   onNavigate: (view: string) => void;
@@ -94,8 +95,8 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center shadow-lg">
-                <User className="w-6 h-6 text-white" />
+              <div className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg">
+                <HeartAnimation size={40} />
               </div>
               {userProfile.subscriptionTier === 'premium' && (
                 <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 rounded-full flex items-center justify-center">
@@ -203,15 +204,15 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
             </Button>
             
             <Button 
-              onClick={() => onNavigate('blind-date')} 
+              onClick={() => onNavigate('consulting')} 
               className="h-20 bg-gradient-to-r from-accent to-secondary hover:scale-105 hover:shadow-xl transition-all group relative overflow-hidden"
             >
               <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="flex items-center justify-center gap-4">
-                <Eye className="w-8 h-8 group-hover:scale-110 transition-transform" />
+                <MessageCircle className="w-8 h-8 group-hover:scale-110 transition-transform" />
                 <div className="text-center">
-                  <div className="text-lg font-bold text-white">Blind Date</div>
-                  <div className="text-sm text-white/90">Mystery connections</div>
+                  <div className="text-lg font-bold text-white">Consulting</div>
+                  <div className="text-sm text-white/90">Get personalized advice</div>
                 </div>
               </div>
             </Button>

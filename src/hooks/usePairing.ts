@@ -25,7 +25,7 @@ export const usePairing = () => {
       setLoading(true);
 
       // Use data-management function for pairing feed
-      const response = await fetchWithFirebaseAuth('https://cchvsqeqiavhanurnbeo.supabase.co/functions/v1/data-management', {
+      const response = await fetchWithFirebaseAuth('/functions/v1/data-management', {
         method: 'POST',
         body: JSON.stringify({ 
           action: 'get_pairing_feed',

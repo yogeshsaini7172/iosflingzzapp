@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Check, Crown, CreditCard, Shield } from "lucide-react";
+import Loader from '@/components/ui/Loader';
 import { useToast } from "@/hooks/use-toast";
 
 interface CheckoutPageProps {
@@ -169,11 +170,11 @@ const CheckoutPage = ({ selectedPlan, onBack, onSuccess }: CheckoutPageProps) =>
               className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90"
             >
               {isLoading ? (
-                <div className="flex items-center space-x-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Processing Payment...</span>
-                </div>
-              ) : (
+                  <div className="flex items-center space-x-2">
+                    <Loader size={12} className="inline-block" />
+                    <span>Processing Payment...</span>
+                  </div>
+                ) : (
                 <div className="flex items-center space-x-2">
                   <CreditCard className="w-4 h-4" />
                   <span>Pay {plan.price} - Start Premium</span>

@@ -1,0 +1,61 @@
+// This is an auto-generated file.
+
+apply plugin: 'com.android.application'
+apply plugin: 'com.google.gms.google-services'
+
+android {
+    namespace "com.atom.networking"    // ✅ FIX: Use compileSdk 35 as required by new dependencies
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.gradsync.app"
+        minSdk 23 // This was a necessary fix from before
+        // ✅ FIX: Use targetSdk 35 to match compileSdk
+        targetSdk 35
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    // ✅ FIX: Setting compile options to Java 17, a stable choice for modern AGP
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'androidx.appcompat:appcompat:1.7.0' // Updated to a modern, stable version
+
+    // Capacitor dependencies
+    implementation project(':capacitor-android')
+    implementation project(':capacitor-app')
+    implementation project(':capacitor-browser')
+    implementation project(':capacitor-haptics')
+    implementation project(':capacitor-keyboard')
+    implementation project(':capacitor-splash-screen')
+    implementation project(':capacitor-status-bar')
+    implementation project(':capacitor-firebase-authentication')
+
+    // Google services dependency
+    implementation 'com.google.android.gms:play-services-auth:21.2.0'
+    implementation 'com.google.firebase:firebase-firestore:26.0.2'
+    testImplementation 'junit:junit:4.13.2'
+
+    androidTestImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}
+
+
+
+
+if (hasProperty('postBuildExtras')) {
+    postBuildExtras()
+}

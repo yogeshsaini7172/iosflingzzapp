@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Phone, ArrowLeft, ArrowRight } from 'lucide-react';
+import Loader from '@/components/ui/Loader';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useAuth } from '@/contexts/AuthContext';
 import { preventRedirectAuth, showMobileAuthRecommendation } from '@/utils/mobileAuthFix';
@@ -21,6 +22,7 @@ const AuthPage = ({ onBack, onComplete }: AuthPageProps = {}) => {
   const [authStep, setAuthStep] = useState<'select' | 'phone-otp' | 'verify-otp'>('select');
   const [confirmationResult, setConfirmationResult] = useState<any>(null);
   const [isMobileBlocked, setIsMobileBlocked] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
   
   const { user, signInWithGoogle, signInWithPhone, verifyPhoneOTP } = useAuth();
   const digits = phone.replace(/\D/g, '');
@@ -48,6 +50,11 @@ const AuthPage = ({ onBack, onComplete }: AuthPageProps = {}) => {
     if (blocked) {
       showMobileAuthRecommendation();
     }
+  }, []);
+
+  useEffect(() => {
+    // Prevent initial static/logo flash by waiting for client hydration
+    setHydrated(true);
   }, []);
 
   const handlePhoneAuth = async (e: React.FormEvent) => {
@@ -108,6 +115,14 @@ const AuthPage = ({ onBack, onComplete }: AuthPageProps = {}) => {
       setIsLoading(false);
     }
   };
+
+  if (!hydrated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader size={72} />
+      </div>
+    );
+  }
 
   if (authStep === 'verify-otp') {
     return (

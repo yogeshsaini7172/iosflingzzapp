@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Brain, Zap, TrendingUp, Users, RefreshCw } from 'lucide-react';
+import Loader from '@/components/ui/Loader';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchWithFirebaseAuth } from '@/lib/fetchWithFirebaseAuth';
 
@@ -205,7 +206,7 @@ const QCSDisplay: React.FC<QCSDisplayProps> = ({
             >
               {isLoading ? (
                 <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader size={16} className="inline-block mr-2" />
                   Calculating QCS...
                 </>
               ) : (

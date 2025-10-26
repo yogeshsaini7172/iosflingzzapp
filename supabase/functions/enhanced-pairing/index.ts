@@ -64,6 +64,17 @@ function parseJSON(jsonString: any, fallback: any = {}): any {
   }
 }
 
+// Helper function to get array fields for new multi-select structure
+const getArrayField = (profile: any, field: string): string[] => {
+  if (profile[`${field}_array`]) {
+    return Array.isArray(profile[`${field}_array`]) ? profile[`${field}_array`] : [];
+  }
+  if (profile[field]) {
+    return Array.isArray(profile[field]) ? profile[field] : [profile[field]];
+  }
+  return [];
+};
+
 function calculateAge(dateOfBirth: string): number {
   const today = new Date();
   const birthDate = new Date(dateOfBirth);
@@ -136,15 +147,15 @@ function calculateCompatibility(userProfile: any, candidateProfile: any): any {
   // Mental compatibility
   // Shared interests
   maxMentalScore += 40;
-  const userInterests = userQualities.interests || [];
-  const candidateInterests = candidateQualities.interests || [];
+  const userInterests = getArrayField(userProfile, 'interests');
+  const candidateInterests = getArrayField(candidateProfile, 'interests');
   const sharedInterests = userInterests.filter((interest: string) => candidateInterests.includes(interest));
   mentalScore += Math.min(sharedInterests.length * 8, 40);
 
   // Relationship goals compatibility
   maxMentalScore += 30;
-  const userGoals = userQualities.relationship_goals || [];
-  const candidateGoals = candidateQualities.relationship_goals || [];
+  const userGoals = getArrayField(userProfile, 'relationship_goals');
+  const candidateGoals = getArrayField(candidateProfile, 'relationship_goals');
   const sharedGoals = userGoals.filter((goal: string) => candidateGoals.includes(goal));
   if (sharedGoals.length > 0) {
     mentalScore += 30;
@@ -152,10 +163,37 @@ function calculateCompatibility(userProfile: any, candidateProfile: any): any {
 
   // Values compatibility
   maxMentalScore += 30;
-  const userValues = userQualities.values || [];
-  const candidateValues = candidateQualities.values || [];
+  const userValues = getArrayField(userProfile, 'values');
+  const candidateValues = getArrayField(candidateProfile, 'values');
   const sharedValues = userValues.filter((value: string) => candidateValues.includes(value));
   mentalScore += Math.min(sharedValues.length * 10, 30);
+
+  // Lifestyle compatibility (drinking & smoking)
+  maxMentalScore += 20;
+  let lifestyleScore = 0;
+  
+  // Drinking compatibility
+  if (userProfile.drinking_habits && candidateProfile.drinking_habits) {
+    if (userProfile.drinking_habits === candidateProfile.drinking_habits) {
+      lifestyleScore += 10;
+    } else if (
+      (userProfile.drinking_habits === 'never' && candidateProfile.drinking_habits === 'socially') ||
+      (userProfile.drinking_habits === 'socially' && candidateProfile.drinking_habits === 'never')
+    ) {
+      lifestyleScore += 5; // Partial compatibility
+    }
+  }
+  
+  // Smoking compatibility
+  if (userProfile.smoking_habits && candidateProfile.smoking_habits) {
+    if (userProfile.smoking_habits === candidateProfile.smoking_habits) {
+      lifestyleScore += 10;
+    } else if (userProfile.smoking_habits === 'never' && candidateProfile.smoking_habits !== 'regularly') {
+      lifestyleScore += 3; // Slight compatibility
+    }
+  }
+  
+  mentalScore += lifestyleScore;
 
   const finalPhysicalScore = maxPhysicalScore > 0 ? Math.round((physicalScore / maxPhysicalScore) * 100) : 0;
   const finalMentalScore = maxMentalScore > 0 ? Math.round((mentalScore / maxMentalScore) * 100) : 0;
