@@ -19,30 +19,28 @@ workflows:
       - name: Build web assets
         script: |
           npm run build || echo "No build script found"
-          # Your webDir is 'dist', so ensure it's used
           npx cap copy ios
-
-      - name: Sync Capacitor iOS project
-        script: |
           npx cap sync ios
 
-      - name: Build iOS app
+      - name: Build iOS app (with automatic signing)
         script: |
-          xcodebuild -project "$XCODE_PROJECT" \
-          -scheme "$XCODE_SCHEME" \
-          -configuration Release \
-          -derivedDataPath build \
-          -archivePath build/App.xcarchive \
-          archive
+          xcodebuild \
+            -project "$XCODE_PROJECT" \
+            -scheme "$XCODE_SCHEME" \
+            -configuration Release \
+            -archivePath $CM_BUILD_DIR/ios_build/App.xcarchive \
+            DEVELOPMENT_TEAM="$APPLE_DEVELOPMENT_TEAM" \
+            clean archive
 
           xcodebuild -exportArchive \
-          -archivePath build/App.xcarchive \
-          -exportOptionsPlist ios/App/exportOptions.plist \
-          -exportPath build
+            -archivePath $CM_BUILD_DIR/ios_build/App.xcarchive \
+            -exportPath $CM_BUILD_DIR/ios_build \
+            -exportOptionsPlist <(echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?><plist version=\"1.0\"><dict><key>method</key><string>development</string><key>signingStyle</key><string>automatic</string></dict></plist>")
 
     artifacts:
-      - build/*.ipa
-      - build/**/*.xcarchive
+      - $CM_BUILD_DIR/ios_build/*.ipa
+      - $CM_BUILD_DIR/ios_build/**/*.xcarchive
+
 
     publishing:
       email:
