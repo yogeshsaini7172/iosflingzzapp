@@ -62,4 +62,4 @@ workflows:
     publishing:
       email:
         recipients:
-          - $yogeshsaini7172@gmail.com
+          - $APPLE_ID
