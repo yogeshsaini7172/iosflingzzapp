@@ -1,6 +1,6 @@
 workflows:
   ios-capacitor-build:
-    name: Build iOS app (Capacitor)
+    name: Build iOS app (FLINGZZ)
     max_build_duration: 60
     instance_type: mac_mini_m1
     environment:
@@ -9,17 +9,23 @@ workflows:
         XCODE_SCHEME: "App"
       node: latest
       xcode: latest
+
     scripts:
       - name: Install dependencies
         script: |
           npm install
           npm install @capacitor/cli
-      - name: Sync Capacitor iOS project
-        script: |
-          npx cap sync ios
+
       - name: Build web assets
         script: |
           npm run build || echo "No build script found"
+          # Your webDir is 'dist', so ensure it's used
+          npx cap copy ios
+
+      - name: Sync Capacitor iOS project
+        script: |
+          npx cap sync ios
+
       - name: Build iOS app
         script: |
           xcodebuild -project "$XCODE_PROJECT" \
@@ -33,9 +39,11 @@ workflows:
           -archivePath build/App.xcarchive \
           -exportOptionsPlist ios/App/exportOptions.plist \
           -exportPath build
+
     artifacts:
       - build/*.ipa
       - build/**/*.xcarchive
+
     publishing:
       email:
         recipients:
