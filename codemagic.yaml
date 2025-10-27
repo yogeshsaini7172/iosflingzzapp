@@ -3,10 +3,10 @@ workflows:
     name: Build iOS App
     environment:
       groups:
-        - apple_credentials          # 👈 use the group you created
+        - apple_credentials
       vars:
-        XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
+        XCODE_PROJECT: "ios/App/App.xcodeproj"
         BUNDLE_ID: "com.flingzz.iosapp"
       node: latest
       xcode: latest
@@ -18,26 +18,48 @@ workflows:
           npm run build
           npx cap sync ios
 
-      - name: Build iOS app
+      - name: Build and sign iOS app
         script: |
           cd ios/App
-          xcodebuild -workspace App.xcworkspace \
-            -scheme "$XCODE_SCHEME" \
+          xcodebuild -scheme "$XCODE_SCHEME" \
+            -project "$XCODE_PROJECT" \
             -configuration Release \
             -archivePath build/App.xcarchive archive \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
             PRODUCT_BUNDLE_IDENTIFIER="$BUNDLE_ID"
+          
+          # Create export options file for automatic signing
+          cat <<EOF > ExportOptions.plist
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>development</string>
+            <key>signingStyle</key>
+            <string>automatic</string>
+            <key>teamID</key>
+            <string>$APPLE_TEAM_ID</string>
+            <key>bundleIdentifier</key>
+            <string>$BUNDLE_ID</string>
+            <key>compileBitcode</key>
+            <false/>
+          </dict>
+          </plist>
+          EOF
+
           xcodebuild -exportArchive \
             -archivePath build/App.xcarchive \
-            -exportPath build \
-            -exportOptionsPlist ExportOptions.plist
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath build
 
     artifacts:
       - ios/App/build/*.ipa
-      - ios/App/build/**/*.dSYM.zip
       - ios/App/build/**/*.xcarchive
+      - ios/App/build/**/*.dSYM.zip
+
 
     publishing:
       email:
         recipients:
-          - $APPLE_ID
+          - $yogeshsaini7172@gmail.com
