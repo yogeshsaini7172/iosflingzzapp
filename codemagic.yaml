@@ -1,62 +1,44 @@
 workflows:
-  build-ios:
-    name: Build iOS App
+  build_ios:
+    name: Build iOS App (Capacitor)
     environment:
-      groups:
-        - apple_credentials
       vars:
-        XCODE_SCHEME: "App"
         XCODE_PROJECT: "ios/App/App.xcodeproj"
+        XCODE_SCHEME: "App"
+        APPLE_ID: "yogeshsaini7172@gmail.com"        # your Apple Developer email
+        APPLE_TEAM_ID: "A1B2C3D4E5"                  # your real Apple Team ID
         BUNDLE_ID: "com.flingzz.iosapp"
-      node: latest
+        BUILD_TYPE: "release"
       xcode: latest
-
+      node: 20
     scripts:
       - name: Install dependencies
         script: |
           npm install
-          npm run build
-          npx cap sync ios
-
-      - name: Build and sign iOS app
+          npm install -g @capacitor/cli
+      - name: Sync Capacitor
+        script: npx cap sync ios
+      - name: Build web assets
+        script: npm run build
+      - name: Build iOS
         script: |
           cd ios/App
-          xcodebuild -scheme "$XCODE_SCHEME" \
-            -project "$XCODE_PROJECT" \
+          xcodebuild -scheme "App" \
+            -project "$CM_BUILD_DIR/ios/App/App.xcodeproj" \
             -configuration Release \
-            -archivePath build/App.xcarchive archive \
+            -archivePath $CM_BUILD_DIR/build/App.xcarchive \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
-            PRODUCT_BUNDLE_IDENTIFIER="$BUNDLE_ID"
-          
-          # Create export options file for automatic signing
-          cat <<EOF > ExportOptions.plist
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>method</key>
-            <string>development</string>
-            <key>signingStyle</key>
-            <string>automatic</string>
-            <key>teamID</key>
-            <string>$APPLE_TEAM_ID</string>
-            <key>bundleIdentifier</key>
-            <string>$BUNDLE_ID</string>
-            <key>compileBitcode</key>
-            <false/>
-          </dict>
-          </plist>
-          EOF
-
+            PRODUCT_BUNDLE_IDENTIFIER="$BUNDLE_ID" \
+            archive
+      - name: Export IPA
+        script: |
           xcodebuild -exportArchive \
-            -archivePath build/App.xcarchive \
-            -exportOptionsPlist ExportOptions.plist \
-            -exportPath build
-
+            -archivePath $CM_BUILD_DIR/build/App.xcarchive \
+            -exportOptionsPlist $CM_BUILD_DIR/ios/App/exportOptions.plist \
+            -exportPath $CM_BUILD_DIR/build/ipa
     artifacts:
-      - ios/App/build/*.ipa
-      - ios/App/build/**/*.xcarchive
-      - ios/App/build/**/*.dSYM.zip
+      - build/ipa/*.ipa
+
 
 
     publishing:
